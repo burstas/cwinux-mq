@@ -1,0 +1,9 @@
+<?xml version='1.0'?>
+<svr_def>
+  <workdir path="/usr/home/wenbo/cwinux/project/mq/trunk/test_fetch"/>
+  <listen ip="172.16.42.58" port="9205"/>
+  <unix path="/usr/home/wenbo/cwinux/project/mq/trunk/mq/recv.sock"/>
+  <auth user="mq_fetch" passwd="mq_fetch_passwd" />
+  <queue name="test" />
+  <conn  num="1000" type="tcp" lasting="0" block="1"/>
+</svr_def>
