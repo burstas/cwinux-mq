@@ -9,14 +9,14 @@ int CwxMqMasterHandler::onConnCreated(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     ///创建往master报告sid的通信数据包
     CwxMsgBlock* pBlock = NULL;
-    int ret = CwxMqPoco::packReportData(pTss,
+    int ret = CwxMqPoco::packReportData(pTss->m_pWriter,
         pBlock,
         0,
         m_pApp->getBinLogMgr()->getMaxSid(),
         false,
         m_pApp->getConfig().getSlave().m_strSubScribe.c_str(),
-        m_pApp->getConfig().getSlave().m_master.getUser().c_str(),
-        m_pApp->getConfig().getSlave().m_master.getPasswd().c_str(),
+        m_pApp->getConfig().getSlave().m_master_bin.getUser().c_str(),
+        m_pApp->getConfig().getSlave().m_master_bin.getPasswd().c_str(),
         pTss->m_szBuf2K);
     if (ret != CWX_MQ_SUCCESS)
     {///数据包创建失败
@@ -28,7 +28,7 @@ int CwxMqMasterHandler::onConnCreated(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
     {
         ///发送消息
         pBlock->send_ctrl().setConnId(m_uiConnId);
-        pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_MASTER);
+        pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_MASTER_BIN);
         pBlock->send_ctrl().setHostId(0);
         pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
         if (0 != m_pApp->sendMsgByConn(pBlock))
@@ -62,7 +62,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
         CWX_UINT64 ullSid = 0;
         char const* szMsg = NULL;
         int ret = 0;
-        if (CWX_MQ_SUCCESS != CwxMqPoco::parseReportDataReply(pTss,
+        if (CWX_MQ_SUCCESS != CwxMqPoco::parseReportDataReply(pTss->m_pReader,
             msg,
             ret,
             ullSid,
@@ -84,7 +84,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
         CWX_UINT32 uiAttr;
         CwxKeyValueItem const* data;
         ///获取binlog的数据
-        if (CWX_MQ_SUCCESS != CwxMqPoco::parseSyncData(pTss, 
+        if (CWX_MQ_SUCCESS != CwxMqPoco::parseSyncData(pTss->m_pReader, 
             msg,
             ullSid,
             ttTimestamp,
@@ -120,7 +120,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
         }
         //回复发送者
         CwxMsgBlock* reply_block = NULL;
-        if (CWX_MQ_SUCCESS != CwxMqPoco::packSyncDataReply(pTss,
+        if (CWX_MQ_SUCCESS != CwxMqPoco::packSyncDataReply(pTss->m_pWriter,
             reply_block,
             msg->event().getMsgHeader().getTaskId(),
             ullSid,
@@ -133,7 +133,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
             return 1;
         }
         reply_block->send_ctrl().setConnId(m_uiConnId);
-        reply_block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_MASTER);
+        reply_block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_MASTER_BIN);
         reply_block->send_ctrl().setHostId(0);
         reply_block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
         if (0 != m_pApp->sendMsgByConn(reply_block))
@@ -144,7 +144,6 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
             m_pApp->noticeCloseConn(m_uiConnId);
             return 1;
         }
-        m_pApp->dispathWaitingBinlog(pTss);
     }else{
         CWX_ERROR(("Unknow msg type[%u]", msg->event().getMsgHeader().getMsgType()));
         m_pApp->noticeReconnect(m_uiConnId, RECONN_MASTER_DELAY_SECOND * 1000);
