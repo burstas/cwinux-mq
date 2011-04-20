@@ -1,8 +1,8 @@
-#include "CwxMqFetchHandler.h"
+#include "CwxMqMcFetchHandler.h"
 #include "CwxMqApp.h"
 
 ///连接建立后，需要维护连接上数据的分发
-int CwxMqFetchHandler::onConnCreated(CwxMsgBlock*& msg, CwxAppTss* )
+int CwxMqMcFetchHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* )
 {
     ///连接必须必须不存在
     CWX_ASSERT(m_fetchConns.m_clientMap.find(msg->event().getConnId()) == m_fetchConns.m_clientMap.end());
@@ -16,7 +16,7 @@ int CwxMqFetchHandler::onConnCreated(CwxMsgBlock*& msg, CwxAppTss* )
 }
 
 ///连接关闭后，需要清理环境
-int CwxMqFetchHandler::onConnClosed(CwxMsgBlock*& msg, CwxAppTss* )
+int CwxMqMcFetchHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss* )
 {
     map<CWX_UINT32, CwxMqFetchConn*>::iterator iter = m_fetchConns.m_clientMap.find(msg->event().getConnId());
     ///连接必须存在
@@ -36,7 +36,7 @@ int CwxMqFetchHandler::onConnClosed(CwxMsgBlock*& msg, CwxAppTss* )
 
 
 ///echo请求的处理函数
-int CwxMqFetchHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
+int CwxMqMcFetchHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
     map<CWX_UINT32, CwxMqFetchConn*>::iterator iter = m_fetchConns.m_clientMap.find(msg->event().getConnId());
     ///连接必须存在
@@ -170,7 +170,7 @@ int CwxMqFetchHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
 }
 
 ///处理binlog发送完毕的消息
-int CwxMqFetchHandler::onEndSendMsg(CwxMsgBlock*& msg, CwxAppTss* pTss)
+int CwxMqMcFetchHandler::onEndSendMsg(CwxMsgBlock*& msg, CwxTss* pTss)
 {
     CwxMqQueue* pQueue = m_pApp->getQueueMgr()->getQueue(msg->event().m_uiArg);
     CWX_ASSERT(pQueue);
@@ -196,7 +196,7 @@ int CwxMqFetchHandler::onEndSendMsg(CwxMsgBlock*& msg, CwxAppTss* pTss)
 }
 
 ///处理发送失败的binlog
-int CwxMqFetchHandler::onFailSendMsg(CwxMsgBlock*& msg, CwxAppTss* )
+int CwxMqMcFetchHandler::onFailSendMsg(CwxMsgBlock*& msg, CwxTss* )
 {
     back(msg);
     msg = NULL;
@@ -204,7 +204,7 @@ int CwxMqFetchHandler::onFailSendMsg(CwxMsgBlock*& msg, CwxAppTss* )
 }
 
 ///处理继续发送的消息
-int CwxMqFetchHandler::onUserEvent(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
+int CwxMqMcFetchHandler::onUserEvent(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     map<CWX_UINT32, CwxMqFetchConn*>::iterator iter = m_fetchConns.m_clientMap.find(msg->event().getConnId());
@@ -221,7 +221,7 @@ int CwxMqFetchHandler::onUserEvent(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
 
 
 
-void CwxMqFetchHandler::dispatch(CwxMqTss* pTss)
+void CwxMqMcFetchHandler::dispatch(CwxMqTss* pTss)
 {
     CwxMqFetchConn * pConn = (CwxMqFetchConn *)m_fetchConns.m_connWaitTail.head();
     while(pConn)
@@ -232,7 +232,7 @@ void CwxMqFetchHandler::dispatch(CwxMqTss* pTss)
     }
 }
 
-CwxMsgBlock* CwxMqFetchHandler::packErrMsg(CwxMqTss* pTss,
+CwxMsgBlock* CwxMqMcFetchHandler::packErrMsg(CwxMqTss* pTss,
                         int iRet,
                         char const* szErrMsg
                         )
@@ -253,7 +253,7 @@ CwxMsgBlock* CwxMqFetchHandler::packErrMsg(CwxMqTss* pTss,
     return pBlock;
 }
 
-void CwxMqFetchHandler::reply(CwxMsgBlock* msg,
+void CwxMqMcFetchHandler::reply(CwxMsgBlock* msg,
            CWX_UINT32 uiConnId,
            CwxMqQueue* pQueue,
            int ret,
@@ -282,13 +282,13 @@ void CwxMqFetchHandler::reply(CwxMsgBlock* msg,
     }
 }
 
-void CwxMqFetchHandler::back(CwxMsgBlock* msg)
+void CwxMqMcFetchHandler::back(CwxMsgBlock* msg)
 {
     CwxMqQueue* pQueue = m_pApp->getQueueMgr()->getQueue(msg->event().m_uiArg);
     CWX_ASSERT(pQueue);
     pQueue->backMsg(msg);
 }
-void CwxMqFetchHandler::noticeContinue(CwxMqTss* , CWX_UINT32 uiConnId)
+void CwxMqMcFetchHandler::noticeContinue(CwxMqTss* , CWX_UINT32 uiConnId)
 {
     CwxMsgBlock* msg = CwxMsgBlockAlloc::malloc(0);
     msg->event().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
@@ -298,7 +298,7 @@ void CwxMqFetchHandler::noticeContinue(CwxMqTss* , CWX_UINT32 uiConnId)
 }
 
 ///发送消息
-void CwxMqFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
+void CwxMqMcFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
 {
     CwxMsgBlock* pBlock=NULL;
     int err_no = CWX_MQ_SUCCESS;

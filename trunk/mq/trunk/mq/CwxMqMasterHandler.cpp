@@ -2,7 +2,7 @@
 #include "CwxMqApp.h"
 
 ///连接建立后，需要往master报告sid
-int CwxMqMasterHandler::onConnCreated(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
+int CwxMqMasterHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
     ///保存连接ID
     m_uiConnId = msg->event().getConnId();
@@ -42,7 +42,7 @@ int CwxMqMasterHandler::onConnCreated(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
 }
 
 ///master的连接关闭后，需要清理环境
-int CwxMqMasterHandler::onConnClosed(CwxMsgBlock*& , CwxAppTss* )
+int CwxMqMasterHandler::onConnClosed(CwxMsgBlock*& , CwxTss* )
 {
     CWX_ERROR(("Master is closed."));
     m_uiConnId = 0;
@@ -51,7 +51,7 @@ int CwxMqMasterHandler::onConnClosed(CwxMsgBlock*& , CwxAppTss* )
 }
 
 ///接收来自master的消息
-int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
+int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
     if (!m_uiConnId) return 1;
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;

@@ -14,24 +14,24 @@
 class CwxMqApp;
 
 ///异步binlog分发的消息处理handler
-class CwxMqAsyncHandler : public CwxCmdOp
+class CwxMqMcAsyncHandler : public CwxCmdOp
 {
 public:
     ///构造函数
-    CwxMqAsyncHandler(CwxMqApp* pApp);
+    CwxMqMcAsyncHandler(CwxMqApp* pApp);
     ///析构函数
-    virtual ~CwxMqAsyncHandler();
+    virtual ~CwxMqMcAsyncHandler();
 public:
     ///连接建立后，需要维护连接上数据的分发
-    virtual int onConnCreated(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onConnCreated(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     ///连接关闭后，需要清理环境
-    virtual int onConnClosed(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onConnClosed(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     ///接收来自分发的回复信息及同步状态报告信息
-    virtual int onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     ///消息发送完毕
-    virtual int onEndSendMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onEndSendMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     ///处理新消息与继续发送的消息
-    virtual int onUserEvent(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onUserEvent(CwxMsgBlock*& msg, CwxTss* pThrEnv);
 public:
     void dispatch(CwxMqTss* pTss);
     ///0：未完成状态；

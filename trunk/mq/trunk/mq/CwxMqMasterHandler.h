@@ -34,11 +34,11 @@ public:
     }
 public:
     ///连接建立后，需要往master报告sid
-    virtual int onConnCreated(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onConnCreated(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     ///master的连接关闭后，需要清理环境
-    virtual int onConnClosed(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onConnClosed(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     ///接收来自master的消息
-    virtual int onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
 public:
     CWX_UINT32 getMasterConnId() const
     {

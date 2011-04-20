@@ -1,5 +1,5 @@
-#ifndef __CWX_MQ_FETCH_HANDLER_H__
-#define __CWX_MQ_FETCH_HANDLER_H__
+#ifndef __CWX_MQ_BIN_FETCH_HANDLER_H__
+#define __CWX_MQ_BIN_FETCH_HANDLER_H__
 /*
 版权声明：
     本软件遵循GNU LGPL（http://www.gnu.org/copyleft/lesser.html），
@@ -17,35 +17,32 @@
 
 class CwxMqApp;
 
-
-
-///Dispatch master处理收到的binlog handler
-class CwxMqFetchHandler: public CwxCmdOp
+class CwxMqBinFetchHandler: public CwxCmdOp
 {
 public:
     ///构造函数
-    CwxMqFetchHandler(CwxMqApp* pApp):m_pApp(pApp)
+    CwxMqBinFetchHandler(CwxMqApp* pApp):m_pApp(pApp)
     {
         m_bHaveWaiting = false;
     }
     ///析构函数
-    virtual ~CwxMqFetchHandler()
+    virtual ~CwxMqBinFetchHandler()
     {
 
     }
 public:
     ///连接建立后，需要维护连接上数据的分发
-    virtual int onConnCreated(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onConnCreated(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     ///连接关闭后，需要清理环境
-    virtual int onConnClosed(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onConnClosed(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     ///接收来自分发的回复信息及同步状态报告信息
-    virtual int onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     ///处理binlog发送完毕的消息
-    virtual int onEndSendMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onEndSendMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     ///处理发送失败的binlog
-    virtual int onFailSendMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onFailSendMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     ///处理继续发送的消息
-    virtual int onUserEvent(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onUserEvent(CwxMsgBlock*& msg, CwxTss* pThrEnv);
 public:
     void dispatch(CwxMqTss* pTss);
 private:

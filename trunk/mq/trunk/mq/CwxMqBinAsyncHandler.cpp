@@ -1,18 +1,18 @@
-#include "CwxMqAsyncHandler.h"
+#include "CwxMqBinAsyncHandler.h"
 #include "CwxMqApp.h"
 ///构造函数
-CwxMqAsyncHandler::CwxMqAsyncHandler(CwxMqApp* pApp):m_pApp(pApp)
+CwxMqBinAsyncHandler::CwxMqBinAsyncHandler(CwxMqApp* pApp):m_pApp(pApp)
 {
     m_dispatchConns = new CwxMqDispatchConnSet(pApp->getBinLogMgr());
 }
 ///析构函数
-CwxMqAsyncHandler::~CwxMqAsyncHandler()
+CwxMqBinAsyncHandler::~CwxMqBinAsyncHandler()
 {
     if (m_dispatchConns) delete m_dispatchConns;
 }
 
 ///连接建立后，需要维护连接上数据的分发
-int CwxMqAsyncHandler::onConnCreated(CwxMsgBlock*& msg, CwxAppTss* )
+int CwxMqBinAsyncHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* )
 {
     ///连接必须必须不存在
     CWX_ASSERT(m_dispatchConns->m_clientMap.find(msg->event().getConnId()) == m_dispatchConns->m_clientMap.end());
@@ -30,7 +30,7 @@ int CwxMqAsyncHandler::onConnCreated(CwxMsgBlock*& msg, CwxAppTss* )
 }
 
 ///连接关闭后，需要清理环境
-int CwxMqAsyncHandler::onConnClosed(CwxMsgBlock*& msg, CwxAppTss* )
+int CwxMqBinAsyncHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss* )
 {
     map<CWX_UINT32, CwxMqDispatchConn*>::iterator iter = m_dispatchConns->m_clientMap.find(msg->event().getConnId());
     ///连接必须存在
@@ -51,7 +51,7 @@ int CwxMqAsyncHandler::onConnClosed(CwxMsgBlock*& msg, CwxAppTss* )
 }
 
 ///接收来自分发的回复信息及同步状态报告信息
-int CwxMqAsyncHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
+int CwxMqBinAsyncHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
     map<CWX_UINT32, CwxMqDispatchConn*>::iterator iter = m_dispatchConns->m_clientMap.find(msg->event().getConnId());
     ///连接必须存在
@@ -258,7 +258,7 @@ int CwxMqAsyncHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
 }
 
 ///处理binlog发送完毕的消息
-int CwxMqAsyncHandler::onEndSendMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
+int CwxMqBinAsyncHandler::onEndSendMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
     map<CWX_UINT32, CwxMqDispatchConn*>::iterator iter = m_dispatchConns->m_clientMap.find(msg->event().getConnId());
     ///连接必须存在
@@ -296,7 +296,7 @@ int CwxMqAsyncHandler::onEndSendMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
 
 
 ///处理新消息的时间
-int CwxMqAsyncHandler::onUserEvent(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
+int CwxMqBinAsyncHandler::onUserEvent(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     CwxMqDispatchConn* conn = NULL;
@@ -320,7 +320,7 @@ int CwxMqAsyncHandler::onUserEvent(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
 }
 
 
-void CwxMqAsyncHandler::dispatch(CwxMqTss* pTss)
+void CwxMqBinAsyncHandler::dispatch(CwxMqTss* pTss)
 {
     int iState = 0;
     CwxMqDispatchConn* conn=(CwxMqDispatchConn *)m_dispatchConns->m_connTail.head();
@@ -345,7 +345,7 @@ void CwxMqAsyncHandler::dispatch(CwxMqTss* pTss)
 ///0：未完成状态；
 ///1：完成状态；
 ///-1：失败；
-int CwxMqAsyncHandler::sendBinLog(CwxMqApp* pApp,
+int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
                                   CwxMqDispatchConn* conn,
                                   CwxMqTss* pTss)
 {
@@ -506,7 +506,7 @@ int CwxMqAsyncHandler::sendBinLog(CwxMqApp* pApp,
     return 0; ///未完成状态
 }
 
-void CwxMqAsyncHandler::noticeContinue(CwxMqTss* , CwxMqDispatchConn* conn)
+void CwxMqBinAsyncHandler::noticeContinue(CwxMqTss* , CwxMqDispatchConn* conn)
 {
     if (!conn->m_bContinue)
     {

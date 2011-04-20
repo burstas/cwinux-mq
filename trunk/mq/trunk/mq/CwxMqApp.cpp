@@ -115,7 +115,7 @@ int CwxMqApp::initRunEnv()
         CwxAppFramework::THREAD_GROUP_USER_START,
         1);
     ///创建线程的tss对象
-    CwxAppTss** pTss = new CwxAppTss*[1];
+    CwxTss** pTss = new CwxTss*[1];
     pTss[0] = new CwxMqTss();
     ((CwxMqTss*)pTss[0])->init();
     ///启动线程
