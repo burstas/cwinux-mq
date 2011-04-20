@@ -5,7 +5,7 @@
     本软件遵循GNU LGPL（http://www.gnu.org/copyleft/lesser.html），
     联系方式：email:cwinux@gmail.com；微博:http://t.sina.com.cn/cwinux
 */
-#include "CwxAppCommander.h"
+#include "CwxCommander.h"
 #include "CwxMqMacro.h"
 #include "CwxPackageReader.h"
 #include "CwxPackageWriter.h"

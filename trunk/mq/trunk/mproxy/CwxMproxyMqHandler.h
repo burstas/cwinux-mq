@@ -5,7 +5,7 @@
     本软件遵循GNU LGPL（http://www.gnu.org/copyleft/lesser.html），
     联系方式：email:cwinux@gmail.com；微博:http://t.sina.com.cn/cwinux
 */
-#include "CwxAppCommander.h"
+#include "CwxCommander.h"
 #include "CwxAppTss.h"
 #include "CwxGlobalMacro.h"
 #include "CwxMqTss.h"
@@ -14,7 +14,7 @@ CWINUX_USING_NAMESPACE
 
 class CwxMproxyApp;
 ///请求的MQ消息回复的handle
-class CwxMproxyMqHandler : public CwxAppCmdOp 
+class CwxMproxyMqHandler : public CwxCmdOp 
 {
 public:
     ///构造函数
