@@ -18,6 +18,7 @@
 #include "CwxMqFetchHandler.h"
 #include "CwxMqSysFile.h"
 #include "CwxMqQueueMgr.h"
+#include "CwxThreadPool.h"
 
 ///应用信息定义
 #define CWX_MQ_VERSION "1.3.1"
@@ -32,11 +33,14 @@ public:
         MAX_MONITOR_REPLY_SIZE = 1024 * 1024,
         LOG_FILE_SIZE = 30, ///<每个可循环使用日志文件的MByte
         LOG_FILE_NUM = 7, ///<可循环使用日志文件的数量
-        SVR_TYPE_RECV = CwxAppFramework::SVR_TYPE_USER_START, ///<master接收的svr type
-        SVR_TYPE_ASYNC = CwxAppFramework::SVR_TYPE_USER_START + 1, ///<master/slave 异步分发的svr type
-        SVR_TYPE_MASTER = CwxAppFramework::SVR_TYPE_USER_START + 2, ///<slave 从master接收数据的svr type
-        SVR_TYPE_FETCH = CwxAppFramework::SVR_TYPE_USER_START + 3, ///<mq的消息获取服务类型
-        SVR_TYPE_MONITOR = CwxAppFramework::SVR_TYPE_USER_START + 4 ///<监控监听的服务类型
+        SVR_TYPE_RECV_BIN = CwxAppFramework::SVR_TYPE_USER_START, ///<master bin协议接收的svr type
+        SVR_TYPE_RECV_MC = CwxAppFramework::SVR_TYPE_USER_START + 1, ///<master mc协议接收的svr type
+        SVR_TYPE_ASYNC_BIN = CwxAppFramework::SVR_TYPE_USER_START + 2, ///<master/slave bin协议异步分发的svr type
+        SVR_TYPE_ASYNC_MC = CwxAppFramework::SVR_TYPE_USER_START + 3, ///<master/slave mc协议异步分发的svr type
+        SVR_TYPE_MASTER_BIN = CwxAppFramework::SVR_TYPE_USER_START + 4, ///<slave 从master接收数据的svr type
+        SVR_TYPE_FETCH_BIN = CwxAppFramework::SVR_TYPE_USER_START + 5, ///<mq bin协议消息获取服务类型
+        SVR_TYPE_FETCH_MC = CwxAppFramework::SVR_TYPE_USER_START + 6, ///<mq bin协议消息获取服务类型
+        SVR_TYPE_MONITOR = CwxAppFramework::SVR_TYPE_USER_START + 7 ///<监控监听的服务类型
     };
     enum
     {
@@ -81,7 +85,7 @@ public:
     ///-1:失败；0：成功
     int commit_mq(char* szErr2K);
     ///获取分发线程池
-    CwxAppThreadPool*  getWriteThreadPool() 
+    CwxThreadPool*  getWriteThreadPool() 
     {
         return m_pWriteThreadPool;///<消息接受的线程池对象
     }
@@ -253,14 +257,18 @@ private:
     CWX_UINT32                  m_uiMqUnCommitLogNum; ///<消息分发sys文件未commit的数量
     CWX_UINT64                  m_uiCurSid; ///<当前的sid
     CwxMqConfig                 m_config; ///<配置文件
-    CwxBinLogMgr*                m_pBinLogMgr; ///<binlog的管理对象
-    CwxMqAsyncHandler*      m_pAsyncHandler; ///<异步分发handle
-    CwxMqMasterHandler*     m_pMasterHandler; ///<从master接收消息的handle
-    CwxMqRecvHandler*       m_pRecvHandler; ///<接收binlog的handle。
-    CwxMqFetchHandler*      m_pFetchHandler; ///<mq获取的handle
-    CwxMqSysFile*           m_sysFile; ///<mq分发的分发点记录文件
-    CwxMqQueueMgr*          m_queueMgr; ///<队列管理器
-    CwxAppThreadPool*       m_pWriteThreadPool;///<消息接受的线程池对象
+    CwxBinLogMgr*               m_pBinLogMgr; ///<binlog的管理对象
+    CwxMqAsyncHandler*          m_pAsyncHandler; ///<异步分发handle
+    CwxMqMasterHandler*         m_pMasterHandler; ///<从master接收消息的handle
+    CwxMqRecvHandler*           m_pRecvHandler; ///<接收binlog的handle。
+    CwxMqFetchHandler*          m_pFetchHandler; ///<mq获取的handle
+    CwxMqSysFile*               m_sysFile; ///<mq分发的分发点记录文件
+    CwxMqQueueMgr*              m_queueMgr; ///<队列管理器
+    CwxThreadPool*              m_pRecvThreadPool;///<消息接受的线程池对象
+    CwxThreadPool*              m_pAsyncDispThreadPool; ///<消息异步分发的线程池对象
+    CwxAppChannel*              m_asyncDispChannel; ///<消息异步分发的channel
+    CwxThreadPool*              m_pMqThreadPool;       ///<mq获取的线程池对象
+    CwxAppChannel*              m_mqChannel;           ///<mq获取的channel
     string                  m_strStartTime; ///<启动时间
     char                    m_szBuf[MAX_MONITOR_REPLY_SIZE];///<监控消息的回复buf
 
