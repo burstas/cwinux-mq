@@ -61,6 +61,7 @@ public:
     {
         m_uiBinLogMSize = DEF_BINLOG_MSIZE;
         m_uiMgrMaxDay = CwxBinLogMgr::DEF_MANAGE_MAX_DAY;
+        m_bDelOutdayLogFile = false;
         m_uiFlushNum = 100;
         m_uiFlushSecond = 30;
         m_uiMqFetchFlushNum = 1;
@@ -71,6 +72,7 @@ public:
     string              m_strBinlogPrex; ///<binlog的文件的前缀
     CWX_UINT32          m_uiBinLogMSize; ///<binlog文件的最大大小，单位为M
     CWX_UINT32          m_uiMgrMaxDay; ///<管理的binglog的最小天数
+    bool                m_bDelOutdayLogFile; ///<是否删除不管理的消息文件
     CWX_UINT32          m_uiFlushNum; ///<接收多少条记录后，flush binlog文件
     CWX_UINT32          m_uiFlushSecond; ///<间隔多少秒，必须flush binlog文件
     CWX_UINT32          m_uiMqFetchFlushNum; ///<fetch多少条日志，必须flush获取点
@@ -175,12 +177,17 @@ private:
     bool fetchHost(CwxXmlFileConfigParser& parser,
         string const& path,
         CwxHostInfo& host);
+    bool fetchMq(CwxXmlFileConfigParser& parser,
+        string const& path,
+        CwxMqConfigMq&  mq);
+
 private:
     CwxMqConfigCmn  m_common; ///<common的配置信息
     CwxMqConfigBinLog m_binlog; ///<binlog的配置信息
     CwxMqConfigMaster m_master; ///<master的配置信息
     CwxMqConfigSlave  m_slave; ///<slave的配置信息
-    CwxMqConfigMq     m_mq; ///<mq的fetch的配置信息
+    CwxMqConfigMq     m_mq_bin; ///<mq的fetch的配置信息
+    CwxMqConfigMq     m_mq_mc; ///<mq的fetch的配置信息
     char                m_szErrMsg[2048];///<错误消息的buf
 };
 

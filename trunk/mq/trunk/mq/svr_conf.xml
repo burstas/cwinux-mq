@@ -8,7 +8,7 @@
     </common>
     <binlog >
     	<file path="/data1/mq_data/data/binlog"  prefix="binlog" max_mbyte="1024"/>
-    	<manage max_day="2"/>
+    	<manage max_day="2" del_out_file ="yes"/>
         <flush  log_num="100" second="1"/>
         <mq_flush fetch_num="100" second ="1"/>
     </binlog>
