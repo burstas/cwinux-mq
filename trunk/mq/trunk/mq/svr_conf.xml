@@ -3,7 +3,7 @@
     <common>
         <workdir path="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq"/>
         <server type="master"/>
-        <window   dispatch="256"  from_master="128"/>
+        <window sock_buf_kbyte="1024"  max_trunk_kbyte="1024"/>
         <monitor ip="172.16.42.65"  port="9109"/>
     </common>
     <binlog >
@@ -13,19 +13,30 @@
         <mq_flush fetch_num="100" second ="1"/>
     </binlog>
     <master>
-    	<recv keep_alive="no" user="recv" passwd="recv_passwd" ip="*" port="9100"  unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/recv.sock"/>
-    	<async keep_alive="no" user="async" passwd="async_passwd" ip="*" port="9101" unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/async.sock"/>
+    	<recv_bin keep_alive="no" user="recv" passwd="recv_passwd" ip="*" port="9100"  unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/recv.sock"/>
+        <recv_mc user="recv" passwd="recv_passwd" ip="*" port="9100"/>
+        <async_bin keep_alive="no" user="async" passwd="async_passwd" ip="*" port="9101" unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/async.sock"/>
+        <async_mc user="async" passwd="async_passwd" ip="*" port="9101" />
     </master>
     <slave>
-        <master keep_alive="yes" user="" passwd="" subscribe="*" ip="172.16.42.65" port="9101"/>
-        <async keep_alive="yes" user="" passwd="" ip="*" port="9101" unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/async.sock"/>
+        <master_bin keep_alive="yes" user="" passwd="" subscribe="*" ip="172.16.42.65" port="9101"/>
+        <async_bin keep_alive="yes" user="" passwd="" ip="*" port="9101" unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/async.sock"/>
+        <async_mc user="" passwd="" ip="*" port="9101" />
     </slave>
-    <mq>
+    <mq_bin>
         <listen keep_alive="no" ip="*" port="9202" unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/mq.sock"/>
         <queues>
             <queue  name="q1" user="u_q1" passwd="p_q1" subcribe="*" />
             <queue name="q2" user="u_q2" passwd="p_q2" subcribe="1:*" />
             <queue name="q3" user="u_q3" passwd="p_q3" subcribe="*:1,5,8" />
         </queues>
-    </mq>
+    </mq_bin>
+    <mq_mc>
+        <listen ip="*" port="9202"/>
+        <queues>
+            <queue  name="q1" user="u_q1" passwd="p_q1" subcribe="*" />
+            <queue name="q2" user="u_q2" passwd="p_q2" subcribe="1:*" />
+            <queue name="q3" user="u_q3" passwd="p_q3" subcribe="*:1,5,8" />
+        </queues>
+    </mq_mc>
 </mq>
