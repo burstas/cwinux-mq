@@ -62,14 +62,14 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
         CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [mq:common:window:max_trunk_kbyte].");
         return -1;
     }
-    m_common.m_uiTrunkSize = strtoul(pValue, NULL, 0);
-    if (m_common.m_uiTrunkSize < CwxMqConfigCmn::MIN_TRUNK_SIZE_KB)
+    m_common.m_uiChunkSize = strtoul(pValue, NULL, 0);
+    if (m_common.m_uiChunkSize < CwxMqConfigCmn::MIN_CHUNK_SIZE_KB)
     {
-        m_common.m_uiTrunkSize = CwxMqConfigCmn::MIN_TRUNK_SIZE_KB;
+        m_common.m_uiChunkSize = CwxMqConfigCmn::MIN_CHUNK_SIZE_KB;
     }
-    if (m_common.m_uiTrunkSize > CwxMqConfigCmn::MAX_TRUNK_BUF_KB)
+    if (m_common.m_uiChunkSize > CwxMqConfigCmn::MAX_CHUNK_SIZE_KB)
     {
-        m_common.m_uiTrunkSize = CwxMqConfigCmn::MAX_TRUNK_BUF_KB;
+        m_common.m_uiChunkSize = CwxMqConfigCmn::MAX_CHUNK_SIZE_KB;
     }
     //load mq:common:monitor
     if (!fetchHost(parser, "mq:common:monitor", m_common.m_monitor)) return -1;
@@ -437,7 +437,7 @@ void CwxMqConfig::outputConfig() const
     CWX_INFO(("*****************common*******************"));
     CWX_INFO(("workdir=%s", m_common.m_strWorkDir.c_str()));
     CWX_INFO(("server type=%s", m_common.m_bMaster?"master":"slave"));
-    CWX_INFO(("window sock_buf_kbyte=%u  trunk_kbyte=%u", m_common.m_uiSockBufSize, m_common.m_uiTrunkSize));
+    CWX_INFO(("window sock_buf_kbyte=%u  trunk_kbyte=%u", m_common.m_uiSockBufSize, m_common.m_uiChunkSize));
     CWX_INFO(("*****************binlog*******************"));
     CWX_INFO(("file path=%s prefix=%s max-file-size(Mbyte)=%u", m_binlog.m_strBinlogPath.c_str(), m_binlog.m_strBinlogPrex.c_str(), m_binlog.m_uiBinLogMSize));
     CWX_INFO(("manager binlog file max_day=%u  del_outday_logfile=%s", m_binlog.m_uiMgrMaxDay, m_binlog.m_bDelOutdayLogFile?"yes":"no"));

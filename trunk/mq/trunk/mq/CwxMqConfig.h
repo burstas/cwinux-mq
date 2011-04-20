@@ -27,22 +27,22 @@ public:
         DEF_SOCK_BUF_KB = 64,
         MIN_SOCK_BUF_KB = 4,
         MAX_SOCK_BUF_KB = 1024 * 1024,
-        DEF_TRUNK_SIZE_KB = 32,
-        MIN_TRUNK_SIZE_KB = 4,
-        MAX_TRUNK_BUF_KB = 1024 * 1024
+        DEF_CHUNK_SIZE_KB = 32,
+        MIN_CHUNK_SIZE_KB = 4,
+        MAX_CHUNK_SIZE_KB = 1024 * 1024
     };
 public:
     CwxMqConfigCmn()
     {
         m_bMaster = false;
         m_uiSockBufSize = DEF_SOCK_BUF_KB;
-        m_uiTrunkSize = DEF_TRUNK_SIZE_KB;
+        m_uiChunkSize = DEF_CHUNK_SIZE_KB;
     };
 public:
     string              m_strWorkDir;///<工作目录
     bool                m_bMaster; ///<是否是master dispatch
     CWX_UINT32          m_uiSockBufSize; ///<分发的socket连接的buf大小
-    CWX_UINT32          m_uiTrunkSize; ///<Trunk的大小
+    CWX_UINT32          m_uiChunkSize; ///<Trunk的大小
     CwxHostInfo         m_monitor; ///<监控监听
 };
 
