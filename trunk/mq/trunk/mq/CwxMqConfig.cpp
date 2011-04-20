@@ -42,34 +42,34 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
         return -1;
     }
     //load mq:common:window:dispatch
-    if ((NULL == (pValue=parser.getElementAttr("mq:common:window", "dispatch"))) || !pValue[0])
+    if ((NULL == (pValue=parser.getElementAttr("mq:common:window", "sock_buf_kbyte"))) || !pValue[0])
     {
-        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [mq:common:window:dispatch].");
+        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [mq:common:window:sock_buf_kbyte].");
         return -1;
     }
-    m_common.m_uiDispatchWindowSize = strtoul(pValue, NULL, 0);
-    if (m_common.m_uiDispatchWindowSize < CwxMqConfigCmn::MIN_ASYNC_WINDOW_SIZE)
+    m_common.m_uiSockBufSize = strtoul(pValue, NULL, 0);
+    if (m_common.m_uiSockBufSize < CwxMqConfigCmn::MIN_SOCK_BUF_KB)
     {
-        m_common.m_uiDispatchWindowSize = CwxMqConfigCmn::MIN_ASYNC_WINDOW_SIZE;
+        m_common.m_uiSockBufSize = CwxMqConfigCmn::MIN_SOCK_BUF_KB;
     }
-    if (m_common.m_uiDispatchWindowSize > CwxMqConfigCmn::MAX_ASYNC_WINDOW_SIZE)
+    if (m_common.m_uiSockBufSize > CwxMqConfigCmn::MAX_SOCK_BUF_KB)
     {
-        m_common.m_uiDispatchWindowSize = CwxMqConfigCmn::MAX_ASYNC_WINDOW_SIZE;
+        m_common.m_uiSockBufSize = CwxMqConfigCmn::MAX_SOCK_BUF_KB;
     }
     //load mq:common:window:from_master
-    if ((NULL == (pValue=parser.getElementAttr("mq:common:window", "from_master"))) || !pValue[0])
+    if ((NULL == (pValue=parser.getElementAttr("mq:common:window", "max_trunk_kbyte"))) || !pValue[0])
     {
-        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [mq:common:window:from_master].");
+        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [mq:common:window:max_trunk_kbyte].");
         return -1;
     }
-    m_common.m_uiFromMasterWindowSize = strtoul(pValue, NULL, 0);
-    if (m_common.m_uiFromMasterWindowSize < CwxMqConfigCmn::MIN_ASYNC_WINDOW_SIZE)
+    m_common.m_uiTrunkSize = strtoul(pValue, NULL, 0);
+    if (m_common.m_uiTrunkSize < CwxMqConfigCmn::MIN_TRUNK_SIZE_KB)
     {
-        m_common.m_uiFromMasterWindowSize = CwxMqConfigCmn::MIN_ASYNC_WINDOW_SIZE;
+        m_common.m_uiTrunkSize = CwxMqConfigCmn::MIN_TRUNK_SIZE_KB;
     }
-    if (m_common.m_uiFromMasterWindowSize > CwxMqConfigCmn::MAX_ASYNC_WINDOW_SIZE)
+    if (m_common.m_uiTrunkSize > CwxMqConfigCmn::MAX_TRUNK_BUF_KB)
     {
-        m_common.m_uiFromMasterWindowSize = CwxMqConfigCmn::MAX_ASYNC_WINDOW_SIZE;
+        m_common.m_uiTrunkSize = CwxMqConfigCmn::MAX_TRUNK_BUF_KB;
     }
     //load mq:common:monitor
     if (!fetchHost(parser, "mq:common:monitor", m_common.m_monitor)) return -1;

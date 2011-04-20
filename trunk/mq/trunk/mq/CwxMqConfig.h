@@ -24,22 +24,25 @@ class CwxMqConfigCmn
 public:
     enum
     {
-        MIN_ASYNC_WINDOW_SIZE = 1, ///<最小的异步分发的窗口大小
-        MAX_ASYNC_WINDOW_SIZE = 1024, ///<最大的异步分发的窗口大小
-        DEF_ASYNC_WINDOW_SIZE = 128 ///<缺省的异步分发的窗口大小
+        DEF_SOCK_BUF_KB = 64,
+        MIN_SOCK_BUF_KB = 4,
+        MAX_SOCK_BUF_KB = 1024 * 1024,
+        DEF_TRUNK_SIZE_KB = 32,
+        MIN_TRUNK_SIZE_KB = 4,
+        MAX_TRUNK_BUF_KB = 1024 * 1024
     };
 public:
     CwxMqConfigCmn()
     {
         m_bMaster = false;
-        m_uiDispatchWindowSize = DEF_ASYNC_WINDOW_SIZE;
-        m_uiFromMasterWindowSize = DEF_ASYNC_WINDOW_SIZE;
+        m_uiSockBufSize = DEF_SOCK_BUF_KB;
+        m_uiTrunkSize = DEF_TRUNK_SIZE_KB;
     };
 public:
     string              m_strWorkDir;///<工作目录
     bool                m_bMaster; ///<是否是master dispatch
-    CWX_UINT32          m_uiDispatchWindowSize; ///<发送的窗口大小
-    CWX_UINT32          m_uiFromMasterWindowSize; ///<从master接收的窗口大小
+    CWX_UINT32          m_uiSockBufSize; ///<分发的socket连接的buf大小
+    CWX_UINT32          m_uiTrunkSize; ///<Trunk的大小
     CwxHostInfo         m_monitor; ///<监控监听
 };
 
