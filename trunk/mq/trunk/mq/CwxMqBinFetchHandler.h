@@ -20,7 +20,7 @@ class CwxMqApp;
 
 
 ///Dispatch master处理收到的binlog handler
-class CwxMqFetchHandler: public CwxAppCmdOp
+class CwxMqFetchHandler: public CwxCmdOp
 {
 public:
     ///构造函数

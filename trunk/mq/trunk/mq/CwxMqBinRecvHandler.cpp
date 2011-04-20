@@ -1,8 +1,8 @@
-#include "CwxMqRecvHandler.h"
+#include "CwxMqBinRecvHandler.h"
 #include "CwxMqApp.h"
 
 ///连接建立后，需要维护连接上数据的分发
-int CwxMqRecvHandler::onConnCreated(CwxMsgBlock*& msg, CwxAppTss* )
+int CwxMqBinRecvHandler::onConnCreated(CwxMsgBlock*& msg, CwxAppTss* )
 {
     ///连接必须必须不存在
     CWX_ASSERT(m_clientMap.find(msg->event().getConnId()) == m_clientMap.end());
@@ -12,7 +12,7 @@ int CwxMqRecvHandler::onConnCreated(CwxMsgBlock*& msg, CwxAppTss* )
 }
 
 ///连接关闭后，需要清理环境
-int CwxMqRecvHandler::onConnClosed(CwxMsgBlock*& msg, CwxAppTss* )
+int CwxMqBinRecvHandler::onConnClosed(CwxMsgBlock*& msg, CwxAppTss* )
 {
     map<CWX_UINT32, bool>::iterator iter = m_clientMap.find(msg->event().getConnId());
     ///连接必须存在
@@ -23,7 +23,7 @@ int CwxMqRecvHandler::onConnClosed(CwxMsgBlock*& msg, CwxAppTss* )
 }
 
 ///echo请求的处理函数
-int CwxMqRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
+int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
 {
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     int iRet = CWX_MQ_SUCCESS;
@@ -47,7 +47,7 @@ int CwxMqRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
                 strcpy(pTss->m_szBuf2K, m_pApp->getBinLogMgr()->getInvalidMsg());
                 break;
             }
-            if (CWX_MQ_SUCCESS != CwxMqPoco::parseRecvData(pTss,
+            if (CWX_MQ_SUCCESS != CwxMqPoco::parseRecvData(pTss->m_pReader,
                 msg,
                 pData,
                 uiGroup,
@@ -62,10 +62,10 @@ int CwxMqRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
                 iRet = CWX_MQ_INVALID_MSG;
                 break;
             }
-            if (!bAuth && m_pApp->getConfig().getMaster().m_recv.getUser().length())
+            if (!bAuth && m_pApp->getConfig().getMaster().m_recv_bin.getUser().length())
             {
-                if ((m_pApp->getConfig().getMaster().m_recv.getUser() != user) ||
-                    (m_pApp->getConfig().getMaster().m_recv.getPasswd() != passwd))
+                if ((m_pApp->getConfig().getMaster().m_recv_bin.getUser() != user) ||
+                    (m_pApp->getConfig().getMaster().m_recv_bin.getPasswd() != passwd))
                 {
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
                     CWX_DEBUG((pTss->m_szBuf2K));
@@ -115,7 +115,7 @@ int CwxMqRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
         }
         else if(CwxMqPoco::MSG_TYPE_RECV_COMMIT == msg->event().getMsgHeader().getMsgType())
         {
-            if (CWX_MQ_SUCCESS != CwxMqPoco::parseCommit(pTss,
+            if (CWX_MQ_SUCCESS != CwxMqPoco::parseCommit(pTss->m_pReader,
                 msg,
                 user,
                 passwd,
@@ -126,10 +126,10 @@ int CwxMqRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
                 iRet = CWX_MQ_INVALID_MSG;
                 break;
             }
-            if (m_pApp->getConfig().getMaster().m_recv.getUser().length())
+            if (m_pApp->getConfig().getMaster().m_recv_bin.getUser().length())
             {
-                if ((m_pApp->getConfig().getMaster().m_recv.getUser() != user) ||
-                    (m_pApp->getConfig().getMaster().m_recv.getPasswd() != passwd))
+                if ((m_pApp->getConfig().getMaster().m_recv_bin.getUser() != user) ||
+                    (m_pApp->getConfig().getMaster().m_recv_bin.getPasswd() != passwd))
                 {
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
                     CWX_DEBUG((pTss->m_szBuf2K));
@@ -182,14 +182,9 @@ int CwxMqRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
             m_pApp->noticeCloseConn(msg->event().getConnId());
             return 1;
         }
-        if (CWX_MQ_SUCCESS == iRet)
-        {
-            //异步binlog
-            m_pApp->dispathWaitingBinlog(pTss);
-        }
     }
     pBlock->send_ctrl().setConnId(conn_iter->first);
-    pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_RECV);
+    pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_RECV_BIN);
     pBlock->send_ctrl().setHostId(0);
     pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
     if (0 != m_pApp->sendMsgByConn(pBlock))
@@ -202,7 +197,7 @@ int CwxMqRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
 }
 
 ///对于同步dispatch，需要检查同步的超时
-int CwxMqRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxAppTss* pThrEnv)
+int CwxMqBinRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxAppTss* pThrEnv)
 {
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     ///flush binlog
@@ -233,15 +228,11 @@ int CwxMqRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxAppTss* pThrEnv)
     {
         CWX_ERROR(("Failure to check sync log,err=%s", pTss->m_szBuf2K));
     }
-    if (1 == iRet)
-    {
-        m_pApp->dispathWaitingBinlog(pTss);
-    }
     return 1;
 }
 
 
-int CwxMqRecvHandler::commit(char* szErr2K)
+int CwxMqBinRecvHandler::commit(char* szErr2K)
 {
     int iRet = 0;
     CWX_INFO(("Begin flush bin log......."));
@@ -257,7 +248,7 @@ int CwxMqRecvHandler::commit(char* szErr2K)
 }
 
 ///-1:失败；0：成功
-int CwxMqRecvHandler::checkSyncLog(bool bNew, char* szErr2K)
+int CwxMqBinRecvHandler::checkSyncLog(bool bNew, char* szErr2K)
 {
     if (bNew) m_uiUnSyncLogNum ++;
     if (CwxMqPoco::isNeedSyncRecord(m_uiUnSyncLogNum, m_ttLastSyncTime))

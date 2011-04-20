@@ -13,7 +13,7 @@
 #include "CwxMqTss.h"
 #include "CwxMqPoco.h"
 #include "CwxMqAsyncHandler.h"
-#include "CwxMqRecvHandler.h"
+#include "CwxMqBinRecvHandler.h"
 #include "CwxMqMasterHandler.h"
 #include "CwxMqFetchHandler.h"
 #include "CwxMqSysFile.h"
@@ -80,8 +80,6 @@ public:
     ///消息发送失败
     virtual void onFailSendMsg(CwxMsgBlock*& msg);
 public:
-    ///分发等待中的binlog
-    void dispathWaitingBinlog(CwxMqTss* pTss);
     ///-1:失败；0：成功
     int commit_mq(char* szErr2K);
     ///获取分发线程池
@@ -187,7 +185,7 @@ public:
         return m_pMasterHandler;
     }
     ///获取master接收binlog的handler对象
-    inline CwxMqRecvHandler* getRecvHandler()
+    inline CwxMqBinRecvHandler* getRecvHandler()
     {
         return m_pRecvHandler;
     }
@@ -260,7 +258,7 @@ private:
     CwxBinLogMgr*               m_pBinLogMgr; ///<binlog的管理对象
     CwxMqAsyncHandler*          m_pAsyncHandler; ///<异步分发handle
     CwxMqMasterHandler*         m_pMasterHandler; ///<从master接收消息的handle
-    CwxMqRecvHandler*           m_pRecvHandler; ///<接收binlog的handle。
+    CwxMqBinRecvHandler*           m_pRecvHandler; ///<接收binlog的handle。
     CwxMqFetchHandler*          m_pFetchHandler; ///<mq获取的handle
     CwxMqSysFile*               m_sysFile; ///<mq分发的分发点记录文件
     CwxMqQueueMgr*              m_queueMgr; ///<队列管理器

@@ -1,28 +1,28 @@
-#ifndef __CWX_MQ_RECV_HANDLER_H__
-#define __CWX_MQ_RECV_HANDLER_H__
+#ifndef __CWX_MQ_BIN_RECV_HANDLER_H__
+#define __CWX_MQ_BIN_RECV_HANDLER_H__
 /*
 版权声明：
     本软件遵循GNU LGPL（http://www.gnu.org/copyleft/lesser.html），
     联系方式：email:cwinux@gmail.com；微博:http://t.sina.com.cn/cwinux
 */
-#include "CwxAppCommander.h"
+#include "CwxCommander.h"
 #include "CwxMqMacro.h"
 #include "CwxMqTss.h"
 class CwxMqApp;
 
 
-///Dispatch master处理收到的binlog handler
-class CwxMqRecvHandler: public CwxAppCmdOp
+///Dispatch master处理收到的bin协议的binlog handler
+class CwxMqBinRecvHandler: public CwxCmdOp
 {
 public:
     ///构造函数
-    CwxMqRecvHandler(CwxMqApp* pApp):m_pApp(pApp)
+    CwxMqBinRecvHandler(CwxMqApp* pApp):m_pApp(pApp)
     {
         m_uiUnSyncLogNum = 0; ///<上次形成sync记录以来的新记录数
         m_ttLastSyncTime = 0; ///<上一次形成sync记录的时间
     }
     ///析构函数
-    virtual ~CwxMqRecvHandler()
+    virtual ~CwxMqBinRecvHandler()
     {
 
     }

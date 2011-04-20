@@ -92,7 +92,7 @@ int CwxMqApp::initRunEnv()
     if (m_config.getCommon().m_bMaster)
     {
         ///注册数据接收handler
-        m_pRecvHandler = new CwxMqRecvHandler(this);
+        m_pRecvHandler = new CwxMqBinRecvHandler(this);
         getCommander().regHandle(SVR_TYPE_RECV, m_pRecvHandler);
     }else{
         ///注册slave的master数据接收handler
@@ -351,7 +351,8 @@ int CwxMqApp::startBinLogMgr()
         ullBinLogSize *= 1024 * 1024;
         m_pBinLogMgr = new CwxBinLogMgr(m_config.getBinLog().m_strBinlogPath.c_str(),
             m_config.getBinLog().m_strBinlogPrex.c_str(),
-            ullBinLogSize);
+            ullBinLogSize,
+            m_config.getBinLog().m_bDelOutdayLogFile);
         if (0 != m_pBinLogMgr->init(m_config.getBinLog().m_uiMgrMaxDay,
             CWX_APP_TSS_2K_BUF))
         {///<如果失败，则返回-1
@@ -613,12 +614,6 @@ int CwxMqApp::commit_mq(char* szErr2K)
     return iRet;
 }
 
-///分发新的binlog
-void CwxMqApp::dispathWaitingBinlog(CwxMqTss* pTss)
-{
-    m_pAsyncHandler->dispatch(pTss);
-    m_pFetchHandler->dispatch(pTss);
-}
 
 int CwxMqApp::monitorStats(CwxMsgBlock* msg, CwxAppHandler4Msg& conn)
 {

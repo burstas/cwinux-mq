@@ -1,5 +1,5 @@
-#ifndef __CWX_MQ_ASYNC_HANDLER_H__
-#define __CWX_MQ_ASYNC_HANDLER_H__
+#ifndef __CWX_MQ_BIN_ASYNC_HANDLER_H__
+#define __CWX_MQ_BIN_ASYNC_HANDLER_H__
 /*
 版权声明：
     本软件遵循GNU LGPL（http://www.gnu.org/copyleft/lesser.html），
@@ -14,7 +14,7 @@
 class CwxMqApp;
 
 ///异步binlog分发的消息处理handler
-class CwxMqAsyncHandler : public CwxAppCmdOp
+class CwxMqAsyncHandler : public CwxCmdOp
 {
 public:
     ///构造函数

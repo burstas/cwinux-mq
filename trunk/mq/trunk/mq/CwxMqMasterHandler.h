@@ -14,7 +14,7 @@
 class CwxMqApp;
 
 ///slave从master接收binlog的处理handle
-class CwxMqMasterHandler : public CwxAppCmdOp
+class CwxMqMasterHandler : public CwxCmdOp
 {
 public:
     enum
