@@ -1,9 +1,0 @@
-<?xml version='1.0'?>
-<svr_def>
-  <workdir path="/usr/home/wenbo/cwinux/project/mq/trunk/test_import"/>
-  <listen ip="172.16.42.56" port="9202"/>
-  <unix path="/usr/home/wenbo/cwinux/project/mq/trunk/mbus/recv.sock"/>
-  <conn  num="20000" type="tcp" lasting="0"/>
-  <auth user="mq_recv" passwd="mq_recv_passwd" />
-  <data  size="4096"/>
-</svr_def>
