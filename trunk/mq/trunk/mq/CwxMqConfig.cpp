@@ -72,8 +72,14 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
         m_common.m_uiChunkSize = CwxMqConfigCmn::MAX_CHUNK_SIZE_KB;
     }
     //load mq:common:monitor
-    if (!fetchHost(parser, "mq:common:monitor", m_common.m_monitor)) return -1;
-
+    if (parser.getElementNode("mq:common:monitor"))
+    {
+        if (!fetchHost(parser, "mq:common:monitor", m_common.m_monitor)) return -1;
+    }
+    else
+    {
+        m_common.m_monitor.reset();
+    }
     //load mq:binlog:file:path
     if ((NULL == (pValue=parser.getElementAttr("mq:binlog:file", "path"))) || !pValue[0])
     {

@@ -164,9 +164,13 @@ public:
     {
         return m_slave;
     }
-    inline CwxMqConfigMq const& getMq() const
+    inline CwxMqConfigMq const& getBinMq() const
     {
-        return m_mq;
+        return m_mq_bin;
+    }
+    inline CwxMqConfigMq const& getMcMq() const
+    {
+        return m_mq_mc;
     }
     ///获取配置文件加载的失败原因
     inline char const* getErrMsg() const 

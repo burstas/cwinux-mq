@@ -89,11 +89,6 @@ public:
     ///收到消息的响应函数
     virtual int onRecvMsg(CwxAppHandler4Msg& conn,
            bool& bSuspendConn);
-    ///消息发送完毕
-    virtual CWX_UINT32 onEndSendMsg(CwxMsgBlock*& msg,
-        CwxAppHandler4Msg& conn);
-    ///消息发送失败
-    virtual void onFailSendMsg(CwxMsgBlock*& msg);
 public:
     ///-1:失败；0：成功
     int commit_mq(char* szErr2K);
@@ -247,7 +242,7 @@ private:
     int startBinLogMgr();
     int startNetwork();
     ///stats命令，-1：因为错误关闭连接；0：不关闭连接
-    int monitorStats(CwxMsgBlock* msg, CwxAppHandler4Msg& conn);
+    int monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHandler4Msg& conn);
     ///形成监控内容，返回监控内容的长度
     CWX_UINT32 packMonitorInfo();
     ///分发channel的线程函数，arg为app对象
