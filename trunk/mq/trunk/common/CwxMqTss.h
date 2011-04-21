@@ -16,13 +16,13 @@
 */
 
 #include "CwxMqMacro.h"
-#include "CwxAppLogger.h"
-#include "CwxAppTss.h"
+#include "CwxLogger.h"
+#include "CwxTss.h"
 #include "CwxPackageReader.h"
 #include "CwxPackageWriter.h"
 
 //mq的tss
-class CwxMqTss:public CwxAppTss
+class CwxMqTss:public CwxTss
 {
 public:
     enum
@@ -31,7 +31,7 @@ public:
     };
 public:
     ///构造函数
-    CwxMqTss():CwxAppTss(new CwxAppTssInfo)
+    CwxMqTss():CwxTss(new CwxAppTssInfo)
     {
         m_pReader = NULL;
         m_pWriter = NULL;

@@ -4,14 +4,14 @@
 #include "CwxMqPoco.h"
 ///¹¹Ôìº¯Êý
 
-void CwxMproxyTask::noticeTimeout(CwxAppTss* )
+void CwxMproxyTask::noticeTimeout(CwxTss* )
 {
     setTaskState(CwxAppTaskBoardTask::TASK_STATE_FINISH);
     m_bReplyTimeout = true;
     CWX_DEBUG(("Task is timeout , task_id=%u", getTaskId()));
 }
 
-void CwxMproxyTask::noticeRecvMsg(CwxMsgBlock*& msg, CwxAppTss* , bool& )
+void CwxMproxyTask::noticeRecvMsg(CwxMsgBlock*& msg, CwxTss* , bool& )
 {
     CWX_ASSERT(m_uiSendConnId == msg->event().getConnId());
     m_mqReply = msg;
@@ -19,26 +19,26 @@ void CwxMproxyTask::noticeRecvMsg(CwxMsgBlock*& msg, CwxAppTss* , bool& )
     setTaskState(CwxAppTaskBoardTask::TASK_STATE_FINISH);
 }
 
-void CwxMproxyTask::noticeFailSendMsg(CwxMsgBlock*& , CwxAppTss* )
+void CwxMproxyTask::noticeFailSendMsg(CwxMsgBlock*& , CwxTss* )
 {
     m_bFailSend = true;
     setTaskState(CwxAppTaskBoardTask::TASK_STATE_FINISH);
 }
 
-void CwxMproxyTask::noticeEndSendMsg(CwxMsgBlock*& msg, CwxAppTss* , bool& )
+void CwxMproxyTask::noticeEndSendMsg(CwxMsgBlock*& msg, CwxTss* , bool& )
 {
     CWX_ASSERT(!m_uiSendConnId);
     m_uiSendConnId = msg->event().getConnId();
 }
 
-void CwxMproxyTask::noticeConnClosed(CWX_UINT32 , CWX_UINT32 , CWX_UINT32 uiConnId, CwxAppTss* )
+void CwxMproxyTask::noticeConnClosed(CWX_UINT32 , CWX_UINT32 , CWX_UINT32 uiConnId, CwxTss* )
 {
     CWX_ASSERT(m_uiSendConnId == uiConnId);
     m_bFailSend = true;
     setTaskState(CwxAppTaskBoardTask::TASK_STATE_FINISH);
 }
 
-int CwxMproxyTask::noticeActive(CwxAppTss*  )
+int CwxMproxyTask::noticeActive(CwxTss*  )
 {
     setTaskState(TASK_STATE_WAITING);
     if (0 != CwxMproxyMqHandler::sendMq(m_pApp, getTaskId(), m_sndMsg))
@@ -49,7 +49,7 @@ int CwxMproxyTask::noticeActive(CwxAppTss*  )
     return 0;
 }
 
-void CwxMproxyTask::execute(CwxAppTss* pThrEnv)
+void CwxMproxyTask::execute(CwxTss* pThrEnv)
 {
     if (CwxAppTaskBoardTask::TASK_STATE_INIT == getTaskState())
     {
@@ -68,7 +68,7 @@ void CwxMproxyTask::execute(CwxAppTss* pThrEnv)
     }
  }
 
-void CwxMproxyTask::reply(CwxAppTss* pThrEnv)
+void CwxMproxyTask::reply(CwxTss* pThrEnv)
 {
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     CwxMsgBlock* replyMsg = NULL;

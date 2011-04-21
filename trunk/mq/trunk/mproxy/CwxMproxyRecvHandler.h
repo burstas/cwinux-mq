@@ -6,7 +6,7 @@
     联系方式：email:cwinux@gmail.com；微博:http://t.sina.com.cn/cwinux
 */
 #include "CwxCommander.h"
-#include "CwxAppTss.h"
+#include "CwxTss.h"
 #include "CwxGlobalMacro.h"
 #include "CwxMqTss.h"
 
@@ -27,11 +27,11 @@ public:
     }
 public:
     ///处理mq消息的函数
-    virtual int onRecvMsg(CwxMsgBlock*& msg,  CwxAppTss* pThrEnv);
+    virtual int onRecvMsg(CwxMsgBlock*& msg,  CwxTss* pThrEnv);
     //处理连接关闭的消息
-    virtual int onConnClosed(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onConnClosed(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     //超时坚持的消息
-    virtual int onTimeoutCheck(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onTimeoutCheck(CwxMsgBlock*& msg, CwxTss* pThrEnv);
 public:
     //回复代理的mq消息
     static void reply(CwxMproxyApp* app, CwxMsgBlock* msg, CWX_UINT32 uiConnId);

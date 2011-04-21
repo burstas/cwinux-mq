@@ -12,17 +12,20 @@
 #include "CwxMqConfig.h"
 #include "CwxMqTss.h"
 #include "CwxMqPoco.h"
-#include "CwxMqAsyncHandler.h"
+#include "CwxMqBinAsyncHandler.h"
+#include "CwxMqMcAsyncHandler.h"
 #include "CwxMqBinRecvHandler.h"
+#include "CwxMqMcRecvHandler.h"
 #include "CwxMqMasterHandler.h"
-#include "CwxMqFetchHandler.h"
+#include "CwxMqBinFetchHandler.h"
+#include "CwxMqMcFetchHandler.h"
 #include "CwxMqSysFile.h"
 #include "CwxMqQueueMgr.h"
 #include "CwxThreadPool.h"
 
 ///应用信息定义
-#define CWX_MQ_VERSION "1.3.1"
-#define CWX_MQ_MODIFY_DATE "20110328113000"
+#define CWX_MQ_VERSION "2.0"
+#define CWX_MQ_MODIFY_DATE "20110421113000"
 
 ///MQ服务的app对象
 class CwxMqApp : public CwxAppFramework
@@ -64,6 +67,15 @@ public:
     ///signal响应函数
     virtual void onSignal(int signum);
     ///连接建立
+    virtual int onConnCreated(CWX_UINT32 uiSvrId,
+        CWX_UINT32 uiHostId,
+        CWX_HANDLE handle,
+        bool& bSuspendListen);
+    ///连接建立
+    virtual int onConnCreated(CwxAppHandler4Msg& conn,
+        bool& bSuspendConn,
+        bool& bSuspendListen);
+    ///连接建立
     virtual int onConnCreated(CwxAppHandler4Msg& conn,
         bool& bSuspendConn,
         bool& bSuspendListen);
@@ -74,6 +86,9 @@ public:
                         CwxAppHandler4Msg& conn,
                         CwxMsgHead const& header,
                         bool& bSuspendConn);
+    ///收到消息的响应函数
+    virtual int onRecvMsg(CwxAppHandler4Msg& conn,
+           bool& bSuspendConn);
     ///消息发送完毕
     virtual CWX_UINT32 onEndSendMsg(CwxMsgBlock*& msg,
         CwxAppHandler4Msg& conn);
@@ -82,12 +97,6 @@ public:
 public:
     ///-1:失败；0：成功
     int commit_mq(char* szErr2K);
-    ///获取分发线程池
-    CwxThreadPool*  getWriteThreadPool() 
-    {
-        return m_pWriteThreadPool;///<消息接受的线程池对象
-    }
-
     ///是否是第一条binlog
     inline bool isFirstBinLog() const
     {
@@ -174,25 +183,20 @@ public:
     {
         return m_queueMgr;
     }
-    ///获取异步binlog分发的handler对象
-    inline CwxMqAsyncHandler* getAsyncHandler()
-    {
-        return m_pAsyncHandler;
-    }
     ///获取slave从master同步binlog的handler对象
     inline CwxMqMasterHandler* getMasterHandler()
     {
         return m_pMasterHandler;
     }
     ///获取master接收binlog的handler对象
-    inline CwxMqBinRecvHandler* getRecvHandler()
+    inline CwxMqBinRecvHandler* getBinRecvHandler()
     {
-        return m_pRecvHandler;
+        return m_pBinRecvHandler;
     }
-    ///获取mq fetch handler对象
-    inline CwxMqFetchHandler* getMqFetchHandler()
+    ///获取master接收binlog的handler对象
+    inline CwxMqMcRecvHandler* getMcRecvHandler()
     {
-        return m_pFetchHandler;
+        return m_pMcRecvHandler;
     }
     ///获取系统文件对象
     inline CwxMqSysFile* getSysFile()
@@ -246,6 +250,14 @@ private:
     int monitorStats(CwxMsgBlock* msg, CwxAppHandler4Msg& conn);
     ///形成监控内容，返回监控内容的长度
     CWX_UINT32 packMonitorInfo();
+    ///分发channel的线程函数，arg为app对象
+    static void* DispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg);
+    ///分发channel的队列消息函数。返回值：0：正常；-1：队列停止
+    static int DispatchThreadDoQueue(CwxMsgQueue* queue, CwxAppChannel* channel);
+    ///分发mq channel的线程函数，arg为app对象
+    static void* MqThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg);
+    ///分发mq channel的队列消息函数。返回值：0：正常；-1：队列停止
+    static int MqThreadDoQueue(CwxMsgQueue* queue, CwxAppChannel* channel);
 
 private:
     bool                        m_bFirstBinLog; ///<服务启动后，收到的第一条binglog
@@ -256,10 +268,9 @@ private:
     CWX_UINT64                  m_uiCurSid; ///<当前的sid
     CwxMqConfig                 m_config; ///<配置文件
     CwxBinLogMgr*               m_pBinLogMgr; ///<binlog的管理对象
-    CwxMqAsyncHandler*          m_pAsyncHandler; ///<异步分发handle
     CwxMqMasterHandler*         m_pMasterHandler; ///<从master接收消息的handle
-    CwxMqBinRecvHandler*           m_pRecvHandler; ///<接收binlog的handle。
-    CwxMqFetchHandler*          m_pFetchHandler; ///<mq获取的handle
+    CwxMqBinRecvHandler*        m_pBinRecvHandler; ///<bin协议接收binlog的handle。
+    CwxMqMcRecvHandler*         m_pMcRecvHandler; ///<mc协议接收binlog的handle。
     CwxMqSysFile*               m_sysFile; ///<mq分发的分发点记录文件
     CwxMqQueueMgr*              m_queueMgr; ///<队列管理器
     CwxThreadPool*              m_pRecvThreadPool;///<消息接受的线程池对象
@@ -267,10 +278,9 @@ private:
     CwxAppChannel*              m_asyncDispChannel; ///<消息异步分发的channel
     CwxThreadPool*              m_pMqThreadPool;       ///<mq获取的线程池对象
     CwxAppChannel*              m_mqChannel;           ///<mq获取的channel
-    string                  m_strStartTime; ///<启动时间
-    char                    m_szBuf[MAX_MONITOR_REPLY_SIZE];///<监控消息的回复buf
+    string                      m_strStartTime; ///<启动时间
+    char                        m_szBuf[MAX_MONITOR_REPLY_SIZE];///<监控消息的回复buf
 
-//    CwxAppThreadPool*       m_pDispatchThreadPool; ///<消息分发的线程池对象
 };
 #endif
 

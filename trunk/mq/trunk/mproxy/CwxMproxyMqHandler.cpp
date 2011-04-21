@@ -2,7 +2,7 @@
 #include "CwxMproxyApp.h"
 
 ///echo请求的处理函数
-int CwxMproxyMqHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
+int CwxMproxyMqHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
     CwxAppTaskBoardTask* pTask = NULL;
     m_pApp->getTaskBoard().noticeRecvMsg(msg->event().getMsgHeader().getTaskId(), msg, pThrEnv, pTask);
@@ -12,7 +12,7 @@ int CwxMproxyMqHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
 }
 
 
-int CwxMproxyMqHandler::onConnClosed(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
+int CwxMproxyMqHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
     list<CwxAppTaskBoardTask*> tasks;
     m_pApp->getTaskBoard().noticeConnClosed(msg, pThrEnv, tasks);
@@ -29,7 +29,7 @@ int CwxMproxyMqHandler::onConnClosed(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
     return 1;
 }
 
-int CwxMproxyMqHandler::onEndSendMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
+int CwxMproxyMqHandler::onEndSendMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
     CwxAppTaskBoardTask* pTask = NULL;
     m_pApp->getTaskBoard().noticeEndSendMsg(msg->event().getTaskId(), msg, pThrEnv, pTask);
@@ -37,7 +37,7 @@ int CwxMproxyMqHandler::onEndSendMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
     return 1;
 }
 
-int CwxMproxyMqHandler::onFailSendMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
+int CwxMproxyMqHandler::onFailSendMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
     CwxAppTaskBoardTask* pTask = NULL;
     m_pApp->getTaskBoard().noticeFailSendMsg(msg->event().getTaskId(), msg, pThrEnv, pTask);

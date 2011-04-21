@@ -3,7 +3,7 @@
 #include "CwxMqPoco.h"
 
 ///echo请求的处理函数
-int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv)
+int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
     CwxMproxyTask* pTask = NULL;
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
@@ -157,13 +157,13 @@ void CwxMproxyRecvHandler::reply(CwxMproxyApp* app, CwxMsgBlock* msg, CWX_UINT32
     }
 }
 
-int CwxMproxyRecvHandler::onConnClosed(CwxMsgBlock*& msg, CwxAppTss*)
+int CwxMproxyRecvHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss*)
 {
     delete ((bool*)(msg->event().getConnUserData()));
     return 1;
 }
 
-int CwxMproxyRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxAppTss* pThrEnv)
+int CwxMproxyRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* pThrEnv)
 {
     list<CwxAppTaskBoardTask*> tasks;
     m_pApp->getTaskBoard().noticeCheckTimeout(pThrEnv, tasks);

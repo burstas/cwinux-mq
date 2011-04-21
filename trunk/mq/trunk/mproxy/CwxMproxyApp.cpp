@@ -33,7 +33,7 @@ int CwxMproxyApp::init(int argc, char** argv)
         return -1;
     }
     ///设置输出运行日志的level
-    setLogLevel(CwxAppLogger::LEVEL_ERROR|CwxAppLogger::LEVEL_INFO|CwxAppLogger::LEVEL_WARNING);
+    setLogLevel(CwxLogger::LEVEL_ERROR|CwxLogger::LEVEL_INFO|CwxLogger::LEVEL_WARNING);
     return 0;
 }
 
@@ -132,7 +132,7 @@ int CwxMproxyApp::initRunEnv()
         CwxAppFramework::THREAD_GROUP_USER_START,
         m_config.m_unThreadNum);
     ///创建线程的tss对象
-    CwxAppTss** pTss = new CwxAppTss*[m_config.m_unThreadNum];
+    CwxTss** pTss = new CwxTss*[m_config.m_unThreadNum];
     for (CWX_UINT16 i=0; i<m_config.m_unThreadNum; i++)
     {
         pTss[i] = new CwxMqTss();

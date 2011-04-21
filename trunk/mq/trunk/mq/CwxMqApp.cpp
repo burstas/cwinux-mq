@@ -4,21 +4,29 @@
 ///构造函数
 CwxMqApp::CwxMqApp()
 {
-    m_uiCurSid = 1; ///<最小的sid为1
+    m_bFirstBinLog =  true;
+    m_ttLastCommitTime = 0;
+    m_uiUnCommitLogNum = 0;
+    m_ttMqLastCommitTime = 0;
+    m_uiMqUnCommitLogNum = 0;
+    m_uiCurSid = 0;
     m_pBinLogMgr = NULL;
-    m_pAsyncHandler = NULL;
     m_pMasterHandler = NULL;
-    m_pRecvHandler = NULL;
-    m_pFetchHandler = NULL;
-    m_pWriteThreadPool = NULL;
+    m_pBinRecvHandler = NULL;
+    m_pMcRecvHandler = NULL;
     m_sysFile = NULL;
     m_queueMgr = NULL;
+    m_pRecvThreadPool = NULL;
+    m_pAsyncDispThreadPool = NULL;
+    m_asyncDispChannel = NULL;
+    m_pMqThreadPool = NULL;
+    m_mqChannel = NULL;
+    memst(m_szBuf, 0x00, MAX_MONITOR_REPLY_SIZE);
 }
 
 ///析构函数
 CwxMqApp::~CwxMqApp()
 {
-
 }
 
 ///初始化
@@ -39,7 +47,7 @@ int CwxMqApp::init(int argc, char** argv)
         return -1;
     }
     ///设置运行日志的输出level
-    setLogLevel(CwxAppLogger::LEVEL_DEBUG|CwxAppLogger::LEVEL_ERROR|CwxAppLogger::LEVEL_INFO|CwxAppLogger::LEVEL_WARNING);
+    setLogLevel(CwxLogger::LEVEL_DEBUG|CwxLogger::LEVEL_ERROR|CwxLogger::LEVEL_INFO|CwxLogger::LEVEL_WARNING);
     return 0;
 }
 
@@ -92,39 +100,85 @@ int CwxMqApp::initRunEnv()
     if (m_config.getCommon().m_bMaster)
     {
         ///注册数据接收handler
-        m_pRecvHandler = new CwxMqBinRecvHandler(this);
-        getCommander().regHandle(SVR_TYPE_RECV, m_pRecvHandler);
+        if (m_config.getMaster().m_recv_bin.getHostName().length())
+        {
+            m_pBinRecvHandler = new CwxMqBinRecvHandler(this);
+            getCommander().regHandle(SVR_TYPE_RECV_BIN, m_pBinRecvHandler);
+        }
+        if (m_config.getMaster().m_recv_mc.getHostName().length())
+        {
+            m_pMcRecvHandler = new CwxMqMcRecvHandler(this);
+            getCommander().regHandle(SVR_TYPE_RECV_MC, m_pMcRecvHandler);
+        }
     }else{
         ///注册slave的master数据接收handler
         m_pMasterHandler = new CwxMqMasterHandler(this);
-        getCommander().regHandle(SVR_TYPE_MASTER, m_pMasterHandler);
+        getCommander().regHandle(SVR_TYPE_MASTER_BIN, m_pMasterHandler);
     }
-    ///创建异步分发的handler
-    m_pAsyncHandler = new CwxMqAsyncHandler(this);
-    getCommander().regHandle(SVR_TYPE_ASYNC, m_pAsyncHandler);
-    ///创建mq的获取handler
-    m_pFetchHandler = new CwxMqFetchHandler(this);
-    getCommander().regHandle(SVR_TYPE_FETCH, m_pFetchHandler);
-
     ///启动网络连接与监听
     if (0 != startNetwork()) return -1;
-
     ///创建recv线程池对象，此线程池中线程的group-id为THREAD_GROUP_USER_START，
     ///线程池的线程数量为1。
-    m_pWriteThreadPool = new CwxAppThreadPool(this,
-        CwxAppFramework::THREAD_GROUP_USER_START,
-        1);
+    m_pRecvThreadPool = new CwxThreadPool(CwxAppFramework::THREAD_GROUP_USER_START,
+        1,
+        getThreadPoolMgr(),
+        &getCommander());
     ///创建线程的tss对象
     CwxTss** pTss = new CwxTss*[1];
     pTss[0] = new CwxMqTss();
     ((CwxMqTss*)pTss[0])->init();
     ///启动线程
-    if ( 0 != m_pWriteThreadPool->start(pTss))
+    if ( 0 != m_pRecvThreadPool->start(pTss))
     {
         CWX_ERROR(("Failure to start recv thread pool"));
         return -1;
     }
-    ///更新服务的状态
+    //创建分发线程池
+    if (m_config.getCommon().m_bMaster)
+    {
+        if (m_config.getMaster().m_async_bin.getHostName().length() ||
+            m_config.getMaster().m_async_mc.getHostName().length())
+        {
+            m_asyncDispChannel = new CwxAppChannel();
+            m_pAsyncDispThreadPool = new CwxThreadPool( CwxAppFramework::THREAD_GROUP_USER_START + 1,
+                1,
+                getThreadPoolMgr(),
+                &getCommander(),
+                CwxMqApp::DispatchThreadMain,
+                this);
+            ///启动线程
+            pTss = new CwxTss*[1];
+            pTss[0] = new CwxMqTss();
+            ((CwxMqTss*)pTss[0])->init();
+            if ( 0 != m_pAsyncDispThreadPool[i]->start(pTss)){
+                CWX_ERROR(("Failure to start dispatch thread pool"));
+                return -1;
+            }
+        }
+    }
+    else
+    {
+        if (m_config.getSlave().m_async_bin.getHostName().length() ||
+            m_config.getSlave().m_async_mc.getHostName().length())
+        {
+            m_mqChannel = new CwxAppChannel();
+            m_pMqThreadPool = new CwxThreadPool( CwxAppFramework::THREAD_GROUP_USER_START + 2,
+                1,
+                getThreadPoolMgr(),
+                &getCommander(),
+                CwxMqApp::MqThreadMain,
+                this);
+            ///启动线程
+            pTss = new CwxTss*[1];
+            pTss[0] = new CwxMqTss();
+            ((CwxMqTss*)pTss[0])->init();
+            if ( 0 != m_pMqThreadPool[i]->start(pTss)){
+                CWX_ERROR(("Failure to start mq thread pool"));
+                return -1;
+            }
+        }
+    }
+    //创建mq线程池
     updateAppRunState();
     return 0;
 }
@@ -140,10 +194,10 @@ void CwxMqApp::onTime(CwxTimeValue const& current)
     {
         ttLastTime = time(NULL);
         CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
-        pBlock->event().setSvrId(SVR_TYPE_RECV);
+        pBlock->event().setSvrId(SVR_TYPE_RECV_BIN);
         pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
         //将超时检查事件，放入事件队列
-        m_pWriteThreadPool->append(pBlock);
+        m_pRecvThreadPool->append(pBlock);
     }
 }
 
@@ -162,6 +216,14 @@ void CwxMqApp::onSignal(int signum)
         CWX_INFO(("Recv signal=%d, ignore it.", signum));
         break;
     }
+}
+
+int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
+                          CWX_UINT32 uiHostId,
+                          CWX_HANDLE handle,
+                          bool& bSuspendListen)
+{
+
 }
 
 ///连接建立
@@ -354,9 +416,9 @@ int CwxMqApp::startBinLogMgr()
             ullBinLogSize,
             m_config.getBinLog().m_bDelOutdayLogFile);
         if (0 != m_pBinLogMgr->init(m_config.getBinLog().m_uiMgrMaxDay,
-            CWX_APP_TSS_2K_BUF))
+            CWX_TSS_2K_BUF))
         {///<如果失败，则返回-1
-            CWX_ERROR(("Failure to init binlog manager, error:%s", CWX_APP_TSS_2K_BUF));
+            CWX_ERROR(("Failure to init binlog manager, error:%s", CWX_TSS_2K_BUF));
             return -1;
         }
         m_bFirstBinLog = true;

@@ -38,7 +38,7 @@ public:
     //echo返回的响应函数
     virtual int onRecvMsg(CwxMsgBlock* msg, CwxAppHandler4Msg& conn, CwxMsgHead const& header, bool& bSuspendConn);
     //tss
-    virtual CwxAppTss* onTssEnv();
+    virtual CwxTss* onTssEnv();
 protected:
     //init the Enviroment before run.0:success, -1:failure.
 	virtual int initRunEnv();

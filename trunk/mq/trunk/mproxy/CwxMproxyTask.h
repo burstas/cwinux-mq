@@ -16,7 +16,7 @@
 */
 
 #include "CwxAppTaskBoard.h"
-#include "CwxAppTss.h"
+#include "CwxTss.h"
 #include "CwxGlobalMacro.h"
 class CwxMproxyApp;
 
@@ -52,7 +52,7 @@ public:
     @param [in] pThrEnv 调用线程的Thread-env
     @return void
     */
-    virtual void noticeTimeout(CwxAppTss* pThrEnv);
+    virtual void noticeTimeout(CwxTss* pThrEnv);
     /**
     @brief 通知Task的收到一个数据包。
     @param [in] msg 收到的消息
@@ -60,14 +60,14 @@ public:
     @param [out] bConnAppendMsg 收到消息的连接上，是否还有待接收的其他消息。true：是；false：没有
     @return void
     */
-    virtual void noticeRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv, bool& bConnAppendMsg);
+    virtual void noticeRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv, bool& bConnAppendMsg);
     /**
     @brief 通知Task往外发送的一个数据包发送失败。
     @param [in] msg 收到的消息
     @param [in] pThrEnv 调用线程的Thread-env
     @return void
     */
-    virtual void noticeFailSendMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual void noticeFailSendMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     /**
     @brief 通知Task通过某条连接，发送了一个数据包。
     @param [in] msg 发送的数据包的信息
@@ -75,7 +75,7 @@ public:
     @param [out] bConnAppendMsg 发送消息的连接上，是否有等待回复的消息。true：是；false：没有
     @return void
     */
-    virtual void noticeEndSendMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv, bool& bConnAppendMsg);
+    virtual void noticeEndSendMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv, bool& bConnAppendMsg);
     /**
     @brief 通知Task等待回复消息的一条连接关闭。
     @param [in] uiSvrId 关闭连接的SVR-ID
@@ -84,7 +84,7 @@ public:
     @param [in] pThrEnv 调用线程的Thread-env
     @return void
     */
-    virtual void noticeConnClosed(CWX_UINT32 uiSvrId, CWX_UINT32 uiHostId, CWX_UINT32 uiConnId, CwxAppTss* pThrEnv);
+    virtual void noticeConnClosed(CWX_UINT32 uiSvrId, CWX_UINT32 uiHostId, CWX_UINT32 uiConnId, CwxTss* pThrEnv);
     /**
     @brief 激活Task。在Task启动前，Task有Task的创建线程所拥有。
     在启动前，Task可以接受自己的异步消息，但不能处理。
@@ -92,7 +92,7 @@ public:
     @param [in] pThrEnv 调用线程的Thread-env
     @return 0：成功；-1：失败
     */
-    virtual int noticeActive(CwxAppTss* pThrEnv);
+    virtual int noticeActive(CwxTss* pThrEnv);
     /**
     @brief 执行Task。在调用此API前，Task在Taskboard中不存在，也就是说对别的线程不可见。
     Task要么是刚创建状态，要么是完成了前一个阶段的处理，处于完成状态。
@@ -101,9 +101,9 @@ public:
     @param [in] pThrEnv 调用线程的Thread-env
     @return void
     */
-    virtual void execute(CwxAppTss* pThrEnv);
+    virtual void execute(CwxTss* pThrEnv);
 private:
-    void reply(CwxAppTss* pThrEnv);
+    void reply(CwxTss* pThrEnv);
 public:
     CWX_UINT32     m_uiReplyConnId; ///<回复的连接ID
     CWX_UINT32     m_uiMsgTaskId; ///<接收到消息的TaskId

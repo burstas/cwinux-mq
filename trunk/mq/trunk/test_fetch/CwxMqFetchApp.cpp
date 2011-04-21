@@ -35,7 +35,7 @@ int CwxMqFetchApp::init(int argc, char** argv)
         return -1;
     }
     ///设置输出运行日志的level
-    setLogLevel(CwxAppLogger::LEVEL_ERROR|CwxAppLogger::LEVEL_INFO|CwxAppLogger::LEVEL_WARNING);
+    setLogLevel(CwxLogger::LEVEL_ERROR|CwxLogger::LEVEL_INFO|CwxLogger::LEVEL_WARNING);
     return 0;
 }
 
@@ -163,7 +163,7 @@ int CwxMqFetchApp::onRecvMsg(CwxMsgBlock* msg, CwxAppHandler4Msg& conn, CwxMsgHe
     return 0;
 }
 //tss
-CwxAppTss* CwxMqFetchApp::onTssEnv()
+CwxTss* CwxMqFetchApp::onTssEnv()
 {
     CwxMqTss* pTss = new CwxMqTss();
     pTss->init();

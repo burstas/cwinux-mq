@@ -6,7 +6,7 @@
     联系方式：email:cwinux@gmail.com；微博:http://t.sina.com.cn/cwinux
 */
 #include "CwxCommander.h"
-#include "CwxAppTss.h"
+#include "CwxTss.h"
 #include "CwxGlobalMacro.h"
 #include "CwxMqTss.h"
 
@@ -28,10 +28,10 @@ public:
     }
 public:
     ///mq消息返回的处理函数
-    virtual int onRecvMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
-    virtual int onConnClosed(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
-    virtual int onEndSendMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
-    virtual int onFailSendMsg(CwxMsgBlock*& msg, CwxAppTss* pThrEnv);
+    virtual int onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
+    virtual int onConnClosed(CwxMsgBlock*& msg, CwxTss* pThrEnv);
+    virtual int onEndSendMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
+    virtual int onFailSendMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
 public:
     static int sendMq(CwxMproxyApp* app, CWX_UINT32 uiTaskId, CwxMsgBlock*& msg);
 private:
