@@ -399,6 +399,7 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
                           CWX_UINT32 uiTaskId,
                           CWX_UINT64 ullSid,
                           bool      bNewly,
+                          CWX_UINT32  uiChunkSize,
                           char const* subscribe,
                           char const* user,
                           char const* passwd,
@@ -412,6 +413,11 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
             if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
             return CWX_MQ_INNER_ERR;
         }
+    }
+    if (uiChunkSize && writer->addKeyValue(CWX_MQ_CHUNK, uiChunkSize))
+    {
+        if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
+        return CWX_MQ_INNER_ERR;
     }
     if (subscribe && !writer->addKeyValue(CWX_MQ_SUBSCRIBE, subscribe, strlen(subscribe)))
     {
@@ -449,6 +455,7 @@ int CwxMqPoco::parseReportData(CwxPackageReader* reader,
                            CwxMsgBlock const* msg,
                            CWX_UINT64& ullSid,
                            bool& bNewly,
+                           CWX_UINT32&  uiChunkSize,
                            char const*& subscribe,
                            char const*& user,
                            char const*& passwd,
@@ -467,6 +474,10 @@ int CwxMqPoco::parseReportData(CwxPackageReader* reader,
     else
     {
         bNewly = false;
+    }
+    if (!reader->getKey(CWX_MQ_CHUNK, uiChunkSize))
+    {
+        uiChunkSize = 0;
     }
     CwxKeyValueItem const* pItem = NULL;
     //get subscribe

@@ -56,6 +56,7 @@ extern "C" {
 #define CWX_MQ_KEY_SUBSCRIBE "subscribe"
 #define CWX_MQ_KEY_QUEUE "queue"
 #define CWX_MQ_KEY_GROUP "group"
+#define CWX_MQ_KEY_CHUNK "chunk"
 
 ///协议错误代码定义
 #define CWX_MQ_ERR_SUCCESS          0  ///<成功
@@ -249,6 +250,7 @@ int cwx_mq_parse_commit_reply(struct CWX_PG_READER* reader,
 *@param [in out] buf_len 传入buf的空间大小，返回形成的数据包的大小。
 *@param [in] ullSid 同步的sid。
 *@param [in] bNewly 是否从当前binlog开始接收。
+*@param [in] uiChunk chunk的大小，若是0表示不支持chunk，单位为kbyte。
 *@param [in] subscribe 订阅的消息类型。
 *@param [in] user 接收的mbus或mq的user，若为空，则表示没有用户。
 *@param [in] passwd 接收的mbus或mq的passwd，若为空，则表示没有口令。
@@ -261,6 +263,7 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
     CWX_UINT32* buf_len,
     CWX_UINT64 ullSid,
     int      bNewly,
+    CWX_UINT32 uiChunk,
     char const* subscribe,
     char const* user,
     char const* passwd,
@@ -272,6 +275,7 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
 *@param [in] msg_len msg的长度。
 *@param [in] ullSid 同步的sid。
 *@param [in] bNewly 是否从当前binlog开始接收。
+*@param [in] uiChunk chunk的大小，若是0表示不支持chunk，单位为kbyte。
 *@param [in] subscribe 订阅的消息类型。
 *@param [in] user 接收的mbus或mq的user，若为空，则表示没有用户。
 *@param [in] passwd 接收的mbus或mq的passwd，若为空，则表示没有口令。
@@ -283,6 +287,7 @@ int cwx_mq_parse_sync_report(struct CWX_PG_READER* reader,
     CWX_UINT32 msg_len,
     CWX_UINT64* ullSid,
     int*       bNewly,
+    CWX_UINT32* uiChunk,
     char const** subscribe,
     char const** user,
     char const** passwd,

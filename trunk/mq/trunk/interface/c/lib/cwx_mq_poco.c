@@ -419,6 +419,7 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
                             CWX_UINT32* buf_len,
                             CWX_UINT64 ullSid,
                             int      bNewly,
+                            CWX_UINT32 uiChunk,
                             char const* subscribe,
                             char const* user,
                             char const* passwd,
@@ -432,6 +433,11 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
             if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
             return CWX_MQ_ERR_INNER_ERR;
         }
+    }
+    if (uiChunk && (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_CHUNK, uiChunk)))
+    {
+        if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (subscribe && (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_SUBSCRIBE, subscribe)))
     {
@@ -474,6 +480,7 @@ int cwx_mq_parse_sync_report(struct CWX_PG_READER* reader,
                              CWX_UINT32 msg_len,
                              CWX_UINT64* ullSid,
                              int*       bNewly,
+                             CWX_UINT32* uiChunk,
                              char const** subscribe,
                              char const** user,
                              char const** passwd,
@@ -492,6 +499,10 @@ int cwx_mq_parse_sync_report(struct CWX_PG_READER* reader,
     else
     {
         *bNewly = 0;
+    }
+    if (0 == cwx_pg_reader_get_uint64(reader, CWX_MQ_KEY_CHUNK, uiChunk, 0))
+    {
+        *uiChunk = 0;
     }
     struct CWX_KEY_VALUE_ITEM_S const* pItem = 0;
     //get subscribe

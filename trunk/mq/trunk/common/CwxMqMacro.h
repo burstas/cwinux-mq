@@ -36,6 +36,7 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_SUBSCRIBE "subscribe"
 #define CWX_MQ_QUEUE "queue"
 #define CWX_MQ_GROUP "group"
+#define CWX_MQ_CHUNK "chunk"
 
 
 ///´íÎó´úÂë¶¨Òå

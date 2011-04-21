@@ -59,6 +59,7 @@ int CwxMqBinAsyncHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     CwxMqDispatchConn* conn = iter->second;
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     CWX_UINT64 ullSid = 0;
+    CWX_UINT32 uiChunk = 0;
     bool  bNewly = false;
     char const* subscribe=NULL;
     char const* user=NULL;
@@ -137,6 +138,7 @@ int CwxMqBinAsyncHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 msg,
                 ullSid,
                 bNewly,
+                uiChunk,
                 subscribe,
                 user,
                 passwd,
