@@ -310,7 +310,6 @@ int CwxMqApp::onRecvMsg(CwxMsgBlock* msg,
                         bool& )
 {
     if ((SVR_TYPE_RECV_BIN == conn.getConnInfo().getSvrId()) ||
-        (SVR_TYPE_RECV_MC == conn.getConnInfo().getSvrId()) ||
         (SVR_TYPE_MASTER_BIN == conn.getConnInfo().getSvrId()))
     {
         msg->event().setSvrId(conn.getConnInfo().getSvrId());
@@ -335,7 +334,10 @@ int CwxMqApp::onRecvMsg(CwxMsgBlock* msg,
 int CwxMqApp::onRecvMsg(CwxAppHandler4Msg& conn,
                       bool& bSuspendConn)
 {
-    if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId())
+    if(SVR_TYPE_RECV_MC == conn.getConnInfo().getSvrId())
+    {
+        return 0;
+    }else if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId())
     {
         char  szBuf[1024];
         ssize_t recv_size = CwxSocket::recv(conn.getHandle(),
@@ -365,38 +367,54 @@ int CwxMqApp::onRecvMsg(CwxAppHandler4Msg& conn,
 
 void CwxMqApp::destroy()
 {
-    if (m_pWriteThreadPool)
+    if (m_pRecvThreadPool)
     {
-        m_pWriteThreadPool->stop();
-        delete m_pWriteThreadPool;
-        m_pWriteThreadPool = NULL;
+        m_pRecvThreadPool->stop();
+        delete m_pRecvThreadPool;
+        m_pRecvThreadPool = NULL;
+    }
+    if (m_pAsyncDispThreadPool)
+    {
+        m_pAsyncDispThreadPool->stop();
+        delete m_pAsyncDispThreadPool;
+        m_pAsyncDispThreadPool = NULL;
+    }
+    if (m_asyncDispChannel)
+    {
+        delete m_asyncDispChannel;
+        m_asyncDispChannel = NULL;
+    }
+    if (m_pMqThreadPool)
+    {
+        m_pMqThreadPool->stop();
+        delete m_pMqThreadPool;
+        m_pMqThreadPool = NULL;
+    }
+    if (m_mqChannel)
+    {
+        delete m_mqChannel;
+        m_mqChannel = NULL;
     }
     if (m_queueMgr)
     {
         delete m_queueMgr;
         m_queueMgr = NULL;
     }
-    if (m_pAsyncHandler)
-    {
-        delete m_pAsyncHandler;
-        m_pAsyncHandler = NULL;
-    }
     if (m_pMasterHandler)
     {
         delete m_pMasterHandler;
         m_pMasterHandler = NULL;
     }
-    if (m_pRecvHandler)
+    if (m_pBinRecvHandler)
     {
-        delete m_pRecvHandler;
-        m_pRecvHandler = NULL;
+        delete m_pBinRecvHandler;
+        m_pBinRecvHandler = NULL;
     }
-    if (m_pFetchHandler)
+    if (m_pMcRecvHandler)
     {
-        delete m_pFetchHandler;
-        m_pFetchHandler = NULL;
+        delete m_pMcRecvHandler;
+        m_pMcRecvHandler = NULL;
     }
-
     if (m_pBinLogMgr)
     {
         m_pBinLogMgr->commit();
