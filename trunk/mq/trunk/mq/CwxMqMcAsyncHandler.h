@@ -10,15 +10,17 @@
 #include "CwxMqMacro.h"
 #include "CwxMqTss.h"
 #include "CwxMqDef.h"
+#include "CwxAppHandler4Channel.h"
+#include "CwxAppChannel.h"
 
 class CwxMqApp;
 
 ///异步binlog分发的消息处理handler
-class CwxMqMcAsyncHandler : public CwxCmdOp
+class CwxMqMcAsyncHandler:public CwxAppHandler4Channel
 {
 public:
     ///构造函数
-    CwxMqMcAsyncHandler(CwxMqApp* pApp);
+    CwxMqMcAsyncHandler(CwxMqApp* pApp, CwxAppChannel* channel);
     ///析构函数
     virtual ~CwxMqMcAsyncHandler();
 public:

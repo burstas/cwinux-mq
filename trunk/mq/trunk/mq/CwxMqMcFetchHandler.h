@@ -5,7 +5,7 @@
     本软件遵循GNU LGPL（http://www.gnu.org/copyleft/lesser.html），
     联系方式：email:cwinux@gmail.com；微博:http://t.sina.com.cn/cwinux
 */
-#include "CwxCommander.h"
+
 #include "CwxMqMacro.h"
 #include "CwxMqTss.h"
 #include "CwxDTail.h"
@@ -14,18 +14,18 @@
 #include "CwxBinLogMgr.h"
 #include "CwxMqDef.h"
 #include "CwxMqQueueMgr.h"
+#include "CwxAppHandler4Channel.h"
 
 class CwxMqApp;
 
-
-
 ///
-class CwxMqMcFetchHandler: public CwxCmdOp
+class CwxMqMcFetchHandler: public CwxAppHandler4Channel
 {
 public:
     ///构造函数
-    CwxMqMcFetchHandler(CwxMqApp* pApp):m_pApp(pApp)
+    CwxMqMcFetchHandler(CwxMqApp* pApp, CwxAppChannel* channel):CwxAppHandler4Channel(channel)
     {
+        m_pApp = pApp;
         m_bHaveWaiting = false;
     }
     ///析构函数

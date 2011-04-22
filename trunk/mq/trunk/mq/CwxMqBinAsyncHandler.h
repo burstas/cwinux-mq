@@ -10,28 +10,36 @@
 #include "CwxMqMacro.h"
 #include "CwxMqTss.h"
 #include "CwxMqDef.h"
+#include "CwxAppHandler4Channel.h"
+#include "CwxAppChannel.h"
 
 class CwxMqApp;
 
 ///异步binlog分发的消息处理handler
-class CwxMqBinAsyncHandler : public CwxCmdOp
+class CwxMqBinAsyncHandler : public CwxAppHandler4Channel
 {
 public:
     ///构造函数
-    CwxMqBinAsyncHandler(CwxMqApp* pApp);
+    CwxMqBinAsyncHandler(CwxMqApp* pApp, CwxAppChannel* channel);
     ///析构函数
     virtual ~CwxMqBinAsyncHandler();
 public:
-    ///连接建立后，需要维护连接上数据的分发
-    virtual int onConnCreated(CwxMsgBlock*& msg, CwxTss* pThrEnv);
-    ///连接关闭后，需要清理环境
-    virtual int onConnClosed(CwxMsgBlock*& msg, CwxTss* pThrEnv);
-    ///接收来自分发的回复信息及同步状态报告信息
-    virtual int onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
-    ///消息发送完毕
-    virtual int onEndSendMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
-    ///处理新消息与继续发送的消息
-    virtual int onUserEvent(CwxMsgBlock*& msg, CwxTss* pThrEnv);
+    /**
+    @brief 连接可读事件，返回-1，close()会被调用
+    @return -1：处理失败，会调用close()； 0：处理成功
+    */
+    virtual int onInput();
+    /**
+    @brief 通知连接关闭。
+    @return 对于主动连接，1：不从engine中移除注册；0：不从engine中移除注册但不删除handler；-1：从engine中将handle移除并删除。
+    */
+    virtual int onConnClosed();
+    /**
+    @brief Handler的redo事件，在每次dispatch时执行。
+    @return -1：处理失败，会调用close()； 0：处理成功
+    */
+    virtual int onRedo();
+
 public:
     void dispatch(CwxMqTss* pTss);
     ///0：未完成状态；

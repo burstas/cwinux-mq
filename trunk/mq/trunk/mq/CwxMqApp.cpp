@@ -992,20 +992,158 @@ CWX_UINT32 CwxMqApp::packMonitorInfo()
 ///分发channel的线程函数，arg为app对象
 void* CwxMqApp::DispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg)
 {
+    CwxMqApp* app = (CwxMqApp*) arg;
+    if (0 != app->getAsyncDispChannel()->open())
+    {
+        CWX_ERROR(("Failure to open async dispatch channel"));
+        return NULL;
+    }
+    while(1)
+    {
+        //获取队列中的消息并处理
+        if (0 != DispatchThreadDoQueue(queue, app, app->getAsyncDispChannel())) break;
+        if (-1 == app->getAsyncDispChannel()->dispatch(5))
+        {
+            CWX_ERROR(("Failure to invoke async dispatch channel CwxAppChannel::dispatch()"));
+            sleep(1);
+        }
+    }
+    app->getAsyncDispChannel()->stop();
+    app->getAsyncDispChannel()->close();
+    if (!app->isStopped())
+    {
+        CWX_INFO(("Stop app for disptch channel thread stopped."));
+        app->stop();
+    }
     return NULL;
 }
 ///分发channel的队列消息函数。返回值：0：正常；-1：队列停止
-int CwxMqApp::DispatchThreadDoQueue(CwxMsgQueue* queue, CwxAppChannel* channel)
+int CwxMqApp::DispatchThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel)
 {
+    int iRet = 0;
+    CwxMsgBlock* block = NULL;
+    CwxAppHandler4Channel* handler = NULL;
+    while (!queue->isEmpty())
+    {
+        do 
+        {
+            iRet = queue->dequeue(block);
+            if (-1 == iRet) return -1;
+            CWX_ASSERT(block->event().getEvent() == CwxEventInfo::CONN_CREATED);
+            CWX_ASSERT((block->event().getSvrId() == SVR_TYPE_ASYNC_BIN) ||
+                (block->event().getSvrId() == SVR_TYPE_ASYNC_MC));
+
+            if (channel->isRegIoHandle(block->event().getIoHandle()))
+            {
+                CWX_ERROR(("Handler[%] is register", block->event().getIoHandle()));
+                break;
+            }
+            if (block->event().getSvrId() == SVR_TYPE_ASYNC_BIN)
+            {
+                handler = new CwxMqBinAsyncHandler(app, channel);
+            }
+            else if (block->event().getSvrId() == SVR_TYPE_ASYNC_MC)
+            {
+                handler = new CwxMqMcAsyncHandler(app, channel);
+            }
+            else
+            {
+                CWX_ERROR(("Invalid svr_type[%d], close handle[%d]", block->event().getSvrId(), block->event().getIoHandle()));
+                ::close(block->event().getIoHandle());
+            }
+            handler->setHandle(block->event().getIoHandle());
+            if (0 != channel->registerHandler(handler->getHandle(),
+                handler,
+                CwxAppHandler4Base::PREAD_MASK))
+            {
+                CWX_ERROR(("Failure to register handler[%d]", handler->getHandle()));
+                delete handler;
+                break;
+            }
+        } while(0);
+        CwxMsgBlockAlloc::free(block);
+        block = NULL;
+    }
+    if (queue->isDeactived()) return -1;
     return 0;
 }
 
 ///分发mq channel的线程函数，arg为app对象
 void* CwxMqApp::MqThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg)
 {
+    CwxMqApp* app = (CwxMqApp*) arg;
+    if (0 != app->getMqChannel()->open())
+    {
+        CWX_ERROR(("Failure to open mq channel"));
+        return NULL;
+    }
+    while(1)
+    {
+        //获取队列中的消息并处理
+        if (0 != MqThreadDoQueue(queue, app,  app->getMqChannel())) break;
+        if (-1 == app->getMqChannel()->dispatch(5))
+        {
+            CWX_ERROR(("Failure to invoke mq channel CwxAppChannel::dispatch()"));
+            sleep(1);
+        }
+    }
+    app->getMqChannel()->stop();
+    app->getMqChannel()->close();
+    if (!app->isStopped())
+    {
+        CWX_INFO(("Stop app for mq channel thread stopped."));
+        app->stop();
+    }
+    return NULL;
+
 }
 ///分发mq channel的队列消息函数。返回值：0：正常；-1：队列停止
-int CwxMqApp::MqThreadDoQueue(CwxMsgQueue* queue, CwxAppChannel* channel)
+int CwxMqApp::MqThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel)
 {
+    int iRet = 0;
+    CwxMsgBlock* block = NULL;
+    CwxAppHandler4Channel* handler = NULL;
+    while (!queue->isEmpty())
+    {
+        do 
+        {
+            iRet = queue->dequeue(block);
+            if (-1 == iRet) return -1;
+            CWX_ASSERT(block->event().getEvent() == CwxEventInfo::CONN_CREATED);
+            CWX_ASSERT((block->event().getSvrId() == SVR_TYPE_FETCH_BIN) ||
+                       (block->event().getSvrId() == SVR_TYPE_FETCH_MC));
 
+            if (channel->isRegIoHandle(block->event().getIoHandle()))
+            {
+                CWX_ERROR(("Handler[%] is register", block->event().getIoHandle()));
+                break;
+            }
+            if (block->event().getSvrId() == SVR_TYPE_FETCH_BIN)
+            {
+                handler = new CwxMqBinFetchHandler(app, channel);
+            }
+            else if (block->event().getSvrId() == SVR_TYPE_FETCH_MC)
+            {
+                handler = new CwxMqMcFetchHandler(app, channel);
+            }
+            else
+            {
+                CWX_ERROR(("Invalid svr_type[%d], close handle[%d]", block->event().getSvrId(), block->event().getIoHandle()));
+                ::close(block->event().getIoHandle());
+            }
+            handler->setHandle(block->event().getIoHandle());
+            if (0 != channel->registerHandler(handler->getHandle(),
+                handler,
+                CwxAppHandler4Base::PREAD_MASK))
+            {
+                CWX_ERROR(("Failure to register handler[%d]", handler->getHandle()));
+                delete handler;
+                break;
+            }
+        } while(0);
+        CwxMsgBlockAlloc::free(block);
+        block = NULL;
+    }
+    if (queue->isDeactived()) return -1;
+    return 0;
 }

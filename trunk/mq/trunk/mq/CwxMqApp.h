@@ -233,6 +233,14 @@ public:
         setAppRunValid(bValid);
         setAppRunFailReason(szReason);
     }
+    CwxAppChannel* getAsyncDispChannel()
+    {
+        return m_asyncDispChannel;
+    }
+    CwxAppChannel* getMqChannel()
+    {
+        return m_mqChannel;
+    }
 protected:
     ///重载运行环境设置API
     virtual int initRunEnv();
@@ -248,11 +256,11 @@ private:
     ///分发channel的线程函数，arg为app对象
     static void* DispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg);
     ///分发channel的队列消息函数。返回值：0：正常；-1：队列停止
-    static int DispatchThreadDoQueue(CwxMsgQueue* queue, CwxAppChannel* channel);
+    static int DispatchThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel);
     ///分发mq channel的线程函数，arg为app对象
     static void* MqThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg);
     ///分发mq channel的队列消息函数。返回值：0：正常；-1：队列停止
-    static int MqThreadDoQueue(CwxMsgQueue* queue, CwxAppChannel* channel);
+    static int MqThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel);
 
 private:
     bool                        m_bFirstBinLog; ///<服务启动后，收到的第一条binglog

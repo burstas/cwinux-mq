@@ -31,7 +31,7 @@ public:
     };
 public:
     ///¹¹Ôìº¯Êý
-    CwxMqTss():CwxTss(new CwxAppTssInfo)
+    CwxMqTss():CwxTss()
     {
         m_pReader = NULL;
         m_pWriter = NULL;

@@ -151,7 +151,6 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         m_uiConnId = 0;
     }
     return 1;
-
 }
 
 
