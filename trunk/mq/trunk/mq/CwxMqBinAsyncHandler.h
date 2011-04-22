@@ -31,7 +31,7 @@ public:
     virtual int onInput();
     /**
     @brief 通知连接关闭。
-    @return 对于主动连接，1：不从engine中移除注册；0：不从engine中移除注册但不删除handler；-1：从engine中将handle移除并删除。
+    @return 1：不从engine中移除注册；0：从engine中移除注册但不删除handler；-1：从engine中将handle移除并删除。
     */
     virtual int onConnClosed();
     /**
@@ -50,9 +50,18 @@ public:
         CwxMqTss* pTss);
 private:
     void noticeContinue(CwxMqTss* pTss, CwxMqDispatchConn* conn);
+    void replyMessage();
 private:
     CwxMqApp*             m_pApp;  ///<app对象
-    CwxMqDispatchConnSet* m_dispatchConns;
+    CwxMqSubscribe        m_subscribe; ///<消息订阅对象
+    CwxBinLogCursor*      m_pCursor; ///<binlog的读取cursor
+    bool                  m_bSync; ///<是否在同步状态
+    CwxMsgHead             m_header;
+    char                   m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN];
+    CWX_UINT32             m_uiRecvHeadLen; ///<recieved msg header's byte number.
+    CWX_UINT32             m_uiRecvDataLen; ///<recieved data's byte number.
+    CwxMsgBlock*           m_recvMsgData; ///<the recieved msg data
+
 };
 
 #endif 

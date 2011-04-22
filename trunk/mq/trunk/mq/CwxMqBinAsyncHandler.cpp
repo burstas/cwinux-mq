@@ -1,33 +1,98 @@
 #include "CwxMqBinAsyncHandler.h"
 #include "CwxMqApp.h"
 ///构造函数
-CwxMqBinAsyncHandler::CwxMqBinAsyncHandler(CwxMqApp* pApp):m_pApp(pApp)
+CwxMqBinAsyncHandler::CwxMqBinAsyncHandler(CwxMqApp* pApp, CwxAppChannel* channel):CwxAppHandler4Channel(channel)
 {
-    m_dispatchConns = new CwxMqDispatchConnSet(pApp->getBinLogMgr());
+    m_pApp = pApp;
+    m_pCursor = NULL;
+    m_uiRecvHeadLen = 0;
+    m_uiRecvDataLen = 0;
+    m_recvMsgData = 0;
 }
 ///析构函数
 CwxMqBinAsyncHandler::~CwxMqBinAsyncHandler()
 {
-    if (m_dispatchConns) delete m_dispatchConns;
+    if (m_recvMsgData) CwxMsgBlockAlloc::free(m_recvMsgData);
+    if (m_pCursor) m_pApp->getBinLogMgr()->destoryCurser(m_pCursor);
 }
 
-///连接建立后，需要维护连接上数据的分发
-int CwxMqBinAsyncHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* )
+/**
+@brief 连接可读事件，返回-1，close()会被调用
+@return -1：处理失败，会调用close()； 0：处理成功
+*/
+int CwxMqBinAsyncHandler::onInput()
 {
-    ///连接必须必须不存在
-    CWX_ASSERT(m_dispatchConns->m_clientMap.find(msg->event().getConnId()) == m_dispatchConns->m_clientMap.end());
-    CwxMqDispatchConn* conn = new CwxMqDispatchConn(msg->event().getSvrId(),
-        msg->event().getHostId(),
-        msg->event().getConnId(),
-        m_pApp->getConfig().getCommon().m_uiDispatchWindowSize);
-    conn->m_bContinue = false;
-    ///设置发送装口的状态
-    conn->m_window.setState(CwxAppAioWindow::STATE_CONNECTED);
-    ///将连接添加到map中
-    m_dispatchConns->m_clientMap[msg->event().getConnId()] = conn;
-    CWX_DEBUG(("Add dispatch conn for conn-id[%u]", msg->event().getConnId()));
-    return 1;
+    ssize_t recv_size = 0;
+    ssize_t need_size = 0;
+    need_size = CwxMsgHead::MSG_HEAD_LEN - this->m_uiRecvHeadLen;
+    if (need_size > 0 )
+    {//not get complete head
+        recv_size = CwxSocket::recv(getHandle(), this->m_szHeadBuf + this->m_uiRecvHeadLen, need_size);
+        if (recv_size <=0 )
+        { //error or signal
+            if ((0==recv_size) || ((errno != EWOULDBLOCK) && (errno != EINTR)))
+            {
+                return -1; //error
+            }
+            else
+            {//signal or no data
+                return 0;
+            }
+        }
+        this->m_uiRecvHeadLen += recv_size;
+        if (recv_size < need_size)
+        {
+            return 0;
+        }
+        this->m_szHeadBuf[this->m_uiRecvHeadLen] = 0x00;
+        if (!m_header.fromNet(this->m_szHeadBuf))
+        {
+            CWX_ERROR(("Msg header is error."));
+            return -1;
+        }
+        if (m_header.getDataLen() > 0) this->m_recvMsgData = CwxMsgBlockAlloc::malloc(m_header.getDataLen());
+        CWX_ASSERT(this->m_uiRecvDataLen==0);
+    }//end  if (need_size > 0)
+    //recv data
+    need_size = m_header.getDataLen() - this->m_uiRecvDataLen;
+    if (need_size > 0)
+    {//not get complete data
+        recv_size = CwxSocket::recv(getHandle(), this->m_recvMsgData->wr_ptr(), need_size);
+        if (recv_size <=0 )
+        { //error or signal
+            if ((errno != EWOULDBLOCK)&&(errno != EINTR))
+            {
+                return -1; //error
+            }
+            else
+            {//signal or no data
+                return 0;
+            }
+        }
+        //move write pointer
+        this->m_recvMsgData->wr_ptr(recv_size);
+        this->m_uiRecvDataLen += recv_size;
+        if (recv_size < need_size)
+        {
+            return 0;
+        }
+    }
+    replyMessage();
+    if (m_recvMsgData) CwxMsgBlockAlloc::free(m_recvMsgData);
+    this->m_recvMsgData = NULL;
+    this->m_uiRecvHeadLen = 0;
+    this->m_uiRecvDataLen = 0;
+    return 0;
+
 }
+
+//1：不从engine中移除注册；0：从engine中移除注册但不删除handler；-1：从engine中将handle移除并删除。
+int CwxMqBinAsyncHandler::onConnClosed()
+{
+    return -1;
+}
+
+
 
 ///连接关闭后，需要清理环境
 int CwxMqBinAsyncHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss* )
@@ -49,6 +114,8 @@ int CwxMqBinAsyncHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss* )
     CWX_DEBUG(("remove dispatch conn for conn-id[%u]", msg->event().getConnId()));
     return 1;
 }
+
+void CwxMqBinAsyncHandler::replyMessage();
 
 ///接收来自分发的回复信息及同步状态报告信息
 int CwxMqBinAsyncHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
