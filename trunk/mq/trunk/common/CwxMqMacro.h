@@ -53,10 +53,11 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_FAIL_AUTH         10 ///<鉴权失败
 #define CWX_MQ_INVALID_BINLOG_TYPE 11 ///<binlog的type错误
 #define CWX_MQ_INVALID_MSG_TYPE   12 ///<接收到的消息类型无效
-#define CWX_MQ_FAIL_ADD_BINLOG    13 ///<往binglog mgr中添加binlog失败
-#define CWX_MQ_NO_QUEUE        14 ///<队列不存在
-#define CWX_MQ_INVALID_SUBSCRIBE 15 ///<无效的消息订阅类型
-#define CWX_MQ_INNER_ERR        16 ///<其他内部错误，一般为内存
+#define CWX_MQ_INVALID_SID        13  ///<回复的sid无效
+#define CWX_MQ_FAIL_ADD_BINLOG    14 ///<往binglog mgr中添加binlog失败
+#define CWX_MQ_NO_QUEUE        15 ///<队列不存在
+#define CWX_MQ_INVALID_SUBSCRIBE 16 ///<无效的消息订阅类型
+#define CWX_MQ_INNER_ERR        17 ///<其他内部错误，一般为内存
 
 #define CWX_MQ_PROXY_NO_AUTH_GROUP    100 ///<消息的group没有被允许
 #define CWX_MQ_PROXY_FORBID_GROUP     101 ///<消息的group被禁止

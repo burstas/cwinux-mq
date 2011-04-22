@@ -16,46 +16,33 @@
 */
 
 #include "CwxMqMacro.h"
-#include "CwxAppAioWindow.h"
 #include "CwxStl.h"
 #include "CwxBinLogMgr.h"
 #include "CwxMqPoco.h"
 #include "CwxDTail.h"
 #include "CwxSTail.h"
 #include "CwxTypePoolEx.h"
+#include "CwxAppHandler4Channel.h"
 
 class CwxMqQueue;
 
 class CwxMqDispatchConn
 {
 public:
-    CwxMqDispatchConn(CWX_UINT32 uiSvrId,
-        CWX_UINT32 uiHosId,
-        CWX_UINT32 uiConnId,
-        CWX_UINT32 uiWindowSize);
+    CwxMqDispatchConn(CwxAppHandler4Channel* handler);
     ~CwxMqDispatchConn();
 public:
-    bool                m_bContinue; ///<是否包含continue的排队消息
-    bool                m_bNext; ///<是否发送下一个消息
-    bool                m_bSync; ///<是否接受sync数据
-    CwxMqSubscribe      m_subscribe; ///<消息订阅对象
-    CwxAppAioWindow     m_window; ///<分发窗口
-    set<CWX_UINT64>     m_recvWindow; ///<等待接受回复的SID集合
-    CwxMqDispatchConn*  m_prev; ///<前一个连接
-    CwxMqDispatchConn*  m_next; ///<下一个连接
+    CwxAppHandler4Channel*   m_handler; ///<连接对象
+    CwxBinLogCursor*         m_pCursor; ///<binlog的读取cursor
+    CWX_UINT32               m_uiChunk; ///<chunk大小
+    CWX_UINT64               m_ullStartSid; ///<report的sid
+    CWX_UINT64               m_ullSid; ///<当前发送到的sid
+    bool                     m_bContinue; ///<是否包含continue的排队消息
+    bool                     m_bNext; ///<是否发送下一个消息
+    bool                     m_bSync; ///<是否接受sync数据
+    CwxMqSubscribe           m_subscribe; ///<消息订阅对象
 };
 
-///分发连接的管理集合
-class CwxMqDispatchConnSet
-{
-public:
-    CwxMqDispatchConnSet(CwxBinLogMgr* pBinlogMgr);
-    ~CwxMqDispatchConnSet();
-public:
-    CwxBinLogMgr*  m_pBinlogMgr;
-    map<CWX_UINT32, CwxMqDispatchConn*>  m_clientMap; ///<异步分发的client
-    CwxDTail<CwxMqDispatchConn>    m_connTail; ///<分发连接的双向链表
-};
 
 ///mq的fetch连接
 class CwxMqFetchConn

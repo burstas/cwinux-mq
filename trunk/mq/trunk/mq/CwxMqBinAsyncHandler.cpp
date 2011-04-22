@@ -13,7 +13,7 @@ CwxMqBinAsyncHandler::CwxMqBinAsyncHandler(CwxMqApp* pApp, CwxAppChannel* channe
 CwxMqBinAsyncHandler::~CwxMqBinAsyncHandler()
 {
     if (m_recvMsgData) CwxMsgBlockAlloc::free(m_recvMsgData);
-    if (m_pCursor) m_pApp->getBinLogMgr()->destoryCurser(m_pCursor);
+    if (m_dispatch->m_pCursor) m_pApp->getBinLogMgr()->destoryCurser(m_dispatch->m_pCursor);
 }
 
 /**
@@ -22,67 +22,20 @@ CwxMqBinAsyncHandler::~CwxMqBinAsyncHandler()
 */
 int CwxMqBinAsyncHandler::onInput()
 {
-    ssize_t recv_size = 0;
-    ssize_t need_size = 0;
-    need_size = CwxMsgHead::MSG_HEAD_LEN - this->m_uiRecvHeadLen;
-    if (need_size > 0 )
-    {//not get complete head
-        recv_size = CwxSocket::recv(getHandle(), this->m_szHeadBuf + this->m_uiRecvHeadLen, need_size);
-        if (recv_size <=0 )
-        { //error or signal
-            if ((0==recv_size) || ((errno != EWOULDBLOCK) && (errno != EINTR)))
-            {
-                return -1; //error
-            }
-            else
-            {//signal or no data
-                return 0;
-            }
-        }
-        this->m_uiRecvHeadLen += recv_size;
-        if (recv_size < need_size)
-        {
-            return 0;
-        }
-        this->m_szHeadBuf[this->m_uiRecvHeadLen] = 0x00;
-        if (!m_header.fromNet(this->m_szHeadBuf))
-        {
-            CWX_ERROR(("Msg header is error."));
-            return -1;
-        }
-        if (m_header.getDataLen() > 0) this->m_recvMsgData = CwxMsgBlockAlloc::malloc(m_header.getDataLen());
-        CWX_ASSERT(this->m_uiRecvDataLen==0);
-    }//end  if (need_size > 0)
-    //recv data
-    need_size = m_header.getDataLen() - this->m_uiRecvDataLen;
-    if (need_size > 0)
-    {//not get complete data
-        recv_size = CwxSocket::recv(getHandle(), this->m_recvMsgData->wr_ptr(), need_size);
-        if (recv_size <=0 )
-        { //error or signal
-            if ((errno != EWOULDBLOCK)&&(errno != EINTR))
-            {
-                return -1; //error
-            }
-            else
-            {//signal or no data
-                return 0;
-            }
-        }
-        //move write pointer
-        this->m_recvMsgData->wr_ptr(recv_size);
-        this->m_uiRecvDataLen += recv_size;
-        if (recv_size < need_size)
-        {
-            return 0;
-        }
-    }
-    replyMessage();
+    int ret = CwxAppHandler4Channel::recvPackage(getHandle(),
+        m_uiRecvHeadLen,
+        m_uiRecvDataLen,
+        m_szHeadBuf,
+        m_header,
+        m_recvMsgData);
+    if (1 != ret) return ret;
+    CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
+    ret = recvMessage(tss);
     if (m_recvMsgData) CwxMsgBlockAlloc::free(m_recvMsgData);
     this->m_recvMsgData = NULL;
     this->m_uiRecvHeadLen = 0;
     this->m_uiRecvDataLen = 0;
-    return 0;
+    return ret;
 
 }
 
@@ -95,36 +48,8 @@ int CwxMqBinAsyncHandler::onConnClosed()
 
 
 ///连接关闭后，需要清理环境
-int CwxMqBinAsyncHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss* )
+int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
 {
-    map<CWX_UINT32, CwxMqDispatchConn*>::iterator iter = m_dispatchConns->m_clientMap.find(msg->event().getConnId());
-    ///连接必须存在
-    CWX_ASSERT(iter != m_dispatchConns->m_clientMap.end());
-    CwxMqDispatchConn* conn = iter->second;
-    ///将连接从map中删除
-    m_dispatchConns->m_clientMap.erase(iter);
-    ///删除binlog读取的cursor
-    if (conn->m_window.getHandle())
-    {
-        CwxBinLogCursor* pCursor = (CwxBinLogCursor*)conn->m_window.getHandle();
-        m_pApp->getBinLogMgr()->destoryCurser(pCursor);
-        m_dispatchConns->m_connTail.remove(conn);
-    }
-    delete conn;
-    CWX_DEBUG(("remove dispatch conn for conn-id[%u]", msg->event().getConnId()));
-    return 1;
-}
-
-void CwxMqBinAsyncHandler::replyMessage();
-
-///接收来自分发的回复信息及同步状态报告信息
-int CwxMqBinAsyncHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
-{
-    map<CWX_UINT32, CwxMqDispatchConn*>::iterator iter = m_dispatchConns->m_clientMap.find(msg->event().getConnId());
-    ///连接必须存在
-    CWX_ASSERT(iter != m_dispatchConns->m_clientMap.end());
-    CwxMqDispatchConn* conn = iter->second;
-    CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     CWX_UINT64 ullSid = 0;
     CWX_UINT32 uiChunk = 0;
     bool  bNewly = false;
@@ -133,67 +58,57 @@ int CwxMqBinAsyncHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     char const* passwd=NULL;
     int iRet = CWX_MQ_SUCCESS;
     int iState = 0;
-    if (CwxMqPoco::MSG_TYPE_SYNC_DATA_REPLY == msg->event().getMsgHeader().getMsgType())
+    do 
     {
-        if (!conn->m_window.isSyncing())
-        { ///如果连接不是同步状态，则是错误
-            strcpy(pTss->m_szBuf2K, "Client no in sync state");
-            CWX_DEBUG((pTss->m_szBuf2K));
-            //关闭连接
-            m_pApp->noticeCloseConn(msg->event().getConnId());
-            return 1;
-        }
-        ///若是同步sid的报告消息,则获取报告的sid
-        iRet = CwxMqPoco::parseSyncDataReply(pTss,
-            msg,
-            ullSid,
-            pTss->m_szBuf2K);
-        if (CWX_MQ_SUCCESS != iRet)
+        if (CwxMqPoco::MSG_TYPE_SYNC_DATA_REPLY == m_header.getMsgType())
         {
-            CWX_DEBUG(("Failure to parse sync_data reply package, err:%s", pTss->m_szBuf2K));
-            //关闭连接
-            m_pApp->noticeCloseConn(msg->event().getConnId());
-            return 1;
-        }
-        ///通知发送窗口已经收到消息
-        set<CWX_UINT64>::iterator iter_sid = conn->m_recvWindow.find(ullSid);
-        if (iter_sid != conn->m_recvWindow.begin())
-        {
-            char szBuf1[64];
-            char szBuf2[64];
-            CWX_UINT64 ullMinSid = 0;
-            if (conn->m_recvWindow.size()) ullMinSid = *(conn->m_recvWindow.begin());
-            CWX_ERROR(("Dispatch conn[%u]'s reply sid[%s] is not the right sid[%s], close conn.",
-                conn->m_window.getConnId(),
-                CwxCommon::toString(ullSid, szBuf1, 10),
-                CwxCommon::toString(ullMinSid, szBuf2, 10)));
-            m_pApp->noticeCloseConn(conn->m_window.getConnId());
-            return 1;
-        }
-        conn->m_recvWindow.erase(iter_sid);
-        ///发送下一条binlog
-        //if (0 == conn->m_window.getUsedSize())
-        {
-            iState = sendBinLog(m_pApp, conn, pTss);
+            if (!m_dispatch.m_bSync)
+            { ///如果连接不是同步状态，则是错误
+                strcpy(pTss->m_szBuf2K, "Client no in sync state");
+                CWX_DEBUG((pTss->m_szBuf2K));
+                iRet = CWX_MQ_INVALID_MSG_TYPE;
+                break;
+            }
+            ///若是同步sid的报告消息,则获取报告的sid
+            iRet = CwxMqPoco::parseSyncDataReply(pTss->m_pReader,
+                m_recvMsgData,
+                ullSid,
+                pTss->m_szBuf2K);
+            if (CWX_MQ_SUCCESS != iRet)
+            {
+                CWX_DEBUG(("Failure to parse sync_data reply package, err:%s", pTss->m_szBuf2K));
+                break;
+            }
+            ///检查返回的sid
+            if (ullSid != m_dispatch.m_ullSid)
+            {
+                char szBuf1[64];
+                char szBuf2[64];
+                CwxCommon::snprintf(pTss->m_szBuf2K, "Reply sid[%s] is not the right sid[%s], close conn.",
+                    CwxCommon::toString(ullSid, szBuf1, 10),
+                    CwxCommon::toString(m_dispatch.m_ullSid, szBuf2, 10));
+                CWX_ERROR((pTss->m_szBuf2K));
+               iRet = CWX_MQ_INVALID_SID;
+                break;
+            }
+            ///发送下一条binlog
+            iState = sendBinLog(m_pApp, m_dispatch, pTss);
             if (-1 == iState)
             {
                 CWX_ERROR((pTss->m_szBuf2K));
-                //关闭连接
-                m_pApp->noticeCloseConn(msg->event().getConnId());
+                return -1; ///关闭连接
             }
             else if (0 == iState)
             {///产生continue的消息
-                noticeContinue(pTss, conn);
+                m_pApp->getAsyncDispChannel()->regRedoHander(this);
+                m_dispatch.m_bContinue = true;
             }
+            ///返回
+            return 0;
         }
-        ///返回
-        return 1;
-    }
-    else if (CwxMqPoco::MSG_TYPE_SYNC_REPORT == msg->event().getMsgHeader().getMsgType())
-    {
-        do
+        else if (CwxMqPoco::MSG_TYPE_SYNC_REPORT == m_header.getMsgType())
         {
-            if (conn->m_window.getHandle())
+            if (m_dispatch->m_pCursor)
             {
                 iRet = CWX_MQ_INVALID_MSG;
                 CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Can't report sync sid duplicatly.");
@@ -217,10 +132,10 @@ int CwxMqBinAsyncHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             }
             if (m_pApp->getConfig().getCommon().m_bMaster)
             {
-                if (m_pApp->getConfig().getMaster().m_async.getUser().length())
+                if (m_pApp->getConfig().getMaster().m_async_bin.getUser().length())
                 {
-                    if ( (m_pApp->getConfig().getMaster().m_async.getUser() != user) ||
-                        (m_pApp->getConfig().getMaster().m_async.getPasswd() != passwd))
+                    if ( (m_pApp->getConfig().getMaster().m_async_bin.getUser() != user) ||
+                        (m_pApp->getConfig().getMaster().m_async_bin.getPasswd() != passwd))
                     {
                         iRet = CWX_MQ_FAIL_AUTH;
                         CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
@@ -231,10 +146,10 @@ int CwxMqBinAsyncHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             }
             else
             {
-                if (m_pApp->getConfig().getSlave().m_async.getUser().length())
+                if (m_pApp->getConfig().getSlave().m_async_bin.getUser().length())
                 {
-                    if ( (m_pApp->getConfig().getSlave().m_async.getUser() != user) ||
-                        (m_pApp->getConfig().getSlave().m_async.getPasswd() != passwd))
+                    if ( (m_pApp->getConfig().getSlave().m_async_bin.getUser() != user) ||
+                        (m_pApp->getConfig().getSlave().m_async_bin.getPasswd() != passwd))
                     {
                         iRet = CWX_MQ_FAIL_AUTH;
                         CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
@@ -245,14 +160,21 @@ int CwxMqBinAsyncHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             }
             string strSubcribe=subscribe?subscribe:"";
             string strErrMsg;
-            if (!CwxMqPoco::parseSubsribe(subscribe, conn->m_subscribe, strErrMsg))
+            if (!CwxMqPoco::parseSubsribe(subscribe, m_dispatch->m_subscribe, strErrMsg))
             {
                 iRet = CWX_MQ_INVALID_SUBSCRIBE;
                 CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Invalid subscribe[%s], err=%s", strSubcribe.c_str(), strErrMsg.c_str());
                 CWX_DEBUG((pTss->m_szBuf2K));
                 break;
             }
-            conn->m_bSync = true;
+            m_dispatch->m_bSync = true;
+            m_dispatch->m_uiChunk = uiChunk;
+            if (m_dispatch.m_uiChunk)
+            {
+                if (m_dispatch.m_uiChunk > CwxMqConfigCmn::MAX_CHUNK_SIZE_KB) m_dispatch.m_uiChunk = CwxMqConfigCmn::MAX_CHUNK_SIZE_KB;
+                if (m_dispatch.m_uiChunk < CwxMqConfigCmn::MIN_CHUNK_SIZE_KB) m_dispatch.m_uiChunk = CwxMqConfigCmn::MIN_CHUNK_SIZE_KB;
+                m_dispatch.m_uiChunk *= 1024;
+            }
             if (bNewly)
             {///不sid为空，则取当前最大sid-1
                 ullSid = m_pApp->getBinLogMgr()->getMaxSid();
@@ -270,60 +192,59 @@ int CwxMqBinAsyncHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 break;
             }
             ///设置cursor
-            conn->m_window.setHandle(pCursor);
-            conn->m_window.setStartSid(ullSid);
-            conn->m_window.setState(CwxAppAioWindow::STATE_SYNCING);
-            ///加入连接到分发队列
-            m_dispatchConns->m_connTail.push_head(conn);
-            iState = sendBinLog(m_pApp, conn, pTss);
+            m_dispatch->m_pCursor = pCursor;
+            m_dispatch->m_ullStartSid = ullSid;
+            m_dispatch->m_bSync = true;
             if (-1 == iState)
             {
-                iRet = CWX_MQ_INNER_ERR;
                 CWX_ERROR((pTss->m_szBuf2K));
-                break;
+                return -1; ///关闭连接
             }
             else if (0 == iState)
             {///产生continue的消息
-                noticeContinue(pTss, conn);
+                m_pApp->getAsyncDispChannel()->regRedoHander(this);
+                m_dispatch.m_bContinue = true;
             }
-            return 1; ///返回
-        }while(0);
-    }
-    else
-    {
-        ///若其他消息，则返回错误
-        CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u", msg->event().getMsgHeader().getMsgType());
-        iRet = CWX_MQ_INVALID_MSG_TYPE;
-        CWX_ERROR((pTss->m_szBuf2K));
-    }
+            ///返回
+            return 0;
+        }
+        else
+        {
+            ///若其他消息，则返回错误
+            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u", msg->event().getMsgHeader().getMsgType());
+            iRet = CWX_MQ_INVALID_MSG_TYPE;
+            CWX_ERROR((pTss->m_szBuf2K));
+        }
+
+    } while(0);
+    
 
     ///形成失败时候的回复数据包
     CwxMsgBlock* pBlock = NULL;
     if (CWX_MQ_SUCCESS != CwxMqPoco::packReportDataReply(pTss,
         pBlock,
-        msg->event().getMsgHeader().getTaskId(),
+        m_header.getTaskId(),
         iRet,
         ullSid,
         pTss->m_szBuf2K,
         pTss->m_szBuf2K))
     {
         CWX_ERROR(("Failure to create binlog reply package, err:%s", pTss->m_szBuf2K));
-        m_pApp->noticeCloseConn(msg->event().getConnId());
-        return 1;
+        return -1;
     }
     ///发送回复的数据包
-    pBlock->send_ctrl().setConnId(conn->m_window.getConnId());
-    pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_ASYNC);
+    pBlock->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
+    pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_ASYNC_BIN);
     pBlock->send_ctrl().setHostId(0);
     pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::CLOSE_NOTICE);
-    if (0 != m_pApp->sendMsgByConn(pBlock))
+    if (0 != this->putMsg(pBlock))
     {
         CWX_ERROR(("Failure to send msg to reciever, conn[%u]", msg->event().getConnId()));
         CwxMsgBlockAlloc::free(pBlock);
+        return -1;
         ///关闭连接
-        m_pApp->noticeCloseConn(msg->event().getConnId());
     }
-    return 1;
+    return 0;
 }
 
 ///处理binlog发送完毕的消息

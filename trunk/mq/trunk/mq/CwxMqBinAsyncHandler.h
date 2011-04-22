@@ -50,12 +50,11 @@ public:
         CwxMqTss* pTss);
 private:
     void noticeContinue(CwxMqTss* pTss, CwxMqDispatchConn* conn);
-    void replyMessage();
+    ///0：成功；-1：失败
+    int recvMessage(CwxMqTss* pTss);
 private:
     CwxMqApp*             m_pApp;  ///<app对象
-    CwxMqSubscribe        m_subscribe; ///<消息订阅对象
-    CwxBinLogCursor*      m_pCursor; ///<binlog的读取cursor
-    bool                  m_bSync; ///<是否在同步状态
+    CwxMqDispatchConn     m_dispatch; ///<连接分发信息
     CwxMsgHead             m_header;
     char                   m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN];
     CWX_UINT32             m_uiRecvHeadLen; ///<recieved msg header's byte number.

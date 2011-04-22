@@ -2,16 +2,16 @@
 #include "CwxMqQueueMgr.h"
 #include "CwxMqPoco.h"
 
-CwxMqDispatchConn::CwxMqDispatchConn(CWX_UINT32 uiSvrId,
-                                     CWX_UINT32 uiHosId,
-                                     CWX_UINT32 uiConnId,
-                                     CWX_UINT32 uiWindowSize)
-                                     :m_window(uiSvrId, uiHosId, uiConnId, uiWindowSize)
+CwxMqDispatchConn::CwxMqDispatchConn(CwxAppHandler4Channel handler)
 {
+    m_handler = handler;
+    m_pCursor = NULL;
+    m_ullStartSid = 0;
+    m_ullSid = 0;
+    m_bContinue = false;
+    m_uiChunk = 0;
     m_bNext = false;
     m_bSync = false;
-    m_prev = NULL;
-    m_next = NULL;
 }
 
 CwxMqDispatchConn::~CwxMqDispatchConn()
@@ -19,26 +19,6 @@ CwxMqDispatchConn::~CwxMqDispatchConn()
 
 }
 
-CwxMqDispatchConnSet::CwxMqDispatchConnSet(CwxBinLogMgr* pBinlogMgr)
-{
-    m_pBinlogMgr = pBinlogMgr;
-}
-
-CwxMqDispatchConnSet::~CwxMqDispatchConnSet()
-{
-    map<CWX_UINT32, CwxMqDispatchConn*>::iterator iter = m_clientMap.begin();
-    CwxBinLogCursor* pCursor = NULL;
-    while (iter != m_clientMap.end())
-    {
-        if (iter->second->m_window.getHandle())
-        {
-            pCursor = (CwxBinLogCursor*)iter->second->m_window.getHandle();
-            m_pBinlogMgr->destoryCurser(pCursor);
-        }
-        delete iter->second;
-        iter++;
-    }
-}
 
 CwxMqFetchConn::CwxMqFetchConn()
 {
