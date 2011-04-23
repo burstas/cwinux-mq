@@ -47,6 +47,32 @@ public:
     static int sendBinLog(CwxMqApp* pApp,
         CwxMqDispatchConn* conn,
         CwxMqTss* pTss);
+    ///-1：失败，0：无效的消息；1：成功
+    static int packOneBinLog(CwxPackageReader* reader,
+        CwxPackageWriter* writer,
+        CwxMsgBlock*& block,
+        char const* szData,
+        CWX_UINT32  uiDataLen,
+        CwxBinLogCursor* pCursor,
+        char* szErr2K);
+    ///-1：失败，0：无效的消息；1：成功
+    static int packMultiBinLog(CwxPackageReader* reader,
+        CwxPackageWriter* writer,
+        CwxPackageWriter* writer_item,
+        char const* szData,
+        CWX_UINT32  uiDataLen,
+        CwxBinLogCursor* pCursor,
+        CWX_UINT32&  uiLen,
+        char* szErr2K);
+    //1：发现记录；0：没有发现；-1：错误
+    static int seekToLog(CwxMqApp* app,
+        CwxMqDispatchConn* conn,
+        CWX_UINT32& uiSkipNum,
+        bool bSync=true);
+    //1：成功；0：太大；-1：错误
+    static int seekToReportSid(CwxMqApp* app,
+        CwxMqDispatchConn* conn);
+
 private:
     ///0：成功；-1：失败
     int recvMessage(CwxMqTss* pTss);

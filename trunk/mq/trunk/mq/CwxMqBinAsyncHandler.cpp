@@ -273,6 +273,189 @@ int CwxMqBinAsyncHandler::onRedo()
     return 0;
 }
 
+///-1：失败，0：无效的消息；1：成功
+static int packOneBinLog(CwxPackageReader* reader,
+                         CwxPackageWriter* writer,
+                         CwxMsgBlock*& block,
+                         char const* szData,
+                         CWX_UINT32  uiDataLen,
+                         CwxBinLogCursor* pCursor,
+                         char* szErr2K)
+{
+    CwxKeyValueItem const* pItem = NULL;
+    ///unpack data的数据包
+    if (reader->unpack(szData, uiDataLen, false,true))
+    {
+        ///获取CWX_MQ_DATA的key，此为真正data数据
+        pItem = reader->getKey(CWX_MQ_DATA);
+        if (pItem)
+        {
+            ///形成binlog发送的数据包
+            if (CWX_MQ_SUCCESS != CwxMqPoco::packSyncData(writer,
+                block,
+                0,
+                pCursor->getHeader().getSid(),
+                pCursor->getHeader().getDatetime(),
+                *pItem,
+                pCursor->getHeader().getGroup(),
+                pCursor->getHeader().getType(),
+                pCursor->getHeader().getAttr(),
+                szErr2K))
+            {
+                ///形成数据包失败
+                CWX_ERROR(("Failure to pack binlog package, err:%s", szErr2K));
+                return -1;
+            }
+        }
+        else
+        {///读取的数据无效                
+            CWX_ERROR(("Can't find key[%s] in binlog, sid=%s", CWX_MQ_DATA,
+                CwxCommon::toString(pCursor->getHeader().getSid(), szErr2K)));
+            return 0;
+        }            
+    }
+    else
+    {///binlog的数据格式错误，不是kv
+        CWX_ERROR(("Can't unpack binlog, sid=%s", CwxCommon::toString(pCursor->getHeader().getSid(), szErr2K)));
+        return 0;
+    }
+    return 1;
+}
+
+///-1：失败，否则返回添加数据的尺寸
+int CwxMqBinAsyncHandler::packMultiBinLog(CwxPackageReader* reader,
+                           CwxPackageWriter* writer,
+                           CwxPackageWriter* writer_item,
+                           char const* szData,
+                           CWX_UINT32  uiDataLen,
+                           CwxBinLogCursor* pCursor,
+                           CWX_UINT32&  uiLen,
+                           char* szErr2K)
+{
+    CwxKeyValueItem const* pItem = NULL;
+    ///unpack data的数据包
+    if (reader->unpack(szData, uiDataLen, false,true))
+    {
+        ///获取CWX_MQ_DATA的key，此为真正data数据
+        pItem = reader->getKey(CWX_MQ_DATA);
+        if (pItem)
+        {
+            ///形成binlog发送的数据包
+            if (CWX_MQ_SUCCESS != CwxMqPoco::packSyncDataItem(writer_item,
+                pCursor->getHeader().getSid(),
+                pCursor->getHeader().getDatetime(),
+                *pItem,
+                pCursor->getHeader().getGroup(),
+                pCursor->getHeader().getType(),
+                pCursor->getHeader().getAttr(),
+                szErr2K))
+            {
+                ///形成数据包失败
+                CWX_ERROR(("Failure to pack binlog package, err:%s", szErr2K));
+                return -1;
+            }
+        }
+        else
+        {///读取的数据无效                
+            CWX_ERROR(("Can't find key[%s] in binlog, sid=%s", CWX_MQ_DATA,
+                CwxCommon::toString(pCursor->getHeader().getSid(), szErr2K)));
+            return 0;
+        }            
+    }
+    else
+    {///binlog的数据格式错误，不是kv
+        CWX_ERROR(("Can't unpack binlog, sid=%s", CwxCommon::toString(pCursor->getHeader().getSid(), szErr2K)));
+        return 0;
+    }
+    if (!writer->addKeyValue(CWX_MQ_M, writer_item->getMsg(), writer_item->getMsgSize(),true))
+    {
+        ///形成数据包失败
+        CWX_ERROR(("Failure to pack binlog package, err:%s", writer->getErrMsg()));
+        return -1;
+    }
+    uiLen = CwxPackage::getKvLen(strlen(CWX_MQ_M),  writer_item->getMsgSize());
+    return 1;
+}
+
+//1：发现记录；0：没有发现；-1：错误
+int CwxMqBinAsyncHandler::seekToLog(CwxMqApp* app,
+                     CwxMqDispatchConn* conn,
+                     CWX_UINT32& uiSkipNum,
+                     bool bSync)
+{
+    int iRet = 0;
+    if (conn->m_bNext)
+    {
+        iRet = app->getBinLogMgr()->next(conn->m_pCursor);
+        if (0 == iRet) return 0; ///完成状态
+        if (-1 == iRet)
+        {///<失败
+            CWX_ERROR(("Failure to seek cursor, err:%s", conn->m_pCursor->getErrMsg()));
+            return -1;
+        }
+    }
+    uiSkipNum++;
+    conn->m_bNext = false;
+    while (!CwxMqPoco::isSubscribe(conn->m_subscribe,
+        bSync,
+        conn->m_pCursor->getHeader().getGroup(),
+        conn->m_pCursor->getHeader().getType()))
+    {
+        iRet = app->getBinLogMgr()->next(conn->m_pCursor);
+        if (0 == iRet)
+        {
+            conn->m_bNext = true;
+            return 0; ///完成状态
+        }
+        if (-1 == iRet)
+        {///<失败
+            CWX_ERROR(("Failure to seek cursor, err:%s", conn->m_pCursor->getErrMsg()));
+            return -1;
+        }
+        uiSkipNum ++;
+        if (!CwxMqPoco::isContinueSeek(uiSkipNum))
+        {
+            return 0;///未完成状态
+        }
+    }
+    return 1;
+}
+
+//1：成功；0：太大；-1：错误
+int CwxMqBinAsyncHandler::seekToReportSid(CwxMqApp* app,
+                           CwxMqDispatchConn* conn)
+{
+    int iRet = 0;
+    if (app->getBinLogMgr()->isUnseek(conn->m_pCursor))
+    {//若binlog的读取cursor悬空，则定位
+        if (conn->m_ullStartSid < app->getBinLogMgr()->getMaxSid())
+        {
+            iRet = app->getBinLogMgr()->seek(conn->m_pCursor, conn->m_ullStartSid);
+            if (-1 == iRet)
+            {
+                CWX_ERROR(("Failure to seek,  err:%s", conn->m_pCursor->getErrMsg()));
+                return -1;
+            }
+            else if (0 == iRet)
+            {
+                char szBuf1[64];
+                char szBuf2[64];
+                CWX_DEBUG(("Should seek to sid[%s] with max_sid[[%s], but not.",
+                    CwxCommon::toString(conn->m_ullStartSid, szBuf1),
+                    CwxCommon::toString(app->getBinLogMgr()->getMaxSid(), szBuf2)));
+                return 0;
+            }
+            ///若成功定位，则读取当前记录
+            conn->m_bNext = conn->m_ullStartSid == conn->m_pCursor->getHeader().getSid()?true:false;
+        }
+        else
+        {///若需要同步发送的sid不小于当前最小的sid，则依旧为悬空状态
+            return 0;///完成状态
+        }
+    }
+    return 1;
+}
+
 ///0：未发送一条binlog；
 ///1：发送了一条binlog；
 ///-1：失败；
@@ -285,70 +468,21 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
     char* pBuf = NULL;
     CwxBinLogCursor* pCursor = conn->m_pCursor;
     CwxMsgBlock* pBlock = NULL;
-    CwxKeyValueItem const* pItem = NULL;
-    if (pApp->getBinLogMgr()->isUnseek(pCursor))
-    {//若binlog的读取cursor悬空，则定位
-        if (conn->m_ullStartSid < pApp->getBinLogMgr()->getMaxSid())
-        {
-            iRet = pApp->getBinLogMgr()->seek(pCursor, conn->m_ullStartSid);
-            if (-1 == iRet)
-            {
-                CWX_ERROR(("Failure to seek,  err:%s", pCursor->getErrMsg()));
-                return -1;
-            }
-            else if (0 == iRet)
-            {
-                char szBuf1[64];
-                char szBuf2[64];
-                CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Should seek to sid[%s] with max_sid[[%s], but not.",
-                    CwxCommon::toString(conn->m_ullStartSid, szBuf1),
-                    CwxCommon::toString(pApp->getBinLogMgr()->getMaxSid(), szBuf2));
-                CWX_DEBUG((pTss->m_szBuf2K));
-                return 0;
-            }
-            ///若成功定位，则读取当前记录
-            conn->m_bNext = conn->m_ullStartSid == pCursor->getHeader().getSid()?true:false;
-        }
-        else
-        {///若需要同步发送的sid不小于当前最小的sid，则依旧为悬空状态
-            return 0;///完成状态
-        }
-    }
-    ///如果是发送下一条binlog，则移动cursor
-    if (conn->m_bNext)
-    {
-        iRet = pApp->getBinLogMgr()->next(pCursor);
-        if (0 == iRet)
-        {
-            return 0; ///完成状态
-        }
-        if (-1 == iRet)
-        {///<失败
-            CWX_ERROR(("Failure to seek cursor, err:%s", pCursor->getErrMsg()));
-            return -1;
-        }
-    }
-    conn->m_bNext = false;
     CWX_UINT32 uiSkipNum = 0;
+    CWX_UINT32 uiKeyLen = 0;
+    CWX_UINT32 uiTotalLen = 0;
+    if (pApp->getBinLogMgr()->isUnseek(conn->m_pCursor))
+    {//若binlog的读取cursor悬空，则定位
+        if (1 != (iRet = seekToReportSid(pApp, conn))) return iRet;
+    }
+
+    if (conn->m_uiChunk)
+    {
+        pTss->m_pWriter->beginPack();
+    }
     while(1)
     {
-        while (!CwxMqPoco::isSubscribe(conn->m_subscribe,
-            conn->m_bSync,
-            pCursor->getHeader().getGroup(),
-            pCursor->getHeader().getType()))
-        {
-            iRet = pApp->getBinLogMgr()->next(pCursor);
-            if (0 == iRet) return 0; ///完成状态
-            if (-1 == iRet)
-            {///<失败
-                CWX_ERROR(("Failure to seek cursor, err:%s", pCursor->getErrMsg()));
-                return -1;
-            }
-            uiSkipNum ++;
-            if (!CwxMqPoco::isContinueSeek(uiSkipNum)) return 0; ///未完成状态
-            continue;
-        }
-        ///获取binlog的data长度
+        if ( 1 != (iRet = seekToLog())) break;
         uiDataLen = pCursor->getHeader().getLogLen();
         ///准备data读取的buf
         pBuf = pTss->getBuf(uiDataLen);        
@@ -357,78 +491,74 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
         if (-1 == iRet)
         {//读取失败
             CWX_ERROR(("Failure to fetch data, err:%s", pCursor->getErrMsg()));
+            iRet = -1;
+            break;
+        }
+        if (!conn->m_uiChunk)
+        {
+            iRet = packOneBinLog(pTss->m_pReader,
+                pTss->m_pWriter,
+                pBlock,
+                pBuf,
+                uiDataLen,
+                pCursor,
+                pTss->m_szBuf2K);
+            if (0 == iRet) continue;
+            if (1 == iRet) conn->m_ullSid = pCursor->getHeader().getSid();
+            break;
+        }
+        else
+        {
+            iRet = packMultiBinLog(pTss->m_pReader, 
+                pTss->m_pWriter,
+                pTss->m_pItemWriter,
+                pBuf,
+                uiDataLen,
+                pCursor,
+                uiKeyLen,
+                pTss->m_szBuf2K);
+            if (1 == iRet)
+            {
+                conn->m_ullSid = pCursor->getHeader().getSid();
+                uiTotalLen += uiKeyLen;
+                if (uiTotalLen * 1024 >= conn->m_uiChunk) break;
+            }
+            if (-1 == iRet) break;
+            continue;
+        }
+    }
+    if (-1 == iRet) return -1;
+
+    if (!conn->m_uiChunk)
+    {
+        if (0 == iRet) return 0;
+    }
+    else
+    {
+        if (0 == uiTotalLen) return 0;
+        pTss->m_pWriter->pack();
+        if (CWX_MQ_SUCCESS != CwxMqPoco::packMultiSyncData(0,
+            pTss->m_pWriter->getMsg(), 
+            pTss->m_pWriter->getMsgSize(),
+            pBlock,
+            pTss->m_szBuf2K))
+        {
             return -1;
         }
-        ///unpack data的数据包
-        if (pTss->m_pReader->unpack(pBuf, uiDataLen, false, true))
-        {
-            ///获取CWX_MQ_DATA的key，此为真正data数据
-            pItem = pTss->m_pReader->getKey(CWX_MQ_DATA);
-            if (pItem)
-            {
-                ///形成binlog发送的数据包
-                if (CWX_MQ_SUCCESS != CwxMqPoco::packSyncData(pTss,
-                    pBlock,
-                    0,
-                    pCursor->getHeader().getSid(),
-                    pCursor->getHeader().getDatetime(),
-                    *pItem,
-                    pCursor->getHeader().getGroup(),
-                    pCursor->getHeader().getType(),
-                    pCursor->getHeader().getAttr(),
-                    pTss->m_szBuf2K))
-                {
-                    ///形成数据包失败
-                    CWX_ERROR(("Failure to pack binlog package, err:%s", pTss->m_szBuf2K));
-                }
-                else
-                {
-                    ///根据svr类型，发送数据包
-                    pBlock->send_ctrl().setConnId(conn->m_window.getConnId());
-                    pBlock->send_ctrl().setSvrId(conn->m_window.getSvrId());
-                    pBlock->send_ctrl().setHostId(0);
-                    pBlock->event().m_ullArg = pCursor->getHeader().getSid();
-                    pBlock->event().setTaskId(pCursor->getHeader().getSid()&0xFFFFFFFF);
-                    pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::FINISH_NOTICE);
-                    if (0 != pApp->sendMsgByConn(pBlock))
-                    {
-                        CWX_ERROR(("Failure to send binlog"));
-                        CwxMsgBlockAlloc::free(pBlock);
-                        return -1;
-                    }
-                    ///通知窗口发送了一个binlog
-                    conn->m_window.sendOneMsg(pCursor->getHeader().getSid());
-                    return 1; ///发送了一条消息
-                }
-            }
-            else
-            {///读取的数据无效                
-                CWX_ERROR(("Can't find key[%s] in binlog, sid=%s", CWX_MQ_DATA,
-                    CwxCommon::toString(pCursor->getHeader().getSid(), pTss->m_szBuf2K)));
-            }            
-        }
-        else
-        {///binlog的数据格式错误，不是kv
-            CWX_ERROR(("Can't unpack binlog, sid=%s", CwxCommon::toString(pCursor->getHeader().getSid(), pTss->m_szBuf2K)));
-        }
-        uiSkipNum ++;
-        if (!CwxMqPoco::isContinueSeek(uiSkipNum)) return 0;
-/*        if (conn->m_window.isEnableSend())
-        {///若发送窗口没有满,则准备发送下一个
-            iRet = pApp->getBinLogMgr()->next(pCursor);
-            if (0 == iRet) return 1; ///完成状态
-            if (-1 == iRet)
-            {///<失败
-                CWX_ERROR(("Failure to seek cursor, err:%s", pCursor->getErrMsg()));
-                return -1;
-            }
-        }
-        else
-        {///<若窗口已满，则退出发送
-            return 0; ///未完成状态
-        }*/
     }
-    ///永远也不会到达
-    return 0; ///未完成状态
+    ///根据svr类型，发送数据包
+    pBlock->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
+    pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_ASYNC_BIN);
+    pBlock->send_ctrl().setHostId(0);
+    pBlock->event().m_ullArg = pCursor->getHeader().getSid();
+    pBlock->event().setTaskId(pCursor->getHeader().getSid()&0xFFFFFFFF);
+    pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
+    if (!putMsg(pBlock))
+    {
+        CWX_ERROR(("Failure to send binlog"));
+        CwxMsgBlockAlloc::free(pBlock);
+        return -1;
+    }
+    return 1; ///发送了一条消息
 }
 

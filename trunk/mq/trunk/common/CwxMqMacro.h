@@ -37,7 +37,7 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_QUEUE "queue"
 #define CWX_MQ_GROUP "group"
 #define CWX_MQ_CHUNK "chunk"
-
+#define CWX_MQ_M     "m"
 
 ///错误代码定义
 #define CWX_MQ_SUCCESS          0  ///<成功

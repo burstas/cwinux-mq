@@ -57,6 +57,7 @@ public:
 public:
     CwxPackageReader*      m_pReader; ///<数据包的解包对象
     CwxPackageWriter*      m_pWriter; ///<数据包的pack对象
+    CwxPackageWriter*      m_pItemWriter; ///<chunk时的一个消息的数据包的pack对象
 private:
     char*                  m_szDataBuf; ///<数据buf
     CWX_UINT32             m_uiDataBufLen; ///<数据buf的空间大小

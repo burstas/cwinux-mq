@@ -611,6 +611,41 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
                         char* szErr2K)
 {
     writer->beginPack();
+    int ret = packSyncDataItem(writer,
+        ullSid,
+        uiTimeStamp,
+        data,
+        group,
+        type,
+        attr,
+        szErr2K);
+    if (CWX_MQ_SUCCESS != ret) return ret;
+
+    if (!writer->pack())
+    {
+        if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
+        return CWX_MQ_INNER_ERR;
+    }
+    CwxMsgHead head(0, 0, MSG_TYPE_SYNC_DATA, uiTaskId, writer->getMsgSize());
+    msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
+    if (!msg)
+    {
+        if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
+        return CWX_MQ_INNER_ERR;
+    }
+    return CWX_MQ_SUCCESS;
+}
+
+int packSyncDataItem(CwxPackageWriter* writer,
+                            CWX_UINT64 ullSid,
+                            CWX_UINT32 uiTimeStamp,
+                            CwxKeyValueItem const& data,
+                            CWX_UINT32 group,
+                            CWX_UINT32 type,
+                            CWX_UINT32 attr,
+                            char* szErr2K)
+{
+    writer->beginPack();
     if (!writer->addKeyValue(CWX_MQ_SID, ullSid))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
@@ -641,13 +676,20 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_INNER_ERR;
     }
-    if (!writer->pack())
-    {
-        if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
-    }
-    CwxMsgHead head(0, 0, MSG_TYPE_SYNC_DATA, uiTaskId, writer->getMsgSize());
-    msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
+    writer->pack();
+    return CWX_MQ_SUCCESS;
+}
+
+int CwxMqPoco::packMultiSyncData(
+                                     CWX_UINT32 uiTaskId,
+                                     char* szData,
+                                     CWX_UINT32 uiDataLen,
+                                     CwxMsgBlock*& msg,
+                                     char* szErr2K
+                                 )
+{
+    CwxMsgHead head(0, 0, MSG_TYPE_SYNC_DATA, uiTaskId, uiDataLen);
+    msg = CwxMsgBlockAlloc::pack(head, szData, uiDataLen);
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
@@ -655,6 +697,7 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
     }
     return CWX_MQ_SUCCESS;
 }
+
 
 int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
                          CwxMsgBlock const* msg,

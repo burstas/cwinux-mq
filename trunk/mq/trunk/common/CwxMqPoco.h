@@ -139,7 +139,7 @@ public:
         SYNC_GROUP_TYPE=0XFFFFFFFF,
         SYNC_SECOND_INTERNAL=60,
         SYNC_RECORD_INTERNAL=10000,
-        MAX_CONTINUE_SEEK_NUM = 2048
+        MAX_CONTINUE_SEEK_NUM = 8192
     };
 public:
     ///初始化协议。返回值，CWX_MQ_SUCCESS：成功；其他都是失败
@@ -268,6 +268,22 @@ public:
         CWX_UINT32 type,
         CWX_UINT32 attr,
         char* szErr2K=NULL);
+    ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+    static int packSyncDataItem(CwxPackageWriter* writer,
+        CWX_UINT64 ullSid,
+        CWX_UINT32 uiTimeStamp,
+        CwxKeyValueItem const& data,
+        CWX_UINT32 group,
+        CWX_UINT32 type,
+        CWX_UINT32 attr,
+        char* szErr2K=NULL);
+    static int packMultiSyncData(
+        CWX_UINT32 uiTaskId,
+        char* szData,
+        CWX_UINT32 uiDataLen,
+        CwxMsgBlock*& msg,
+        char* szErr2K=NULL
+        );
     ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
     static int parseSyncData(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
