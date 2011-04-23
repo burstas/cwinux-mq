@@ -50,26 +50,11 @@ public:
     CwxMqFetchConn();
     ~CwxMqFetchConn();
 public:
-    CWX_UINT32      m_uiConnId; ///<连接的id
     bool            m_bBlock; ///<是否为block连接
-    bool            m_bTail; ///<是否在等待队列中
     CWX_UINT32      m_uiTaskId; ///<连接的taskid
     CwxMqQueue*     m_pQueue; ///<连接的队列
-    CwxMqFetchConn* m_prev;
-    CwxMqFetchConn* m_next;
 };
 
-///分发连接的管理集合
-class CwxMqFetchConnSet
-{
-public:
-    CwxMqFetchConnSet();
-    ~CwxMqFetchConnSet();
-public:
-    CwxTypePoolEx<CwxMqFetchConn>*     m_connPool; ///<内存池
-    CwxDTail<CwxMqFetchConn>           m_connWaitTail; ///<等待获取消息的连接
-    map<CWX_UINT32, CwxMqFetchConn*>   m_clientMap; ///<等待获取消息的连接
-};
 
 class CwxMqConfigQueue
 {

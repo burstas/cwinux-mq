@@ -4,7 +4,6 @@
 CwxMqBinAsyncHandler::CwxMqBinAsyncHandler(CwxMqApp* pApp, CwxAppChannel* channel):CwxAppHandler4Channel(channel)
 {
     m_pApp = pApp;
-    m_pCursor = NULL;
     m_uiRecvHeadLen = 0;
     m_uiRecvDataLen = 0;
     m_recvMsgData = 0;

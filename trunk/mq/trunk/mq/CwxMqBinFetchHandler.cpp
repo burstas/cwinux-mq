@@ -1,48 +1,40 @@
 #include "CwxMqBinFetchHandler.h"
 #include "CwxMqApp.h"
 
-///连接建立后，需要维护连接上数据的分发
-int CwxMqBinFetchHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* )
+/**
+@brief 连接可读事件，返回-1，close()会被调用
+@return -1：处理失败，会调用close()； 0：处理成功
+*/
+int CwxMqBinFetchHandler::onInput()
 {
-    ///连接必须必须不存在
-    CWX_ASSERT(m_fetchConns.m_clientMap.find(msg->event().getConnId()) == m_fetchConns.m_clientMap.end());
-    ///将连接添加到map中
-    CwxMqFetchConn* pConn = m_fetchConns.m_connPool->malloc();
-    pConn->m_uiConnId = msg->event().getConnId();
-    m_fetchConns.m_clientMap[msg->event().getConnId()] = pConn;
-    pConn->m_bTail = false;
-    CWX_DEBUG(("Add fetch conn for conn-id[%u]", msg->event().getConnId()));
-    return 1;
+    int ret = CwxAppHandler4Channel::recvPackage(getHandle(),
+        m_uiRecvHeadLen,
+        m_uiRecvDataLen,
+        m_szHeadBuf,
+        m_header,
+        m_recvMsgData);
+    if (1 != ret) return ret;
+    CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
+    ret = recvMessage(tss);
+    if (m_recvMsgData) CwxMsgBlockAlloc::free(m_recvMsgData);
+    this->m_recvMsgData = NULL;
+    this->m_uiRecvHeadLen = 0;
+    this->m_uiRecvDataLen = 0;
+    return ret;
 }
-
-///连接关闭后，需要清理环境
-int CwxMqBinFetchHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss* )
+/**
+@brief 通知连接关闭。
+@return 1：不从engine中移除注册；0：从engine中移除注册但不删除handler；-1：从engine中将handle移除并删除。
+*/
+int CwxMqBinFetchHandler::onConnClosed()
 {
-    map<CWX_UINT32, CwxMqFetchConn*>::iterator iter = m_fetchConns.m_clientMap.find(msg->event().getConnId());
-    ///连接必须存在
-    CWX_ASSERT(iter != m_fetchConns.m_clientMap.end());
-    CwxMqFetchConn* pConn = iter->second;
-    ///将连接从map中删除
-    m_fetchConns.m_clientMap.erase(iter);
-    ///删除binlog读取的cursor
-    if (pConn->m_bTail)
-    {
-        m_fetchConns.m_connWaitTail.remove(pConn);
-    }
-    m_fetchConns.m_connPool->free(pConn);
-    CWX_DEBUG(("remove fetch conn for conn-id[%u]", msg->event().getConnId()));
-    return 1;
+    return -1;
 }
 
 
-///echo请求的处理函数
-int CwxMqBinFetchHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
+///0：成功；-1：失败
+int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
 {
-    map<CWX_UINT32, CwxMqFetchConn*>::iterator iter = m_fetchConns.m_clientMap.find(msg->event().getConnId());
-    ///连接必须存在
-    CWX_ASSERT(iter != m_fetchConns.m_clientMap.end());
-    CwxMqFetchConn* pConn = iter->second;
-    CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     int iRet = CWX_MQ_SUCCESS;
     bool bBlock = false;
     bool bClose = false;
@@ -201,35 +193,6 @@ int CwxMqBinFetchHandler::onFailSendMsg(CwxMsgBlock*& msg, CwxTss* )
     back(msg);
     msg = NULL;
     return 1;
-}
-
-///处理继续发送的消息
-int CwxMqBinFetchHandler::onUserEvent(CwxMsgBlock*& msg, CwxTss* pThrEnv)
-{
-    CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
-    map<CWX_UINT32, CwxMqFetchConn*>::iterator iter = m_fetchConns.m_clientMap.find(msg->event().getConnId());
-    if (iter != m_fetchConns.m_clientMap.end())
-    {
-        CwxMqFetchConn * pConn = iter->second;
-        if (pConn->m_pQueue && pConn->m_bTail)
-        {
-            sentBinlog(pTss, pConn);
-        }
-    }
-    return 1;
-}
-
-
-
-void CwxMqBinFetchHandler::dispatch(CwxMqTss* pTss)
-{
-    CwxMqFetchConn * pConn = (CwxMqFetchConn *)m_fetchConns.m_connWaitTail.head();
-    while(pConn)
-    {
-        CWX_ASSERT(pConn->m_bTail);
-        sentBinlog(pTss, pConn);
-        pConn = pConn->m_next;
-    }
 }
 
 CwxMsgBlock* CwxMqBinFetchHandler::packErrMsg(CwxMqTss* pTss,
