@@ -45,8 +45,12 @@ public:
         return m_uiConnId;
     }
 private:
+    //0：成功；-1：失败
+    int saveBinlog(CwxMqTss* pTss, char const* szBinLog, CWX_UINT32 uiLen, CWX_UINT64& ullSid);
+private:
     CwxMqApp*     m_pApp;  ///<app对象
     CWX_UINT32          m_uiConnId; ///<master的连接ID
+    CwxPackageReader      m_reader; 
 };
 
 #endif 

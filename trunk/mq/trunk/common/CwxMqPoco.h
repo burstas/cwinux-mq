@@ -294,6 +294,17 @@ public:
         CWX_UINT32& type,
         CWX_UINT32& attr,
         char* szErr2K=NULL);
+    ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+    static int parseSyncData(CwxPackageReader* reader,
+        char const* szData,
+        CWX_UINT32 uiDataLen,
+        CWX_UINT64& ullSid,
+        CWX_UINT32& uiTimeStamp,
+        CwxKeyValueItem const*& data,
+        CWX_UINT32& group,
+        CWX_UINT32& type,
+        CWX_UINT32& attr,
+        char* szErr2K=NULL);
 
     ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
     static int packSyncDataReply(CwxPackageWriter* writer,

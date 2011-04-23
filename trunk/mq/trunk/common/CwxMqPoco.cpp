@@ -709,7 +709,31 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
                          CWX_UINT32& attr,
                          char* szErr2K)
 {
-    if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
+    return parseSyncData(reader,
+        msg->rd_ptr(),
+        msg->length(),
+        ullSid,
+        uiTimeStamp,
+        data,
+        group,
+        type,
+        attr,
+        szErr2K);
+}
+
+///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
+                         char const* szData,
+                         CWX_UINT32 uiDataLen,
+                         CWX_UINT64& ullSid,
+                         CWX_UINT32& uiTimeStamp,
+                         CwxKeyValueItem const*& data,
+                         CWX_UINT32& group,
+                         CWX_UINT32& type,
+                         CWX_UINT32& attr,
+                         char* szErr2K)
+{
+    if (!reader->unpack(szData, uiDataLen, false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
         return CWX_MQ_INVALID_MSG;
@@ -748,7 +772,9 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
         type = 0;
     }
     return CWX_MQ_SUCCESS;
+
 }
+
 
 ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
 int CwxMqPoco::packSyncDataReply(CwxPackageWriter* writer,

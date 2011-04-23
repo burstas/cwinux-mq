@@ -54,6 +54,8 @@ int CwxMqMasterHandler::onConnClosed(CwxMsgBlock*& , CwxTss* )
 ///接收来自master的消息
 int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
+    int iRet = 0;
+    CWX_UINT32 i = 0;
     if (!m_uiConnId) return 1;
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     //SID报告的回复，此时，一定是报告失败
@@ -78,46 +80,44 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     }
     else if (CwxMqPoco::MSG_TYPE_SYNC_DATA == msg->event().getMsgHeader().getMsgType())
     {///binlog数据
+        
         CWX_UINT64 ullSid;
-        CWX_UINT32 ttTimestamp;
-        CWX_UINT32 uiGroup;
-        CWX_UINT32 uiType;
-        CWX_UINT32 uiAttr;
-        CwxKeyValueItem const* data;
-        ///获取binlog的数据
-        if (CWX_MQ_SUCCESS != CwxMqPoco::parseSyncData(pTss->m_pReader, 
-            msg,
-            ullSid,
-            ttTimestamp,
-            data,
-            uiGroup,
-            uiType,
-            uiAttr,
-            pTss->m_szBuf2K))
+
+        if (!m_pApp->getConfig().getCommon().m_uiChunkSize)
         {
-            CWX_ERROR(("Failure to parse binlog from master, err=%s", pTss->m_szBuf2K));
-            m_pApp->noticeReconnect(m_uiConnId, RECONN_MASTER_DELAY_SECOND * 1000);
-            m_uiConnId = 0;
-            return 1;
+            iRet = saveBinlog(pTss, msg->rd_ptr(), msg->length(), ullSid);
         }
-        //add to binlog
-        pTss->m_pWriter->beginPack();
-        pTss->m_pWriter->addKeyValue(CWX_MQ_DATA, data->m_szData, data->m_uiDataLen, data->m_bKeyValue);
-        pTss->m_pWriter->pack();
-        if (0 !=m_pApp->getBinLogMgr()->append(ullSid,
-            (time_t)ttTimestamp,
-            uiGroup,
-            uiType,
-            uiAttr,
-            pTss->m_pWriter->getMsg(),
-            pTss->m_pWriter->getMsgSize(),
-            pTss->m_szBuf2K))
+        else
         {
-           CWX_ERROR(("Failure to append binlog to binlog mgr, err=%s", pTss->m_szBuf2K));
-           m_pApp->updateAppRunState();
-           m_pApp->noticeCloseConn(m_uiConnId);
-           m_uiConnId = 0;
-           return 1;
+            if (!m_reader.unpack(msg->rd_ptr(), msg->length(), false, true))
+            {
+                CWX_ERROR(("Failure to unpack master multi-binlog, err:%s", m_reader.getErrMsg()));
+                iRet = -1;
+            }
+            for (i=0; i<m_reader.getKeyNum(); i++)
+            {
+                if(0 != strcmp(m_reader.getKey(i)->m_szKey, CWX_MQ_M))
+                {
+                    CWX_ERROR(("Master multi-binlog's key must be:%s, but:%s", CWX_MQ_M, m_reader.getKey(i)->m_szKey));
+                    iRet = -1;
+                }
+                if (-1 == saveBinlog(pTss, m_reader.getKey(i).m_szData, m_reader.getKey(i).m_uiDataLen, ullSid))
+                {
+                    iRet = -1;
+                    break;
+                }
+            }
+            if (0 == iRet)
+            {
+                CWX_ERROR(("Master multi-binlog's key hasn't key"));
+                iRet = -1;
+            }
+        }
+        if (-1 == iRet)
+        {
+            m_pApp->updateAppRunState();
+            m_pApp->noticeCloseConn(m_uiConnId);
+            m_uiConnId = 0;
         }
         //回复发送者
         CwxMsgBlock* reply_block = NULL;
@@ -153,4 +153,46 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     return 1;
 }
 
+
+//0：成功；-1：失败
+int CwxMqMasterHandler::saveBinlog(CwxMqTss* pTss, char const* szBinLog, CWX_UINT32 uiLen, CWX_UINT64& ullSid)
+{
+    CWX_UINT32 ttTimestamp;
+    CWX_UINT32 uiGroup;
+    CWX_UINT32 uiType;
+    CWX_UINT32 uiAttr;
+    CwxKeyValueItem const* data;
+    ///获取binlog的数据
+    if (CWX_MQ_SUCCESS != CwxMqPoco::parseSyncData(pTss->m_pReader, 
+        szBinLog,
+        uiLen,
+        ullSid,
+        ttTimestamp,
+        data,
+        uiGroup,
+        uiType,
+        uiAttr,
+        pTss->m_szBuf2K))
+    {
+        CWX_ERROR(("Failure to parse binlog from master, err=%s", pTss->m_szBuf2K));
+        return -1;
+    }
+    //add to binlog
+    pTss->m_pWriter->beginPack();
+    pTss->m_pWriter->addKeyValue(CWX_MQ_DATA, data->m_szData, data->m_uiDataLen, data->m_bKeyValue);
+    pTss->m_pWriter->pack();
+    if (0 !=m_pApp->getBinLogMgr()->append(ullSid,
+        (time_t)ttTimestamp,
+        uiGroup,
+        uiType,
+        uiAttr,
+        pTss->m_pWriter->getMsg(),
+        pTss->m_pWriter->getMsgSize(),
+        pTss->m_szBuf2K))
+    {
+        CWX_ERROR(("Failure to append binlog to binlog mgr, err=%s", pTss->m_szBuf2K));
+        return -1;
+    }
+    return 0;
+}
 
