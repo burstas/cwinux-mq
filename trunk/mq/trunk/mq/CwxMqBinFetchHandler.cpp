@@ -57,7 +57,7 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
             if (CWX_MQ_SUCCESS != iRet) break;
             if (m_conn.m_bWaiting)
             {///重复发送消息，直接忽略
-                return 1;
+                return 0;
             }
             if (!m_conn.m_pQueue)
             {
@@ -84,52 +84,16 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
                 }
             }
 
-            int ret = m_conn.m_pQueue->getNextBinlog(pTss, false, block, iRet, bClose);
-            ///0：没有消息；
-            ///1：获取一个消息；
-            ///2：达到了搜索点，但没有发现消息；
-            ///-1：失败；
-            if (-1 == ret)
+            int ret = sentBinlog(pTss, &m_conn);
+            if (0 == iRet)
             {
-                CWX_ERROR((pTss->m_szBuf2K));
-                break;
-            }
-            if (0 == ret) //没有消息
-            {
-                if (bBlock)
-                {
-                    m_conn.m_bBlock = true;
-                    m_conn.m_bWaiting = true;
-                    channel()->regRedoHander(this);
-                    return 1;
-                }
-                else
-                {
-                    iRet = CWX_MQ_NO_MSG;
-                    strcpy(pTss->m_szBuf2K, "No message");
-                    break;
-                }
-            }
-            else if (2 == ret) //没有遍历完
-            {
-                ///设置当前的sid
-                ret = m_pApp->getSysFile()->setSid(m_conn.m_pQueue->getName(), m_conn.m_pQueue->getCurSid());
-                if (1 != ret)
-                {
-                    iRet = CWX_MQ_INNER_ERR;
-                    if (-1 == ret)
-                        CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to set sys-file, errno:%s", m_pApp->getSysFile()->getErrMsg());
-                    else
-                        CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to set sys-file, queue can't be found:%s", m_conn.m_pQueue->getName().c_str());
-                    CWX_ERROR((pTss->m_szBuf2K));
-                    break;
-                }
-                m_conn.m_bWaiting = true;
-                m_conn.m_bBlock = bBlock;
                 channel()->regRedoHander(this);
-                return 1; ///返回
             }
-
+            else if (-1 == iRet)
+            {
+                return -1;
+            }
+            return 1;
         }while(0);
     }
     else
@@ -152,8 +116,8 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
             return -1;
         }
     }
-    reply(block, msg->event().getConnId(), pConn->m_pQueue, iRet, bClose);
-    return 1;
+    if (-1 == reply(block, pConn->m_pQueue, iRet, bClose)) return -1;
+    return 0;
 }
 
 /**
@@ -250,6 +214,7 @@ void CwxMqBinFetchHandler::reply(CwxMsgBlock* msg,
     msg->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
     msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH_BIN);
     msg->send_ctrl().setHostId(0);
+    msg->event().m_uiArg = pQueue->getId()；
     if (CWX_MQ_SUCCESS == ret)
     {
         if (bClose)
@@ -329,7 +294,7 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
         }
         else if (2 == iState)
         {//未完成
-            channel()->regRedoHander(this);
+            return 0;
         }
     }
     return 0;
