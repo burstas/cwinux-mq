@@ -162,7 +162,17 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
 */
 int CwxMqBinFetchHandler::onRedo()
 {
-
+    CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
+    int iRet = sentBinlog(tss, &m_conn);
+    if (0 == iRet)
+    {
+        channel()->regRedoHander(this);
+    }
+    else if (-1 == iRet)
+    {
+        return -1;
+    }
+    return 0;
 }
 /**
 @brief 通知连接完成一个消息的发送。<br>
@@ -174,23 +184,6 @@ CwxMsgSendCtrl::RESUME_CONN：让连接从suspend状态变为数据接收状态。
 CwxMsgSendCtrl::SUSPEND_CONN：让连接从数据接收状态变为suspend状态
 */
 CWX_UINT32 CwxMqBinFetchHandler::onEndSendMsg(CwxMsgBlock*& msg)
-{
-
-}
-
-/**
-@brief 通知连接上，一个消息发送失败。<br>
-只有在Msg指定FAIL_NOTICE的时候才调用.
-@param [in,out] msg 发送失败的消息，若返回NULL，则msg有上层释放，否则底层释放。
-@return void。
-*/
-void CwxMqBinFetchHandler::onFailSendMsg(CwxMsgBlock*& msg)
-{
-
-}
-
-///处理binlog发送完毕的消息
-int CwxMqBinFetchHandler::onEndSendMsg(CwxMsgBlock*& msg, CwxTss* pTss)
 {
     CwxMqQueue* pQueue = m_pApp->getQueueMgr()->getQueue(msg->event().m_uiArg);
     CWX_ASSERT(pQueue);
@@ -206,22 +199,27 @@ int CwxMqBinFetchHandler::onEndSendMsg(CwxMsgBlock*& msg, CwxTss* pTss)
     if ((m_pApp->getMqUncommitNum() >= m_pApp->getConfig().getBinLog().m_uiMqFetchFlushNum) ||
         (time(NULL) > (time_t)(m_pApp->getMqLastCommitTime() + m_pApp->getConfig().getBinLog().m_uiMqFetchFlushSecond)))
     {
-        if (0 != m_pApp->commit_mq(pTss->m_szBuf2K))
+        char szErr2K[2048];
+        if (0 != m_pApp->commit_mq(szErr2K))
         {
-            CWX_ERROR(("Failure to commit sys file, err=%s", pTss->m_szBuf2K));
+            CWX_ERROR(("Failure to commit sys file, err=%s", szErr2K));
         }
     }
     return 1;
-
 }
 
-///处理发送失败的binlog
-int CwxMqBinFetchHandler::onFailSendMsg(CwxMsgBlock*& msg, CwxTss* )
+/**
+@brief 通知连接上，一个消息发送失败。<br>
+只有在Msg指定FAIL_NOTICE的时候才调用.
+@param [in,out] msg 发送失败的消息，若返回NULL，则msg有上层释放，否则底层释放。
+@return void。
+*/
+void CwxMqBinFetchHandler::onFailSendMsg(CwxMsgBlock*& msg)
 {
     back(msg);
     msg = NULL;
-    return 1;
 }
+
 
 CwxMsgBlock* CwxMqBinFetchHandler::packErrMsg(CwxMqTss* pTss,
                         int iRet,
@@ -245,7 +243,6 @@ CwxMsgBlock* CwxMqBinFetchHandler::packErrMsg(CwxMqTss* pTss,
 }
 
 void CwxMqBinFetchHandler::reply(CwxMsgBlock* msg,
-           CWX_UINT32 uiConnId,
            CwxMqQueue* pQueue,
            int ret,
            bool bClose)
@@ -253,24 +250,30 @@ void CwxMqBinFetchHandler::reply(CwxMsgBlock* msg,
     msg->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
     msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH_BIN);
     msg->send_ctrl().setHostId(0);
-    CWX_UINT32 uiMsgAttr = 0;
     if (CWX_MQ_SUCCESS == ret)
     {
-        uiMsgAttr |= CwxMsgSendCtrl::FAIL_NOTICE | CwxMsgSendCtrl::FINISH_NOTICE; 
+        if (bClose)
+            msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::FAIL_NOTICE | CwxMsgSendCtrl::FINISH_NOTICE|CwxMsgSendCtrl::CLOSE_NOTICE);
+        else
+            msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::FAIL_NOTICE | CwxMsgSendCtrl::FINISH_NOTICE);
     }
-    if (bClose)
-        msg->send_ctrl().setMsgAttr(uiMsgAttr|CwxMsgSendCtrl::CLOSE_NOTICE);
     else
-        msg->send_ctrl().setMsgAttr(uiMsgAttr);
-    if (0 != m_pApp->sendMsgByConn(msg))
+    {
+        if (bClose)
+            msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::CLOSE_NOTICE);
+        else
+            msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
+    }
+    if (!putMsg(msg))
     {
         CWX_ERROR(("Failure to reply fetch mq"));
         if (CWX_MQ_SUCCESS == ret)
             pQueue->backMsg(msg);
         else
             CwxMsgBlockAlloc::free(msg);
-        m_pApp->noticeCloseConn(uiConnId);
+        return -1;
     }
+    return 1;
 }
 
 void CwxMqBinFetchHandler::back(CwxMsgBlock* msg)
@@ -279,23 +282,15 @@ void CwxMqBinFetchHandler::back(CwxMsgBlock* msg)
     CWX_ASSERT(pQueue);
     pQueue->backMsg(msg);
 }
-void CwxMqBinFetchHandler::noticeContinue(CwxMqTss* , CWX_UINT32 uiConnId)
-{
-    CwxMsgBlock* msg = CwxMsgBlockAlloc::malloc(0);
-    msg->event().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
-    msg->event().setEvent(CwxMqApp::MQ_CONTINUE_SEND_EVENT);
-    msg->event().setConnId(uiConnId);
-    m_pApp->getWriteThreadPool()->append(msg);
-}
 
-///发送消息
-void CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
+///发送消息，0：没有消息发送；1：发送一个；-1：发送失败
+int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
 {
     CwxMsgBlock* pBlock=NULL;
     int err_no = CWX_MQ_SUCCESS;
     bool bClose = false;
     int iState = 0;
-    if (pConn->m_pQueue && pConn->m_bTail)
+    if (pConn->m_pQueue)
     {
         iState = pConn->m_pQueue->getNextBinlog(pTss,
             false,
@@ -309,11 +304,9 @@ void CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
             if (!pBlock)
             {
                 CWX_ERROR(("No memory to malloc package"));
-                m_pApp->noticeCloseConn(pConn->m_uiConnId);
+                return -1;
             }
-            pConn->m_bTail = false;
-            m_fetchConns.m_connWaitTail.remove(pConn);
-            reply(pBlock, pConn->m_uiConnId, pConn->m_pQueue, err_no, bClose);
+            if (0 != reply(pBlock, pConn->m_pQueue, err_no, bClose)) return -1;
         }
         else if (0 == iState) ///已经完成
         {
@@ -323,22 +316,21 @@ void CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
                 if (!pBlock)
                 {
                     CWX_ERROR(("No memory to malloc package"));
-                    m_pApp->noticeCloseConn(pConn->m_uiConnId);
+                    return -1;
                 }
-                pConn->m_bTail = false;
-                m_fetchConns.m_connWaitTail.remove(pConn);
-                reply(pBlock, pConn->m_uiConnId, pConn->m_pQueue, CWX_MQ_NO_MSG, false);
+                pConn->m_bWaiting = false;
+                if (0 != reply(pBlock, pConn->m_pQueue, CWX_MQ_NO_MSG, false)) return -1;
             }
         }
         else if (1 == iState)
         {
-            pConn->m_bTail = false;
-            m_fetchConns.m_connWaitTail.remove(pConn);
-            reply(pBlock, pConn->m_uiConnId, pConn->m_pQueue, CWX_MQ_SUCCESS, false);
+            pConn->m_bWaiting = false;
+            if (0 != reply(pBlock, pConn->m_pQueue, CWX_MQ_SUCCESS, false)) return -1;
         }
         else if (2 == iState)
         {//未完成
-            noticeContinue(pTss, pConn->m_uiConnId);
+            channel()->regRedoHander(this);
         }
     }
+    return 0;
 }

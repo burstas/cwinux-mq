@@ -76,17 +76,15 @@ private:
         int iRet,
         char const* szErrMsg
         );
-    void reply(CwxMsgBlock* msg,
-        CWX_UINT32 uiConnId,
+    ///发送消息，0：成功；-1：发送失败
+    int reply(CwxMsgBlock* msg,
         CwxMqQueue* pQueue,
         int ret,
         bool bClose=false);
     //将一个发送失败的消息，还回消息队列
     void back(CwxMsgBlock* msg);
-    ///继续发送消息
-    void noticeContinue(CwxMqTss* pTss, CWX_UINT32 uiConnId);
-    ///发送消息
-    void sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn);
+    ///发送消息，0：没有消息发送；1：发送一个；-1：发送失败
+    int sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn);
 private:
     CwxMqApp*     m_pApp;  ///<app对象
     CwxMqFetchConn     m_conn; ///<mq fetch的连接
