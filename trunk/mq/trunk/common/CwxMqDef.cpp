@@ -8,7 +8,6 @@ CwxMqDispatchConn::CwxMqDispatchConn(CwxAppHandler4Channel handler)
     m_pCursor = NULL;
     m_ullStartSid = 0;
     m_ullSid = 0;
-    m_bContinue = false;
     m_uiChunk = 0;
     m_bNext = false;
     m_bSync = false;

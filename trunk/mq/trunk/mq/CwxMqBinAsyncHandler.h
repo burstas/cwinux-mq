@@ -41,15 +41,13 @@ public:
     virtual int onRedo();
 
 public:
-    void dispatch(CwxMqTss* pTss);
-    ///0：未完成状态；
-    ///1：完成状态；
+    ///0：未发送一条binlog；
+    ///1：发送了一条binlog；
     ///-1：失败；
     static int sendBinLog(CwxMqApp* pApp,
         CwxMqDispatchConn* conn,
         CwxMqTss* pTss);
 private:
-    void noticeContinue(CwxMqTss* pTss, CwxMqDispatchConn* conn);
     ///0：成功；-1：失败
     int recvMessage(CwxMqTss* pTss);
 private:

@@ -37,7 +37,6 @@ public:
     CWX_UINT32               m_uiChunk; ///<chunk大小
     CWX_UINT64               m_ullStartSid; ///<report的sid
     CWX_UINT64               m_ullSid; ///<当前发送到的sid
-    bool                     m_bContinue; ///<是否包含continue的排队消息
     bool                     m_bNext; ///<是否发送下一个消息
     bool                     m_bSync; ///<是否接受sync数据
     CwxMqSubscribe           m_subscribe; ///<消息订阅对象

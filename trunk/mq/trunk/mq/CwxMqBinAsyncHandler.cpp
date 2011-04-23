@@ -101,7 +101,6 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             else if (0 == iState)
             {///产生continue的消息
                 m_pApp->getAsyncDispChannel()->regRedoHander(this);
-                m_dispatch.m_bContinue = true;
             }
             ///返回
             return 0;
@@ -117,7 +116,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             }
             ///若是同步sid的报告消息,则获取报告的sid
             iRet = CwxMqPoco::parseReportData(pTss,
-                msg,
+                m_recvMsgData,
                 ullSid,
                 bNewly,
                 uiChunk,
@@ -195,6 +194,8 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             m_dispatch->m_pCursor = pCursor;
             m_dispatch->m_ullStartSid = ullSid;
             m_dispatch->m_bSync = true;
+            ///发送下一条binlog
+            iState = sendBinLog(m_pApp, m_dispatch, pTss);
             if (-1 == iState)
             {
                 CWX_ERROR((pTss->m_szBuf2K));
@@ -203,7 +204,6 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             else if (0 == iState)
             {///产生continue的消息
                 m_pApp->getAsyncDispChannel()->regRedoHander(this);
-                m_dispatch.m_bContinue = true;
             }
             ///返回
             return 0;
@@ -247,93 +247,34 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
     return 0;
 }
 
-///处理binlog发送完毕的消息
-int CwxMqBinAsyncHandler::onEndSendMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
+/**
+@brief Handler的redo事件，在每次dispatch时执行。
+@return -1：处理失败，会调用close()； 0：处理成功
+*/
+int CwxMqBinAsyncHandler::onRedo()
 {
-    map<CWX_UINT32, CwxMqDispatchConn*>::iterator iter = m_dispatchConns->m_clientMap.find(msg->event().getConnId());
-    ///连接必须存在
-    CWX_ASSERT(iter != m_dispatchConns->m_clientMap.end());
-    CwxMqDispatchConn* conn = iter->second;
-    CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
-    CWX_UINT64 ullSid = msg->event().m_ullArg;
-    if (!conn->m_window.isSyncing()){ ///如果连接不是同步状态，则是错误
-        strcpy(pTss->m_szBuf2K, "Client no in sync state");
-        CWX_ERROR((pTss->m_szBuf2K));
-        //关闭连接
-        m_pApp->noticeCloseConn(msg->event().getConnId());
-        return 1;
-    }
-    if(!conn->m_window.recvOneMsg(ullSid))
+    if (!m_dispatch.m_ullSid ||
+        (m_dispatch.m_ullSid < m_pApp->getBinLogMgr()->getMaxSid()))
     {
-        char buf[64];
-        CWX_ERROR(("Async msg can't find in window, sid[%s", CwxCommon::toString(ullSid, buf, 10)));
-        CWX_ASSERT(0);
-    }
-    conn->m_recvWindow.insert(ullSid);
-    ///发送下一条binlog
-    int iState = sendBinLog(m_pApp, conn, pTss);
-    if (-1 == iState)
-    {
-        CWX_ERROR(("Failure to send bin log, err:%s", pTss->m_szBuf2K));
-    }
-    else if (0 == iState)
-    {///产生continue的消息
-        noticeContinue(pTss, conn);
-    }
-    ///返回
-    return 1;
-}
-
-
-///处理新消息的时间
-int CwxMqBinAsyncHandler::onUserEvent(CwxMsgBlock*& msg, CwxTss* pThrEnv)
-{
-    CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
-    CwxMqDispatchConn* conn = NULL;
-    map<CWX_UINT32, CwxMqDispatchConn*>::iterator iter = m_dispatchConns->m_clientMap.find(msg->event().getConnId());
-    if (iter != m_dispatchConns->m_clientMap.end())
-    {
-        conn = iter->second;
-        conn->m_bContinue = false;
-        int iState = sendBinLog(m_pApp, conn, pTss);
+        CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
+        ///发送下一条binlog
+        int iState = sendBinLog(m_pApp, m_dispatch, tss);
         if (-1 == iState)
         {
-            CWX_ERROR(("Failure to send bin log, , err:%s", pTss->m_szBuf2K));
+            CWX_ERROR((tss->m_szBuf2K));
+            return -1; ///关闭连接
         }
         else if (0 == iState)
         {///产生continue的消息
-            noticeContinue(pTss, conn);
+            m_pApp->getAsyncDispChannel()->regRedoHander(this);
         }
     }
-
-    return 1;
+    ///返回
+    return 0;
 }
 
-
-void CwxMqBinAsyncHandler::dispatch(CwxMqTss* pTss)
-{
-    int iState = 0;
-    CwxMqDispatchConn* conn=(CwxMqDispatchConn *)m_dispatchConns->m_connTail.head();
-    //首先分发完成的消息
-    while(conn)
-    {
-        iState = sendBinLog(m_pApp, conn, pTss);
-        if (-1 == iState)
-        {
-            CWX_ERROR(("Failure to dispatch message, conn[%u]", conn->m_window.getConnId()));
-            //关闭连接
-            m_pApp->noticeCloseConn(conn->m_window.getConnId());
-        }
-        else if (0 == iState) //未完成
-        {///产生continue的消息
-            noticeContinue(pTss, conn);
-        }
-        conn = conn->m_next;
-    }
-}
-
-///0：未完成状态；
-///1：完成状态；
+///0：未发送一条binlog；
+///1：发送了一条binlog；
 ///-1：失败；
 int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
                                   CwxMqDispatchConn* conn,
@@ -342,19 +283,14 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
     int iRet = 0;
     CWX_UINT32 uiDataLen;
     char* pBuf = NULL;
-    CWX_ASSERT(conn->m_window.isSyncing());
-    CWX_ASSERT(conn->m_window.getHandle());
-    //if (conn->m_window.getUsedSize()) return 1; ///<还有消息在发送队列
-    if (!conn->m_window.isEnableSend()) return 1; ///<若发送窗口已满，则不发送，为完成状态
-    if (conn->m_recvWindow.size() > pApp->getConfig().getCommon().m_uiDispatchWindowSize) return 1;
-    CwxBinLogCursor* pCursor = (CwxBinLogCursor*)conn->m_window.getHandle();
+    CwxBinLogCursor* pCursor = conn->m_pCursor;
     CwxMsgBlock* pBlock = NULL;
     CwxKeyValueItem const* pItem = NULL;
     if (pApp->getBinLogMgr()->isUnseek(pCursor))
     {//若binlog的读取cursor悬空，则定位
-        if (conn->m_window.getStartSid() < pApp->getBinLogMgr()->getMaxSid())
+        if (conn->m_ullStartSid < pApp->getBinLogMgr()->getMaxSid())
         {
-            iRet = pApp->getBinLogMgr()->seek(pCursor, conn->m_window.getStartSid());
+            iRet = pApp->getBinLogMgr()->seek(pCursor, conn->m_ullStartSid);
             if (-1 == iRet)
             {
                 CWX_ERROR(("Failure to seek,  err:%s", pCursor->getErrMsg()));
@@ -365,17 +301,17 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
                 char szBuf1[64];
                 char szBuf2[64];
                 CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Should seek to sid[%s] with max_sid[[%s], but not.",
-                    CwxCommon::toString(conn->m_window.getStartSid(), szBuf1),
+                    CwxCommon::toString(conn->m_ullStartSid, szBuf1),
                     CwxCommon::toString(pApp->getBinLogMgr()->getMaxSid(), szBuf2));
-                CWX_ERROR((pTss->m_szBuf2K));
-                return -1;
+                CWX_DEBUG((pTss->m_szBuf2K));
+                return 0;
             }
             ///若成功定位，则读取当前记录
-            conn->m_bNext = conn->m_window.getStartSid()==pCursor->getHeader().getSid()?true:false;
+            conn->m_bNext = conn->m_ullStartSid == pCursor->getHeader().getSid()?true:false;
         }
         else
         {///若需要同步发送的sid不小于当前最小的sid，则依旧为悬空状态
-            return 1;///完成状态
+            return 0;///完成状态
         }
     }
     ///如果是发送下一条binlog，则移动cursor
@@ -384,7 +320,7 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
         iRet = pApp->getBinLogMgr()->next(pCursor);
         if (0 == iRet)
         {
-            return 1; ///完成状态
+            return 0; ///完成状态
         }
         if (-1 == iRet)
         {///<失败
@@ -392,7 +328,7 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
             return -1;
         }
     }
-    conn->m_bNext = true;
+    conn->m_bNext = false;
     CWX_UINT32 uiSkipNum = 0;
     while(1)
     {
@@ -402,7 +338,7 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
             pCursor->getHeader().getType()))
         {
             iRet = pApp->getBinLogMgr()->next(pCursor);
-            if (0 == iRet) return 1; ///完成状态
+            if (0 == iRet) return 0; ///完成状态
             if (-1 == iRet)
             {///<失败
                 CWX_ERROR(("Failure to seek cursor, err:%s", pCursor->getErrMsg()));
@@ -496,15 +432,3 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
     return 0; ///未完成状态
 }
 
-void CwxMqBinAsyncHandler::noticeContinue(CwxMqTss* , CwxMqDispatchConn* conn)
-{
-    if (!conn->m_bContinue)
-    {
-        conn->m_bContinue = true;
-        CwxMsgBlock* msg = CwxMsgBlockAlloc::malloc(0);
-        msg->event().setSvrId(CwxMqApp::SVR_TYPE_ASYNC);
-        msg->event().setEvent(CwxMqApp::MQ_CONTINUE_SEND_EVENT);
-        msg->event().setConnId(conn->m_window.getConnId());
-        m_pApp->getWriteThreadPool()->append(msg);
-    }
-}
