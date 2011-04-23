@@ -158,7 +158,6 @@ includedir =
 infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
-libevent_dir = @libevent_dir@
 libexecdir = @libexecdir@
 localstatedir = @localstatedir@
 mandir = @mandir@

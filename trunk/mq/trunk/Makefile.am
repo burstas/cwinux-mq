@@ -1,2 +1,2 @@
 
-SUBDIRS = mq mproxy test_fetch test_import
+SUBDIRS = mq test_fetch test_import

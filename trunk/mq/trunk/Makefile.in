@@ -157,7 +157,6 @@ includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
-libevent_dir = @libevent_dir@
 libexecdir = @libexecdir@
 localstatedir = @localstatedir@
 mandir = @mandir@
@@ -170,7 +169,7 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 xml_expat_dir = @xml_expat_dir@
-SUBDIRS = mq mproxy test_fetch test_import
+SUBDIRS = mq test_fetch test_import
 all: all-recursive
 
 .SUFFIXES:
