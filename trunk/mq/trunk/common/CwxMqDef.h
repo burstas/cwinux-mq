@@ -50,6 +50,7 @@ public:
     CwxMqFetchConn();
     ~CwxMqFetchConn();
 public:
+    bool            m_bWaiting; ///<是否正在等在发送信息
     bool            m_bBlock; ///<是否为block连接
     CWX_UINT32      m_uiTaskId; ///<连接的taskid
     CwxMqQueue*     m_pQueue; ///<连接的队列

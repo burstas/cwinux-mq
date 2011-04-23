@@ -21,6 +21,7 @@ CwxMqDispatchConn::~CwxMqDispatchConn()
 
 CwxMqFetchConn::CwxMqFetchConn()
 {
+    m_bWaiting = false;
     m_bBlock = false;
     m_uiTaskId = 0;
     m_pQueue = NULL;

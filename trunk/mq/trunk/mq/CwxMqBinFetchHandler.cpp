@@ -43,39 +43,39 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
     char const* passwd=NULL;
     CwxMsgBlock* block = NULL;
 
-    if (CwxMqPoco::MSG_TYPE_FETCH_DATA == msg->event().getMsgHeader().getMsgType())
+    if (CwxMqPoco::MSG_TYPE_FETCH_DATA == m_header.getMsgType())
     {
         do
         {
             iRet = CwxMqPoco::parseFetchMq(pTss,
-                msg,
+                m_recvMsgData,
                 bBlock,
                 queue_name,
                 user,
                 passwd,
                 pTss->m_szBuf2K);
             if (CWX_MQ_SUCCESS != iRet) break;
-            if (pConn->m_bTail)
+            if (m_conn.m_bWaiting)
             {///重复发送消息，直接忽略
                 return 1;
             }
-            if (!pConn->m_pQueue)
+            if (!m_conn.m_pQueue)
             {
                 string strQueue = queue_name?queue_name:"";
-                pConn->m_pQueue = m_pApp->getQueueMgr()->getQueue(strQueue);
-                if (!pConn->m_pQueue)
+                m_conn.m_pQueue = m_pApp->getQueueMgr()->getQueue(strQueue);
+                if (!m_conn.m_pQueue)
                 {
                     iRet = CWX_MQ_NO_QUEUE;
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "No queue:%s", strQueue.c_str());
                     CWX_DEBUG((pTss->m_szBuf2K));
                     break;
                 }
-                if (pConn->m_pQueue->getUserName().length())
+                if (m_conn.m_pQueue->getUserName().length())
                 {
-                    if ( (pConn->m_pQueue->getUserName() != user) ||
-                        (pConn->m_pQueue->getPasswd() != passwd))
+                    if ( (m_conn.m_pQueue->getUserName() != user) ||
+                        (m_conn.m_pQueue->getPasswd() != passwd))
                     {
-                        pConn->m_pQueue = NULL;
+                        m_conn.m_pQueue = NULL;
                         iRet = CWX_MQ_FAIL_AUTH;
                         CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
                         CWX_DEBUG((pTss->m_szBuf2K));
@@ -84,7 +84,7 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
                 }
             }
 
-            int ret = pConn->m_pQueue->getNextBinlog(pTss, false, block, iRet, bClose);
+            int ret = m_conn.m_pQueue->getNextBinlog(pTss, false, block, iRet, bClose);
             ///0：没有消息；
             ///1：获取一个消息；
             ///2：达到了搜索点，但没有发现消息；
@@ -98,9 +98,9 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
             {
                 if (bBlock)
                 {
-                    pConn->m_bBlock = true;
-                    pConn->m_bTail = true;
-                    m_fetchConns.m_connWaitTail.push_head(pConn);
+                    m_conn.m_bBlock = true;
+                    m_conn.m_bWaiting = true;
+                    channel()->regRedoHander(this);
                     return 1;
                 }
                 else
@@ -113,21 +113,20 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
             else if (2 == ret) //没有遍历完
             {
                 ///设置当前的sid
-                ret = m_pApp->getSysFile()->setSid(pConn->m_pQueue->getName(), pConn->m_pQueue->getCurSid());
+                ret = m_pApp->getSysFile()->setSid(m_conn.m_pQueue->getName(), m_conn.m_pQueue->getCurSid());
                 if (1 != ret)
                 {
                     iRet = CWX_MQ_INNER_ERR;
                     if (-1 == ret)
                         CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to set sys-file, errno:%s", m_pApp->getSysFile()->getErrMsg());
                     else
-                        CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to set sys-file, queue can't be found:%s", pConn->m_pQueue->getName().c_str());
+                        CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to set sys-file, queue can't be found:%s", m_conn.m_pQueue->getName().c_str());
                     CWX_ERROR((pTss->m_szBuf2K));
                     break;
                 }
-                pConn->m_bTail = true;
-                pConn->m_bBlock = bBlock;
-                m_fetchConns.m_connWaitTail.push_head(pConn);
-                noticeContinue(pTss, pConn->m_uiConnId);
+                m_conn.m_bWaiting = true;
+                m_conn.m_bBlock = bBlock;
+                channel()->regRedoHander(this);
                 return 1; ///返回
             }
 
@@ -141,11 +140,8 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
         CWX_ERROR((pTss->m_szBuf2K));
         iRet = CWX_MQ_INVALID_MSG_TYPE;
     }
-    if (pConn->m_bTail)
-    {
-        pConn->m_bTail = false;
-        m_fetchConns.m_connWaitTail.remove(pConn);
-    }
+    
+    m_conn.m_bWaiting = false;
 
     if (CWX_MQ_SUCCESS != iRet)
     {
@@ -153,12 +149,44 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
         if (!block)
         {
             CWX_ERROR(("No memory to malloc package"));
-            m_pApp->noticeCloseConn(msg->event().getConnId());
-            return 1;
+            return -1;
         }
     }
     reply(block, msg->event().getConnId(), pConn->m_pQueue, iRet, bClose);
     return 1;
+}
+
+/**
+@brief Handler的redo事件，在每次dispatch时执行。
+@return -1：处理失败，会调用close()； 0：处理成功
+*/
+int CwxMqBinFetchHandler::onRedo()
+{
+
+}
+/**
+@brief 通知连接完成一个消息的发送。<br>
+只有在Msg指定FINISH_NOTICE的时候才调用.
+@param [in,out] msg 传入发送完毕的消息，若返回NULL，则msg有上层释放，否则底层释放。
+@return 
+CwxMsgSendCtrl::UNDO_CONN：不修改连接的接收状态
+CwxMsgSendCtrl::RESUME_CONN：让连接从suspend状态变为数据接收状态。
+CwxMsgSendCtrl::SUSPEND_CONN：让连接从数据接收状态变为suspend状态
+*/
+CWX_UINT32 CwxMqBinFetchHandler::onEndSendMsg(CwxMsgBlock*& msg)
+{
+
+}
+
+/**
+@brief 通知连接上，一个消息发送失败。<br>
+只有在Msg指定FAIL_NOTICE的时候才调用.
+@param [in,out] msg 发送失败的消息，若返回NULL，则msg有上层释放，否则底层释放。
+@return void。
+*/
+void CwxMqBinFetchHandler::onFailSendMsg(CwxMsgBlock*& msg)
+{
+
 }
 
 ///处理binlog发送完毕的消息
@@ -222,8 +250,8 @@ void CwxMqBinFetchHandler::reply(CwxMsgBlock* msg,
            int ret,
            bool bClose)
 {
-    msg->send_ctrl().setConnId(uiConnId);
-    msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
+    msg->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
+    msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH_BIN);
     msg->send_ctrl().setHostId(0);
     CWX_UINT32 uiMsgAttr = 0;
     if (CWX_MQ_SUCCESS == ret)
