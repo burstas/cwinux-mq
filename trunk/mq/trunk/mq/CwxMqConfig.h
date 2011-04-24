@@ -121,7 +121,8 @@ public:
         return iter == m_queues.end()?NULL:&iter->second;
     }
 public:
-    CwxHostInfo     m_listen; ///<mq的listen的连接信息
+    CwxHostInfo     m_binListen; ///<mq的bin协议listen的连接信息
+    CwxHostInfo     m_mcListen; ///<mq的mc协议listen的连接信息
     map<string, CwxMqConfigQueue>  m_queues; ///<消息分发的队列
 };
 
@@ -164,13 +165,9 @@ public:
     {
         return m_slave;
     }
-    inline CwxMqConfigMq const& getBinMq() const
+    inline CwxMqConfigMq const& getMq() const
     {
-        return m_mq_bin;
-    }
-    inline CwxMqConfigMq const& getMcMq() const
-    {
-        return m_mq_mc;
+        return m_mq;
     }
     ///获取配置文件加载的失败原因
     inline char const* getErrMsg() const 
@@ -190,8 +187,7 @@ private:
     CwxMqConfigBinLog m_binlog; ///<binlog的配置信息
     CwxMqConfigMaster m_master; ///<master的配置信息
     CwxMqConfigSlave  m_slave; ///<slave的配置信息
-    CwxMqConfigMq     m_mq_bin; ///<mq的fetch的配置信息
-    CwxMqConfigMq     m_mq_mc; ///<mq的fetch的配置信息
+    CwxMqConfigMq     m_mq; ///<mq的fetch的配置信息
     char                m_szErrMsg[2048];///<错误消息的buf
 };
 

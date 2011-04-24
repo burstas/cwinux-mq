@@ -267,23 +267,15 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
             m_slave.m_async_mc.reset();
         }
     }
-    //fetch mq:mq_bin
-    if (parser.getElementNode("mq:mq_bin"))
+    //fetch mq:mq
+    if (parser.getElementNode("mq:mq"))
     {
-        if (!fetchMq(parser, "mq:mq_bin", m_mq_bin)) return -1;
+        if (!fetchMq(parser, "mq:mq_bin", m_mq)) return -1;
     }
     else
     {
-        m_mq_bin.m_listen.reset();
-    }
-    //fetch mq:mq_mc
-    if (parser.getElementNode("mq:mq_mc"))
-    {
-        if (!fetchMq(parser, "mq:mq_mc", m_mq_mc)) return -1;
-    }
-    else
-    {
-        m_mq_mc.m_listen.reset();
+        m_mq.m_binListen.reset();
+        m_mq.m_mcListen.reset();
     }
 
     return 0;
@@ -359,8 +351,21 @@ bool CwxMqConfig::fetchMq(CwxXmlFileConfigParser& parser,
              CwxMqConfigMq& mq)
 {
     string strErrMsg;
-    string strPath = path + ":listen";
-    if (!fetchHost(parser, strPath.c_str(), mq.m_listen)) return false;
+    string strPath = path + ":bin_listen";
+    if (!fetchHost(parser, strPath.c_str(), mq.m_binListen))
+    {
+        mq.m_binListen.reset();
+    }
+    strPath = path + ":mc_listen";
+    if (!fetchHost(parser, strPath.c_str(), mq.m_mcListen))
+    {
+        mq.m_mcListen.reset();
+    }
+    if (!mq.m_mcListen.getHostName().length() || !mq.m_binListen.getHostName().length())
+    {
+        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s:mc_listen] or [%s:bin_listen].",path.c_str(),path.c_str());
+        return false;
+    }
     //fetch queue
     CwxXmlTreeNode const* pNodeRoot = NULL;
     CwxXmlTreeNode const* node = NULL;

@@ -23,20 +23,13 @@
         <async_bin keep_alive="yes" user="" passwd="" ip="*" port="9101" unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/async.sock"/>
         <async_mc keep_alive="yes" user="" passwd="" ip="*" port="9101" />
     </slave>
-    <mq_bin>
-        <listen keep_alive="yes" ip="*" port="9202" unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/mq.sock"/>
+    <mq>
+        <bin_listen keep_alive="yes" ip="*" port="9202" unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/mq.sock"/>
+        <mc_listen keep_alive="yes" ip="*" port="9202" unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/mq.sock"/>
         <queues>
             <queue  name="q1" user="u_q1" passwd="p_q1" subcribe="*" />
             <queue name="q2" user="u_q2" passwd="p_q2" subcribe="1:*" />
             <queue name="q3" user="u_q3" passwd="p_q3" subcribe="*:1,5,8" />
         </queues>
-    </mq_bin>
-    <mq_mc>
-        <listen keep_alive="yes" ip="*" port="9202"/>
-        <queues>
-            <queue  name="q1" user="u_q1" passwd="p_q1" subcribe="*" />
-            <queue name="q2" user="u_q2" passwd="p_q2" subcribe="1:*" />
-            <queue name="q3" user="u_q3" passwd="p_q3" subcribe="*:1,5,8" />
-        </queues>
-    </mq_mc>
+    </mq>
 </mq>

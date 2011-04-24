@@ -21,7 +21,7 @@ CwxMqApp::CwxMqApp()
     m_asyncDispChannel = NULL;
     m_pMqThreadPool = NULL;
     m_mqChannel = NULL;
-    memst(m_szBuf, 0x00, MAX_MONITOR_REPLY_SIZE);
+    memset(m_szBuf, 0x00, MAX_MONITOR_REPLY_SIZE);
 }
 
 ///析构函数
@@ -150,7 +150,7 @@ int CwxMqApp::initRunEnv()
             pTss = new CwxTss*[1];
             pTss[0] = new CwxMqTss();
             ((CwxMqTss*)pTss[0])->init();
-            if ( 0 != m_pAsyncDispThreadPool[i]->start(pTss)){
+            if ( 0 != m_pAsyncDispThreadPool->start(pTss)){
                 CWX_ERROR(("Failure to start dispatch thread pool"));
                 return -1;
             }
@@ -172,7 +172,7 @@ int CwxMqApp::initRunEnv()
             pTss = new CwxTss*[1];
             pTss[0] = new CwxMqTss();
             ((CwxMqTss*)pTss[0])->init();
-            if ( 0 != m_pMqThreadPool[i]->start(pTss)){
+            if ( 0 != m_pMqThreadPool->start(pTss)){
                 CWX_ERROR(("Failure to start mq thread pool"));
                 return -1;
             }
@@ -221,7 +221,7 @@ void CwxMqApp::onSignal(int signum)
 int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
                           CWX_UINT32 uiHostId,
                           CWX_HANDLE handle,
-                          bool& bSuspendListen)
+                          bool& )
 {
     CwxMsgBlock* msg = CwxMsgBlockAlloc::malloc(0);
     msg->event().setSvrId(uiSvrId);
@@ -332,7 +332,7 @@ int CwxMqApp::onRecvMsg(CwxMsgBlock* msg,
 
 ///收到消息的响应函数
 int CwxMqApp::onRecvMsg(CwxAppHandler4Msg& conn,
-                      bool& bSuspendConn)
+                      bool& )
 {
     if(SVR_TYPE_RECV_MC == conn.getConnInfo().getSvrId())
     {
@@ -749,64 +749,64 @@ int CwxMqApp::startNetwork()
         }
     }
     //打开bin mq获取的监听端口
-    if (m_config.getBinMq().m_listen.getHostName().length())
+    if (m_config.getMq().m_binListen.getHostName().length())
     {
         if (0 > this->noticeTcpListen(SVR_TYPE_FETCH_BIN, 
-            m_config.getBinMq().m_listen.getHostName().c_str(),
-            m_config.getBinMq().m_listen.getPort(),
+            m_config.getMq().m_binListen.getHostName().c_str(),
+            m_config.getMq().m_binListen.getPort(),
             true,
-            m_config.getBinMq().m_listen.isKeepAlive(),
+            m_config.getMq().m_binListen.isKeepAlive(),
             CWX_APP_EVENT_MODE,
             m_config.getCommon().m_uiSockBufSize * 1024,
             m_config.getCommon().m_uiSockBufSize * 1024))
         {
             CWX_ERROR(("Can't register the mq-fetch tcp accept listen: addr=%s, port=%d",
-                m_config.getBinMq().m_listen.getHostName().c_str(),
-                m_config.getBinMq().m_listen.getPort()));
+                m_config.getMq().m_binListen.getHostName().c_str(),
+                m_config.getMq().m_binListen.getPort()));
             return -1;
         }
     }
-    if (m_config.getBinMq().m_listen.getUnixDomain().length())
+    if (m_config.getMq().m_binListen.getUnixDomain().length())
     {
         if (0 > this->noticeLsockListen(SVR_TYPE_FETCH_BIN,
-            m_config.getBinMq().m_listen.getUnixDomain().c_str(),
+            m_config.getMq().m_binListen.getUnixDomain().c_str(),
             true,
             false,
             CWX_APP_EVENT_MODE))
         {
             CWX_ERROR(("Can't register the mq-fetch unix-domain accept listen: path-file=%s",
-                m_config.getBinMq().m_listen.getUnixDomain().c_str()));
+                m_config.getMq().m_binListen.getUnixDomain().c_str()));
             return -1;
         }
     }
     //打开mc mq获取的监听端口
-    if (m_config.getMcMq().m_listen.getHostName().length())
+    if (m_config.getMq().m_mcListen.getHostName().length())
     {
         if (0 > this->noticeTcpListen(SVR_TYPE_FETCH_BIN, 
-            m_config.getMcMq().m_listen.getHostName().c_str(),
-            m_config.getMcMq().m_listen.getPort(),
+            m_config.getMq().m_mcListen.getHostName().c_str(),
+            m_config.getMq().m_mcListen.getPort(),
             true,
-            m_config.getMcMq().m_listen.isKeepAlive(),
+            m_config.getMq().m_mcListen.isKeepAlive(),
             CWX_APP_EVENT_MODE,
             m_config.getCommon().m_uiSockBufSize * 1024,
             m_config.getCommon().m_uiSockBufSize * 1024))
         {
             CWX_ERROR(("Can't register the mq-fetch tcp accept listen: addr=%s, port=%d",
-                m_config.getMcMq().m_listen.getHostName().c_str(),
-                m_config.getMcMq().m_listen.getPort()));
+                m_config.getMq().m_mcListen.getHostName().c_str(),
+                m_config.getMq().m_mcListen.getPort()));
             return -1;
         }
     }
-    if (m_config.getMcMq().m_listen.getUnixDomain().length())
+    if (m_config.getMq().m_mcListen.getUnixDomain().length())
     {
         if (0 > this->noticeLsockListen(SVR_TYPE_FETCH_BIN,
-            m_config.getMcMq().m_listen.getUnixDomain().c_str(),
+            m_config.getMq().m_mcListen.getUnixDomain().c_str(),
             true,
             false,
             CWX_APP_EVENT_MODE))
         {
             CWX_ERROR(("Can't register the mq-fetch unix-domain accept listen: path-file=%s",
-                m_config.getMcMq().m_listen.getUnixDomain().c_str()));
+                m_config.getMq().m_mcListen.getUnixDomain().c_str()));
             return -1;
         }
     }
