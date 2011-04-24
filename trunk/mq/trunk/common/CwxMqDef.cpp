@@ -2,7 +2,7 @@
 #include "CwxMqQueueMgr.h"
 #include "CwxMqPoco.h"
 
-CwxMqDispatchConn::CwxMqDispatchConn(CwxAppHandler4Channel handler)
+CwxMqDispatchConn::CwxMqDispatchConn(CwxAppHandler4Channel* handler)
 {
     m_handler = handler;
     m_pCursor = NULL;
