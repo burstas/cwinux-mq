@@ -636,7 +636,7 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
     return CWX_MQ_SUCCESS;
 }
 
-int packSyncDataItem(CwxPackageWriter* writer,
+int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
                             CWX_UINT64 ullSid,
                             CWX_UINT32 uiTimeStamp,
                             CwxKeyValueItem const& data,
