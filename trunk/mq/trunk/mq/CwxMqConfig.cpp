@@ -528,14 +528,25 @@ void CwxMqConfig::outputConfig() const
         }
     }
 
-    if (m_mq_bin.m_listen.getHostName().length())
+    if (m_mq.m_binListen.getHostName().length() || m_mq.m_mcListen.getHostName().length())
     {
-        CWX_INFO(("*****************mq-fetch-bin*******************"));
-        CWX_INFO(("listen keep_alive=%s  ip=%s port=%u unix=%s",
-            m_mq_bin.m_listen.isKeepAlive()?"yes":"no",
-            m_mq_bin.m_listen.getHostName().c_str(),
-            m_mq_bin.m_listen.getPort(),
-            m_mq_bin.m_listen.getUnixDomain().c_str()));
+        CWX_INFO(("*****************mq-fetch*******************"));
+        if (m_mq.m_binListen.getHostName().length())
+        {
+            CWX_INFO(("listen keep_alive=%s  ip=%s port=%u unix=%s",
+                m_mq.m_binListen.isKeepAlive()?"yes":"no",
+                m_mq.m_binListen.getHostName().c_str(),
+                m_mq.m_binListen.getPort(),
+                m_mq.m_binListen.getUnixDomain().c_str()));
+        }
+        if (m_mq.m_mcListen.getHostName().length())
+        {
+            CWX_INFO(("listen keep_alive=%s  ip=%s port=%u unix=%s",
+                m_mq.m_mcListen.isKeepAlive()?"yes":"no",
+                m_mq.m_mcListen.getHostName().c_str(),
+                m_mq.m_mcListen.getPort(),
+                m_mq.m_mcListen.getUnixDomain().c_str()));
+        }
         map<string, CwxMqConfigQueue>::const_iterator iter = m_mq_bin.m_queues.begin(); ///<消息分发的队列
         while(iter != m_mq_bin.m_queues.end())
         {
@@ -548,25 +559,6 @@ void CwxMqConfig::outputConfig() const
         }
     }
 
-    if (m_mq_mc.m_listen.getHostName().length())
-    {
-        CWX_INFO(("*****************mq-fetch-bin*******************"));
-        CWX_INFO(("listen keep_alive=%s  ip=%s port=%u unix=%s",
-            m_mq_mc.m_listen.isKeepAlive()?"yes":"no",
-            m_mq_mc.m_listen.getHostName().c_str(),
-            m_mq_mc.m_listen.getPort(),
-            m_mq_mc.m_listen.getUnixDomain().c_str()));
-        map<string, CwxMqConfigQueue>::const_iterator iter = m_mq_mc.m_queues.begin(); ///<消息分发的队列
-        while(iter != m_mq_mc.m_queues.end())
-        {
-            CWX_INFO(("queue name=%s\tuser=%s\tpasswd=%s\tsubscribe=%s",
-                iter->second.m_strName.c_str(),
-                iter->second.m_strUser.c_str(),
-                iter->second.m_strPasswd.c_str(),
-                iter->second.m_strSubScribe.c_str()));
-            iter++;
-        }
-    }
 
     CWX_INFO(("*****************END   CONFIG *******************"));
 }
