@@ -47,7 +47,7 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
     {
         do
         {
-            iRet = CwxMqPoco::parseFetchMq(pTss,
+            iRet = CwxMqPoco::parseFetchMq(pTss->m_pReader,
                 m_recvMsgData,
                 bBlock,
                 queue_name,
@@ -85,11 +85,11 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
             }
 
             int ret = sentBinlog(pTss, &m_conn);
-            if (0 == iRet)
+            if (0 == ret)
             {
                 channel()->regRedoHander(this);
             }
-            else if (-1 == iRet)
+            else if (-1 == ret)
             {
                 return -1;
             }
@@ -100,7 +100,7 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
     {
         bClose = true;
         ///若其他消息，则返回错误
-        CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u", msg->event().getMsgHeader().getMsgType());
+        CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u", m_header.getMsgType());
         CWX_ERROR((pTss->m_szBuf2K));
         iRet = CWX_MQ_INVALID_MSG_TYPE;
     }
@@ -116,7 +116,7 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
             return -1;
         }
     }
-    if (-1 == reply(block, pConn->m_pQueue, iRet, bClose)) return -1;
+    if (-1 == reply(block, m_conn.m_pQueue, iRet, bClose)) return -1;
     return 0;
 }
 
@@ -192,7 +192,7 @@ CwxMsgBlock* CwxMqBinFetchHandler::packErrMsg(CwxMqTss* pTss,
 {
     CwxMsgBlock* pBlock = NULL;
     CwxKeyValueItem kv;
-    iRet = CwxMqPoco::packFetchMqReply(pTss,
+    iRet = CwxMqPoco::packFetchMqReply(pTss->m_pWriter,
         pBlock,
         iRet,
         szErrMsg,
@@ -206,7 +206,7 @@ CwxMsgBlock* CwxMqBinFetchHandler::packErrMsg(CwxMqTss* pTss,
     return pBlock;
 }
 
-void CwxMqBinFetchHandler::reply(CwxMsgBlock* msg,
+int CwxMqBinFetchHandler::reply(CwxMsgBlock* msg,
            CwxMqQueue* pQueue,
            int ret,
            bool bClose)
@@ -238,7 +238,7 @@ void CwxMqBinFetchHandler::reply(CwxMsgBlock* msg,
             CwxMsgBlockAlloc::free(msg);
         return -1;
     }
-    return 1;
+    return 0;
 }
 
 void CwxMqBinFetchHandler::back(CwxMsgBlock* msg)
