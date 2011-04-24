@@ -547,8 +547,8 @@ void CwxMqConfig::outputConfig() const
                 m_mq.m_mcListen.getPort(),
                 m_mq.m_mcListen.getUnixDomain().c_str()));
         }
-        map<string, CwxMqConfigQueue>::const_iterator iter = m_mq_bin.m_queues.begin(); ///<消息分发的队列
-        while(iter != m_mq_bin.m_queues.end())
+        map<string, CwxMqConfigQueue>::const_iterator iter = m_mq.m_queues.begin(); ///<消息分发的队列
+        while(iter != m_mq.m_queues.end())
         {
             CWX_INFO(("queue name=%s\tuser=%s\tpasswd=%s\tsubscribe=%s",
                 iter->second.m_strName.c_str(),
