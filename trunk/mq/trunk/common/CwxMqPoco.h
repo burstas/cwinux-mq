@@ -279,7 +279,7 @@ public:
         char* szErr2K=NULL);
     static int packMultiSyncData(
         CWX_UINT32 uiTaskId,
-        char* szData,
+        char const* szData,
         CWX_UINT32 uiDataLen,
         CwxMsgBlock*& msg,
         char* szErr2K=NULL

@@ -682,7 +682,7 @@ int packSyncDataItem(CwxPackageWriter* writer,
 
 int CwxMqPoco::packMultiSyncData(
                                      CWX_UINT32 uiTaskId,
-                                     char* szData,
+                                     char const* szData,
                                      CWX_UINT32 uiDataLen,
                                      CwxMsgBlock*& msg,
                                      char* szErr2K

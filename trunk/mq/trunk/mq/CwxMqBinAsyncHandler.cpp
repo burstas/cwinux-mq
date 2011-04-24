@@ -114,7 +114,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                 break;
             }
             ///若是同步sid的报告消息,则获取报告的sid
-            iRet = CwxMqPoco::parseReportData(pTss,
+            iRet = CwxMqPoco::parseReportData(pTss->m_pReader,
                 m_recvMsgData,
                 ullSid,
                 bNewly,
@@ -210,7 +210,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
         else
         {
             ///若其他消息，则返回错误
-            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u", msg->event().getMsgHeader().getMsgType());
+            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u", m_header.getMsgType());
             iRet = CWX_MQ_INVALID_MSG_TYPE;
             CWX_ERROR((pTss->m_szBuf2K));
         }
@@ -220,7 +220,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
 
     ///形成失败时候的回复数据包
     CwxMsgBlock* pBlock = NULL;
-    if (CWX_MQ_SUCCESS != CwxMqPoco::packReportDataReply(pTss,
+    if (CWX_MQ_SUCCESS != CwxMqPoco::packReportDataReply(pTss->m_pWriter,
         pBlock,
         m_header.getTaskId(),
         iRet,
@@ -238,7 +238,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
     pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::CLOSE_NOTICE);
     if (0 != this->putMsg(pBlock))
     {
-        CWX_ERROR(("Failure to send msg to reciever, conn[%u]", msg->event().getConnId()));
+        CWX_ERROR(("Failure to send msg to reciever, conn[%u]", getHandle()));
         CwxMsgBlockAlloc::free(pBlock);
         return -1;
         ///关闭连接
@@ -257,7 +257,7 @@ int CwxMqBinAsyncHandler::onRedo()
     {
         CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
         ///发送下一条binlog
-        int iState = sendBinLog(m_pApp, m_dispatch, tss);
+        int iState = sendBinLog(m_pApp, &m_dispatch, tss);
         if (-1 == iState)
         {
             CWX_ERROR((tss->m_szBuf2K));
@@ -481,7 +481,7 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
     }
     while(1)
     {
-        if ( 1 != (iRet = seekToLog())) break;
+        if ( 1 != (iRet = seekToLog(pApp, conn, uiSkipNum, true))) break;
         uiDataLen = pCursor->getHeader().getLogLen();
         ///准备data读取的buf
         pBuf = pTss->getBuf(uiDataLen);        
@@ -552,7 +552,7 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
     pBlock->event().m_ullArg = pCursor->getHeader().getSid();
     pBlock->event().setTaskId(pCursor->getHeader().getSid()&0xFFFFFFFF);
     pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
-    if (!putMsg(pBlock))
+    if (!conn->m_handler->putMsg(pBlock))
     {
         CWX_ERROR(("Failure to send binlog"));
         CwxMsgBlockAlloc::free(pBlock);
