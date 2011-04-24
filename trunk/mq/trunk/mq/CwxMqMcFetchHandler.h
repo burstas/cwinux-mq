@@ -23,15 +23,9 @@ class CwxMqMcFetchHandler: public CwxAppHandler4Channel
 {
 public:
     ///构造函数
-    CwxMqMcFetchHandler(CwxMqApp* pApp, CwxAppChannel* channel):CwxAppHandler4Channel(channel)
-    {
-        m_pApp = pApp;
-    }
+    CwxMqMcFetchHandler(CwxMqApp* pApp, CwxAppChannel* channel);
     ///析构函数
-    virtual ~CwxMqMcFetchHandler()
-    {
-
-    }
+    virtual ~CwxMqMcFetchHandler();
 public:
 private:
     CwxMqApp*     m_pApp;  ///<app对象
