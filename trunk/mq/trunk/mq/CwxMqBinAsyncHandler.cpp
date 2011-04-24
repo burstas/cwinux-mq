@@ -1,7 +1,7 @@
 #include "CwxMqBinAsyncHandler.h"
 #include "CwxMqApp.h"
 ///¹¹Ôìº¯Êý
-CwxMqBinAsyncHandler::CwxMqBinAsyncHandler(CwxMqApp* pApp, CwxAppChannel* channel):CwxAppHandler4Channel(channel)
+CwxMqBinAsyncHandler::CwxMqBinAsyncHandler(CwxMqApp* pApp, CwxAppChannel* channel):CwxAppHandler4Channel(channel),m_dispatch(this)
 {
     m_pApp = pApp;
     m_uiRecvHeadLen = 0;
@@ -12,7 +12,7 @@ CwxMqBinAsyncHandler::CwxMqBinAsyncHandler(CwxMqApp* pApp, CwxAppChannel* channe
 CwxMqBinAsyncHandler::~CwxMqBinAsyncHandler()
 {
     if (m_recvMsgData) CwxMsgBlockAlloc::free(m_recvMsgData);
-    if (m_dispatch->m_pCursor) m_pApp->getBinLogMgr()->destoryCurser(m_dispatch->m_pCursor);
+    if (m_dispatch.m_pCursor) m_pApp->getBinLogMgr()->destoryCurser(m_dispatch.m_pCursor);
 }
 
 /**
