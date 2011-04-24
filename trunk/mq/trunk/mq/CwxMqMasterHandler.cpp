@@ -101,7 +101,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                     CWX_ERROR(("Master multi-binlog's key must be:%s, but:%s", CWX_MQ_M, m_reader.getKey(i)->m_szKey));
                     iRet = -1;
                 }
-                if (-1 == saveBinlog(pTss, m_reader.getKey(i).m_szData, m_reader.getKey(i).m_uiDataLen, ullSid))
+                if (-1 == saveBinlog(pTss, m_reader.getKey(i)->m_szData, m_reader.getKey(i)->m_uiDataLen, ullSid))
                 {
                     iRet = -1;
                     break;
