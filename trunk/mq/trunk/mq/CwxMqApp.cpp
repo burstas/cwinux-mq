@@ -1,6 +1,5 @@
 #include "CwxMqApp.h"
 #include "CwxDate.h"
-#include "linux/tcp.h"
 ///¹¹Ôìº¯Êý
 CwxMqApp::CwxMqApp()
 {
