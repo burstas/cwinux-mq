@@ -156,7 +156,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     CwxMsgBlock* pBlock = NULL;
     if (CwxMqPoco::MSG_TYPE_RECV_COMMIT==msg->event().getMsgHeader().getMsgType())
     {
-        if (CWX_MQ_SUCCESS != CwxMqPoco::packCommitReply(pTss,
+        if (CWX_MQ_SUCCESS != CwxMqPoco::packCommitReply(pTss->m_pWriter,
             pBlock,
             msg->event().getMsgHeader().getTaskId(),
             iRet,
@@ -170,7 +170,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     }
     else
     {
-        if (CWX_MQ_SUCCESS != CwxMqPoco::packRecvDataReply(pTss,
+        if (CWX_MQ_SUCCESS != CwxMqPoco::packRecvDataReply(pTss->m_pWriter,
             pBlock,
             msg->event().getMsgHeader().getTaskId(),
             iRet,

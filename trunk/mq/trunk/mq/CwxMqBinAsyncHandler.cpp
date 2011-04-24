@@ -273,7 +273,7 @@ int CwxMqBinAsyncHandler::onRedo()
 }
 
 ///-1：失败，0：无效的消息；1：成功
-static int packOneBinLog(CwxPackageReader* reader,
+int CwxMqBinAsyncHandler::packOneBinLog(CwxPackageReader* reader,
                          CwxPackageWriter* writer,
                          CwxMsgBlock*& block,
                          char const* szData,
