@@ -10,6 +10,7 @@
 #include "CwxPackageReader.h"
 #include "CwxPackageWriter.h"
 #include "CwxMsgBlock.h"
+#include "CwxMqTss.h"
 
 class CwxMqApp;
 
