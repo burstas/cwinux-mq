@@ -33,8 +33,6 @@ public:
     virtual int onConnClosed(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     ///处理收到binlog的事件
     virtual int onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
-    ///对于同步dispatch，需要检查同步的超时
-    virtual int onTimeoutCheck(CwxMsgBlock*& msg, CwxTss* pThrEnv);
 private:
     ///-1:失败；0：成功
     int commit(char* szErr2K);
