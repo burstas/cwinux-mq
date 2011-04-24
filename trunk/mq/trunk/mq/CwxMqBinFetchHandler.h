@@ -22,18 +22,9 @@ class CwxMqBinFetchHandler: public CwxAppHandler4Channel
 {
 public:
     ///构造函数
-    CwxMqBinFetchHandler(CwxMqApp* pApp, CwxAppChannel* channel):CwxAppHandler4Channel(channel)
-    {
-        m_pApp = pApp;
-        m_uiRecvHeadLen = 0;
-        m_uiRecvDataLen = 0;
-        m_recvMsgData = 0;
-    }
+    CwxMqBinFetchHandler(CwxMqApp* pApp, CwxAppChannel* channel);
     ///析构函数
-    virtual ~CwxMqBinFetchHandler()
-    {
-        if (m_recvMsgData) CwxMsgBlockAlloc::free(m_recvMsgData);
-    }
+    virtual ~CwxMqBinFetchHandler();
 public:
     /**
     @brief 连接可读事件，返回-1，close()会被调用
