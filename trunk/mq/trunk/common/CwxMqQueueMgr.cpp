@@ -148,7 +148,7 @@ int CwxMqQueue::getNextBinlog(CwxMqTss* pTss,
             if (pItem)
             {
                 ///形成binlog发送的数据包
-                if (CWX_MQ_SUCCESS != CwxMqPoco::packFetchMqReply(pTss,
+                if (CWX_MQ_SUCCESS != CwxMqPoco::packFetchMqReply(pTss->m_pWriter,
                     msg,
                     CWX_MQ_SUCCESS,
                     "",
