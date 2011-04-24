@@ -17,7 +17,8 @@ cwx_mq_SOURCES = CwxMqApp.cpp\
 		CwxMqBinRecvHandler.cpp\
 		cwx_mq.cpp\
 		CwxMqMcAsyncHandler.cpp\
-		CwxMqMcRecvHandler.cpp
+		CwxMqMcRecvHandler.cpp\
+		CwxMqDef.cpp  CwxMqMemcache.cpp  CwxMqPoco.cpp  CwxMqQueueMgr.cpp  CwxMqSysFile.cpp  CwxMqTss.cpp
 cwx_mq_LDADD=
 cwx_mq_LDFLAGS =-L@xml_expat_dir@/lib -L@cwinux_dir@/lib
 LIBS=-lcwxapp -lcwxnet -lcwxparse -lcwxstore -lcwxcmn -lexpat -lpthread -ldl -lrt
