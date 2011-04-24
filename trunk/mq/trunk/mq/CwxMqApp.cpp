@@ -989,7 +989,7 @@ CWX_UINT32 CwxMqApp::packMonitorInfo()
 }
 
 ///分发channel的线程函数，arg为app对象
-void* CwxMqApp::DispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg)
+void* CwxMqApp::DispatchThreadMain(CwxTss* , CwxMsgQueue* queue, void* arg)
 {
     CwxMqApp* app = (CwxMqApp*) arg;
     if (0 != app->getAsyncDispChannel()->open())
@@ -1068,7 +1068,7 @@ int CwxMqApp::DispatchThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppCha
 }
 
 ///分发mq channel的线程函数，arg为app对象
-void* CwxMqApp::MqThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg)
+void* CwxMqApp::MqThreadMain(CwxTss* , CwxMsgQueue* queue, void* arg)
 {
     CwxMqApp* app = (CwxMqApp*) arg;
     if (0 != app->getMqChannel()->open())
