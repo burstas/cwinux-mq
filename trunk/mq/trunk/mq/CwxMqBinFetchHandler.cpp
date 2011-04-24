@@ -214,7 +214,7 @@ void CwxMqBinFetchHandler::reply(CwxMsgBlock* msg,
     msg->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
     msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH_BIN);
     msg->send_ctrl().setHostId(0);
-    msg->event().m_uiArg = pQueue->getId()£»
+    msg->event().m_uiArg = pQueue->getId();
     if (CWX_MQ_SUCCESS == ret)
     {
         if (bClose)
