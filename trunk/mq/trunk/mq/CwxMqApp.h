@@ -75,10 +75,6 @@ public:
     virtual int onConnCreated(CwxAppHandler4Msg& conn,
         bool& bSuspendConn,
         bool& bSuspendListen);
-    ///连接建立
-    virtual int onConnCreated(CwxAppHandler4Msg& conn,
-        bool& bSuspendConn,
-        bool& bSuspendListen);
     ///连接关闭
     virtual int onConnClosed(CwxAppHandler4Msg& conn);
     ///收到消息的响应函数
