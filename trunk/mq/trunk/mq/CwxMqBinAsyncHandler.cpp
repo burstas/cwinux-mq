@@ -83,7 +83,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             {
                 char szBuf1[64];
                 char szBuf2[64];
-                CwxCommon::snprintf(pTss->m_szBuf2K, "Reply sid[%s] is not the right sid[%s], close conn.",
+                CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Reply sid[%s] is not the right sid[%s], close conn.",
                     CwxCommon::toString(ullSid, szBuf1, 10),
                     CwxCommon::toString(m_dispatch.m_ullSid, szBuf2, 10));
                 CWX_ERROR((pTss->m_szBuf2K));
@@ -91,7 +91,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                 break;
             }
             ///发送下一条binlog
-            iState = sendBinLog(m_pApp, m_dispatch, pTss);
+            iState = sendBinLog(m_pApp, &m_dispatch, pTss);
             if (-1 == iState)
             {
                 CWX_ERROR((pTss->m_szBuf2K));
@@ -106,7 +106,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
         }
         else if (CwxMqPoco::MSG_TYPE_SYNC_REPORT == m_header.getMsgType())
         {
-            if (m_dispatch->m_pCursor)
+            if (m_dispatch.m_pCursor)
             {
                 iRet = CWX_MQ_INVALID_MSG;
                 CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Can't report sync sid duplicatly.");
@@ -158,15 +158,15 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             }
             string strSubcribe=subscribe?subscribe:"";
             string strErrMsg;
-            if (!CwxMqPoco::parseSubsribe(subscribe, m_dispatch->m_subscribe, strErrMsg))
+            if (!CwxMqPoco::parseSubsribe(subscribe, m_dispatch.m_subscribe, strErrMsg))
             {
                 iRet = CWX_MQ_INVALID_SUBSCRIBE;
                 CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Invalid subscribe[%s], err=%s", strSubcribe.c_str(), strErrMsg.c_str());
                 CWX_DEBUG((pTss->m_szBuf2K));
                 break;
             }
-            m_dispatch->m_bSync = true;
-            m_dispatch->m_uiChunk = uiChunk;
+            m_dispatch.m_bSync = true;
+            m_dispatch.m_uiChunk = uiChunk;
             if (m_dispatch.m_uiChunk)
             {
                 if (m_dispatch.m_uiChunk > CwxMqConfigCmn::MAX_CHUNK_SIZE_KB) m_dispatch.m_uiChunk = CwxMqConfigCmn::MAX_CHUNK_SIZE_KB;
@@ -190,11 +190,11 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                 break;
             }
             ///设置cursor
-            m_dispatch->m_pCursor = pCursor;
-            m_dispatch->m_ullStartSid = ullSid;
-            m_dispatch->m_bSync = true;
+            m_dispatch.m_pCursor = pCursor;
+            m_dispatch.m_ullStartSid = ullSid;
+            m_dispatch.m_bSync = true;
             ///发送下一条binlog
-            iState = sendBinLog(m_pApp, m_dispatch, pTss);
+            iState = sendBinLog(m_pApp, &m_dispatch, pTss);
             if (-1 == iState)
             {
                 CWX_ERROR((pTss->m_szBuf2K));
