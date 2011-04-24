@@ -692,7 +692,7 @@ int CwxMqPoco::packMultiSyncData(
     msg = CwxMsgBlockAlloc::pack(head, szData, uiDataLen);
     if (!msg)
     {
-        if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
+        if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", uiDataLen);
         return CWX_MQ_INNER_ERR;
     }
     return CWX_MQ_SUCCESS;
