@@ -549,7 +549,6 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
     pBlock->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
     pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_ASYNC_BIN);
     pBlock->send_ctrl().setHostId(0);
-    pBlock->event().m_ullArg = pCursor->getHeader().getSid();
     pBlock->event().setTaskId(pCursor->getHeader().getSid()&0xFFFFFFFF);
     pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
     if (!conn->m_handler->putMsg(pBlock))

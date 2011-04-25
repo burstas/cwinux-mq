@@ -116,8 +116,6 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
             return -1;
         }
     }
-    msg->event().m_uiArg = 0;
-    msg->event().m_ullArg = 0;
     if (-1 == reply(block, m_conn.m_pQueue, iRet, bClose)) return -1;
     return 0;
 }
