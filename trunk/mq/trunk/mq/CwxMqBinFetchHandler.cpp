@@ -93,7 +93,7 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
             {
                 return -1;
             }
-            return 1;
+            return 0;
         }while(0);
     }
     else
@@ -116,6 +116,8 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
             return -1;
         }
     }
+    msg->event().m_uiArg = 0;
+    msg->event().m_ullArg = 0;
     if (-1 == reply(block, m_conn.m_pQueue, iRet, bClose)) return -1;
     return 0;
 }
@@ -138,6 +140,7 @@ int CwxMqBinFetchHandler::onRedo()
     }
     return 0;
 }
+
 /**
 @brief 通知连接完成一个消息的发送。<br>
 只有在Msg指定FINISH_NOTICE的时候才调用.
@@ -163,13 +166,13 @@ CWX_UINT32 CwxMqBinFetchHandler::onEndSendMsg(CwxMsgBlock*& msg)
     if ((m_pApp->getMqUncommitNum() >= m_pApp->getConfig().getBinLog().m_uiMqFetchFlushNum) ||
         (time(NULL) > (time_t)(m_pApp->getMqLastCommitTime() + m_pApp->getConfig().getBinLog().m_uiMqFetchFlushSecond)))
     {
-        char szErr2K[2048];
-        if (0 != m_pApp->commit_mq(szErr2K))
+        CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
+        if (0 != m_pApp->commit_mq(tss->m_szBuf2K))
         {
             CWX_ERROR(("Failure to commit sys file, err=%s", szErr2K));
         }
     }
-    return 1;
+    return CwxMsgSendCtrl::UNDO_CONN;
 }
 
 /**
@@ -214,7 +217,6 @@ int CwxMqBinFetchHandler::reply(CwxMsgBlock* msg,
     msg->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
     msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH_BIN);
     msg->send_ctrl().setHostId(0);
-    msg->event().m_uiArg = pQueue->getId();
     if (CWX_MQ_SUCCESS == ret)
     {
         if (bClose)

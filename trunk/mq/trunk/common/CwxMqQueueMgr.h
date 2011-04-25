@@ -115,6 +115,11 @@ private:
 class CwxMqQueueMgr
 {
 public:
+    enum
+    {
+        QUEUE_ID_START = 1
+    };
+public:
     CwxMqQueueMgr();
     ~CwxMqQueueMgr();
 public:

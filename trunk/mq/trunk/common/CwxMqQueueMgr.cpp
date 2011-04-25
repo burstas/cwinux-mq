@@ -224,7 +224,7 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog,
                         map<string, CWX_UINT64> const& queueSid,
                         map<string, CwxMqConfigQueue> const& queueInfo)
 {
-    CWX_UINT32 uiId = 1;
+    CWX_UINT32 uiId = QUEUE_ID_START;
     CwxMqQueue* mq = NULL;
     map<string, CWX_UINT64>::const_iterator iter=queueSid.begin();
     map<string, CwxMqConfigQueue>::const_iterator iter_info ;
