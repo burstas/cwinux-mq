@@ -57,9 +57,9 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
         m_common.m_uiSockBufSize = CwxMqConfigCmn::MAX_SOCK_BUF_KB;
     }
     //load mq:common:window:from_master
-    if ((NULL == (pValue=parser.getElementAttr("mq:common:window", "max_trunk_kbyte"))) || !pValue[0])
+    if ((NULL == (pValue=parser.getElementAttr("mq:common:window", "max_chunk_kbyte"))) || !pValue[0])
     {
-        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [mq:common:window:max_trunk_kbyte].");
+        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [mq:common:window:max_chunk_kbyte].");
         return -1;
     }
     m_common.m_uiChunkSize = strtoul(pValue, NULL, 0);
