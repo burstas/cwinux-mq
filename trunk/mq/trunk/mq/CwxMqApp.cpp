@@ -137,7 +137,7 @@ int CwxMqApp::initRunEnv()
     {
         if (m_config.getMaster().m_async_bin.getHostName().length() ||
             m_config.getMaster().m_async_bin.getUnixDomain().length() ||
-            m_config.getMaster().m_async_mc.getHostName().length()
+            m_config.getMaster().m_async_mc.getHostName().length()||
             m_config.getMaster().m_async_mc.getUnixDomain().length())
         {
             m_asyncDispChannel = new CwxAppChannel();
