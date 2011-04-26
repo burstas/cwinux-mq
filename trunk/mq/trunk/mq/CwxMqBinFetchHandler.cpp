@@ -350,7 +350,7 @@ bool CwxMqBinFetchHandler::unpackMsg(CwxMqTss* pTss, CwxMsgBlock* msg)
     CWX_UINT32 group;
     CWX_UINT32 type;
     CWX_UINT32 attr;
-    msg->rd_ptr(CwxMsgHead::CWX_MSG_HEAD_LEN);
+    msg->rd_ptr(CwxMsgHead::MSG_HEAD_LEN);
     if (CWX_MQ_SUCCESS != CwxMqPoco::parseFetchMqReply(pTss->m_pReader,
         msg,
         ret,
