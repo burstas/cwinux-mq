@@ -253,15 +253,12 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
 {
     CwxMsgBlock* pBlock=NULL;
     int err_no = CWX_MQ_SUCCESS;
-    bool bClose = false;
     int iState = 0;
     if (pConn->m_pQueue)
     {
         iState = pConn->m_pQueue->getNextBinlog(pTss,
-            false,
-            pBlock,
             err_no,
-            bClose);
+            pTss->m_szBuf2K);
         if (-1 == iState)
         {
             CWX_ERROR(("Failure to read binlog ,err:%s", pTss->m_szBuf2K));
@@ -271,7 +268,8 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
                 CWX_ERROR(("No memory to malloc package"));
                 return -1;
             }
-            if (0 != reply(pBlock, pConn->m_pQueue, err_no, bClose)) return -1;
+            if (0 != reply(pBlock, pConn->m_pQueue, err_no, true)) return -1;
+            return 1;
         }
         else if (0 == iState) ///已经完成
         {
@@ -285,17 +283,49 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
                 }
                 pConn->m_bWaiting = false;
                 if (0 != reply(pBlock, pConn->m_pQueue, CWX_MQ_NO_MSG, false)) return -1;
+                return 1;
             }
         }
         else if (1 == iState)
         {
-            pConn->m_bWaiting = false;
-            if (0 != reply(pBlock, pConn->m_pQueue, CWX_MQ_SUCCESS, false)) return -1;
+            ///形成binlog发送的数据包
+            if (CWX_MQ_SUCCESS != CwxMqPoco::packFetchMqReply(pTss->m_pWriter,
+                pBlock,
+                CWX_MQ_SUCCESS,
+                "",
+                pTss->m_header.getSid(),
+                pTss->m_header.getDatetime(),
+                pTss->m_kvData,
+                pTss->m_header.getGroup(),
+                pTss->m_header.getType(),
+                pTss->m_header.getAttr(),
+                pTss->m_szBuf2K))
+            {
+                CWX_ERROR((pTss->m_szBuf2K));
+                pBlock = packErrMsg(pTss, iState, pTss->m_szBuf2K);
+                if (!pBlock)
+                {
+                    CWX_ERROR(("No memory to malloc package"));
+                    return -1;
+                }
+                if (0 != reply(pBlock, pConn->m_pQueue, err_no, true)) return -1;
+                return 1;
+            }
+            else
+            {
+                pBlock->event().m_ullArg = pTss->m_header.getSid();
+                pBlock->event().m_uiArg = pConn->m_pQueue->getId();
+                pConn->m_bWaiting = false;
+                if (0 != reply(pBlock, pConn->m_pQueue, CWX_MQ_SUCCESS, false)) return -1;
+                return 1;
+            }
+
         }
         else if (2 == iState)
         {//未完成
             return 0;
         }
     }
-    return 0;
+    //no queue
+    return -1;
 }

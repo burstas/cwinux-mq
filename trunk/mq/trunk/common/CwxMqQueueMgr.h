@@ -40,16 +40,11 @@ public:
     ///1：获取一个消息；
     ///2：达到了搜索点，但没有发现消息；
     ///-1：失败；
-    int getNextBinlog(CwxMqTss* pTss,
-        bool bSync,
-        CwxMsgBlock*&msg,
-        int& err_num,
-        bool& bClose);
-    ///将一个发送失败的消息，送回queue
-    inline void backMsg(CwxMsgBlock*& msg)
-    {
-        m_memMsgTail->push_head(msg);
-    }
+    int getNextBinlog(CwxMqTss* pTss, int& err_num, char* szErr2K);
+    ///将一个发送失败的消息，送回queue。
+    ///true：成功；false：失败。此时是内存分配错误
+    bool backMsg(CwxBinLogHeader const& header, CwxKeyValueItem const& data);
+
     inline CWX_UINT32 getId() const
     {
         return m_uiId;
