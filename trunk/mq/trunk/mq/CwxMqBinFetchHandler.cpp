@@ -345,7 +345,7 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
 bool CwxMqBinFetchHandler::unpackMsg(CwxMqTss* pTss, CwxMsgBlock* msg)
 {
     int  ret;
-    char* errMsg = NULL;
+    char const* errMsg = NULL;
     CWX_UINT64 ullSid;
     CWX_UINT32 uiTimeStamp;
     CWX_UINT32 group;
