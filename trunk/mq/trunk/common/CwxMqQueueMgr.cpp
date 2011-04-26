@@ -45,15 +45,15 @@ int CwxMqQueue::getNextBinlog(CwxMqTss* pTss, int& err_num, char* szErr2K)
         memcpy(&pTss->m_header, msg->rd_ptr(), sizeof(pTss->m_header));
         pTss->m_kvData.m_bKeyValue = *(msg->rd_ptr() + sizeof(pTss->m_header))=='1'?true:false;
         pTss->m_kvData.m_uiDataLen = msg->length() - sizeof(pTss->m_header) - 1;
-        pTss->m_kvData->m_szData = pTss->getBuf(pTss->m_kvData.m_uiDataLen );
-        if (!pTss->m_kvData->m_szData)
+        pTss->m_kvData.m_szData = pTss->getBuf(pTss->m_kvData.m_uiDataLen );
+        if (!pTss->m_kvData.m_szData)
         {
             err_num = CWX_MQ_INNER_ERR;
             CwxCommon::snprintf(szErr2K, 2047, "Failure to malloc buf, size:%u", pTss->m_kvData.m_uiDataLen);
             CwxMsgBlockAlloc::free(msg);
             return -1;
         }
-        memcpy(pTss->m_kvData->m_szData, msg->rd_ptr() + sizeof(pTss->m_header) + 1, pTss->m_kvData.m_uiDataLen);
+        memcpy(pTss->m_kvData.m_szData, msg->rd_ptr() + sizeof(pTss->m_header) + 1, pTss->m_kvData.m_uiDataLen);
         return 1;
     }
     if (!m_cursor)
@@ -151,9 +151,9 @@ int CwxMqQueue::getNextBinlog(CwxMqTss* pTss, int& err_num, char* szErr2K)
             CwxKeyValueItem const* pItem = pTss->m_pReader->getKey(CWX_MQ_DATA);
             if (pItem)
             {
-                pTss->m_kvData->m_szData = (char*)pItem->m_szData;
-                pTss->m_kvData->m_uiDataLen = pItem->m_uiDataLen;
-                pTss->m_kvData->m_bKeyValue = pItem->m_bKeyValue;
+                pTss->m_kvData.m_szData = (char*)pItem->m_szData;
+                pTss->m_kvData.m_uiDataLen = pItem->m_uiDataLen;
+                pTss->m_kvData.m_bKeyValue = pItem->m_bKeyValue;
                 pTss->m_header = m_cursor->getHeader();
                 return 1;
             }
