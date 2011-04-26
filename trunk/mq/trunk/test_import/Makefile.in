@@ -106,7 +106,7 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
-LIBS = -lcwxapp -lcwxnet -lcwxparse -lcwxstore -lcwxcmn -lexpat -levent -lpthread -ldl -lrt
+LIBS = -lcwxapp -lcwxnet -lcwxparse -lcwxstore -lcwxcmn -lexpat -lpthread -ldl -lrt
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -178,8 +178,8 @@ cwx_mq_import_SOURCES = \
 	CwxMqImportApp.cpp  CwxMqImportConfig.cpp  cwx_mq_import.cpp
 
 cwx_mq_import_LDADD = 
-cwx_mq_import_LDFLAGS = -L@xml_expat_dir@/lib -L@cwinux_dir@/lib -L@libevent_dir@/lib
-INCLUDES = -I@cwinux_dir@/include/app -I@cwinux_dir@/include/cmn -I@cwinux_dir@/include/net -I@cwinux_dir@/include/store -I@cwinux_dir@/include/parse -I@xml_expat_dir@/include -I@libevent_dir@/include -I../common
+cwx_mq_import_LDFLAGS = -L@xml_expat_dir@/lib -L@cwinux_dir@/lib 
+INCLUDES = -I@cwinux_dir@/include/app -I@cwinux_dir@/include/cmn -I@cwinux_dir@/include/net -I@cwinux_dir@/include/store -I@cwinux_dir@/include/parse -I@xml_expat_dir@/include  -I../common
 all: all-am
 
 .SUFFIXES:

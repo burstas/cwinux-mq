@@ -57,9 +57,8 @@ am_cwx_mq_OBJECTS = cwx_mq-CwxMqApp.$(OBJEXT) \
 	cwx_mq-CwxMqBinRecvHandler.$(OBJEXT) cwx_mq-cwx_mq.$(OBJEXT) \
 	cwx_mq-CwxMqMcAsyncHandler.$(OBJEXT) \
 	cwx_mq-CwxMqMcRecvHandler.$(OBJEXT) cwx_mq-CwxMqDef.$(OBJEXT) \
-	cwx_mq-CwxMqMemcache.$(OBJEXT) cwx_mq-CwxMqPoco.$(OBJEXT) \
-	cwx_mq-CwxMqQueueMgr.$(OBJEXT) cwx_mq-CwxMqSysFile.$(OBJEXT) \
-	cwx_mq-CwxMqTss.$(OBJEXT)
+	cwx_mq-CwxMqPoco.$(OBJEXT) cwx_mq-CwxMqQueueMgr.$(OBJEXT) \
+	cwx_mq-CwxMqSysFile.$(OBJEXT) cwx_mq-CwxMqTss.$(OBJEXT)
 cwx_mq_OBJECTS = $(am_cwx_mq_OBJECTS)
 cwx_mq_DEPENDENCIES =
 DEFAULT_INCLUDES = -I. -I$(srcdir)
@@ -191,7 +190,6 @@ cwx_mq_SOURCES = CwxMqApp.cpp\
 		CwxMqMcAsyncHandler.cpp\
 		CwxMqMcRecvHandler.cpp\
 		../common/CwxMqDef.cpp\
-                ../common/CwxMqMemcache.cpp\
                 ../common/CwxMqPoco.cpp\
 		../common/CwxMqQueueMgr.cpp\
 		../common/CwxMqSysFile.cpp\
@@ -281,7 +279,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqMcAsyncHandler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqMcFetchHandler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqMcRecvHandler.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqMemcache.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqPoco.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqQueueMgr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqSysFile.Po@am__quote@
@@ -462,20 +459,6 @@ cwx_mq-CwxMqDef.obj: ../common/CwxMqDef.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqDef.cpp' object='cwx_mq-CwxMqDef.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqDef.obj `if test -f '../common/CwxMqDef.cpp'; then $(CYGPATH_W) '../common/CwxMqDef.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqDef.cpp'; fi`
-
-cwx_mq-CwxMqMemcache.o: ../common/CwxMqMemcache.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqMemcache.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqMemcache.Tpo" -c -o cwx_mq-CwxMqMemcache.o `test -f '../common/CwxMqMemcache.cpp' || echo '$(srcdir)/'`../common/CwxMqMemcache.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqMemcache.Tpo" "$(DEPDIR)/cwx_mq-CwxMqMemcache.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqMemcache.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqMemcache.cpp' object='cwx_mq-CwxMqMemcache.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqMemcache.o `test -f '../common/CwxMqMemcache.cpp' || echo '$(srcdir)/'`../common/CwxMqMemcache.cpp
-
-cwx_mq-CwxMqMemcache.obj: ../common/CwxMqMemcache.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqMemcache.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqMemcache.Tpo" -c -o cwx_mq-CwxMqMemcache.obj `if test -f '../common/CwxMqMemcache.cpp'; then $(CYGPATH_W) '../common/CwxMqMemcache.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqMemcache.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqMemcache.Tpo" "$(DEPDIR)/cwx_mq-CwxMqMemcache.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqMemcache.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqMemcache.cpp' object='cwx_mq-CwxMqMemcache.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqMemcache.obj `if test -f '../common/CwxMqMemcache.cpp'; then $(CYGPATH_W) '../common/CwxMqMemcache.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqMemcache.cpp'; fi`
 
 cwx_mq-CwxMqPoco.o: ../common/CwxMqPoco.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqPoco.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqPoco.Tpo" -c -o cwx_mq-CwxMqPoco.o `test -f '../common/CwxMqPoco.cpp' || echo '$(srcdir)/'`../common/CwxMqPoco.cpp; \

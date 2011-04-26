@@ -19,7 +19,6 @@ cwx_mq_SOURCES = CwxMqApp.cpp\
 		CwxMqMcAsyncHandler.cpp\
 		CwxMqMcRecvHandler.cpp\
 		../common/CwxMqDef.cpp\
-                ../common/CwxMqMemcache.cpp\
                 ../common/CwxMqPoco.cpp\
 		../common/CwxMqQueueMgr.cpp\
 		../common/CwxMqSysFile.cpp\
