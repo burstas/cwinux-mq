@@ -345,6 +345,7 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
 bool CwxMqBinFetchHandler::unpackMsg(CwxMqTss* pTss, CwxMsgBlock* msg)
 {
     int  ret;
+    char* errMsg = NULL;
     CWX_UINT64 ullSid;
     CWX_UINT32 uiTimeStamp;
     CWX_UINT32 group;
@@ -354,14 +355,14 @@ bool CwxMqBinFetchHandler::unpackMsg(CwxMqTss* pTss, CwxMsgBlock* msg)
     if (CWX_MQ_SUCCESS != CwxMqPoco::parseFetchMqReply(pTss->m_pReader,
         msg,
         ret,
-        (char*)pTss->m_szBuf2K,
+        errMsg,
         ullSid,
         uiTimeStamp,
         &pTss->m_kvData,
         group,
         type,
         attr,
-        (char*)pTss->m_szBuf2K))
+        pTss->m_szBuf2K))
     {
         CWX_ERROR(("Failure to unpack the failure sent fetch message, err:%s", pTss->m_szBuf2K));
         return false;
