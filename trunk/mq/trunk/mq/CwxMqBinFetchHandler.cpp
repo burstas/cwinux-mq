@@ -354,14 +354,14 @@ bool CwxMqBinFetchHandler::unpackMsg(CwxMqTss* pTss, CwxMsgBlock* msg)
     if (CWX_MQ_SUCCESS != CwxMqPoco::parseFetchMqReply(pTss->m_pReader,
         msg,
         ret,
-        pTss->m_szBuf2K,
+        (char*)pTss->m_szBuf2K,
         ullSid,
         uiTimeStamp,
         &pTss->m_kvData,
         group,
         type,
         attr,
-        pTss->m_szBuf2K))
+        (char*)pTss->m_szBuf2K))
     {
         CWX_ERROR(("Failure to unpack the failure sent fetch message, err:%s", pTss->m_szBuf2K));
         return false;
