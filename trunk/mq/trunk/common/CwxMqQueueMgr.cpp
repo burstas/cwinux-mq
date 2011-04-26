@@ -196,7 +196,7 @@ bool CwxMqQueue::backMsg(CwxBinLogHeader const& header, CwxKeyValueItem const& d
     else
         *(msg->wr_ptr() + sizeof(header)) = '0';
 
-    memcpy(msg->wr_ptr() + sizeof(header) + 1, data->m_szData, data.m_uiDataLen);
+    memcpy(msg->wr_ptr() + sizeof(header) + 1, data.m_szData, data.m_uiDataLen);
     msg->wr_ptr(sizeof(header) + data.m_uiDataLen + 1);
     m_memMsgTail->push_head(msg);
 }
