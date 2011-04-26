@@ -133,48 +133,42 @@ int CwxMqApp::initRunEnv()
         return -1;
     }
     //创建分发线程池
-    if (m_config.getCommon().m_bMaster)
+    if (m_config.getMaster().m_async_bin.getHostName().length() ||
+        m_config.getMaster().m_async_mc.getHostName().length())
     {
-        if (m_config.getMaster().m_async_bin.getHostName().length() ||
-            m_config.getMaster().m_async_mc.getHostName().length())
-        {
-            m_asyncDispChannel = new CwxAppChannel();
-            m_pAsyncDispThreadPool = new CwxThreadPool( CwxAppFramework::THREAD_GROUP_USER_START + 1,
-                1,
-                getThreadPoolMgr(),
-                &getCommander(),
-                CwxMqApp::DispatchThreadMain,
-                this);
-            ///启动线程
-            pTss = new CwxTss*[1];
-            pTss[0] = new CwxMqTss();
-            ((CwxMqTss*)pTss[0])->init();
-            if ( 0 != m_pAsyncDispThreadPool->start(pTss)){
-                CWX_ERROR(("Failure to start dispatch thread pool"));
-                return -1;
-            }
+        m_asyncDispChannel = new CwxAppChannel();
+        m_pAsyncDispThreadPool = new CwxThreadPool( CwxAppFramework::THREAD_GROUP_USER_START + 1,
+            1,
+            getThreadPoolMgr(),
+            &getCommander(),
+            CwxMqApp::DispatchThreadMain,
+            this);
+        ///启动线程
+        pTss = new CwxTss*[1];
+        pTss[0] = new CwxMqTss();
+        ((CwxMqTss*)pTss[0])->init();
+        if ( 0 != m_pAsyncDispThreadPool->start(pTss)){
+            CWX_ERROR(("Failure to start dispatch thread pool"));
+            return -1;
         }
     }
-    else
+    if (m_config.getSlave().m_async_bin.getHostName().length() ||
+        m_config.getSlave().m_async_mc.getHostName().length())
     {
-        if (m_config.getSlave().m_async_bin.getHostName().length() ||
-            m_config.getSlave().m_async_mc.getHostName().length())
-        {
-            m_mqChannel = new CwxAppChannel();
-            m_pMqThreadPool = new CwxThreadPool( CwxAppFramework::THREAD_GROUP_USER_START + 2,
-                1,
-                getThreadPoolMgr(),
-                &getCommander(),
-                CwxMqApp::MqThreadMain,
-                this);
-            ///启动线程
-            pTss = new CwxTss*[1];
-            pTss[0] = new CwxMqTss();
-            ((CwxMqTss*)pTss[0])->init();
-            if ( 0 != m_pMqThreadPool->start(pTss)){
-                CWX_ERROR(("Failure to start mq thread pool"));
-                return -1;
-            }
+        m_mqChannel = new CwxAppChannel();
+        m_pMqThreadPool = new CwxThreadPool( CwxAppFramework::THREAD_GROUP_USER_START + 2,
+            1,
+            getThreadPoolMgr(),
+            &getCommander(),
+            CwxMqApp::MqThreadMain,
+            this);
+        ///启动线程
+        pTss = new CwxTss*[1];
+        pTss[0] = new CwxMqTss();
+        ((CwxMqTss*)pTss[0])->init();
+        if ( 0 != m_pMqThreadPool->start(pTss)){
+            CWX_ERROR(("Failure to start mq thread pool"));
+            return -1;
         }
     }
     //创建mq线程池
