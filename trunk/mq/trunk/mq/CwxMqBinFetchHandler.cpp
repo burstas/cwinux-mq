@@ -1,6 +1,6 @@
 #include "CwxMqBinFetchHandler.h"
 #include "CwxMqApp.h"
-
+#include "CwxMsgHead.h"
 /**
 @brief 连接可读事件，返回-1，close()会被调用
 @return -1：处理失败，会调用close()； 0：处理成功
@@ -167,7 +167,7 @@ CWX_UINT32 CwxMqBinFetchHandler::onEndSendMsg(CwxMsgBlock*& msg)
         CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
         if (0 != m_pApp->commit_mq(tss->m_szBuf2K))
         {
-            CWX_ERROR(("Failure to commit sys file, err=%s", szErr2K));
+            CWX_ERROR(("Failure to commit sys file, err=%s", tss->m_szBuf2K));
         }
     }
     return CwxMsgSendCtrl::UNDO_CONN;
