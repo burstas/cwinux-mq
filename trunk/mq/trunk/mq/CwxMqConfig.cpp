@@ -270,7 +270,7 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
     //fetch mq:mq
     if (parser.getElementNode("mq:mq"))
     {
-        if (!fetchMq(parser, "mq:mq_bin", m_mq)) return -1;
+        if (!fetchMq(parser, "mq:mq", m_mq)) return -1;
     }
     else
     {
