@@ -116,7 +116,7 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
             return -1;
         }
     }
-    if (-1 == reply(block, m_conn.m_pQueue, iRet, bClose)) return -1;
+    if (-1 == reply(pTss, block, m_conn.m_pQueue, iRet, bClose)) return -1;
     return 0;
 }
 
@@ -181,7 +181,8 @@ CWX_UINT32 CwxMqBinFetchHandler::onEndSendMsg(CwxMsgBlock*& msg)
 */
 void CwxMqBinFetchHandler::onFailSendMsg(CwxMsgBlock*& msg)
 {
-    back(msg);
+    CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
+    back(tss, msg);
     msg = NULL;
 }
 
@@ -207,10 +208,11 @@ CwxMsgBlock* CwxMqBinFetchHandler::packErrMsg(CwxMqTss* pTss,
     return pBlock;
 }
 
-int CwxMqBinFetchHandler::reply(CwxMsgBlock* msg,
-           CwxMqQueue* pQueue,
-           int ret,
-           bool bClose)
+int CwxMqBinFetchHandler::reply(CwxMqTss* pTss,
+                                CwxMsgBlock* msg,
+                                CwxMqQueue* pQueue,
+                                int ret,
+                                bool bClose)
 {
     msg->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
     msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH_BIN);
@@ -233,19 +235,28 @@ int CwxMqBinFetchHandler::reply(CwxMsgBlock* msg,
     {
         CWX_ERROR(("Failure to reply fetch mq"));
         if (CWX_MQ_SUCCESS == ret)
-            pQueue->backMsg(msg);
-        else
+        {
+            if (unpackMsg(pTss, msg))
+                pQueue->backMsg(pTss->m_header, pTss->m_kvData);
             CwxMsgBlockAlloc::free(msg);
+        }
+        else
+        {
+            CwxMsgBlockAlloc::free(msg);
+        }
         return -1;
     }
     return 0;
 }
 
-void CwxMqBinFetchHandler::back(CwxMsgBlock* msg)
+void CwxMqBinFetchHandler::back(CwxMqTss* pTss, CwxMsgBlock* msg)
 {
     CwxMqQueue* pQueue = m_pApp->getQueueMgr()->getQueue(msg->event().m_uiArg);
     CWX_ASSERT(pQueue);
-    pQueue->backMsg(msg);
+    if (unpackMsg(pTss, msg))
+        pQueue->backMsg(pTss->m_header, pTss->m_kvData);
+    
+    CwxMsgBlockAlloc::free(msg);
 }
 
 ///发送消息，0：没有消息发送；1：发送一个；-1：发送失败
@@ -268,7 +279,7 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
                 CWX_ERROR(("No memory to malloc package"));
                 return -1;
             }
-            if (0 != reply(pBlock, pConn->m_pQueue, err_no, true)) return -1;
+            if (0 != reply(pTss, pBlock, pConn->m_pQueue, err_no, true)) return -1;
             return 1;
         }
         else if (0 == iState) ///已经完成
@@ -282,7 +293,7 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
                     return -1;
                 }
                 pConn->m_bWaiting = false;
-                if (0 != reply(pBlock, pConn->m_pQueue, CWX_MQ_NO_MSG, false)) return -1;
+                if (0 != reply(pTss, pBlock, pConn->m_pQueue, CWX_MQ_NO_MSG, false)) return -1;
                 return 1;
             }
         }
@@ -308,7 +319,7 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
                     CWX_ERROR(("No memory to malloc package"));
                     return -1;
                 }
-                if (0 != reply(pBlock, pConn->m_pQueue, err_no, true)) return -1;
+                if (0 != reply(pTss, pBlock, pConn->m_pQueue, err_no, true)) return -1;
                 return 1;
             }
             else
@@ -316,7 +327,7 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
                 pBlock->event().m_ullArg = pTss->m_header.getSid();
                 pBlock->event().m_uiArg = pConn->m_pQueue->getId();
                 pConn->m_bWaiting = false;
-                if (0 != reply(pBlock, pConn->m_pQueue, CWX_MQ_SUCCESS, false)) return -1;
+                if (0 != reply(pTss, pBlock, pConn->m_pQueue, CWX_MQ_SUCCESS, false)) return -1;
                 return 1;
             }
 
@@ -328,4 +339,37 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
     }
     //no queue
     return -1;
+}
+
+///解压发送失败的msg消息
+bool CwxMqBinFetchHandler::unpackMsg(CwxMqTss* pTss, CwxMsgBlock* msg)
+{
+    int  ret;
+    CWX_UINT64 ullSid;
+    CWX_UINT32 uiTimeStamp;
+    CWX_UINT32 group;
+    CWX_UINT32 type;
+    CWX_UINT32 attr;
+    msg->rd_ptr(CWX_MSG_HEAD_LEN);
+    if (CWX_MQ_SUCCESS != CwxMqPoco::parseFetchMqReply(pTss->m_pReader,
+        msg,
+        ret,
+        pTss->m_szBuf2K,
+        ullSid,
+        uiTimeStamp,
+        &pTss->m_kvData,
+        group,
+        type,
+        attr,
+        pTss->m_szBuf2K))
+    {
+        CWX_ERROR(("Failure to unpack the failure sent fetch message, err:%s", pTss->m_szBuf2K));
+        return false;
+    }
+    pTss->m_header.setSid(ullSid);
+    pTss->m_header.setDatetime(uiTimeStamp);
+    pTss->m_header.setGroup(group);
+    pTss->m_header.setType(type);
+    pTss->m_header.setAttr(attr);
+    return true;
 }

@@ -78,14 +78,18 @@ private:
         char const* szErrMsg
         );
     ///发送消息，0：成功；-1：发送失败
-    int reply(CwxMsgBlock* msg,
+    int reply(CwxMqTss* pTss,
+        CwxMsgBlock* msg,
         CwxMqQueue* pQueue,
         int ret,
         bool bClose=false);
     //将一个发送失败的消息，还回消息队列
-    void back(CwxMsgBlock* msg);
+    void back(CwxMqTss* pTss, CwxMsgBlock* msg);
     ///发送消息，0：没有消息发送；1：发送一个；-1：发送失败
     int sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn);
+    ///解压发送失败的msg消息
+    bool unpackMsg(CwxMqTss* pTss, CwxMsgBlock* msg);
+
 private:
     CwxMqApp*     m_pApp;  ///<app对象
     CwxMqFetchConn     m_conn; ///<mq fetch的连接
