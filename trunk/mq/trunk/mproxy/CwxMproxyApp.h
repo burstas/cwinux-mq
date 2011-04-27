@@ -10,7 +10,7 @@
 #include "CwxMproxyRecvHandler.h"
 #include "CwxMproxyMqHandler.h"
 #include "CwxMproxyTask.h"
-#include "CwxAppThreadPoolEx.h"
+#include "CwxThreadPoolEx.h"
 
 #define CWX_MPROXY_APP_VERSION "1.3.1"
 #define CWX_MPROXY_MODIFY_DATE "2010-11-07"
@@ -51,7 +51,11 @@ public:
     //消息发送失败
     virtual void onFailSendMsg(CwxMsgBlock*& msg);
 public:
-    CwxMproxyConfig const& getConfig() const { return m_config;}
+    CwxMproxyConfig const& getConfig() const
+    {
+        return m_config;
+    }
+
     CWX_UINT32 getNextTaskId()
     {
         CwxMutexGuard<CwxMutexLock>  lock(&m_lock);
@@ -59,6 +63,8 @@ public:
         if (!m_uiTaskId) m_uiTaskId = 1;
         return m_uiTaskId;
     }
+
+    CWX_UINT32 getMqConnId() const { return m_uiMqConnId; }
 protected:
     //init the Enviroment before run.0:success, -1:failure.
 	virtual int initRunEnv();
@@ -69,7 +75,8 @@ private:
     CwxMproxyMqHandler*            m_pMqHandle; ///<处理mq消息的handler
     CWX_UINT32                     m_uiTaskId; ///<发送给mq的消息的taskid
     CwxMutexLock                   m_lock; ///<m_uiTaskId的保护锁
-    CwxAppThreadPoolEx*            m_threadPool;///<线程池对象
+    CwxThreadPoolEx*            m_threadPool;///<线程池对象
+    CWX_UINT32                     m_uiMqConnId;
 };
 
 #endif

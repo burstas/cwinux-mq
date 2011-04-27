@@ -15,14 +15,14 @@
 @bug
 */
 
-#include "CwxAppTaskBoard.h"
+#include "CwxTaskBoard.h"
 #include "CwxTss.h"
 #include "CwxGlobalMacro.h"
 class CwxMproxyApp;
 
 CWINUX_USING_NAMESPACE
 
-class CwxMproxyTask : public CwxAppTaskBoardTask
+class CwxMproxyTask : public CwxTaskBoardTask
 {
 public:
     enum
@@ -30,7 +30,7 @@ public:
         TASK_STATE_WAITING = TASK_STATE_USER
     };
     ///¹¹Ôìº¯Êý
-    CwxMproxyTask(CwxMproxyApp* pApp, CwxAppTaskBoard* pTaskBoard):CwxAppTaskBoardTask(pTaskBoard),m_pApp(pApp)
+    CwxMproxyTask(CwxMproxyApp* pApp, CwxTaskBoard* pTaskBoard):CwxTaskBoardTask(pTaskBoard),m_pApp(pApp)
     {
         m_uiReplyConnId = 0;
         m_uiMsgTaskId = 0;

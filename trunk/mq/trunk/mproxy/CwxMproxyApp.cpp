@@ -8,7 +8,7 @@ CwxMproxyApp::CwxMproxyApp()
     m_threadPool = NULL;
     m_pRecvHandle = NULL;
     m_pMqHandle = NULL;
-
+    m_uiMqConnId = CWX_APP_INVALID_CONN_ID;
 }
 ///析构函数
 CwxMproxyApp::~CwxMproxyApp()
@@ -92,52 +92,44 @@ int CwxMproxyApp::initRunEnv()
     //连接mq
     if (m_config.m_mq.getUnixDomain().length())
     {
-        for (CWX_UINT32 i=0; i< m_config.m_uiConnNum; i++)
+        if (0 > noticeLsockConnect(SVR_TYPE_MQ,
+            i,
+            m_config.m_mq.getUnixDomain().c_str()))
         {
-            if (0 > noticeLsockConnect(SVR_TYPE_MQ,
-                i,
-                m_config.m_mq.getUnixDomain().c_str()))
-            {
-                CWX_ERROR(("Failure to connect to mq, unix-file:%s",
-                    m_config.m_mq.getUnixDomain().c_str()));
-                return -1;
-            }
+            CWX_ERROR(("Failure to connect to mq, unix-file:%s",
+                m_config.m_mq.getUnixDomain().c_str()));
+            return -1;
         }
     }
     else if (m_config.m_mq.getHostName().length())
     {
-        for (CWX_UINT32 i=0; i<m_config.m_uiConnNum; i++)
+        if (0 > noticeTcpConnect(SVR_TYPE_MQ,
+            i,
+            m_config.m_mq.getHostName().c_str(),
+            m_config.m_mq.getPort()))
         {
-            if (0 > noticeTcpConnect(SVR_TYPE_MQ,
-                i,
+            CWX_ERROR(("Failure to connect to mq, ip=%s, port=%u",
                 m_config.m_mq.getHostName().c_str(),
-                m_config.m_mq.getPort()))
-            {
-                CWX_ERROR(("Failure to connect to mq, ip=%s, port=%u",
-                    m_config.m_mq.getHostName().c_str(),
-                    m_config.m_mq.getPort()));
-                return -1;
-            }
+                m_config.m_mq.getPort()));
+            return -1;
         }
-        
     }
     else
     {
         CWX_ERROR(("Can't configure mq's address by ip or unix-file"));
         return -1;
     }
+    m_uiMqConnId = CWX_APP_INVALID_CONN_ID;
 
-    ///创建线程池对象，此线程池中线程的group-id为THREAD_GROUP_USER_START，线程池的线程数量为m_config.m_unThreadNum。
-    m_threadPool = new CwxAppThreadPoolEx(this,
-        CwxAppFramework::THREAD_GROUP_USER_START,
-        m_config.m_unThreadNum);
+    ///创建线程池对象，此线程池中线程的group-id为THREAD_GROUP_USER_START
+    m_threadPool = new CwxThreadPoolEx(CwxAppFramework::THREAD_GROUP_USER_START,
+        1,
+        getThreadPoolMgr(),
+        &getCommander());
     ///创建线程的tss对象
-    CwxTss** pTss = new CwxTss*[m_config.m_unThreadNum];
-    for (CWX_UINT16 i=0; i<m_config.m_unThreadNum; i++)
-    {
-        pTss[i] = new CwxMqTss();
-        ((CwxMqTss*)pTss[i])->init();
-    }
+    CwxTss** pTss = new CwxTss*[1];
+    pTss[0] = new CwxMqTss();
+    ((CwxMqTss*)pTss[0])->init();
     ///启动线程。
     if ( 0 != m_threadPool->start(pTss))
     {
@@ -188,6 +180,10 @@ int CwxMproxyApp::onConnCreated(CwxAppHandler4Msg& conn, bool& , bool& )
         bool* bAuth = new bool;
         *bAuth = false;
         conn.getConnInfo().setUserData((void*)bAuth);
+    }
+    else
+    {
+        m_uiMqConnId = conn.getConnInfo().getConnId();
     }
     return 0;
 }

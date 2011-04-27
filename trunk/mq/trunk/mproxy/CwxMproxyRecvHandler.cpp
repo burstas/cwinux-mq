@@ -165,11 +165,11 @@ int CwxMproxyRecvHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss*)
 
 int CwxMproxyRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* pThrEnv)
 {
-    list<CwxAppTaskBoardTask*> tasks;
+    list<CwxTaskBoardTask*> tasks;
     m_pApp->getTaskBoard().noticeCheckTimeout(pThrEnv, tasks);
     if (!tasks.empty())
     {
-        list<CwxAppTaskBoardTask*>::iterator iter=tasks.begin();
+        list<CwxTaskBoardTask*>::iterator iter=tasks.begin();
         (*iter)->execute(pThrEnv);
         iter++;
     }

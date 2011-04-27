@@ -19,13 +19,6 @@ int CwxMproxyConfig::loadConfig(string const & strConfFile)
     }
     m_strWorkDir = pValue;
 	if ('/' != m_strWorkDir[m_strWorkDir.length()-1]) m_strWorkDir +="/";
-    // thread num
-    if ((NULL == (pValue=parser.getElementAttr("mproxy:thread", "num"))) || !pValue[0])
-    {
-        snprintf(m_szErrMsg, 2047, "Must set [mproxy:thread:num].");
-        return -1;
-    }
-    m_unThreadNum =strtoul(pValue, NULL, 0);
     //timeout
     if ((NULL == (pValue=parser.getElementAttr("mproxy:timeout", "mili_second"))) || !pValue[0])
     {
@@ -137,14 +130,6 @@ int CwxMproxyConfig::loadConfig(string const & strConfFile)
             pNode = pNode->m_next;
         }
     }
-    // conn num
-    if ((NULL == (pValue=parser.getElementAttr("mproxy:mq:conn", "num"))) || !pValue[0])
-    {
-        snprintf(m_szErrMsg, 2047, "Must set [mproxy:mq:conn:num].");
-        return -1;
-    }
-    m_uiConnNum =strtoul(pValue, NULL, 0);
-    if (!m_uiConnNum) m_uiConnNum = 1;
     //mq server
     if (!fetchHost(parser, "mproxy:mq:recv", m_mq)) return -1;
     return 0;
@@ -154,7 +139,6 @@ void CwxMproxyConfig::outputConfig()
 {
 	CWX_INFO(("*****************BEGIN CONFIG *******************"));
     CWX_INFO(("workdir=%s", m_strWorkDir.c_str()));
-    CWX_INFO(("thread num = %u", m_unThreadNum));
     CWX_INFO(("timeout mili-second = %u", m_uiTimeout));
     CWX_INFO(("recv keep-alive=%s ip=%s  port=%u  user=%s  passwd=%s unix=%s",
         m_recv.isKeepAlive()?"true":"false",
@@ -204,15 +188,13 @@ void CwxMproxyConfig::outputConfig()
         }
     }
 
-    CWX_INFO(("Mq server:  conn_num=%u keep-alive=%s ip=%s  port=%u  user=%s  passwd=%s unix=%s",
-        m_uiConnNum,
+    CWX_INFO(("Mq server:  keep-alive=%s ip=%s  port=%u  user=%s  passwd=%s unix=%s",
         m_mq.isKeepAlive()?"true":"false",
         m_mq.getHostName().c_str(),
         m_mq.getPort(),
         m_mq.getUser().c_str(),
         m_mq.getPasswd().c_str(),
         m_mq.getUnixDomain().c_str()));
-    CWX_INFO(("Mq server conn: num=%u", m_uiConnNum));
     CWX_INFO(("\n*****************END   CONFIG *******************\n"));   
 }
 

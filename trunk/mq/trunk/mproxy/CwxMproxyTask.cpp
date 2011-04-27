@@ -6,7 +6,7 @@
 
 void CwxMproxyTask::noticeTimeout(CwxTss* )
 {
-    setTaskState(CwxAppTaskBoardTask::TASK_STATE_FINISH);
+    setTaskState(CwxTaskBoardTask::TASK_STATE_FINISH);
     m_bReplyTimeout = true;
     CWX_DEBUG(("Task is timeout , task_id=%u", getTaskId()));
 }
@@ -16,13 +16,13 @@ void CwxMproxyTask::noticeRecvMsg(CwxMsgBlock*& msg, CwxTss* , bool& )
     CWX_ASSERT(m_uiSendConnId == msg->event().getConnId());
     m_mqReply = msg;
     msg = NULL;
-    setTaskState(CwxAppTaskBoardTask::TASK_STATE_FINISH);
+    setTaskState(CwxTaskBoardTask::TASK_STATE_FINISH);
 }
 
 void CwxMproxyTask::noticeFailSendMsg(CwxMsgBlock*& , CwxTss* )
 {
     m_bFailSend = true;
-    setTaskState(CwxAppTaskBoardTask::TASK_STATE_FINISH);
+    setTaskState(CwxTaskBoardTask::TASK_STATE_FINISH);
 }
 
 void CwxMproxyTask::noticeEndSendMsg(CwxMsgBlock*& msg, CwxTss* , bool& )
@@ -35,7 +35,7 @@ void CwxMproxyTask::noticeConnClosed(CWX_UINT32 , CWX_UINT32 , CWX_UINT32 uiConn
 {
     CWX_ASSERT(m_uiSendConnId == uiConnId);
     m_bFailSend = true;
-    setTaskState(CwxAppTaskBoardTask::TASK_STATE_FINISH);
+    setTaskState(CwxTaskBoardTask::TASK_STATE_FINISH);
 }
 
 int CwxMproxyTask::noticeActive(CwxTss*  )
@@ -44,14 +44,14 @@ int CwxMproxyTask::noticeActive(CwxTss*  )
     if (0 != CwxMproxyMqHandler::sendMq(m_pApp, getTaskId(), m_sndMsg))
     {
         m_bFailSend = true;
-        setTaskState(CwxAppTaskBoardTask::TASK_STATE_FINISH);
+        setTaskState(CwxTaskBoardTask::TASK_STATE_FINISH);
     }
     return 0;
 }
 
 void CwxMproxyTask::execute(CwxTss* pThrEnv)
 {
-    if (CwxAppTaskBoardTask::TASK_STATE_INIT == getTaskState())
+    if (CwxTaskBoardTask::TASK_STATE_INIT == getTaskState())
     {
         m_bReplyTimeout = false;
         m_bFailSend = false;
@@ -61,7 +61,7 @@ void CwxMproxyTask::execute(CwxTss* pThrEnv)
         this->setTimeoutValue(timeStamp);
         getTaskBoard()->noticeActiveTask(this, pThrEnv);
     }
-    if (CwxAppTaskBoardTask::TASK_STATE_FINISH == getTaskState())
+    if (CwxTaskBoardTask::TASK_STATE_FINISH == getTaskState())
     {
         reply(pThrEnv);
         delete this;
