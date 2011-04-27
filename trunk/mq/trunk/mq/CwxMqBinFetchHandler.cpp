@@ -87,12 +87,14 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
             int ret = sentBinlog(pTss, &m_conn);
             if (0 == ret)
             {
+                m_conn.m_bWaiting = true;
                 channel()->regRedoHander(this);
             }
             else if (-1 == ret)
             {
                 return -1;
             }
+            m_conn.m_bWaiting = false;
             return 0;
         }while(0);
     }
@@ -130,12 +132,14 @@ int CwxMqBinFetchHandler::onRedo()
     int iRet = sentBinlog(tss, &m_conn);
     if (0 == iRet)
     {
+        m_conn.m_bWaiting = true;
         channel()->regRedoHander(this);
     }
     else if (-1 == iRet)
     {
         return -1;
     }
+    m_conn.m_bWaiting = false;
     return 0;
 }
 
@@ -292,7 +296,6 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
                     CWX_ERROR(("No memory to malloc package"));
                     return -1;
                 }
-                pConn->m_bWaiting = false;
                 if (0 != reply(pTss, pBlock, pConn->m_pQueue, CWX_MQ_NO_MSG, false)) return -1;
                 return 1;
             }
@@ -326,7 +329,6 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn)
             {
                 pBlock->event().m_ullArg = pTss->m_header.getSid();
                 pBlock->event().m_uiArg = pConn->m_pQueue->getId();
-                pConn->m_bWaiting = false;
                 if (0 != reply(pTss, pBlock, pConn->m_pQueue, CWX_MQ_SUCCESS, false)) return -1;
                 return 1;
             }
