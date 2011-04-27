@@ -12,12 +12,9 @@ cwx_mq_SOURCES = CwxMqApp.cpp\
 		CwxMqBinFetchHandler.cpp\
 		CwxMqConfig.cpp\
 		CwxMqMasterHandler.cpp\
-		CwxMqMcFetchHandler.cpp\
 		CwxMqBinAsyncHandler.cpp\
 		CwxMqBinRecvHandler.cpp\
 		cwx_mq.cpp\
-		CwxMqMcAsyncHandler.cpp\
-		CwxMqMcRecvHandler.cpp\
 		../common/CwxMqDef.cpp\
                 ../common/CwxMqPoco.cpp\
 		../common/CwxMqQueueMgr.cpp\
