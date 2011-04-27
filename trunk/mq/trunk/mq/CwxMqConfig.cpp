@@ -183,53 +183,34 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
     //load master
     if (m_common.m_bMaster)
     {
-        //load mq:master:recv_bin
-        if (parser.getElementNode("mq:master:recv_bin"))
+        //load mq:master:recv
+        if (parser.getElementNode("mq:master:recv"))
         {
-            if (!fetchHost(parser, "mq:master:recv_bin", m_master.m_recv_bin)) return -1;
+            if (!fetchHost(parser, "mq:master:recv", m_master.m_recv)) return -1;
         }
         else
         {
-            m_master.m_recv_bin.reset();
+            m_master.m_recv.reset();
         }
-        //load mq:master:recv_mc
-        if (parser.getElementNode("mq:master:recv_mc"))
+        if (!m_master.m_recv.getHostName().length())
         {
-            if (!fetchHost(parser, "mq:master:recv_mc", m_master.m_recv_mc)) return -1;
-        }
-        else
-        {
-            m_master.m_recv_mc.reset();
-        }
-        if (!m_master.m_recv_mc.getHostName().length() &&
-            !m_master.m_recv_bin.getHostName().length())
-        {
-            CWX_ERROR(("Must set [mq:master:recv_mc] or [mq:master:recv_bin]"));
+            CWX_ERROR(("Must set [mq:master:recv]"));
             return -1;
         }
-        //load mq:master:async_bin
-        if (parser.getElementNode("mq:master:async_bin"))
+        //load mq:master:async
+        if (parser.getElementNode("mq:master:async"))
         {
-            if (!fetchHost(parser, "mq:master:async_bin", m_master.m_async_bin)) return -1;
+            if (!fetchHost(parser, "mq:master:async", m_master.m_async)) return -1;
         }
         else
         {
-            m_master.m_async_bin.reset();
-        }
-        //load mq:master:async_mc
-        if (parser.getElementNode("mq:master:async_mc"))
-        {
-            if (!fetchHost(parser, "mq:master:async_mc", m_master.m_async_mc)) return -1;
-        }
-        else
-        {
-            m_master.m_async_mc.reset();
+            m_master.m_async.reset();
         }
     }
     else
     {//slave
         //load mq:slave:master_bin
-        if (!fetchHost(parser, "mq:slave:master_bin", m_slave.m_master_bin)) return -1;
+        if (!fetchHost(parser, "mq:slave:master_bin", m_slave.m_master)) return -1;
         //fetch mq:slave:master:subcribe
         if ((NULL == (pValue=parser.getElementAttr("mq:slave:master", "subcribe"))) || !pValue[0])
         {
@@ -248,23 +229,14 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
                 return -1;
             }
         }
-        //load mq:slave:async_bin
-        if (parser.getElementNode("mq:slave:async_bin"))
+        //load mq:slave:async
+        if (parser.getElementNode("mq:slave:async"))
         {
-            if (!fetchHost(parser, "mq:slave:async_bin", m_slave.m_async_bin)) return -1;
+            if (!fetchHost(parser, "mq:slave:async", m_slave.m_async)) return -1;
         }
         else
         {
-            m_slave.m_master_bin.reset();
-        }
-        //load mq:slave:async_mc
-        if (parser.getElementNode("mq:slave:m_async_mc"))
-        {
-            if (!fetchHost(parser, "mq:slave:async_mc", m_slave.m_async_mc)) return -1;
-        }
-        else
-        {
-            m_slave.m_async_mc.reset();
+            m_slave.m_master.reset();
         }
     }
     //fetch mq:mq
@@ -274,8 +246,7 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
     }
     else
     {
-        m_mq.m_binListen.reset();
-        m_mq.m_mcListen.reset();
+        m_mq.m_listen.reset();
     }
 
     return 0;
@@ -351,19 +322,14 @@ bool CwxMqConfig::fetchMq(CwxXmlFileConfigParser& parser,
              CwxMqConfigMq& mq)
 {
     string strErrMsg;
-    string strPath = path + ":bin_listen";
-    if (!fetchHost(parser, strPath.c_str(), mq.m_binListen))
+    string strPath = path + ":listen";
+    if (!fetchHost(parser, strPath.c_str(), mq.m_listen))
     {
-        mq.m_binListen.reset();
+        mq.m_listen.reset();
     }
-    strPath = path + ":mc_listen";
-    if (!fetchHost(parser, strPath.c_str(), mq.m_mcListen))
+    if (!mq.m_listen.getHostName().length())
     {
-        mq.m_mcListen.reset();
-    }
-    if (!mq.m_mcListen.getHostName().length() || !mq.m_binListen.getHostName().length())
-    {
-        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s:mc_listen] or [%s:bin_listen].",path.c_str(),path.c_str());
+        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s:listen].",path.c_str(),path.c_str());
         return false;
     }
     //fetch queue
@@ -456,96 +422,58 @@ void CwxMqConfig::outputConfig() const
     CWX_INFO(("mq-fetch flush log_num=%u second=%u", m_binlog.m_uiMqFetchFlushNum, m_binlog.m_uiMqFetchFlushSecond));
     if (m_common.m_bMaster){
         CWX_INFO(("*****************master*******************"));
-        if (m_master.m_recv_bin.getHostName().length())
+        if (m_master.m_recv.getHostName().length())
         {
-            CWX_INFO(("recv_bin keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
-                m_master.m_recv_bin.isKeepAlive()?"yes":"no",
-                m_master.m_recv_bin.getUser().c_str(),
-                m_master.m_recv_bin.getPasswd().c_str(),
-                m_master.m_recv_bin.getHostName().c_str(),
-                m_master.m_recv_bin.getPort(),
-                m_master.m_recv_bin.getUnixDomain().c_str()));
+            CWX_INFO(("recv keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
+                m_master.m_recv.isKeepAlive()?"yes":"no",
+                m_master.m_recv.getUser().c_str(),
+                m_master.m_recv.getPasswd().c_str(),
+                m_master.m_recv.getHostName().c_str(),
+                m_master.m_recv.getPort(),
+                m_master.m_recv.getUnixDomain().c_str()));
         }
-        if (m_master.m_recv_mc.getHostName().length())
+        if (m_master.m_async.getHostName().length())
         {
-            CWX_INFO(("recv_bin keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
-                m_master.m_recv_mc.isKeepAlive()?"yes":"no",
-                m_master.m_recv_mc.getUser().c_str(),
-                m_master.m_recv_mc.getPasswd().c_str(),
-                m_master.m_recv_mc.getHostName().c_str(),
-                m_master.m_recv_mc.getPort(),
-                m_master.m_recv_mc.getUnixDomain().c_str()));
-        }
-        if (m_master.m_async_bin.getHostName().length())
-        {
-            CWX_INFO(("async_bin keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
-                m_master.m_async_bin.isKeepAlive()?"yes":"no",
-                m_master.m_async_bin.getUser().c_str(),
-                m_master.m_async_bin.getPasswd().c_str(),
-                m_master.m_async_bin.getHostName().c_str(),
-                m_master.m_async_bin.getPort(),
-                m_master.m_async_bin.getUnixDomain().c_str()));
-        }
-        if (m_master.m_async_mc.getHostName().length())
-        {
-            CWX_INFO(("async_mc keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
-                m_master.m_async_mc.isKeepAlive()?"yes":"no",
-                m_master.m_async_mc.getUser().c_str(),
-                m_master.m_async_mc.getPasswd().c_str(),
-                m_master.m_async_mc.getHostName().c_str(),
-                m_master.m_async_mc.getPort(),
-                m_master.m_async_mc.getUnixDomain().c_str()));
+            CWX_INFO(("async keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
+                m_master.m_async.isKeepAlive()?"yes":"no",
+                m_master.m_async.getUser().c_str(),
+                m_master.m_async.getPasswd().c_str(),
+                m_master.m_async.getHostName().c_str(),
+                m_master.m_async.getPort(),
+                m_master.m_async.getUnixDomain().c_str()));
         }
     }else{
         CWX_INFO(("*****************slave*******************"));
         CWX_INFO(("master_bin keep_alive=%s user=%s passwd=%s subscribe=%s ip=%s port=%u unix=%s",
-            m_slave.m_master_bin.isKeepAlive()?"yes":"no",
-            m_slave.m_master_bin.getUser().c_str(),
-            m_slave.m_master_bin.getPasswd().c_str(),
+            m_slave.m_master.isKeepAlive()?"yes":"no",
+            m_slave.m_master.getUser().c_str(),
+            m_slave.m_master.getPasswd().c_str(),
             m_slave.m_strSubScribe.c_str(),
-            m_slave.m_master_bin.getHostName().c_str(),
-            m_slave.m_master_bin.getPort(),
-            m_slave.m_master_bin.getUnixDomain().c_str()));
-        if (m_slave.m_async_bin.getHostName().length())
+            m_slave.m_master.getHostName().c_str(),
+            m_slave.m_master.getPort(),
+            m_slave.m_master.getUnixDomain().c_str()));
+        if (m_slave.m_async.getHostName().length())
         {
-            CWX_INFO(("async_bin keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
-                m_slave.m_async_bin.isKeepAlive()?"yes":"no",
-                m_slave.m_async_bin.getUser().c_str(),
-                m_slave.m_async_bin.getPasswd().c_str(),
-                m_slave.m_async_bin.getHostName().c_str(),
-                m_slave.m_async_bin.getPort(),
-                m_master.m_async_bin.getUnixDomain().c_str()));
-        }
-        if (m_slave.m_async_mc.getHostName().length())
-        {
-            CWX_INFO(("async_mc keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
-                m_slave.m_async_mc.isKeepAlive()?"yes":"no",
-                m_slave.m_async_mc.getUser().c_str(),
-                m_slave.m_async_mc.getPasswd().c_str(),
-                m_slave.m_async_mc.getHostName().c_str(),
-                m_slave.m_async_mc.getPort(),
-                m_master.m_async_mc.getUnixDomain().c_str()));
+            CWX_INFO(("async keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
+                m_slave.m_async.isKeepAlive()?"yes":"no",
+                m_slave.m_async.getUser().c_str(),
+                m_slave.m_async.getPasswd().c_str(),
+                m_slave.m_async.getHostName().c_str(),
+                m_slave.m_async.getPort(),
+                m_master.m_async.getUnixDomain().c_str()));
         }
     }
 
-    if (m_mq.m_binListen.getHostName().length() || m_mq.m_mcListen.getHostName().length())
+    if (m_mq.m_listen.getHostName().length())
     {
         CWX_INFO(("*****************mq-fetch*******************"));
-        if (m_mq.m_binListen.getHostName().length())
+        if (m_mq.m_listen.getHostName().length())
         {
             CWX_INFO(("listen keep_alive=%s  ip=%s port=%u unix=%s",
-                m_mq.m_binListen.isKeepAlive()?"yes":"no",
-                m_mq.m_binListen.getHostName().c_str(),
-                m_mq.m_binListen.getPort(),
-                m_mq.m_binListen.getUnixDomain().c_str()));
-        }
-        if (m_mq.m_mcListen.getHostName().length())
-        {
-            CWX_INFO(("listen keep_alive=%s  ip=%s port=%u unix=%s",
-                m_mq.m_mcListen.isKeepAlive()?"yes":"no",
-                m_mq.m_mcListen.getHostName().c_str(),
-                m_mq.m_mcListen.getPort(),
-                m_mq.m_mcListen.getUnixDomain().c_str()));
+                m_mq.m_listen.isKeepAlive()?"yes":"no",
+                m_mq.m_listen.getHostName().c_str(),
+                m_mq.m_listen.getPort(),
+                m_mq.m_listen.getUnixDomain().c_str()));
         }
         map<string, CwxMqConfigQueue>::const_iterator iter = m_mq.m_queues.begin(); ///<消息分发的队列
         while(iter != m_mq.m_queues.end())

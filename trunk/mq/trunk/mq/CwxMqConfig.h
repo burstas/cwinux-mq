@@ -87,10 +87,8 @@ public:
     {
     }
 public:
-    CwxHostInfo     m_recv_bin; ///<master的bin协议端口信息
-    CwxHostInfo     m_recv_mc; ///<master的mc协议端口信息
-    CwxHostInfo     m_async_bin; ///<master bin协议异步分发端口信息
-    CwxHostInfo     m_async_mc; ///<master mc协议异步分发端口信息
+    CwxHostInfo     m_recv; ///<master的bin协议端口信息
+    CwxHostInfo     m_async; ///<master bin协议异步分发端口信息
 };
 
 ///配置文件的slave参数对象
@@ -101,10 +99,9 @@ public:
     {
     }
 public:
-    CwxHostInfo     m_master_bin; ///<slave的master的连接信息
+    CwxHostInfo     m_master; ///<slave的master的连接信息
     string          m_strSubScribe;///<消息订阅表达式
-    CwxHostInfo     m_async_bin; ///<slave bin协议异步分发的端口信息
-    CwxHostInfo     m_async_mc; ///<slave mc协议异步分发的端口信息
+    CwxHostInfo     m_async; ///<slave bin协议异步分发的端口信息
 };
 
 ///配置文件的mq参数对象
@@ -121,8 +118,7 @@ public:
         return iter == m_queues.end()?NULL:&iter->second;
     }
 public:
-    CwxHostInfo     m_binListen; ///<mq的bin协议listen的连接信息
-    CwxHostInfo     m_mcListen; ///<mq的mc协议listen的连接信息
+    CwxHostInfo     m_listen; ///<mq的bin协议listen的连接信息
     map<string, CwxMqConfigQueue>  m_queues; ///<消息分发的队列
 };
 

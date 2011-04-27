@@ -130,10 +130,10 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             }
             if (m_pApp->getConfig().getCommon().m_bMaster)
             {
-                if (m_pApp->getConfig().getMaster().m_async_bin.getUser().length())
+                if (m_pApp->getConfig().getMaster().m_async.getUser().length())
                 {
-                    if ( (m_pApp->getConfig().getMaster().m_async_bin.getUser() != user) ||
-                        (m_pApp->getConfig().getMaster().m_async_bin.getPasswd() != passwd))
+                    if ( (m_pApp->getConfig().getMaster().m_async.getUser() != user) ||
+                        (m_pApp->getConfig().getMaster().m_async.getPasswd() != passwd))
                     {
                         iRet = CWX_MQ_FAIL_AUTH;
                         CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
@@ -144,10 +144,10 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             }
             else
             {
-                if (m_pApp->getConfig().getSlave().m_async_bin.getUser().length())
+                if (m_pApp->getConfig().getSlave().m_async.getUser().length())
                 {
-                    if ( (m_pApp->getConfig().getSlave().m_async_bin.getUser() != user) ||
-                        (m_pApp->getConfig().getSlave().m_async_bin.getPasswd() != passwd))
+                    if ( (m_pApp->getConfig().getSlave().m_async.getUser() != user) ||
+                        (m_pApp->getConfig().getSlave().m_async.getPasswd() != passwd))
                     {
                         iRet = CWX_MQ_FAIL_AUTH;
                         CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);

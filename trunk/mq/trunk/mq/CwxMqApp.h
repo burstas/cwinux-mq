@@ -13,12 +13,9 @@
 #include "CwxMqTss.h"
 #include "CwxMqPoco.h"
 #include "CwxMqBinAsyncHandler.h"
-#include "CwxMqMcAsyncHandler.h"
 #include "CwxMqBinRecvHandler.h"
-#include "CwxMqMcRecvHandler.h"
 #include "CwxMqMasterHandler.h"
 #include "CwxMqBinFetchHandler.h"
-#include "CwxMqMcFetchHandler.h"
 #include "CwxMqSysFile.h"
 #include "CwxMqQueueMgr.h"
 #include "CwxThreadPool.h"
@@ -184,11 +181,6 @@ public:
     {
         return m_pBinRecvHandler;
     }
-    ///获取master接收binlog的handler对象
-    inline CwxMqMcRecvHandler* getMcRecvHandler()
-    {
-        return m_pMcRecvHandler;
-    }
     ///获取系统文件对象
     inline CwxMqSysFile* getSysFile()
     {
@@ -269,7 +261,6 @@ private:
     CwxBinLogMgr*               m_pBinLogMgr; ///<binlog的管理对象
     CwxMqMasterHandler*         m_pMasterHandler; ///<从master接收消息的handle
     CwxMqBinRecvHandler*        m_pBinRecvHandler; ///<bin协议接收binlog的handle。
-    CwxMqMcRecvHandler*         m_pMcRecvHandler; ///<mc协议接收binlog的handle。
     CwxMqSysFile*               m_sysFile; ///<mq分发的分发点记录文件
     CwxMqQueueMgr*              m_queueMgr; ///<队列管理器
     CwxThreadPool*              m_pRecvThreadPool;///<消息接受的线程池对象

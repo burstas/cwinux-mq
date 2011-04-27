@@ -62,10 +62,10 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 iRet = CWX_MQ_INVALID_MSG;
                 break;
             }
-            if (!bAuth && m_pApp->getConfig().getMaster().m_recv_bin.getUser().length())
+            if (!bAuth && m_pApp->getConfig().getMaster().m_recv.getUser().length())
             {
-                if ((m_pApp->getConfig().getMaster().m_recv_bin.getUser() != user) ||
-                    (m_pApp->getConfig().getMaster().m_recv_bin.getPasswd() != passwd))
+                if ((m_pApp->getConfig().getMaster().m_recv.getUser() != user) ||
+                    (m_pApp->getConfig().getMaster().m_recv.getPasswd() != passwd))
                 {
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
                     CWX_DEBUG((pTss->m_szBuf2K));
@@ -126,10 +126,10 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 iRet = CWX_MQ_INVALID_MSG;
                 break;
             }
-            if (m_pApp->getConfig().getMaster().m_recv_bin.getUser().length())
+            if (m_pApp->getConfig().getMaster().m_recv.getUser().length())
             {
-                if ((m_pApp->getConfig().getMaster().m_recv_bin.getUser() != user) ||
-                    (m_pApp->getConfig().getMaster().m_recv_bin.getPasswd() != passwd))
+                if ((m_pApp->getConfig().getMaster().m_recv.getUser() != user) ||
+                    (m_pApp->getConfig().getMaster().m_recv.getPasswd() != passwd))
                 {
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
                     CWX_DEBUG((pTss->m_szBuf2K));

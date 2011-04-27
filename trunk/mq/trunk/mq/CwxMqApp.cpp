@@ -12,7 +12,6 @@ CwxMqApp::CwxMqApp()
     m_pBinLogMgr = NULL;
     m_pMasterHandler = NULL;
     m_pBinRecvHandler = NULL;
-    m_pMcRecvHandler = NULL;
     m_sysFile = NULL;
     m_queueMgr = NULL;
     m_pRecvThreadPool = NULL;
@@ -99,15 +98,10 @@ int CwxMqApp::initRunEnv()
     if (m_config.getCommon().m_bMaster)
     {
         ///注册数据接收handler
-        if (m_config.getMaster().m_recv_bin.getHostName().length())
+        if (m_config.getMaster().m_recv.getHostName().length())
         {
             m_pBinRecvHandler = new CwxMqBinRecvHandler(this);
             getCommander().regHandle(SVR_TYPE_RECV_BIN, m_pBinRecvHandler);
-        }
-        if (m_config.getMaster().m_recv_mc.getHostName().length())
-        {
-            m_pMcRecvHandler = new CwxMqMcRecvHandler(this);
-            getCommander().regHandle(SVR_TYPE_RECV_MC, m_pMcRecvHandler);
         }
     }else{
         ///注册slave的master数据接收handler
@@ -135,10 +129,8 @@ int CwxMqApp::initRunEnv()
     //创建分发线程池
     if (m_config.getCommon().m_bMaster)
     {
-        if (m_config.getMaster().m_async_bin.getHostName().length() ||
-            m_config.getMaster().m_async_bin.getUnixDomain().length() ||
-            m_config.getMaster().m_async_mc.getHostName().length()||
-            m_config.getMaster().m_async_mc.getUnixDomain().length())
+        if (m_config.getMaster().m_async.getHostName().length() ||
+            m_config.getMaster().m_async.getUnixDomain().length())
         {
             m_asyncDispChannel = new CwxAppChannel();
             m_pAsyncDispThreadPool = new CwxThreadPool( CwxAppFramework::THREAD_GROUP_USER_START + 1,
@@ -159,10 +151,8 @@ int CwxMqApp::initRunEnv()
     }
     else
     {
-        if (m_config.getSlave().m_async_bin.getHostName().length() ||
-            m_config.getSlave().m_async_bin.getUnixDomain().length()||
-            m_config.getSlave().m_async_mc.getHostName().length() ||
-            m_config.getSlave().m_async_mc.getUnixDomain().length())
+        if (m_config.getSlave().m_async.getHostName().length() ||
+            m_config.getSlave().m_async.getUnixDomain().length())
         {
             m_asyncDispChannel = new CwxAppChannel();
             m_pAsyncDispThreadPool = new CwxThreadPool( CwxAppFramework::THREAD_GROUP_USER_START + 1,
@@ -182,10 +172,8 @@ int CwxMqApp::initRunEnv()
         }
     }
     //创建mq线程池
-    if (m_config.getMq().m_binListen.getHostName().length() ||
-        m_config.getMq().m_binListen.getUnixDomain().length()||
-        m_config.getMq().m_mcListen.getHostName().length()||
-        m_config.getMq().m_mcListen.getUnixDomain().length())
+    if (m_config.getMq().m_listen.getHostName().length() ||
+        m_config.getMq().m_listen.getUnixDomain().length())
     {
         m_mqChannel = new CwxAppChannel();
         m_pMqThreadPool = new CwxThreadPool( CwxAppFramework::THREAD_GROUP_USER_START + 2,
@@ -435,11 +423,6 @@ void CwxMqApp::destroy()
         delete m_pBinRecvHandler;
         m_pBinRecvHandler = NULL;
     }
-    if (m_pMcRecvHandler)
-    {
-        delete m_pMcRecvHandler;
-        m_pMcRecvHandler = NULL;
-    }
     if (m_pBinLogMgr)
     {
         m_pBinLogMgr->commit();
@@ -549,159 +532,98 @@ int CwxMqApp::startNetwork()
     if (m_config.getCommon().m_bMaster)
     {
         ///打开bin协议消息接收的listen
-        if (m_config.getMaster().m_recv_bin.getHostName().length())
+        if (m_config.getMaster().m_recv.getHostName().length())
         {
             if (0 > this->noticeTcpListen(SVR_TYPE_RECV_BIN, 
-                m_config.getMaster().m_recv_bin.getHostName().c_str(),
-                m_config.getMaster().m_recv_bin.getPort(),
+                m_config.getMaster().m_recv.getHostName().c_str(),
+                m_config.getMaster().m_recv.getPort(),
                 false,
-                m_config.getMaster().m_recv_bin.isKeepAlive()))
+                m_config.getMaster().m_recv.isKeepAlive()))
             {
                 CWX_ERROR(("Can't register the recv tcp accept listen: addr=%s, port=%d",
-                    m_config.getMaster().m_recv_bin.getHostName().c_str(),
-                    m_config.getMaster().m_recv_bin.getPort()));
+                    m_config.getMaster().m_recv.getHostName().c_str(),
+                    m_config.getMaster().m_recv.getPort()));
                 return -1;
             }
         }
-        if (m_config.getMaster().m_recv_bin.getUnixDomain().length())
+        if (m_config.getMaster().m_recv.getUnixDomain().length())
         {
             if (0 > this->noticeLsockListen(SVR_TYPE_RECV_BIN,
-                m_config.getMaster().m_recv_bin.getUnixDomain().c_str(),
+                m_config.getMaster().m_recv.getUnixDomain().c_str(),
                 false,
-                m_config.getMaster().m_recv_bin.isKeepAlive()))
+                m_config.getMaster().m_recv.isKeepAlive()))
             {
                 CWX_ERROR(("Can't register the recv unix-domain accept listen: path-file=%s",
-                    m_config.getMaster().m_recv_bin.getUnixDomain().c_str()));
+                    m_config.getMaster().m_recv.getUnixDomain().c_str()));
                 return -1;
             }
         }
-
-        ///打开mc协议消息接收的listen
-        if (m_config.getMaster().m_recv_mc.getHostName().length())
-        {
-            if (0 > this->noticeTcpListen(SVR_TYPE_RECV_MC, 
-                m_config.getMaster().m_recv_mc.getHostName().c_str(),
-                m_config.getMaster().m_recv_mc.getPort(),
-                true,
-                m_config.getMaster().m_recv_mc.isKeepAlive()))
-            {
-                CWX_ERROR(("Can't register the recv tcp accept listen: addr=%s, port=%d",
-                    m_config.getMaster().m_recv_mc.getHostName().c_str(),
-                    m_config.getMaster().m_recv_mc.getPort()));
-                return -1;
-            }
-        }
-        if (m_config.getMaster().m_recv_mc.getUnixDomain().length())
-        {
-            if (0 > this->noticeLsockListen(SVR_TYPE_RECV_MC,
-                m_config.getMaster().m_recv_mc.getUnixDomain().c_str(),
-                true,
-                m_config.getMaster().m_recv_mc.isKeepAlive()))
-            {
-                CWX_ERROR(("Can't register the recv unix-domain accept listen: path-file=%s",
-                    m_config.getMaster().m_recv_mc.getUnixDomain().c_str()));
-                return -1;
-            }
-        }
-
         ///打开bin协议异步分发
-        if (m_config.getMaster().m_async_bin.getHostName().length())
+        if (m_config.getMaster().m_async.getHostName().length())
         {
             if (0 > this->noticeTcpListen(SVR_TYPE_ASYNC_BIN, 
-                m_config.getMaster().m_async_bin.getHostName().c_str(),
-                m_config.getMaster().m_async_bin.getPort(),
+                m_config.getMaster().m_async.getHostName().c_str(),
+                m_config.getMaster().m_async.getPort(),
                 true,
-                m_config.getMaster().m_async_bin.isKeepAlive(),
+                m_config.getMaster().m_async.isKeepAlive(),
                 CWX_APP_EVENT_MODE,
                 m_config.getCommon().m_uiSockBufSize * 1024,
                 m_config.getCommon().m_uiSockBufSize * 1024
                 ))
             {
                 CWX_ERROR(("Can't register the async-dispatch tcp accept listen: addr=%s, port=%d",
-                    m_config.getMaster().m_async_bin.getHostName().c_str(),
-                    m_config.getMaster().m_async_bin.getPort()));
+                    m_config.getMaster().m_async.getHostName().c_str(),
+                    m_config.getMaster().m_async.getPort()));
                 return -1;
             }
         }
-        if (m_config.getMaster().m_async_bin.getUnixDomain().length())
+        if (m_config.getMaster().m_async.getUnixDomain().length())
         {
             if (0 > this->noticeLsockListen(SVR_TYPE_ASYNC_BIN,
-                m_config.getMaster().m_async_bin.getUnixDomain().c_str(),
+                m_config.getMaster().m_async.getUnixDomain().c_str(),
                 true,
-                m_config.getMaster().m_async_bin.isKeepAlive(),
+                m_config.getMaster().m_async.isKeepAlive(),
                 CWX_APP_EVENT_MODE))
             {
                 CWX_ERROR(("Can't register the async-dispatch unix-domain accept listen: path-file=%s",
-                    m_config.getMaster().m_async_bin.getUnixDomain().c_str()));
+                    m_config.getMaster().m_async.getUnixDomain().c_str()));
                 return -1;
             }
         }
 
-        ///打开mc协议异步分发
-        if (m_config.getMaster().m_async_mc.getHostName().length())
-        {
-            if (0 > this->noticeTcpListen(SVR_TYPE_ASYNC_MC, 
-                m_config.getMaster().m_async_mc.getHostName().c_str(),
-                m_config.getMaster().m_async_mc.getPort(),
-                true,
-                m_config.getMaster().m_async_mc.isKeepAlive(),
-                CWX_APP_EVENT_MODE,
-                m_config.getCommon().m_uiSockBufSize * 1024,
-                m_config.getCommon().m_uiSockBufSize * 1024
-                ))
-            {
-                CWX_ERROR(("Can't register the async-dispatch tcp accept listen: addr=%s, port=%d",
-                    m_config.getMaster().m_async_mc.getHostName().c_str(),
-                    m_config.getMaster().m_async_mc.getPort()));
-                return -1;
-            }
-        }
-        if (m_config.getMaster().m_async_mc.getUnixDomain().length())
-        {
-            if (0 > this->noticeLsockListen(SVR_TYPE_ASYNC_MC,
-                m_config.getMaster().m_async_mc.getUnixDomain().c_str(),
-                true,
-                m_config.getMaster().m_async_mc.isKeepAlive(),
-                CWX_APP_EVENT_MODE))
-            {
-                CWX_ERROR(("Can't register the async-dispatch unix-domain accept listen: path-file=%s",
-                    m_config.getMaster().m_async_mc.getUnixDomain().c_str()));
-                return -1;
-            }
-        }
     }
     else
     {
         ///连接bin协议master
-        if (m_config.getSlave().m_master_bin.getUnixDomain().length())
+        if (m_config.getSlave().m_master.getUnixDomain().length())
         {
             if (0 > this->noticeLsockConnect(SVR_TYPE_MASTER_BIN, 0, 
-                m_config.getSlave().m_master_bin.getUnixDomain().c_str(),
+                m_config.getSlave().m_master.getUnixDomain().c_str(),
                 false,
                 true,
                 1,
                 2))
             {
                 CWX_ERROR(("Can't register the master unix-domain connect: path-file=%s",
-                    m_config.getSlave().m_master_bin.getUnixDomain().c_str()));
+                    m_config.getSlave().m_master.getUnixDomain().c_str()));
                 return -1;
             }
         }
-        else if (m_config.getSlave().m_master_bin.getHostName().length())
+        else if (m_config.getSlave().m_master.getHostName().length())
         {
             if (0 > this->noticeTcpConnect(SVR_TYPE_MASTER_BIN, 0, 
-                m_config.getSlave().m_master_bin.getHostName().c_str(),
-                m_config.getSlave().m_master_bin.getPort(),
+                m_config.getSlave().m_master.getHostName().c_str(),
+                m_config.getSlave().m_master.getPort(),
                 false,
-                m_config.getSlave().m_master_bin.isKeepAlive(),
+                m_config.getSlave().m_master.isKeepAlive(),
                 1,
                 2,
                 m_config.getCommon().m_uiSockBufSize * 1024,
                 m_config.getCommon().m_uiSockBufSize * 1024))
             {
                 CWX_ERROR(("Can't register the master tcp connect: addr=%s, port=%d",
-                    m_config.getSlave().m_master_bin.getHostName().c_str(),
-                    m_config.getSlave().m_master_bin.getPort()));
+                    m_config.getSlave().m_master.getHostName().c_str(),
+                    m_config.getSlave().m_master.getPort()));
                 return -1;
             }
         }
@@ -711,11 +633,11 @@ int CwxMqApp::startNetwork()
             return -1;
         }
         ///bin协议异步分发
-        if (m_config.getSlave().m_async_bin.getHostName().length())
+        if (m_config.getSlave().m_async.getHostName().length())
         {
             if (0 > this->noticeTcpListen(SVR_TYPE_ASYNC_BIN, 
-                m_config.getSlave().m_async_bin.getHostName().c_str(),
-                m_config.getSlave().m_async_bin.getPort(),
+                m_config.getSlave().m_async.getHostName().c_str(),
+                m_config.getSlave().m_async.getPort(),
                 true,
                 true,
                 CWX_APP_EVENT_MODE,
@@ -723,119 +645,56 @@ int CwxMqApp::startNetwork()
                 m_config.getCommon().m_uiSockBufSize * 1024))
             {
                 CWX_ERROR(("Can't register the async-dispatch tcp accept listen: addr=%s, port=%d",
-                    m_config.getSlave().m_async_bin.getHostName().c_str(),
-                    m_config.getSlave().m_async_bin.getPort()));
+                    m_config.getSlave().m_async.getHostName().c_str(),
+                    m_config.getSlave().m_async.getPort()));
                 return -1;
             }
         }
-        if (m_config.getSlave().m_async_bin.getUnixDomain().length())
+        if (m_config.getSlave().m_async.getUnixDomain().length())
         {
             if (0 > this->noticeLsockListen(SVR_TYPE_ASYNC_BIN,
-                m_config.getSlave().m_async_bin.getUnixDomain().c_str(),
+                m_config.getSlave().m_async.getUnixDomain().c_str(),
                 true,
                 false,
                 CWX_APP_EVENT_MODE))
             {
                 CWX_ERROR(("Can't register the async-dispatch unix-domain accept listen: path-file=%s",
-                    m_config.getSlave().m_async_bin.getUnixDomain().c_str()));
-                return -1;
-            }
-        }
-        ///mc协议异步分发
-        if (m_config.getSlave().m_async_mc.getHostName().length())
-        {
-            if (0 > this->noticeTcpListen(SVR_TYPE_ASYNC_MC, 
-                m_config.getSlave().m_async_mc.getHostName().c_str(),
-                m_config.getSlave().m_async_mc.getPort(),
-                true,
-                true,
-                CWX_APP_EVENT_MODE,
-                m_config.getCommon().m_uiSockBufSize * 1024,
-                m_config.getCommon().m_uiSockBufSize * 1024))
-            {
-                CWX_ERROR(("Can't register the async-dispatch tcp accept listen: addr=%s, port=%d",
-                    m_config.getSlave().m_async_mc.getHostName().c_str(),
-                    m_config.getSlave().m_async_mc.getPort()));
-                return -1;
-            }
-        }
-        if (m_config.getSlave().m_async_mc.getUnixDomain().length())
-        {
-            if (0 > this->noticeLsockListen(SVR_TYPE_ASYNC_MC,
-                m_config.getSlave().m_async_mc.getUnixDomain().c_str(),
-                true,
-                false,
-                CWX_APP_EVENT_MODE))
-            {
-                CWX_ERROR(("Can't register the async-dispatch unix-domain accept listen: path-file=%s",
-                    m_config.getSlave().m_async_mc.getUnixDomain().c_str()));
+                    m_config.getSlave().m_async.getUnixDomain().c_str()));
                 return -1;
             }
         }
     }
     //打开bin mq获取的监听端口
-    if (m_config.getMq().m_binListen.getHostName().length())
+    if (m_config.getMq().m_listen.getHostName().length())
     {
         if (0 > this->noticeTcpListen(SVR_TYPE_FETCH_BIN, 
-            m_config.getMq().m_binListen.getHostName().c_str(),
-            m_config.getMq().m_binListen.getPort(),
+            m_config.getMq().m_listen.getHostName().c_str(),
+            m_config.getMq().m_listen.getPort(),
             true,
-            m_config.getMq().m_binListen.isKeepAlive(),
+            m_config.getMq().m_listen.isKeepAlive(),
             CWX_APP_EVENT_MODE,
             m_config.getCommon().m_uiSockBufSize * 1024,
             m_config.getCommon().m_uiSockBufSize * 1024))
         {
             CWX_ERROR(("Can't register the mq-fetch tcp accept listen: addr=%s, port=%d",
-                m_config.getMq().m_binListen.getHostName().c_str(),
-                m_config.getMq().m_binListen.getPort()));
+                m_config.getMq().m_listen.getHostName().c_str(),
+                m_config.getMq().m_listen.getPort()));
             return -1;
         }
     }
-    if (m_config.getMq().m_binListen.getUnixDomain().length())
+    if (m_config.getMq().m_listen.getUnixDomain().length())
     {
         if (0 > this->noticeLsockListen(SVR_TYPE_FETCH_BIN,
-            m_config.getMq().m_binListen.getUnixDomain().c_str(),
+            m_config.getMq().m_listen.getUnixDomain().c_str(),
             true,
             false,
             CWX_APP_EVENT_MODE))
         {
             CWX_ERROR(("Can't register the mq-fetch unix-domain accept listen: path-file=%s",
-                m_config.getMq().m_binListen.getUnixDomain().c_str()));
+                m_config.getMq().m_listen.getUnixDomain().c_str()));
             return -1;
         }
     }
-    //打开mc mq获取的监听端口
-    if (m_config.getMq().m_mcListen.getHostName().length())
-    {
-        if (0 > this->noticeTcpListen(SVR_TYPE_FETCH_BIN, 
-            m_config.getMq().m_mcListen.getHostName().c_str(),
-            m_config.getMq().m_mcListen.getPort(),
-            true,
-            m_config.getMq().m_mcListen.isKeepAlive(),
-            CWX_APP_EVENT_MODE,
-            m_config.getCommon().m_uiSockBufSize * 1024,
-            m_config.getCommon().m_uiSockBufSize * 1024))
-        {
-            CWX_ERROR(("Can't register the mq-fetch tcp accept listen: addr=%s, port=%d",
-                m_config.getMq().m_mcListen.getHostName().c_str(),
-                m_config.getMq().m_mcListen.getPort()));
-            return -1;
-        }
-    }
-    if (m_config.getMq().m_mcListen.getUnixDomain().length())
-    {
-        if (0 > this->noticeLsockListen(SVR_TYPE_FETCH_BIN,
-            m_config.getMq().m_mcListen.getUnixDomain().c_str(),
-            true,
-            false,
-            CWX_APP_EVENT_MODE))
-        {
-            CWX_ERROR(("Can't register the mq-fetch unix-domain accept listen: path-file=%s",
-                m_config.getMq().m_mcListen.getUnixDomain().c_str()));
-            return -1;
-        }
-    }
-
     return 0;
 }
 
