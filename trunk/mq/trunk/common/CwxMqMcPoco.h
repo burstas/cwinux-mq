@@ -1,8 +1,23 @@
-#ifndef __MQ_MEMCACHE_H__
-#define __MQ_MEMCACHE_H__
+#ifndef __CWX_MQ_MC_POCO_H__
+#define __CWX_MQ_MC_POCO_H__
 
-#include "MqDispMacro.h"
-#include "CwxSockStream.h"
+/*
+版权声明：
+本软件遵循GNU LGPL（http://www.gnu.org/copyleft/lesser.html），
+联系方式：email:cwinux@gmail.com；微博:http://t.sina.com.cn/cwinux
+*/
+/**
+@file CwxMqPoco.h
+@brief MQ系列服务的接口协议定义对象。
+@author cwinux@gmail.com
+@version 1.0
+@date 2010-09-23
+@warning
+@bug
+*/
+#include "CwxMqMacro.h"
+#include "CwxMqTss.h"
+#include "CwxMsgBlock.h"
 
 class MqMemcache
 {
