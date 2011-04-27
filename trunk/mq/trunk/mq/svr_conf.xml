@@ -13,15 +13,15 @@
         <mq_flush fetch_num="100" second ="1"/>
     </binlog>
     <master>
-    	<recv_bin keep_alive="yes" user="recv" passwd="recv_passwd" ip="*" port="9901"  unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/recv.sock"/>
-        <async_bin keep_alive="yes" user="async" passwd="async_passwd" ip="*" port="9903" unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/async.sock"/>
+    	<recv keep_alive="yes" user="recv" passwd="recv_passwd" ip="*" port="9901"  unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/recv.sock"/>
+        <async keep_alive="yes" user="async" passwd="async_passwd" ip="*" port="9903" unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/async.sock"/>
     </master>
     <slave>
-        <master_bin keep_alive="yes" user="async" passwd="async_passwd" subscribe="*" ip="172.16.42.65" port="9901"/>
-        <async_bin keep_alive="yes" user="async" passwd="async_passwd" ip="*" port="9905" unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/async.sock"/>
+        <master keep_alive="yes" user="async" passwd="async_passwd" subscribe="*" ip="172.16.42.65" port="9901"/>
+        <async keep_alive="yes" user="async" passwd="async_passwd" ip="*" port="9905" unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/async.sock"/>
     </slave>
     <mq>
-        <bin_listen keep_alive="yes" ip="*" port="9907" unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/mq.sock"/>
+        <listen keep_alive="yes" ip="*" port="9907" unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/mq.sock"/>
         <queues>
             <queue  name="q1" user="u_q1" passwd="p_q1" subcribe="*" />
             <queue name="q2" user="u_q2" passwd="p_q2" subcribe="1:*" />
