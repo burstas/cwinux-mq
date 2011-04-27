@@ -34,12 +34,9 @@ public:
         LOG_FILE_SIZE = 30, ///<每个可循环使用日志文件的MByte
         LOG_FILE_NUM = 7, ///<可循环使用日志文件的数量
         SVR_TYPE_RECV_BIN = CwxAppFramework::SVR_TYPE_USER_START, ///<master bin协议接收的svr type
-        SVR_TYPE_RECV_MC = CwxAppFramework::SVR_TYPE_USER_START + 1, ///<master mc协议接收的svr type
         SVR_TYPE_ASYNC_BIN = CwxAppFramework::SVR_TYPE_USER_START + 2, ///<master/slave bin协议异步分发的svr type
-        SVR_TYPE_ASYNC_MC = CwxAppFramework::SVR_TYPE_USER_START + 3, ///<master/slave mc协议异步分发的svr type
         SVR_TYPE_MASTER_BIN = CwxAppFramework::SVR_TYPE_USER_START + 4, ///<slave 从master接收数据的svr type
         SVR_TYPE_FETCH_BIN = CwxAppFramework::SVR_TYPE_USER_START + 5, ///<mq bin协议消息获取服务类型
-        SVR_TYPE_FETCH_MC = CwxAppFramework::SVR_TYPE_USER_START + 6, ///<mq bin协议消息获取服务类型
         SVR_TYPE_MONITOR = CwxAppFramework::SVR_TYPE_USER_START + 7 ///<监控监听的服务类型
     };
     enum

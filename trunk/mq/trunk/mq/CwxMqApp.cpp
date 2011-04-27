@@ -243,11 +243,11 @@ int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
     msg->event().setIoHandle(handle);
     msg->event().setEvent(CwxEventInfo::CONN_CREATED);
     ///将消息放到线程池队列中，有内部的线程调用其处理handle来处理
-    if ((SVR_TYPE_ASYNC_BIN == uiSvrId) || (SVR_TYPE_ASYNC_MC == uiSvrId))
+    if (SVR_TYPE_ASYNC_BIN == uiSvrId)
     {
         m_pAsyncDispThreadPool->append(msg);
     }
-    else if ((SVR_TYPE_FETCH_BIN == uiSvrId) || (SVR_TYPE_FETCH_MC == uiSvrId))
+    else if (SVR_TYPE_FETCH_BIN == uiSvrId)
     {
         m_pMqThreadPool->append(msg);
     }
@@ -262,7 +262,6 @@ int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
 int CwxMqApp::onConnCreated(CwxAppHandler4Msg& conn, bool& , bool& )
 {
     if ((SVR_TYPE_RECV_BIN == conn.getConnInfo().getSvrId()) ||
-        (SVR_TYPE_RECV_MC == conn.getConnInfo().getSvrId()) ||
         (SVR_TYPE_MASTER_BIN == conn.getConnInfo().getSvrId()))
     {
         CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
@@ -290,7 +289,6 @@ int CwxMqApp::onConnCreated(CwxAppHandler4Msg& conn, bool& , bool& )
 int CwxMqApp::onConnClosed(CwxAppHandler4Msg& conn)
 {
     if ((SVR_TYPE_RECV_BIN == conn.getConnInfo().getSvrId()) ||
-        (SVR_TYPE_RECV_MC == conn.getConnInfo().getSvrId()) ||
         (SVR_TYPE_MASTER_BIN == conn.getConnInfo().getSvrId()))
     {
         CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
@@ -347,10 +345,7 @@ int CwxMqApp::onRecvMsg(CwxMsgBlock* msg,
 int CwxMqApp::onRecvMsg(CwxAppHandler4Msg& conn,
                       bool& )
 {
-    if(SVR_TYPE_RECV_MC == conn.getConnInfo().getSvrId())
-    {
-        return 0;
-    }else if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId())
+    if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId())
     {
         char  szBuf[1024];
         ssize_t recv_size = CwxSocket::recv(conn.getHandle(),
@@ -914,8 +909,7 @@ int CwxMqApp::DispatchThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppCha
             iRet = queue->dequeue(block);
             if (-1 == iRet) return -1;
             CWX_ASSERT(block->event().getEvent() == CwxEventInfo::CONN_CREATED);
-            CWX_ASSERT((block->event().getSvrId() == SVR_TYPE_ASYNC_BIN) ||
-                (block->event().getSvrId() == SVR_TYPE_ASYNC_MC));
+            CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_ASYNC_BIN);
 
             if (channel->isRegIoHandle(block->event().getIoHandle()))
             {
@@ -925,10 +919,6 @@ int CwxMqApp::DispatchThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppCha
             if (block->event().getSvrId() == SVR_TYPE_ASYNC_BIN)
             {
                 handler = new CwxMqBinAsyncHandler(app, channel);
-            }
-            else if (block->event().getSvrId() == SVR_TYPE_ASYNC_MC)
-            {
-                handler = new CwxMqMcAsyncHandler(app, channel);
             }
             else
             {
@@ -994,8 +984,7 @@ int CwxMqApp::MqThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* 
             iRet = queue->dequeue(block);
             if (-1 == iRet) return -1;
             CWX_ASSERT(block->event().getEvent() == CwxEventInfo::CONN_CREATED);
-            CWX_ASSERT((block->event().getSvrId() == SVR_TYPE_FETCH_BIN) ||
-                       (block->event().getSvrId() == SVR_TYPE_FETCH_MC));
+            CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_FETCH_BIN);
 
             if (channel->isRegIoHandle(block->event().getIoHandle()))
             {
@@ -1005,10 +994,6 @@ int CwxMqApp::MqThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* 
             if (block->event().getSvrId() == SVR_TYPE_FETCH_BIN)
             {
                 handler = new CwxMqBinFetchHandler(app, channel);
-            }
-            else if (block->event().getSvrId() == SVR_TYPE_FETCH_MC)
-            {
-                handler = new CwxMqMcFetchHandler(app, channel);
             }
             else
             {
