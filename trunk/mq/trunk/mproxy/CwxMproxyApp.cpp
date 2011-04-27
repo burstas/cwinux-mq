@@ -93,7 +93,7 @@ int CwxMproxyApp::initRunEnv()
     if (m_config.m_mq.getUnixDomain().length())
     {
         if (0 > noticeLsockConnect(SVR_TYPE_MQ,
-            i,
+            0,
             m_config.m_mq.getUnixDomain().c_str()))
         {
             CWX_ERROR(("Failure to connect to mq, unix-file:%s",
@@ -104,7 +104,7 @@ int CwxMproxyApp::initRunEnv()
     else if (m_config.m_mq.getHostName().length())
     {
         if (0 > noticeTcpConnect(SVR_TYPE_MQ,
-            i,
+            0,
             m_config.m_mq.getHostName().c_str(),
             m_config.m_mq.getPort()))
         {
