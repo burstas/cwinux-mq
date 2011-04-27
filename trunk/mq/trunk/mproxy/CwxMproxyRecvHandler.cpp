@@ -20,7 +20,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             CWX_UINT32 uiType;
             CWX_UINT32 uiAttr;
             CwxKeyValueItem const* pData;
-            if (CWX_MQ_SUCCESS != (iRet = CwxMqPoco::parseRecvData(pTss,
+            if (CWX_MQ_SUCCESS != (iRet = CwxMqPoco::parseRecvData(pTss->m_pReader,
                 msg,
                 pData,
                 uiGroup,
@@ -63,7 +63,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         }
         else if(CwxMqPoco::MSG_TYPE_RECV_COMMIT == msg->event().getMsgHeader().getMsgType())
         {
-            if (CWX_MQ_SUCCESS != CwxMqPoco::parseCommit(pTss,
+            if (CWX_MQ_SUCCESS != CwxMqPoco::parseCommit(pTss->m_pReader,
                 msg,
                 user,
                 passwd,
@@ -82,7 +82,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             }
             CwxMsgBlock* sndMsg = NULL;
             uiTaskId = m_pApp->getNextTaskId();
-            if (CWX_MQ_SUCCESS != (iRet = CwxMqPoco::packCommit(pTss,
+            if (CWX_MQ_SUCCESS != (iRet = CwxMqPoco::packCommit(pTss->m_pWriter,
                 sndMsg,
                 uiTaskId,
                 m_pApp->getConfig().m_mq.getUser().c_str(),
@@ -112,7 +112,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     CwxMsgBlock* pBlock = NULL;
     if (CwxMqPoco::MSG_TYPE_RECV_COMMIT==msg->event().getMsgHeader().getMsgType())
     {
-        if (CWX_MQ_SUCCESS != CwxMqPoco::packCommitReply(pTss,
+        if (CWX_MQ_SUCCESS != CwxMqPoco::packCommitReply(pTss->m_pWriter,
             pBlock,
             msg->event().getMsgHeader().getTaskId(),
             iRet,
@@ -126,7 +126,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     }
     else
     {
-        if (CWX_MQ_SUCCESS != CwxMqPoco::packRecvDataReply(pTss,
+        if (CWX_MQ_SUCCESS != CwxMqPoco::packRecvDataReply(pTss->m_pWriter,
             pBlock,
             msg->event().getMsgHeader().getTaskId(),
             iRet,

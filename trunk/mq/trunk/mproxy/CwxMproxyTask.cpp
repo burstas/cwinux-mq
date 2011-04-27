@@ -77,7 +77,7 @@ void CwxMproxyTask::reply(CwxTss* pThrEnv)
     char const* szErrMsg = NULL;
     if (m_mqReply)
     {
-        if (CWX_MQ_SUCCESS != CwxMqPoco::parseRecvDataReply(pTss,
+        if (CWX_MQ_SUCCESS != CwxMqPoco::parseRecvDataReply(pTss->m_pReader,
             m_mqReply,
             ret,
             ullSid,
@@ -105,7 +105,7 @@ void CwxMproxyTask::reply(CwxTss* pThrEnv)
         ret = CWX_MQ_INNER_ERR;
         szErrMsg = "Unknown error";
     }
-    if (CWX_MQ_SUCCESS != CwxMqPoco::packRecvDataReply(pTss,
+    if (CWX_MQ_SUCCESS != CwxMqPoco::packRecvDataReply(pTss->m_pWriter,
         replyMsg,
         m_uiMsgTaskId,
         ret,
