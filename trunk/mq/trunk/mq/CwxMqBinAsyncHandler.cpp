@@ -482,6 +482,8 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
     while(1)
     {
         if ( 1 != (iRet = seekToLog(pApp, conn, uiSkipNum, true))) break;
+        //设置移到下一个记录位置
+        conn->m_bNext = true;
         uiDataLen = pCursor->getHeader().getLogLen();
         ///准备data读取的buf
         pBuf = pTss->getBuf(uiDataLen);        
