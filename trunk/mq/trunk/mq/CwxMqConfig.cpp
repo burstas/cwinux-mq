@@ -209,8 +209,8 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
     }
     else
     {//slave
-        //load mq:slave:master_bin
-        if (!fetchHost(parser, "mq:slave:master_bin", m_slave.m_master)) return -1;
+        //load mq:slave:master
+        if (!fetchHost(parser, "mq:slave:master", m_slave.m_master)) return -1;
         //fetch mq:slave:master:subcribe
         if ((NULL == (pValue=parser.getElementAttr("mq:slave:master", "subcribe"))) || !pValue[0])
         {
@@ -444,7 +444,7 @@ void CwxMqConfig::outputConfig() const
         }
     }else{
         CWX_INFO(("*****************slave*******************"));
-        CWX_INFO(("master_bin keep_alive=%s user=%s passwd=%s subscribe=%s ip=%s port=%u unix=%s",
+        CWX_INFO(("master keep_alive=%s user=%s passwd=%s subscribe=%s ip=%s port=%u unix=%s",
             m_slave.m_master.isKeepAlive()?"yes":"no",
             m_slave.m_master.getUser().c_str(),
             m_slave.m_master.getPasswd().c_str(),
