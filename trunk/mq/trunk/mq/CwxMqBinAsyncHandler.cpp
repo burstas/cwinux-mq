@@ -526,7 +526,7 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
             {
                 conn->m_ullSid = pCursor->getHeader().getSid();
                 uiTotalLen += uiKeyLen;
-                if (uiTotalLen * 1024 >= conn->m_uiChunk) break;
+                if (uiTotalLen >= conn->m_uiChunk) break;
             }
             if (-1 == iRet) break;
             continue;
