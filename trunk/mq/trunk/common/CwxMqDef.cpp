@@ -1,7 +1,6 @@
 #include "CwxMqDef.h"
 #include "CwxMqQueueMgr.h"
 #include "CwxMqPoco.h"
-
 CwxMqDispatchConn::CwxMqDispatchConn(CwxAppHandler4Channel* handler)
 {
     m_handler = handler;
@@ -10,7 +9,7 @@ CwxMqDispatchConn::CwxMqDispatchConn(CwxAppHandler4Channel* handler)
     m_uiChunk = 0;
     m_bNext = false;
     m_bSync = false;
-    m_uiWindow = CwxMqConfigCmn::DEF_WINDOW_NUM;
+    m_uiWindow = 1;
 }
 
 CwxMqDispatchConn::~CwxMqDispatchConn()
