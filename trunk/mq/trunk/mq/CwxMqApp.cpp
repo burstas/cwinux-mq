@@ -930,9 +930,7 @@ int CwxMqApp::DispatchThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppCha
                 ::close(block->event().getIoHandle());
             }
             handler->setHandle(block->event().getIoHandle());
-            if (0 != channel->registerHandler(handler->getHandle(),
-                handler,
-                CwxAppHandler4Base::PREAD_MASK))
+            if (0 != handler->open())
             {
                 CWX_ERROR(("Failure to register handler[%d]", handler->getHandle()));
                 delete handler;
@@ -1022,9 +1020,7 @@ int CwxMqApp::MqThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* 
                 ::close(block->event().getIoHandle());
             }
             handler->setHandle(block->event().getIoHandle());
-            if (0 != channel->registerHandler(handler->getHandle(),
-                handler,
-                CwxAppHandler4Base::PREAD_MASK))
+            if (0 != handler->open())
             {
                 CWX_ERROR(("Failure to register handler[%d]", handler->getHandle()));
                 delete handler;
