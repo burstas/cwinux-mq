@@ -59,6 +59,7 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
             {///重复发送消息，直接忽略
                 return 0;
             }
+            m_conn.m_bBlock = bBlock;
             if (!m_conn.m_pQueue)
             {
                 string strQueue = queue_name?queue_name:"";
