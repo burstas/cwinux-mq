@@ -885,7 +885,7 @@ void* CwxMqApp::DispatchThreadMain(CwxTss* , CwxMsgQueue* queue, void* arg)
     {
         //获取队列中的消息并处理
         if (0 != DispatchThreadDoQueue(queue, app, app->getAsyncDispChannel())) break;
-        if (-1 == app->getAsyncDispChannel()->dispatch(5))
+        if (-1 == app->getAsyncDispChannel()->dispatch(1))
         {
             CWX_ERROR(("Failure to invoke async dispatch channel CwxAppChannel::dispatch()"));
             sleep(1);
@@ -960,7 +960,7 @@ void* CwxMqApp::MqThreadMain(CwxTss* pTss, CwxMsgQueue* queue, void* arg)
     {
         //获取队列中的消息并处理
         if (0 != MqThreadDoQueue(queue, app,  app->getMqChannel())) break;
-        if (-1 == app->getMqChannel()->dispatch(5))
+        if (-1 == app->getMqChannel()->dispatch(1))
         {
             CWX_ERROR(("Failure to invoke mq channel CwxAppChannel::dispatch()"));
             sleep(1);
