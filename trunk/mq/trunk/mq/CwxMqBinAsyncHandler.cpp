@@ -51,6 +51,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
 {
     CWX_UINT64 ullSid = 0;
     CWX_UINT32 uiChunk = 0;
+    CWX_UINT32 uiWindow = 1;
     bool  bNewly = false;
     char const* subscribe=NULL;
     char const* user=NULL;
@@ -68,6 +69,13 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                 iRet = CWX_MQ_INVALID_MSG_TYPE;
                 break;
             }
+            if (!m_dispatch.m_sendingSid.size())
+            {
+                strcpy(pTss->m_szBuf2K, "Not sent binlog data");
+                CWX_DEBUG((pTss->m_szBuf2K));
+                iRet = CWX_MQ_INVALID_MSG_TYPE;
+                break;
+            }
             ///若是同步sid的报告消息,则获取报告的sid
             iRet = CwxMqPoco::parseSyncDataReply(pTss->m_pReader,
                 m_recvMsgData,
@@ -79,17 +87,18 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                 break;
             }
             ///检查返回的sid
-            if (ullSid != m_dispatch.m_ullSid)
+            if (ullSid != *m_dispatch.m_sendingSid.begin())
             {
                 char szBuf1[64];
                 char szBuf2[64];
                 CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Reply sid[%s] is not the right sid[%s], close conn.",
                     CwxCommon::toString(ullSid, szBuf1, 10),
-                    CwxCommon::toString(m_dispatch.m_ullSid, szBuf2, 10));
+                    CwxCommon::toString(*m_dispatch.m_sendingSid.begin(), szBuf2, 10));
                 CWX_ERROR((pTss->m_szBuf2K));
                iRet = CWX_MQ_INVALID_SID;
                 break;
             }
+            m_dispatch.m_sendingSid.erase(m_dispatch.m_sendingSid.begin())
             ///发送下一条binlog
             iState = sendBinLog(m_pApp, &m_dispatch, pTss);
             if (-1 == iState)
@@ -119,6 +128,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                 ullSid,
                 bNewly,
                 uiChunk,
+                uiWindow,
                 subscribe,
                 user,
                 passwd,
@@ -173,6 +183,11 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                 if (m_dispatch.m_uiChunk < CwxMqConfigCmn::MIN_CHUNK_SIZE_KB) m_dispatch.m_uiChunk = CwxMqConfigCmn::MIN_CHUNK_SIZE_KB;
                 m_dispatch.m_uiChunk *= 1024;
             }
+            m_dispatch.m_uiWindow = uiWindow?uiWindow:CwxMqConfigCmn::DEF_WINDOW_NUM;
+            if (m_dispatch.m_uiWindow > CwxMqConfigCmn::MAX_WINDOW_NUM) m_dispatch.m_uiWindow = CwxMqConfigCmn::MAX_WINDOW_NUM;
+            if (m_dispatch.m_uiWindow < CwxMqConfigCmn::MIN_WINDOW_NUM) m_dispatch.m_uiWindow = CwxMqConfigCmn::MIN_WINDOW_NUM;
+            m_dispatch.m_sendingSid.clear();
+
             if (bNewly)
             {///不sid为空，则取当前最大sid-1
                 ullSid = m_pApp->getBinLogMgr()->getMaxSid();
@@ -252,8 +267,8 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
 */
 int CwxMqBinAsyncHandler::onRedo()
 {
-    if (!m_dispatch.m_ullSid ||
-        (m_dispatch.m_ullSid < m_pApp->getBinLogMgr()->getMaxSid()))
+    if (!m_dispatch.m_sendingSid.size() ||
+        (*(m_dispatch.m_sendingSid.end()--) < m_pApp->getBinLogMgr()->getMaxSid()))
     {
         CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
         ///发送下一条binlog
@@ -275,6 +290,22 @@ int CwxMqBinAsyncHandler::onRedo()
     ///返回
     return 0;
 }
+
+CWX_UINT32 CwxMqBinAsyncHandler::onEndSendMsg(CwxMsgBlock*& msg)
+{
+    if (m_dispatch.m_sendingSid.size() < m_pApp->getConfig().getCommon().m_uiWindowSize)
+    {
+        CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
+        ///发送下一条binlog
+        int iState = sendBinLog(m_pApp, &m_dispatch, tss);
+        if (-1 == iState)
+        {
+            CWX_ERROR((tss->m_szBuf2K));
+        }
+    }
+    return CwxMsgSendCtrl::UNDO_CONN;
+}
+
 
 ///-1：失败，0：无效的消息；1：成功
 int CwxMqBinAsyncHandler::packOneBinLog(CwxPackageReader* reader,
@@ -462,10 +493,12 @@ int CwxMqBinAsyncHandler::seekToReportSid(CwxMqApp* app,
 ///0：未发送一条binlog；
 ///1：发送了一条binlog；
 ///-1：失败；
+///2：窗口满了
 int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
                                   CwxMqDispatchConn* conn,
                                   CwxMqTss* pTss)
 {
+    if (conn->m_uiWindow <= conn->m_sendingSid.size()) return 2;
     int iRet = 0;
     CWX_UINT32 uiDataLen;
     char* pBuf = NULL;
@@ -474,6 +507,7 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
     CWX_UINT32 uiSkipNum = 0;
     CWX_UINT32 uiKeyLen = 0;
     CWX_UINT32 uiTotalLen = 0;
+    CWX_UINT64 ullSid = 0;
     if (pApp->getBinLogMgr()->isUnseek(conn->m_pCursor))
     {//若binlog的读取cursor悬空，则定位
         if (1 != (iRet = seekToReportSid(pApp, conn))) return iRet;
@@ -509,7 +543,7 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
                 pCursor,
                 pTss->m_szBuf2K);
             if (0 == iRet) continue;
-            if (1 == iRet) conn->m_ullSid = pCursor->getHeader().getSid();
+            if (1 == iRet) ullSid = pCursor->getHeader().getSid();
             break;
         }
         else
@@ -524,7 +558,7 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
                 pTss->m_szBuf2K);
             if (1 == iRet)
             {
-                conn->m_ullSid = pCursor->getHeader().getSid();
+                ullSid = pCursor->getHeader().getSid();
                 uiTotalLen += uiKeyLen;
                 if (uiTotalLen >= conn->m_uiChunk) break;
             }
@@ -556,13 +590,14 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
     pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_ASYNC_BIN);
     pBlock->send_ctrl().setHostId(0);
     pBlock->event().setTaskId(pCursor->getHeader().getSid()&0xFFFFFFFF);
-    pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
+    pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::FINISH_NOTICE);
     if (!conn->m_handler->putMsg(pBlock))
     {
         CWX_ERROR(("Failure to send binlog"));
         CwxMsgBlockAlloc::free(pBlock);
         return -1;
     }
+    conn->m_sendingSid.insert(ullSid);
     return 1; ///发送了一条消息
 }
 

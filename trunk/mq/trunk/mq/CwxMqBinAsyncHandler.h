@@ -39,11 +39,22 @@ public:
     @return -1：处理失败，会调用close()； 0：处理成功
     */
     virtual int onRedo();
+    /**
+    @brief 通知连接完成一个消息的发送。<br>
+           只有在Msg指定FINISH_NOTICE的时候才调用.
+    @param [in,out] msg 传入发送完毕的消息，若返回NULL，则msg有上层释放，否则底层释放。
+    @return 
+    CwxMsgSendCtrl::UNDO_CONN：不修改连接的接收状态
+    CwxMsgSendCtrl::RESUME_CONN：让连接从suspend状态变为数据接收状态。
+    CwxMsgSendCtrl::SUSPEND_CONN：让连接从数据接收状态变为suspend状态
+    */
+    virtual CWX_UINT32 onEndSendMsg(CwxMsgBlock*& msg);
 
 public:
     ///0：未发送一条binlog；
     ///1：发送了一条binlog；
     ///-1：失败；
+    ///2：窗口满了
     static int sendBinLog(CwxMqApp* pApp,
         CwxMqDispatchConn* conn,
         CwxMqTss* pTss);

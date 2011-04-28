@@ -71,6 +71,21 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
     {
         m_common.m_uiChunkSize = CwxMqConfigCmn::MAX_CHUNK_SIZE_KB;
     }
+    //load mq:common:window:window
+    if ((NULL == (pValue=parser.getElementAttr("mq:common:window", "window"))) || !pValue[0])
+    {
+        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [mq:common:window:window].");
+        return -1;
+    }
+    m_common.m_uiWindowSize = strtoul(pValue, NULL, 0);
+    if (m_common.m_uiWindowSize < CwxMqConfigCmn::MIN_WINDOW_NUM)
+    {
+        m_common.m_uiWindowSize = CwxMqConfigCmn::MIN_WINDOW_NUM;
+    }
+    if (m_common.m_uiWindowSize > CwxMqConfigCmn::MAX_WINDOW_NUM)
+    {
+        m_common.m_uiWindowSize = CwxMqConfigCmn::MAX_WINDOW_NUM;
+    }
     //load mq:common:monitor
     if (parser.getElementNode("mq:common:monitor"))
     {

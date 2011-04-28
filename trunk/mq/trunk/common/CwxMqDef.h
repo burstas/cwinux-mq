@@ -40,6 +40,8 @@ public:
     bool                     m_bNext; ///<是否发送下一个消息
     bool                     m_bSync; ///<是否接受sync数据
     CwxMqSubscribe           m_subscribe; ///<消息订阅对象
+    CWX_UINT32               m_uiWindow; ///<窗口的大小
+    set<CWX_UINT64>          m_sendingSid; ///<发送中的sid
 };
 
 

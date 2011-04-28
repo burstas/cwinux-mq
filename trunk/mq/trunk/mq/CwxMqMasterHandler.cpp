@@ -15,6 +15,7 @@ int CwxMqMasterHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         m_pApp->getBinLogMgr()->getMaxSid(),
         false,
         m_pApp->getConfig().getCommon().m_uiChunkSize,
+        m_pApp->getConfig().getCommon().m_uiWindowSize,
         m_pApp->getConfig().getSlave().m_strSubScribe.c_str(),
         m_pApp->getConfig().getSlave().m_master.getUser().c_str(),
         m_pApp->getConfig().getSlave().m_master.getPasswd().c_str(),

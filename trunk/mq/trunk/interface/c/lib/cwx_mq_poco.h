@@ -57,6 +57,8 @@ extern "C" {
 #define CWX_MQ_KEY_QUEUE "queue"
 #define CWX_MQ_KEY_GROUP "group"
 #define CWX_MQ_KEY_CHUNK "chunk"
+#define CWX_MQ_KEY_WINDOW "window"
+
 
 ///协议错误代码定义
 #define CWX_MQ_ERR_SUCCESS          0  ///<成功

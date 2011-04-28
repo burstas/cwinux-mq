@@ -3,7 +3,7 @@
     <common>
         <workdir path="/usr/home/wenbo/cwinux-mq/mq/trunk/mq"/>
         <server type="master"/>
-        <window sock_buf_kbyte="1024"  max_chunk_kbyte="1024"/>
+        <window sock_buf_kbyte="1024"  max_chunk_kbyte="1024" window="10"/>
         <monitor ip="172.16.42.65"  port="9900"/>
     </common>
     <binlog >
