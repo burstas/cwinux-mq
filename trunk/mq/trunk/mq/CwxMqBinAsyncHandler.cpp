@@ -268,6 +268,10 @@ int CwxMqBinAsyncHandler::onRedo()
             m_pApp->getAsyncDispChannel()->regRedoHander(this);
         }
     }
+    else
+    {
+        m_pApp->getAsyncDispChannel()->regRedoHander(this);
+    }
     ///·µ»Ø
     return 0;
 }
