@@ -98,7 +98,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                iRet = CWX_MQ_INVALID_SID;
                 break;
             }
-            m_dispatch.m_sendingSid.erase(m_dispatch.m_sendingSid.begin())
+            m_dispatch.m_sendingSid.erase(m_dispatch.m_sendingSid.begin());
             ///发送下一条binlog
             iState = sendBinLog(m_pApp, &m_dispatch, pTss);
             if (-1 == iState)
@@ -183,7 +183,10 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                 if (m_dispatch.m_uiChunk < CwxMqConfigCmn::MIN_CHUNK_SIZE_KB) m_dispatch.m_uiChunk = CwxMqConfigCmn::MIN_CHUNK_SIZE_KB;
                 m_dispatch.m_uiChunk *= 1024;
             }
-            m_dispatch.m_uiWindow = uiWindow?uiWindow:CwxMqConfigCmn::DEF_WINDOW_NUM;
+            if (!uiWindow)
+                m_dispatch.m_uiWindow = CwxMqConfigCmn::DEF_WINDOW_NUM;
+            else
+                m_dispatch.m_uiWindow = uiWindow;
             if (m_dispatch.m_uiWindow > CwxMqConfigCmn::MAX_WINDOW_NUM) m_dispatch.m_uiWindow = CwxMqConfigCmn::MAX_WINDOW_NUM;
             if (m_dispatch.m_uiWindow < CwxMqConfigCmn::MIN_WINDOW_NUM) m_dispatch.m_uiWindow = CwxMqConfigCmn::MIN_WINDOW_NUM;
             m_dispatch.m_sendingSid.clear();
@@ -291,7 +294,7 @@ int CwxMqBinAsyncHandler::onRedo()
     return 0;
 }
 
-CWX_UINT32 CwxMqBinAsyncHandler::onEndSendMsg(CwxMsgBlock*& msg)
+CWX_UINT32 CwxMqBinAsyncHandler::onEndSendMsg(CwxMsgBlock*& )
 {
     if (m_dispatch.m_sendingSid.size() < m_pApp->getConfig().getCommon().m_uiWindowSize)
     {
