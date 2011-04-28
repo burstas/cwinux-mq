@@ -236,8 +236,8 @@ int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
                           CWX_HANDLE handle,
                           bool& )
 {
-    int nodelay =1;
-    setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, (char *)&nodelay, sizeof(nodelay));
+//    int nodelay =1;
+//    setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, (char *)&nodelay, sizeof(nodelay));
     CwxMsgBlock* msg = CwxMsgBlockAlloc::malloc(0);
     msg->event().setSvrId(uiSvrId);
     msg->event().setHostId(uiHostId);
@@ -263,8 +263,8 @@ int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
 ///连接建立
 int CwxMqApp::onConnCreated(CwxAppHandler4Msg& conn, bool& , bool& )
 {
-    int nodelay =1;
-    setsockopt(conn.getHandle(), IPPROTO_TCP, TCP_NODELAY, (char *)&nodelay, sizeof(nodelay));
+//    int nodelay =1;
+//    setsockopt(conn.getHandle(), IPPROTO_TCP, TCP_NODELAY, (char *)&nodelay, sizeof(nodelay));
     if ((SVR_TYPE_RECV_BIN == conn.getConnInfo().getSvrId()) ||
         (SVR_TYPE_MASTER_BIN == conn.getConnInfo().getSvrId()))
     {
