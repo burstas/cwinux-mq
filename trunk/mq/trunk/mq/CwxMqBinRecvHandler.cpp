@@ -212,17 +212,6 @@ int CwxMqBinRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* pThrEnv)
             }
         }
     }
-    if (m_pApp->getMqUncommitNum())
-    {
-        if ((m_pApp->getMqUncommitNum() >= m_pApp->getConfig().getBinLog().m_uiMqFetchFlushNum) ||
-            (time(NULL) > (time_t)(m_pApp->getMqLastCommitTime() + m_pApp->getConfig().getBinLog().m_uiMqFetchFlushSecond)))
-        {
-            if (0 != m_pApp->commit_mq(pTss->m_szBuf2K))
-            {
-                CWX_ERROR(("Failure to commit sys file, err=%s", pTss->m_szBuf2K));
-            }
-        }
-    }
     int iRet = this->checkSyncLog(false, pTss->m_szBuf2K);
     if (-1 == iRet)
     {

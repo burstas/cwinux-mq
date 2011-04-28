@@ -947,8 +947,9 @@ int CwxMqApp::DispatchThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppCha
 }
 
 ///分发mq channel的线程函数，arg为app对象
-void* CwxMqApp::MqThreadMain(CwxTss* , CwxMsgQueue* queue, void* arg)
+void* CwxMqApp::MqThreadMain(CwxTss* pTss, CwxMsgQueue* queue, void* arg)
 {
+    CWX_UINT64 ullLastCommitTime = 0;
     CwxMqApp* app = (CwxMqApp*) arg;
     if (0 != app->getMqChannel()->open())
     {
@@ -963,6 +964,22 @@ void* CwxMqApp::MqThreadMain(CwxTss* , CwxMsgQueue* queue, void* arg)
         {
             CWX_ERROR(("Failure to invoke mq channel CwxAppChannel::dispatch()"));
             sleep(1);
+        }
+
+        if (ullLastCommitTime + 1000000 < app->getMqChannel()->getCurTime().to_usec())
+        {
+            ullLastCommitTime = app->getMqChannel()->getCurTime().to_usec();
+            if (app->getMqUncommitNum())
+            {
+                if ((app->getMqUncommitNum() >= app->getConfig().getBinLog().m_uiMqFetchFlushNum) ||
+                    (time(NULL) > (time_t)(app->getMqLastCommitTime() + app->getConfig().getBinLog().m_uiMqFetchFlushSecond)))
+                {
+                    if (0 != app->commit_mq(pTss->m_szBuf2K))
+                    {
+                        CWX_ERROR(("Failure to commit sys file, err=%s", pTss->m_szBuf2K));
+                    }
+                }
+            }
         }
     }
     app->getMqChannel()->stop();
