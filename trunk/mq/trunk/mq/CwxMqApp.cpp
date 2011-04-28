@@ -236,7 +236,7 @@ int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
                           CWX_HANDLE handle,
                           bool& )
 {
-    int flags = 1;
+/*    int flags = 1;
     struct linger ling= {0, 0};
     if (setsockopt(handle, SOL_SOCKET, SO_LINGER, (void *)&ling, sizeof(ling)) != 0)
     {
@@ -246,7 +246,7 @@ int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
     if (setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags)) != 0)
     {
         CWX_ERROR(("Failure to set TCP_NODELAY"));
-    }
+    }*/
     CwxMsgBlock* msg = CwxMsgBlockAlloc::malloc(0);
     msg->event().setSvrId(uiSvrId);
     msg->event().setHostId(uiHostId);
@@ -278,10 +278,13 @@ int CwxMqApp::onConnCreated(CwxAppHandler4Msg& conn, bool& , bool& )
     {
         CWX_ERROR(("Failure to set SO_LINGER"));
     }
-
-    if (setsockopt(conn.getHandle(), IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags)) != 0)
+    if ((SVR_TYPE_MASTER_BIN == conn.getConnInfo().getSvrId()) ||
+         (SVR_TYPE_RECV_BIN == conn.getConnInfo().getSvrId()))
     {
-        CWX_ERROR(("Failure to set TCP_NODELAY"));
+        if (setsockopt(conn.getHandle(), IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags)) != 0)
+        {
+            CWX_ERROR(("Failure to set TCP_NODELAY"));
+        }
     }
     if ((SVR_TYPE_RECV_BIN == conn.getConnInfo().getSvrId()) ||
         (SVR_TYPE_MASTER_BIN == conn.getConnInfo().getSvrId()))
