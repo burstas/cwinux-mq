@@ -26,10 +26,10 @@ public:
     {
         DEF_SOCK_BUF_KB = 64,
         MIN_SOCK_BUF_KB = 4,
-        MAX_SOCK_BUF_KB = 1024 * 1024,
+        MAX_SOCK_BUF_KB = 8192 * 1024,
         DEF_CHUNK_SIZE_KB = 32,
         MIN_CHUNK_SIZE_KB = 4,
-        MAX_CHUNK_SIZE_KB = 1024 * 1024
+        MAX_CHUNK_SIZE_KB = 8192 * 1024
     };
 public:
     CwxMqConfigCmn()
