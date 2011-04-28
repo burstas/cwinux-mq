@@ -107,7 +107,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                     break;
                 }
             }
-            if (0 == iRet)
+            if (0 == i)
             {
                 CWX_ERROR(("Master multi-binlog's key hasn't key"));
                 iRet = -1;
