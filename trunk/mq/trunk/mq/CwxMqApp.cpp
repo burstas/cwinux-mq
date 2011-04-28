@@ -567,7 +567,7 @@ int CwxMqApp::startNetwork()
                 m_config.getMaster().m_async.isKeepAlive(),
                 CWX_APP_EVENT_MODE,
                 m_config.getCommon().m_uiSockBufSize * 1024,
-                m_config.getCommon().m_uiSockBufSize * 1024
+                0
                 ))
             {
                 CWX_ERROR(("Can't register the async-dispatch tcp accept listen: addr=%s, port=%d",
@@ -617,7 +617,7 @@ int CwxMqApp::startNetwork()
                 m_config.getSlave().m_master.isKeepAlive(),
                 1,
                 2,
-                m_config.getCommon().m_uiSockBufSize * 1024,
+                0,
                 m_config.getCommon().m_uiSockBufSize * 1024))
             {
                 CWX_ERROR(("Can't register the master tcp connect: addr=%s, port=%d",
@@ -641,7 +641,7 @@ int CwxMqApp::startNetwork()
                 true,
                 CWX_APP_EVENT_MODE,
                 m_config.getCommon().m_uiSockBufSize * 1024,
-                m_config.getCommon().m_uiSockBufSize * 1024))
+                0))
             {
                 CWX_ERROR(("Can't register the async-dispatch tcp accept listen: addr=%s, port=%d",
                     m_config.getSlave().m_async.getHostName().c_str(),
@@ -673,7 +673,7 @@ int CwxMqApp::startNetwork()
             m_config.getMq().m_listen.isKeepAlive(),
             CWX_APP_EVENT_MODE,
             m_config.getCommon().m_uiSockBufSize * 1024,
-            m_config.getCommon().m_uiSockBufSize * 1024))
+            0))
         {
             CWX_ERROR(("Can't register the mq-fetch tcp accept listen: addr=%s, port=%d",
                 m_config.getMq().m_listen.getHostName().c_str(),
