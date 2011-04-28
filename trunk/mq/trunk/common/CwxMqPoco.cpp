@@ -414,7 +414,7 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
             return CWX_MQ_INNER_ERR;
         }
     }
-    if (uiChunkSize && writer->addKeyValue(CWX_MQ_CHUNK, uiChunkSize))
+    if (uiChunkSize && !writer->addKeyValue(CWX_MQ_CHUNK, uiChunkSize))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_INNER_ERR;
