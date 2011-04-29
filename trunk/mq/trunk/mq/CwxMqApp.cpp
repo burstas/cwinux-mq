@@ -45,7 +45,7 @@ int CwxMqApp::init(int argc, char** argv)
         return -1;
     }
     ///设置运行日志的输出level
-    setLogLevel(CwxLogger::LEVEL_DEBUG|CwxLogger::LEVEL_ERROR|CwxLogger::LEVEL_INFO|CwxLogger::LEVEL_WARNING);
+    setLogLevel(CwxLogger::LEVEL_ERROR|CwxLogger::LEVEL_INFO|CwxLogger::LEVEL_WARNING);
     return 0;
 }
 
