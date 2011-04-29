@@ -30,7 +30,7 @@ int CwxMqMasterHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     {
         ///·¢ËÍÏûÏ¢
         pBlock->send_ctrl().setConnId(m_uiConnId);
-        pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_MASTER_BIN);
+        pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_MASTER);
         pBlock->send_ctrl().setHostId(0);
         pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
         if (0 != m_pApp->sendMsgByConn(pBlock))
@@ -135,7 +135,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             return 1;
         }
         reply_block->send_ctrl().setConnId(m_uiConnId);
-        reply_block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_MASTER_BIN);
+        reply_block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_MASTER);
         reply_block->send_ctrl().setHostId(0);
         reply_block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
         if (0 != m_pApp->sendMsgByConn(reply_block))

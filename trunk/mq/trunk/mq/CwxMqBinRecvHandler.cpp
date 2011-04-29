@@ -184,7 +184,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         }
     }
     pBlock->send_ctrl().setConnId(conn_iter->first);
-    pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_RECV_BIN);
+    pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_RECV);
     pBlock->send_ctrl().setHostId(0);
     pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
     if (0 != m_pApp->sendMsgByConn(pBlock))

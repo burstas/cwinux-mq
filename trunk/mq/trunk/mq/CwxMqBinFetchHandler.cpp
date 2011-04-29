@@ -220,7 +220,7 @@ int CwxMqBinFetchHandler::reply(CwxMqTss* pTss,
                                 bool bClose)
 {
     msg->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
-    msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH_BIN);
+    msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
     msg->send_ctrl().setHostId(0);
     if (CWX_MQ_SUCCESS == ret)
     {

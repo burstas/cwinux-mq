@@ -251,7 +251,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
     }
     ///发送回复的数据包
     pBlock->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
-    pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_ASYNC_BIN);
+    pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_ASYNC);
     pBlock->send_ctrl().setHostId(0);
     pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::CLOSE_NOTICE);
     if (0 != this->putMsg(pBlock))
@@ -590,7 +590,7 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqApp* pApp,
     }
     ///根据svr类型，发送数据包
     pBlock->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
-    pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_ASYNC_BIN);
+    pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_ASYNC);
     pBlock->send_ctrl().setHostId(0);
     pBlock->event().setTaskId(pCursor->getHeader().getSid()&0xFFFFFFFF);
     pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::FINISH_NOTICE);

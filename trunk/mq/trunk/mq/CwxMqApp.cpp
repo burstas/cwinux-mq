@@ -101,12 +101,12 @@ int CwxMqApp::initRunEnv()
         if (m_config.getMaster().m_recv.getHostName().length())
         {
             m_pBinRecvHandler = new CwxMqBinRecvHandler(this);
-            getCommander().regHandle(SVR_TYPE_RECV_BIN, m_pBinRecvHandler);
+            getCommander().regHandle(SVR_TYPE_RECV, m_pBinRecvHandler);
         }
     }else{
         ///注册slave的master数据接收handler
         m_pMasterHandler = new CwxMqMasterHandler(this);
-        getCommander().regHandle(SVR_TYPE_MASTER_BIN, m_pMasterHandler);
+        getCommander().regHandle(SVR_TYPE_MASTER, m_pMasterHandler);
     }
     ///启动网络连接与监听
     if (0 != startNetwork()) return -1;
@@ -207,7 +207,7 @@ void CwxMqApp::onTime(CwxTimeValue const& current)
     {
         ttLastTime = time(NULL);
         CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
-        pBlock->event().setSvrId(SVR_TYPE_RECV_BIN);
+        pBlock->event().setSvrId(SVR_TYPE_RECV);
         pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
         //将超时检查事件，放入事件队列
         m_pRecvThreadPool->append(pBlock);
@@ -254,11 +254,11 @@ int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
     msg->event().setIoHandle(handle);
     msg->event().setEvent(CwxEventInfo::CONN_CREATED);
     ///将消息放到线程池队列中，有内部的线程调用其处理handle来处理
-    if (SVR_TYPE_ASYNC_BIN == uiSvrId)
+    if (SVR_TYPE_ASYNC == uiSvrId)
     {
         m_pAsyncDispThreadPool->append(msg);
     }
-    else if (SVR_TYPE_FETCH_BIN == uiSvrId)
+    else if (SVR_TYPE_FETCH == uiSvrId)
     {
         m_pMqThreadPool->append(msg);
     }
@@ -278,16 +278,16 @@ int CwxMqApp::onConnCreated(CwxAppHandler4Msg& conn, bool& , bool& )
     {
         CWX_ERROR(("Failure to set SO_LINGER"));
     }
-    if ((SVR_TYPE_MASTER_BIN == conn.getConnInfo().getSvrId()) ||
-         (SVR_TYPE_RECV_BIN == conn.getConnInfo().getSvrId()))
+    if ((SVR_TYPE_MASTER == conn.getConnInfo().getSvrId()) ||
+         (SVR_TYPE_RECV == conn.getConnInfo().getSvrId()))
     {
         if (setsockopt(conn.getHandle(), IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags)) != 0)
         {
             CWX_ERROR(("Failure to set TCP_NODELAY"));
         }
     }
-    if ((SVR_TYPE_RECV_BIN == conn.getConnInfo().getSvrId()) ||
-        (SVR_TYPE_MASTER_BIN == conn.getConnInfo().getSvrId()))
+    if ((SVR_TYPE_RECV == conn.getConnInfo().getSvrId()) ||
+        (SVR_TYPE_MASTER == conn.getConnInfo().getSvrId()))
     {
         CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
         pBlock->event().setSvrId(conn.getConnInfo().getSvrId());
@@ -298,7 +298,7 @@ int CwxMqApp::onConnCreated(CwxAppHandler4Msg& conn, bool& , bool& )
         ///将事件添加到消息队列
         m_pRecvThreadPool->append(pBlock);
     }
-    else if (SVR_TYPE_MONITOR != conn.getConnInfo().getSvrId())
+    else if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId())
     {///如果是监控的连接建立，则建立一个string的buf，用于缓存不完整的命令
         string* buf = new string();
         conn.getConnInfo().setUserData(buf);
@@ -313,8 +313,8 @@ int CwxMqApp::onConnCreated(CwxAppHandler4Msg& conn, bool& , bool& )
 ///连接关闭
 int CwxMqApp::onConnClosed(CwxAppHandler4Msg& conn)
 {
-    if ((SVR_TYPE_RECV_BIN == conn.getConnInfo().getSvrId()) ||
-        (SVR_TYPE_MASTER_BIN == conn.getConnInfo().getSvrId()))
+    if ((SVR_TYPE_RECV == conn.getConnInfo().getSvrId()) ||
+        (SVR_TYPE_MASTER == conn.getConnInfo().getSvrId()))
     {
         CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
         pBlock->event().setSvrId(conn.getConnInfo().getSvrId());
@@ -345,8 +345,8 @@ int CwxMqApp::onRecvMsg(CwxMsgBlock* msg,
                         CwxMsgHead const& header,
                         bool& )
 {
-    if ((SVR_TYPE_RECV_BIN == conn.getConnInfo().getSvrId()) ||
-        (SVR_TYPE_MASTER_BIN == conn.getConnInfo().getSvrId()))
+    if ((SVR_TYPE_RECV == conn.getConnInfo().getSvrId()) ||
+        (SVR_TYPE_MASTER == conn.getConnInfo().getSvrId()))
     {
         msg->event().setSvrId(conn.getConnInfo().getSvrId());
         msg->event().setHostId(conn.getConnInfo().getHostId());
@@ -554,7 +554,7 @@ int CwxMqApp::startNetwork()
         ///打开bin协议消息接收的listen
         if (m_config.getMaster().m_recv.getHostName().length())
         {
-            if (0 > this->noticeTcpListen(SVR_TYPE_RECV_BIN, 
+            if (0 > this->noticeTcpListen(SVR_TYPE_RECV, 
                 m_config.getMaster().m_recv.getHostName().c_str(),
                 m_config.getMaster().m_recv.getPort(),
                 false,
@@ -568,7 +568,7 @@ int CwxMqApp::startNetwork()
         }
         if (m_config.getMaster().m_recv.getUnixDomain().length())
         {
-            if (0 > this->noticeLsockListen(SVR_TYPE_RECV_BIN,
+            if (0 > this->noticeLsockListen(SVR_TYPE_RECV,
                 m_config.getMaster().m_recv.getUnixDomain().c_str(),
                 false,
                 m_config.getMaster().m_recv.isKeepAlive()))
@@ -581,7 +581,7 @@ int CwxMqApp::startNetwork()
         ///打开bin协议异步分发
         if (m_config.getMaster().m_async.getHostName().length())
         {
-            if (0 > this->noticeTcpListen(SVR_TYPE_ASYNC_BIN, 
+            if (0 > this->noticeTcpListen(SVR_TYPE_ASYNC, 
                 m_config.getMaster().m_async.getHostName().c_str(),
                 m_config.getMaster().m_async.getPort(),
                 true,
@@ -599,7 +599,7 @@ int CwxMqApp::startNetwork()
         }
         if (m_config.getMaster().m_async.getUnixDomain().length())
         {
-            if (0 > this->noticeLsockListen(SVR_TYPE_ASYNC_BIN,
+            if (0 > this->noticeLsockListen(SVR_TYPE_ASYNC,
                 m_config.getMaster().m_async.getUnixDomain().c_str(),
                 true,
                 m_config.getMaster().m_async.isKeepAlive(),
@@ -617,7 +617,7 @@ int CwxMqApp::startNetwork()
         ///连接bin协议master
         if (m_config.getSlave().m_master.getUnixDomain().length())
         {
-            if (0 > this->noticeLsockConnect(SVR_TYPE_MASTER_BIN, 0, 
+            if (0 > this->noticeLsockConnect(SVR_TYPE_MASTER, 0, 
                 m_config.getSlave().m_master.getUnixDomain().c_str(),
                 false,
                 true,
@@ -631,7 +631,7 @@ int CwxMqApp::startNetwork()
         }
         else if (m_config.getSlave().m_master.getHostName().length())
         {
-            if (0 > this->noticeTcpConnect(SVR_TYPE_MASTER_BIN, 0, 
+            if (0 > this->noticeTcpConnect(SVR_TYPE_MASTER, 0, 
                 m_config.getSlave().m_master.getHostName().c_str(),
                 m_config.getSlave().m_master.getPort(),
                 false,
@@ -655,7 +655,7 @@ int CwxMqApp::startNetwork()
         ///bin协议异步分发
         if (m_config.getSlave().m_async.getHostName().length())
         {
-            if (0 > this->noticeTcpListen(SVR_TYPE_ASYNC_BIN, 
+            if (0 > this->noticeTcpListen(SVR_TYPE_ASYNC, 
                 m_config.getSlave().m_async.getHostName().c_str(),
                 m_config.getSlave().m_async.getPort(),
                 true,
@@ -673,7 +673,7 @@ int CwxMqApp::startNetwork()
         }
         if (m_config.getSlave().m_async.getUnixDomain().length())
         {
-            if (0 > this->noticeLsockListen(SVR_TYPE_ASYNC_BIN,
+            if (0 > this->noticeLsockListen(SVR_TYPE_ASYNC,
                 m_config.getSlave().m_async.getUnixDomain().c_str(),
                 true,
                 false,
@@ -688,7 +688,7 @@ int CwxMqApp::startNetwork()
     //打开bin mq获取的监听端口
     if (m_config.getMq().m_listen.getHostName().length())
     {
-        if (0 > this->noticeTcpListen(SVR_TYPE_FETCH_BIN, 
+        if (0 > this->noticeTcpListen(SVR_TYPE_FETCH, 
             m_config.getMq().m_listen.getHostName().c_str(),
             m_config.getMq().m_listen.getPort(),
             true,
@@ -706,7 +706,7 @@ int CwxMqApp::startNetwork()
     }
     if (m_config.getMq().m_listen.getUnixDomain().length())
     {
-        if (0 > this->noticeLsockListen(SVR_TYPE_FETCH_BIN,
+        if (0 > this->noticeLsockListen(SVR_TYPE_FETCH,
             m_config.getMq().m_listen.getUnixDomain().c_str(),
             true,
             false,
@@ -936,14 +936,14 @@ int CwxMqApp::DispatchThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppCha
             iRet = queue->dequeue(block);
             if (-1 == iRet) return -1;
             CWX_ASSERT(block->event().getEvent() == CwxEventInfo::CONN_CREATED);
-            CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_ASYNC_BIN);
+            CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_ASYNC);
 
             if (channel->isRegIoHandle(block->event().getIoHandle()))
             {
                 CWX_ERROR(("Handler[%] is register", block->event().getIoHandle()));
                 break;
             }
-            if (block->event().getSvrId() == SVR_TYPE_ASYNC_BIN)
+            if (block->event().getSvrId() == SVR_TYPE_ASYNC)
             {
                 handler = new CwxMqBinAsyncHandler(app, channel);
             }
@@ -1026,14 +1026,14 @@ int CwxMqApp::MqThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* 
             iRet = queue->dequeue(block);
             if (-1 == iRet) return -1;
             CWX_ASSERT(block->event().getEvent() == CwxEventInfo::CONN_CREATED);
-            CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_FETCH_BIN);
+            CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_FETCH);
 
             if (channel->isRegIoHandle(block->event().getIoHandle()))
             {
                 CWX_ERROR(("Handler[%] is register", block->event().getIoHandle()));
                 break;
             }
-            if (block->event().getSvrId() == SVR_TYPE_FETCH_BIN)
+            if (block->event().getSvrId() == SVR_TYPE_FETCH)
             {
                 handler = new CwxMqBinFetchHandler(app, channel);
             }
