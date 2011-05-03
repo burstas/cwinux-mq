@@ -1,5 +1,5 @@
-./cwx_dispatch_test -stop
+./cwx_mq_fetch -stop
 cd test1
-./cwx_dispatch_test -stop
+./cwx_mq_fetch -stop
 cd ../
 
