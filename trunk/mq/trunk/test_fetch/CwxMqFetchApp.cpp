@@ -126,12 +126,12 @@ void CwxMqFetchApp::onSignal(int signum)
 int CwxMqFetchApp::onConnCreated(CwxAppHandler4Msg& conn, bool& , bool& )
 {
     int flags = 1;
-    struct linger ling= {0, 0};
+/*    struct linger ling= {0, 0};
     if (setsockopt(conn.getHandle(), SOL_SOCKET, SO_LINGER, (void *)&ling, sizeof(ling)) != 0)
     {
         CWX_ERROR(("Failure to set SO_LINGER"));
     }
-
+*/
     if (setsockopt(conn.getHandle(), IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags)) != 0)
     {
         CWX_ERROR(("Failure to set TCP_NODELAY"));
