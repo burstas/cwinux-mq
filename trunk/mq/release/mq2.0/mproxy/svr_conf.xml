@@ -1,0 +1,23 @@
+<?xml version='1.0'?>
+<mproxy>
+    <workdir path="/usr/home/wenbo/cwinux/project/mq/trunk/mproxy"/>
+    <timeout mili_second="5000"/>
+    <recv>
+        <listen keep_alive="no" ip="172.16.42.63" port="9003" user="recv" passwd="recv_passwd" unix="/usr/home/wenbo/cwinux/project/mq/trunk/mproxy/recv.unix"/>
+        <passwd>
+            <group name ="g1" group="1, 2, 30-40"   user="recv1"  passwd="recv1_passwd" />
+            <group name ="g2" group="10"   user="recv1"  passwd="recv1_passwd" />
+            <group name ="g3" group="20"   user="recv2"  passwd="recv1_passwd" />
+        </passwd>
+        <allow>
+            <group name ="name" group="1-30000" />
+        </allow>
+        <deny>
+            <group name="aa"  group="3,8,5" />
+            <group name="aa"  group="100,200,22" />
+        </deny>
+    </recv>
+    <mq>
+        <recv keep_alive="no" ip="172.16.42.63" port="9202" user="mq_recv" passwd="mq_recv_passwd" />
+    </mq>
+</mproxy>
