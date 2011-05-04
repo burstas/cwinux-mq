@@ -42,12 +42,12 @@ public:
     //连接建立函数
     virtual int onConnCreated(CwxAppHandler4Msg& conn, bool& bSuspendConn, bool& bSuspendListen);
     //收到消息的响应函数
-    virtual int onRecvMsg(CwxMsgBlock* msg, CwxAppHandler4Msg const& conn, CwxMsgHead const& header, bool& bSuspendConn);
+    virtual int onRecvMsg(CwxMsgBlock* msg, CwxAppHandler4Msg& conn, CwxMsgHead const& header, bool& bSuspendConn);
     //连接关闭
-    virtual int onConnClosed(CwxAppHandler4Msg const& conn);
+    virtual int onConnClosed(CwxAppHandler4Msg& conn);
     //消息发送完毕
     virtual CWX_UINT32 onEndSendMsg(CwxMsgBlock*& msg,
-        CwxAppHandler4Msg const& conn);
+        CwxAppHandler4Msg& conn);
     //消息发送失败
     virtual void onFailSendMsg(CwxMsgBlock*& msg);
 public:

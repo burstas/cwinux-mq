@@ -202,7 +202,7 @@ int CwxMproxyApp::onConnCreated(CwxAppHandler4Msg& conn, bool& , bool& )
 }
 
 ///echo回复的消息响应函数
-int CwxMproxyApp::onRecvMsg(CwxMsgBlock* msg, CwxAppHandler4Msg const& conn, CwxMsgHead const& header, bool& )
+int CwxMproxyApp::onRecvMsg(CwxMsgBlock* msg, CwxAppHandler4Msg & conn, CwxMsgHead const& header, bool& )
 {
 
     msg->event().setSvrId(conn.getConnInfo().getSvrId());
@@ -216,7 +216,7 @@ int CwxMproxyApp::onRecvMsg(CwxMsgBlock* msg, CwxAppHandler4Msg const& conn, Cwx
     return 0;
 }
 
-int CwxMproxyApp::onConnClosed(CwxAppHandler4Msg const& conn)
+int CwxMproxyApp::onConnClosed(CwxAppHandler4Msg& conn)
 {
     CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
     pBlock->event().setSvrId(conn.getConnInfo().getSvrId());
@@ -229,7 +229,7 @@ int CwxMproxyApp::onConnClosed(CwxAppHandler4Msg const& conn)
 }
 
 CWX_UINT32 CwxMproxyApp::onEndSendMsg(CwxMsgBlock*& msg,
-                                CwxAppHandler4Msg const& conn)
+                                CwxAppHandler4Msg & conn)
 {
     if (SVR_TYPE_MQ == conn.getConnInfo().getSvrId())
     {
