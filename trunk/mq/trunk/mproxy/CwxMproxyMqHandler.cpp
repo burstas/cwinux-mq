@@ -48,7 +48,7 @@ int CwxMproxyMqHandler::onFailSendMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 int CwxMproxyMqHandler::sendMq(CwxMproxyApp* app, CWX_UINT32 uiTaskId, CwxMsgBlock*& msg)
 {
     msg->event().setTaskId(uiTaskId);
-    msg->send_ctrl().setConnId(m_pApp->getMqConnId());
+    msg->send_ctrl().setConnId(app->getMqConnId());
     msg->send_ctrl().setHostId(0);
     msg->send_ctrl().setSvrId(CwxMproxyApp::SVR_TYPE_MQ);
     msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::FAIL_FINISH_NOTICE);
