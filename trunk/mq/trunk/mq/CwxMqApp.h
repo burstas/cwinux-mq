@@ -252,9 +252,9 @@ private:
     static int setMasterDispatchSockAttr(CWX_HANDLE handle, void* arg);
     ///设置slave dispatch连接的属性
     static int setSlaveDispatchSockAttr(CWX_HANDLE handle, void* arg);
-    ///设置slave report连接的熟悉
+    ///设置slave report连接的属性
     static int setSlaveReportSockAttr(CWX_HANDLE handle, void* arg);
-    ///设置mq连接的熟悉
+    ///设置mq连接的属性
     static int setMqSockAttr(CWX_HANDLE handle, void* arg);
 private:
     bool                        m_bFirstBinLog; ///<服务启动后，收到的第一条binglog

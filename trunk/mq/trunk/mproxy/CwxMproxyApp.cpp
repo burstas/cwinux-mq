@@ -71,7 +71,12 @@ int CwxMproxyApp::initRunEnv()
     {
         if (-1 == noticeTcpListen(SVR_TYPE_RECV,
             m_config.m_recv.getHostName().c_str(),
-            m_config.m_recv.getPort()))
+            m_config.m_recv.getPort(),
+            false,
+            CWX_APP_MSG_MODE,
+            CwxMproxyApp::setRecvSockAttr,
+            this
+            ))
         {
             CWX_ERROR(("Failure to register proxy mq listen, ip=%s, port=%u",
                 m_config.m_recv.getHostName().c_str(),
@@ -94,7 +99,10 @@ int CwxMproxyApp::initRunEnv()
     {
         if (0 > noticeLsockConnect(SVR_TYPE_MQ,
             0,
-            m_config.m_mq.getUnixDomain().c_str()))
+            m_config.m_mq.getUnixDomain().c_str(),
+            false,
+            1,
+            2))
         {
             CWX_ERROR(("Failure to connect to mq, unix-file:%s",
                 m_config.m_mq.getUnixDomain().c_str()));
@@ -106,7 +114,12 @@ int CwxMproxyApp::initRunEnv()
         if (0 > noticeTcpConnect(SVR_TYPE_MQ,
             0,
             m_config.m_mq.getHostName().c_str(),
-            m_config.m_mq.getPort()))
+            m_config.m_mq.getPort(),
+            false,
+            1,
+            2,
+            CwxMproxyApp::setMqSockAttr,
+            this))
         {
             CWX_ERROR(("Failure to connect to mq, ip=%s, port=%u",
                 m_config.m_mq.getHostName().c_str(),
@@ -264,3 +277,85 @@ void CwxMproxyApp::destroy()
 }
 
 
+///设置recv连接的属性
+int CwxMproxyApp::setRecvSockAttr(CWX_HANDLE handle, void* arg)
+{
+    CwxMproxyApp* app = (CwxMproxyApp*)arg;
+
+    if (app->m_config.m_recv.isKeepAlive())
+    {
+        if (0 != CwxSocket::setKeepalive(handle,
+            true,
+            CWX_APP_DEF_KEEPALIVE_IDLE,
+            CWX_APP_DEF_KEEPALIVE_INTERNAL,
+            CWX_APP_DEF_KEEPALIVE_COUNT))
+        {
+            CWX_ERROR(("Failure to set listen addr:%s, port:%u to keep-alive, errno=%d",
+                app->m_config.m_recv.getHostName().c_str(),
+                app->m_config.m_recv.getPort(),
+                errno));
+            return -1;
+        }
+    }
+
+    int flags= 1;
+    if (setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags)) != 0)
+    {
+        CWX_ERROR(("Failure to set listen addr:%s, port:%u NODELAY, errno=%d",
+            app->m_config.m_recv.getHostName().c_str(),
+            app->m_config.m_recv.getPort(),
+            errno));
+        return -1;
+    }
+    struct linger ling= {0, 0};
+    if (setsockopt(handle, SOL_SOCKET, SO_LINGER, (void *)&ling, sizeof(ling)) != 0)
+    {
+        CWX_ERROR(("Failure to set listen addr:%s, port:%u LINGER, errno=%d",
+            app->m_config.m_recv.getHostName().c_str(),
+            app->m_config.m_recv.getPort(),
+            errno));
+        return -1;
+    }
+    return 0;
+}
+///设置mq连接的属性
+int CwxMproxyApp::setMqSockAttr(CWX_HANDLE handle, void* arg)
+{
+    CwxMproxyApp* app = (CwxMproxyApp*)arg;
+
+    if (app->m_config.m_mq.isKeepAlive())
+    {
+        if (0 != CwxSocket::setKeepalive(handle,
+            true,
+            CWX_APP_DEF_KEEPALIVE_IDLE,
+            CWX_APP_DEF_KEEPALIVE_INTERNAL,
+            CWX_APP_DEF_KEEPALIVE_COUNT))
+        {
+            CWX_ERROR(("Failure to set listen addr:%s, port:%u to keep-alive, errno=%d",
+                app->m_config.m_mq.getHostName().c_str(),
+                app->m_config.m_mq.getPort(),
+                errno));
+            return -1;
+        }
+    }
+
+    int flags= 1;
+    if (setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags)) != 0)
+    {
+        CWX_ERROR(("Failure to set listen addr:%s, port:%u NODELAY, errno=%d",
+            app->m_config.m_mq.getHostName().c_str(),
+            app->m_config.m_mq.getPort(),
+            errno));
+        return -1;
+    }
+    struct linger ling= {0, 0};
+    if (setsockopt(handle, SOL_SOCKET, SO_LINGER, (void *)&ling, sizeof(ling)) != 0)
+    {
+        CWX_ERROR(("Failure to set listen addr:%s, port:%u LINGER, errno=%d",
+            app->m_config.m_mq.getHostName().c_str(),
+            app->m_config.m_mq.getPort(),
+            errno));
+        return -1;
+    }
+    return 0;
+}
