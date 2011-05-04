@@ -70,8 +70,10 @@ int CwxMqImportApp::initRunEnv()
                 this->m_config.m_listen.getHostName().c_str(),
                 this->m_config.m_listen.getPort(),
                 false,
-                0,
-                true))
+                1,
+                2,
+                CwxMqImportApp::setSockAttr,
+                this))
             {
                 CWX_ERROR(("Can't connect the echo service: addr=%s, port=%d",
                     this->m_config.m_listen.getHostName().c_str(),
@@ -86,8 +88,8 @@ int CwxMqImportApp::initRunEnv()
                 0,
                 this->m_config.m_strUnixPathFile.c_str(),
                 false,
-                0,
-                true))
+                1,
+                2))
             {
                 CWX_ERROR(("Can't connect the echo service: addr=%s, port=%d",
                     this->m_config.m_listen.getHostName().c_str(),
@@ -135,7 +137,17 @@ int CwxMqImportApp::onConnCreated(CwxAppHandler4Msg& conn, bool& , bool& )
 ///echo回复的消息响应函数
 int CwxMqImportApp::onRecvMsg(CwxMsgBlock* msg, CwxAppHandler4Msg& conn, CwxMsgHead const& header, bool& bSuspendConn)
 {
+    int flags = 1;
+    struct linger ling= {0, 0};
+    if (setsockopt(conn.getHandle(), SOL_SOCKET, SO_LINGER, (void *)&ling, sizeof(ling)) != 0)
+    {
+        CWX_ERROR(("Failure to set SO_LINGER"));
+    }
 
+    if (setsockopt(conn.getHandle(), IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags)) != 0)
+    {
+        CWX_ERROR(("Failure to set TCP_NODELAY"));
+    }
     msg->event().setSvrId(conn.getConnInfo().getSvrId());
     msg->event().setHostId(conn.getConnInfo().getHostId());
     msg->event().setConnId(conn.getConnInfo().getConnId());
@@ -214,6 +226,48 @@ void CwxMqImportApp::sendNextMsg(CWX_UINT32 uiSvrId, CWX_UINT32 uiHostId, CWX_UI
     }
     ///发送数据数量+1
     m_uiSendNum++;
+}
+
+///设置连接的属性
+int CwxMqImportApp::setSockAttr(CWX_HANDLE handle, void* arg)
+{
+    CwxMqImportApp* app = (CwxMqImportApp*)arg;
+
+    if (app->m_config.m_listen.isKeepAlive())
+    {
+        if (0 != CwxSocket::setKeepalive(handle,
+            true,
+            CWX_APP_DEF_KEEPALIVE_IDLE,
+            CWX_APP_DEF_KEEPALIVE_INTERNAL,
+            CWX_APP_DEF_KEEPALIVE_COUNT))
+        {
+            CWX_ERROR(("Failure to set listen addr:%s, port:%u to keep-alive, errno=%d",
+                app->m_config.m_listen.getHostName().c_str(),
+                app->m_config.m_listen.getPort(),
+                errno));
+            return -1;
+        }
+    }
+
+    int flags= 1;
+    if (setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags)) != 0)
+    {
+        CWX_ERROR(("Failure to set listen addr:%s, port:%u NODELAY, errno=%d",
+            app->m_config.m_listen.getHostName().c_str(),
+            app->m_config.m_listen.getPort(),
+            errno));
+        return -1;
+    }
+    struct linger ling= {0, 0};
+    if (setsockopt(handle, SOL_SOCKET, SO_LINGER, (void *)&ling, sizeof(ling)) != 0)
+    {
+        CWX_ERROR(("Failure to set listen addr:%s, port:%u LINGER, errno=%d",
+            app->m_config.m_listen.getHostName().c_str(),
+            app->m_config.m_listen.getPort(),
+            errno));
+        return -1;
+    }
+    return 0;
 }
 
 

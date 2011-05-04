@@ -5,5 +5,5 @@
   <unix path="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/async.sock"/>
   <auth user="u_q1" passwd="p_q1" />
   <queue name="q1" />
-  <conn  num="10" type="tcp" lasting="1" block="1"/>
+  <conn  num="1" type="tcp" lasting="1" block="1"/>
 </svr_def>

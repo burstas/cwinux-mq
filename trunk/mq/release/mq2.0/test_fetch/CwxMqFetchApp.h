@@ -44,6 +44,8 @@ protected:
 private:
     //发送echo请求
     void sendNextMsg(CWX_UINT32 uiSvrId, CWX_UINT32 uiHostId, CWX_UINT32 uiConnId);
+    ///设置连接的属性
+    static int setSockAttr(CWX_HANDLE handle, void* arg);
 private:
     CwxMqFetchConfig               m_config; ///<配置文件对象
     char                           m_szBuf100K[100*1024+1]; ///<发送的echo数据buf及内容

@@ -1,5 +1,5 @@
-./cwx_dispatch_test>/dev/null
+./cwx_mq_fetch>/dev/null
 cd test1
-./cwx_dispatch_test>/dev/null
+./cwx_mq_fetch>/dev/null
 cd ../
 

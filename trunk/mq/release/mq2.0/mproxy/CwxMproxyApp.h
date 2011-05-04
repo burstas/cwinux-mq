@@ -69,6 +69,11 @@ protected:
     //init the Enviroment before run.0:success, -1:failure.
 	virtual int initRunEnv();
     virtual void destroy();
+    ///设置recv连接的属性
+    static int setRecvSockAttr(CWX_HANDLE handle, void* arg);
+    ///设置mq连接的属性
+    static int setMqSockAttr(CWX_HANDLE handle, void* arg);
+
 private:
     CwxMproxyConfig                m_config; ///<配置文件对象
     CwxMproxyRecvHandler*          m_pRecvHandle; ///处理接受消息的handler

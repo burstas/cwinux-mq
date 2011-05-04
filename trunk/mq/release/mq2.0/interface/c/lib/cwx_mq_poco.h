@@ -58,6 +58,7 @@ extern "C" {
 #define CWX_MQ_KEY_GROUP "group"
 #define CWX_MQ_KEY_CHUNK "chunk"
 #define CWX_MQ_KEY_WINDOW "window"
+#define CWX_MQ_KEY_M       "m"
 
 
 ///协议错误代码定义
@@ -81,7 +82,7 @@ extern "C" {
 
 
 /**
-*@brief 形成mbus或mq的一个消息包
+*@brief 形成mq的一个消息包
 *@param [in] writer package的writer。
 *@param [in] uiTaskId task-id,回复的时候会返回。
 *@param [out] buf 输出形成的数据包。
@@ -90,8 +91,8 @@ extern "C" {
 *@param [in] group msg的group。
 *@param [in] type msg的type。
 *@param [in] attr msg的attr。
-*@param [in] user 接收的mbus或mq的user，若为空，则表示没有用户。
-*@param [in] passwd 接收的mbus或mq的passwd，若为空，则表示没有口令。
+*@param [in] user 接收mq的user，若为空，则表示没有用户。
+*@param [in] passwd 接收mq的passwd，若为空，则表示没有口令。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -108,7 +109,7 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
         char* szErr2K
         );
 /**
-*@brief 解析mbus或mq的一个消息包
+*@brief 解析mq的一个消息包
 *@param [in] reader package的reader。
 *@param [in] msg 接收到的mq消息，不包括msg header。
 *@param [in] msg_len msg的长度。
@@ -133,7 +134,7 @@ int cwx_mq_parse_mq(struct CWX_PG_READER* reader,
         char* szErr2K);
 
 /**
-*@brief pack mbus或mq的一个reply消息包
+*@brief pack mq的一个reply消息包
 *@param [in] writer package的writer。
 *@param [in] uiTaskId 收到消息的task-id，原样返回。
 *@param [out] buf 输出形成的数据包。
@@ -154,7 +155,7 @@ int cwx_mq_pack_mq_reply(struct CWX_PG_WRITER * writer,
     char* szErr2K);
 
 /**
-*@brief 解析mbus或mq的一个reply消息包
+*@brief 解析mq的一个reply消息包
 *@param [in] reader package的reader。
 *@param [in] msg 接收到的mq消息，不包括msg header。
 *@param [in] msg_len msg的长度。
@@ -173,13 +174,13 @@ int cwx_mq_parse_mq_reply(struct CWX_PG_READER* reader,
     char* szErr2K);
 
 /**
-*@brief pack mbus或mq的commit消息包
+*@brief pack mq的commit消息包
 *@param [in] writer package的writer。
 *@param [in] uiTaskId 消息的task-id。
 *@param [out] buf 输出形成的数据包。
 *@param [in out] buf_len 传入buf的空间大小，返回形成的数据包的大小。
-*@param [in] user 接收的mbus或mq的user，若为空，则表示没有用户。
-*@param [in] passwd 接收的mbus或mq的passwd，若为空，则表示没有口令。
+*@param [in] user 接收的mq的user，若为空，则表示没有用户。
+*@param [in] passwd 接收的mq的passwd，若为空，则表示没有口令。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -191,7 +192,7 @@ int cwx_mq_pack_commit(struct CWX_PG_WRITER * writer,
     char const* passwd,
     char* szErr2K);
 /**
-*@brief 解析mbus或mq的一个commit消息包
+*@brief 解析mq的一个commit消息包
 *@param [in] reader package的reader。
 *@param [in] msg 接收到的mq消息，不包括msg header。
 *@param [in] msg_len msg的长度。
@@ -209,7 +210,7 @@ int cwx_mq_parse_commit(struct CWX_PG_READER* reader,
 
 
 /**
-*@brief pack mbus或mq的commit reply的消息包
+*@brief pack mq的commit reply的消息包
 *@param [in] writer package的writer。
 *@param [in] uiTaskId 收到消息的task-id，原样返回。
 *@param [out] buf 输出形成的数据包。
@@ -228,7 +229,7 @@ int cwx_mq_pack_commit_reply(struct CWX_PG_WRITER * writer,
     char* szErr2K);
 
 /**
-*@brief 解析mbus或mq的一个commit reply消息包
+*@brief 解析mq的一个commit reply消息包
 *@param [in] reader package的reader。
 *@param [in] msg 接收到的mq消息，不包括msg header。
 *@param [in] msg_len msg的长度。
@@ -245,7 +246,7 @@ int cwx_mq_parse_commit_reply(struct CWX_PG_READER* reader,
     char* szErr2K);
 
 /**
-*@brief pack mbus或mq的report消息包
+*@brief pack mq的report消息包
 *@param [in] writer package的writer。
 *@param [in] uiTaskId task-id。
 *@param [out] buf 输出形成的数据包。
@@ -254,8 +255,8 @@ int cwx_mq_parse_commit_reply(struct CWX_PG_READER* reader,
 *@param [in] bNewly 是否从当前binlog开始接收。
 *@param [in] uiChunk chunk的大小，若是0表示不支持chunk，单位为kbyte。
 *@param [in] subscribe 订阅的消息类型。
-*@param [in] user 接收的mbus或mq的user，若为空，则表示没有用户。
-*@param [in] passwd 接收的mbus或mq的passwd，若为空，则表示没有口令。
+*@param [in] user 接收的mq的user，若为空，则表示没有用户。
+*@param [in] passwd 接收的mq的passwd，若为空，则表示没有口令。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -271,7 +272,7 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
     char const* passwd,
     char* szErr2K);
 /**
-*@brief parse mbus或mq的report消息包
+*@brief parse mq的report消息包
 *@param [in] reader package的reader。
 *@param [in] msg 接收到的mq消息，不包括msg header。
 *@param [in] msg_len msg的长度。
@@ -279,8 +280,8 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
 *@param [in] bNewly 是否从当前binlog开始接收。
 *@param [in] uiChunk chunk的大小，若是0表示不支持chunk，单位为kbyte。
 *@param [in] subscribe 订阅的消息类型。
-*@param [in] user 接收的mbus或mq的user，若为空，则表示没有用户。
-*@param [in] passwd 接收的mbus或mq的passwd，若为空，则表示没有口令。
+*@param [in] user 接收的mq的user，若为空，则表示没有用户。
+*@param [in] passwd 接收的mq的passwd，若为空，则表示没有口令。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -296,7 +297,7 @@ int cwx_mq_parse_sync_report(struct CWX_PG_READER* reader,
     char* szErr2K);
 
 /**
-*@brief pack mbus或mq的report失败时的reply消息包
+*@brief pack mq的report失败时的reply消息包
 *@param [in] writer package的writer。
 *@param [in] uiTaskId 收到report的task-id。
 *@param [out] buf 输出形成的数据包。
@@ -316,7 +317,7 @@ int cwx_mq_pack_sync_report_reply(struct CWX_PG_WRITER * writer,
         char const* szErrMsg,
         char* szErr2K);
 /**
-*@brief parse mbus或mq的report失败时的reply消息包
+*@brief parse mq的report失败时的reply消息包
 *@param [in] reader package的reader。
 *@param [in] msg 接收到的mq消息，不包括msg header。
 *@param [in] msg_len msg的长度。
@@ -335,7 +336,7 @@ int cwx_mq_parse_sync_report_reply(struct CWX_PG_READER* reader,
         char* szErr2K);
 
 /**
-*@brief pack mbus或mq的sync msg的消息包
+*@brief pack mq的sync msg的消息包
 *@param [in] writer package的writer。
 *@param [in] uiTaskId task-id。
 *@param [out] buf 输出形成的数据包。
@@ -361,7 +362,7 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
         CWX_UINT32 attr,
         char* szErr2K);
 /**
-*@brief parse mbus或mq的sync msg的消息包
+*@brief parse mq的sync msg的消息包
 *@param [in] reader package的reader。
 *@param [in] msg 接收到的mq消息，不包括msg header。
 *@param [in out] msg_len msg的长度。
@@ -386,7 +387,7 @@ int cwx_mq_parse_sync_data(struct CWX_PG_READER* reader,
         char* szErr2K);
 
 /**
-*@brief pack mbus或mq的sync msg的消息包的回复
+*@brief pack mq的sync msg的消息包的回复
 *@param [in] writer package的writer。
 *@param [in] uiTaskId task-id。
 *@param [out] buf 输出形成的数据包。
@@ -402,7 +403,7 @@ int cwx_mq_pack_sync_data_reply(struct CWX_PG_WRITER * writer,
         CWX_UINT64 ullSid,
         char* szErr2K);
 /**
-*@brief parse mbus或mq的sync msg的消息包的回复
+*@brief parse mq的sync msg的消息包的回复
 *@param [in] reader package的reader。
 *@param [in] msg 接收到的mq消息，不包括msg header。
 *@param [in] msg_len msg的长度。
@@ -423,8 +424,8 @@ int cwx_mq_parse_sync_data_reply(struct CWX_PG_READER* reader,
 *@param [in out] buf_len 传入buf的空间大小，返回形成的数据包的大小。
 *@param [in] bBlock 在没有消息的时候是否block，1：是；0：不是。
 *@param [in] queue_name 队列的名字。
-*@param [in] user 接收的mbus或mq的user，若为空，则表示没有用户。
-*@param [in] passwd 接收的mbus或mq的passwd，若为空，则表示没有口令。
+*@param [in] user 接收的mq的user，若为空，则表示没有用户。
+*@param [in] passwd 接收的mq的passwd，若为空，则表示没有口令。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -443,8 +444,8 @@ int cwx_mq_pack_fetch_mq(struct CWX_PG_WRITER * writer,
 *@param [in] msg_len msg的长度。
 *@param [in] bBlock 在没有消息的时候是否block，1：是；0：不是。
 *@param [in] queue_name 队列的名字。
-*@param [in] user 接收的mbus或mq的user，若为空，则表示没有用户。
-*@param [in] passwd 接收的mbus或mq的passwd，若为空，则表示没有口令。
+*@param [in] user 接收的mq的user，若为空，则表示没有用户。
+*@param [in] passwd 接收的mq的passwd，若为空，则表示没有口令。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */

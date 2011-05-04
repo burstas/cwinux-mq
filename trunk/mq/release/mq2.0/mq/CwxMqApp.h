@@ -246,7 +246,16 @@ private:
     static void* MqThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg);
     ///分发mq channel的队列消息函数。返回值：0：正常；-1：队列停止
     static int MqThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel);
-
+    ///设置master recv连接的属性
+    static int setMasterRecvSockAttr(CWX_HANDLE handle, void* arg);
+    ///设置master dispatch连接的属性
+    static int setMasterDispatchSockAttr(CWX_HANDLE handle, void* arg);
+    ///设置slave dispatch连接的属性
+    static int setSlaveDispatchSockAttr(CWX_HANDLE handle, void* arg);
+    ///设置slave report连接的属性
+    static int setSlaveReportSockAttr(CWX_HANDLE handle, void* arg);
+    ///设置mq连接的属性
+    static int setMqSockAttr(CWX_HANDLE handle, void* arg);
 private:
     bool                        m_bFirstBinLog; ///<服务启动后，收到的第一条binglog
     time_t                      m_ttLastCommitTime; ///<上一次commit的时候
