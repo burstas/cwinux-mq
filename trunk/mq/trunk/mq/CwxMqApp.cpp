@@ -236,17 +236,6 @@ int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
                           CWX_HANDLE handle,
                           bool& )
 {
-    int flags = 1;
-    struct linger ling= {0, 0};
-    if (setsockopt(handle, SOL_SOCKET, SO_LINGER, (void *)&ling, sizeof(ling)) != 0)
-    {
-        CWX_ERROR(("Failure to set SO_LINGER"));
-    }
-
-    if (setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags)) != 0)
-    {
-        CWX_ERROR(("Failure to set TCP_NODELAY"));
-    }
     CwxMsgBlock* msg = CwxMsgBlockAlloc::malloc(0);
     msg->event().setSvrId(uiSvrId);
     msg->event().setHostId(uiHostId);
@@ -256,11 +245,17 @@ int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
     ///将消息放到线程池队列中，有内部的线程调用其处理handle来处理
     if (SVR_TYPE_ASYNC == uiSvrId)
     {
-        m_pAsyncDispThreadPool->append(msg);
+        if (m_pAsyncDispThreadPool->append(msg) <= 1)
+        {
+            m_asyncDispChannel->notice();
+        }
     }
     else if (SVR_TYPE_FETCH == uiSvrId)
     {
-        m_pMqThreadPool->append(msg);
+        if (m_pMqThreadPool->append(msg) <= 1)
+        {
+            m_mqChannel->notice();
+        }
     }
     else
     {
@@ -272,20 +267,6 @@ int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
 ///连接建立
 int CwxMqApp::onConnCreated(CwxAppHandler4Msg& conn, bool& , bool& )
 {
-    int flags = 1;
-    struct linger ling= {0, 0};
-    if (setsockopt(conn.getHandle(), SOL_SOCKET, SO_LINGER, (void *)&ling, sizeof(ling)) != 0)
-    {
-        CWX_ERROR(("Failure to set SO_LINGER"));
-    }
-    if ((SVR_TYPE_MASTER == conn.getConnInfo().getSvrId()) ||
-         (SVR_TYPE_RECV == conn.getConnInfo().getSvrId()))
-    {
-        if (setsockopt(conn.getHandle(), IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags)) != 0)
-        {
-            CWX_ERROR(("Failure to set TCP_NODELAY"));
-        }
-    }
     if ((SVR_TYPE_RECV == conn.getConnInfo().getSvrId()) ||
         (SVR_TYPE_MASTER == conn.getConnInfo().getSvrId()))
     {
