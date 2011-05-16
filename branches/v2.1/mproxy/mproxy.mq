@@ -1,0 +1,2 @@
+name=finance|group=default|keep_alive=no|ip=172.16.42.65|port=9901|user=recv|passwd=recv_passwd|sign=1
+name=finance|group=1,2,3,4|keep_alive=no|ip=172.16.42.65|port=9901|user=recv|passwd=recv_passwd|sign=1
