@@ -1,0 +1,31 @@
+<?xml version='1.0'?>
+<mq>
+    <common>
+        <workdir path="/usr/home/wenbo/cwinux-mq/mq/trunk/mq"/>
+        <server type="master"/>
+        <window sock_buf_kbyte="1024"  max_chunk_kbyte="512" window="32"/>
+        <monitor ip="172.16.42.65"  port="9900"/>
+    </common>
+    <binlog >
+    	<file path="/data1/mq_data/data/binlog"  prefix="binlog" max_mbyte="1024"/>
+    	<manage max_day="1" del_out_file ="yes"/>
+        <flush  log_num="10000000" second="10000"/>
+        <mq_flush fetch_num="50000" second ="1"/>
+    </binlog>
+    <master>
+    	<recv keep_alive="yes" user="recv" passwd="recv_passwd" ip="*" port="9901"  unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/recv.sock"/>
+        <async keep_alive="yes" user="async" passwd="async_passwd" ip="*" port="9903" unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/async.sock"/>
+    </master>
+    <slave>
+        <master keep_alive="yes" user="async" passwd="async_passwd" subscribe="*" ip="172.16.42.65" port="9903"/>
+        <async keep_alive="yes" user="async" passwd="async_passwd" ip="*" port="9905" unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/async.sock"/>
+    </slave>
+    <mq>
+        <listen keep_alive="yes" ip="*" port="9907" unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/mq.sock"/>
+        <queues>
+            <queue  name="q1" user="u_q1" passwd="p_q1" subcribe="*" />
+            <queue name="q2" user="u_q2" passwd="p_q2" subcribe="1:*" />
+            <queue name="q3" user="u_q3" passwd="p_q3" subcribe="*:1,5,8" />
+        </queues>
+    </mq>
+</mq>
