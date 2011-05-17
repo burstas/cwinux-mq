@@ -1,4 +1,4 @@
-name=q1|user=u_q1|passwd=p_q1|subcribe=*
-name=q2|user=u_q2|passwd=p_q2|subcribe=1:*
+name=q1|type=commit|user=u_q1|passwd=p_q1|subcribe=*
+name=q2|type=uncommit|user=u_q2|passwd=p_q2|subcribe=1:*
 
-name=q3|user=u_q3|passwd=p_q3|subcribe=*:1,5,8
+name=q3|type=uncommit|commit|user=u_q3|passwd=p_q3|subcribe=*:1,5,8
