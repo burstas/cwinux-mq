@@ -21,11 +21,6 @@
         <async keep_alive="yes" user="async" passwd="async_passwd" ip="*" port="9905" unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/async.sock"/>
     </slave>
     <mq>
-        <listen keep_alive="yes" ip="*" port="9907" unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/mq.sock"/>
-        <queues>
-            <queue  name="q1" user="u_q1" passwd="p_q1" subcribe="*" />
-            <queue name="q2" user="u_q2" passwd="p_q2" subcribe="1:*" />
-            <queue name="q3" user="u_q3" passwd="p_q3" subcribe="*:1,5,8" />
-        </queues>
+        <listen keep_alive="yes" user="mq_admin" passwd="mq_admin_passwd"  ip="*" port="9907" unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/mq.sock"/>
     </mq>
 </mq>
