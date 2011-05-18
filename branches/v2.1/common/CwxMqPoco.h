@@ -18,6 +18,8 @@
 #include "CwxMqMacro.h"
 #include "CwxMqTss.h"
 #include "CwxMsgBlock.h"
+#include "CwxCrc32.h"
+#include "CwxMd5.h"
 
 class CwxMqSubscribeItem
 {
@@ -133,6 +135,12 @@ public:
         ///MQ Fetch服务类型的消息类型定义
         MSG_TYPE_FETCH_DATA = 9, ///<数据获取消息类型
         MSG_TYPE_FETCH_DATA_REPLY = 10, ///<回复数据获取消息类型
+        ///创建mq queue消息
+        MSG_TYPE_CREATE_QUEUE = 100, ///<创建MQ QUEUE的消息类型
+        MSG_TYPE_CREATE_QUEUE_REPLY = 101, ///<回复创建MQ QUEUE的消息类型
+        ///删除mq queue消息
+        MSG_TYPE_DEL_QUEUE = 102, ///<删除MQ QUEUE的消息类型
+        MSG_TYPE_DEL_QUEUE_REPLY = 103 ///<回复删除MQ QUEUE的消息类型
     };
     enum
     {
@@ -156,6 +164,7 @@ public:
         CWX_UINT32 attr,
         char const* user=NULL,
         char const* passwd=NULL,
+        char const* sign=NULL,
         char* szErr2K=NULL
         );
     ///返回值，CWX_MQ_SUCCESS：成功；其他都是失败
@@ -229,6 +238,7 @@ public:
         char const* subscribe = NULL,
         char const* user=NULL,
         char const* passwd=NULL,
+        char const* sign=NULL,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
     static int parseReportData(CwxPackageReader* reader,
@@ -240,6 +250,7 @@ public:
         char const*& subscribe,
         char const*& user,
         char const*& passwd,
+        char const*& sign,
         char* szErr2K=NULL);
 
 
@@ -269,6 +280,7 @@ public:
         CWX_UINT32 group,
         CWX_UINT32 type,
         CWX_UINT32 attr,
+        char const* sign=NULL,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
     static int packSyncDataItem(CwxPackageWriter* writer,
@@ -278,6 +290,7 @@ public:
         CWX_UINT32 group,
         CWX_UINT32 type,
         CWX_UINT32 attr,
+        char const* sign=NULL,
         char* szErr2K=NULL);
     static int packMultiSyncData(
         CWX_UINT32 uiTaskId,
@@ -360,6 +373,77 @@ public:
         CWX_UINT32& type,
         CWX_UINT32& attr,
         char* szErr2K=NULL);
+
+    ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+    static int parseCreateQueue(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        char const*& name,
+        char const*& user,
+        char const*& passwd,
+        char const*& scribe,
+        char const*& auth_user,
+        char const*& auth_passwd,
+        CWX_UINT64&  ullSid,///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
+        bool&  bCommit, ///< true：commit类型；false：uncommit类型
+        char* szErr2K=NULL);
+    ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+    static int packCreateQueue(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        char const* name,
+        char const* user,
+        char const* passwd,
+        char const* scribe,
+        char const* auth_user,
+        char const* auth_passwd,
+        CWX_UINT64  ullSid=0,///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
+        bool  bCommit=false, ///< true：commit类型；false：uncommit类型
+        char* szErr2K=NULL);
+
+
+    ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+    static int parseCreateQueueReply(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        int&  ret,
+        char const*& szErrMsg,
+        char* szErr2K=NULL);
+    ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+    static int packCreateQueueReply(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        int  ret,
+        char const* szErrMsg,
+        char* szErr2K=NULL);
+
+
+    ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+    static int parseDelQueue(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        char const*& name,
+        char const*& auth_user,
+        char const*& auth_passwd,
+        char* szErr2K=NULL);
+    ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+    static int packDelQueue(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        char const* name,
+        char const* auth_user,
+        char const* auth_passwd,
+        char* szErr2K=NULL);
+
+
+    ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+    static int parseDelQueueReply(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        int&  ret,
+        char const*& szErrMsg,
+        char* szErr2K=NULL);
+    ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+    static int packDelQueueReply(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        int  ret,
+        char const* szErrMsg,
+        char* szErr2K=NULL);
+
+
     ///true：需要产品sync记录；false：不需要产生sync记录
     inline static bool isNeedSyncRecord(CWX_UINT32 uiRecordNum, time_t ttLastSyncTime)
     {

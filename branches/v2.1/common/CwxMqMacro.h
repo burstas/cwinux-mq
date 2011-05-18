@@ -39,6 +39,13 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_CHUNK "chunk"
 #define CWX_MQ_M     "m"
 #define CWX_MQ_WINDOW "window"
+#define CWX_MQ_SIGN   "sign"
+#define CWX_MQ_CRC32  "crc32"
+#define CWX_MQ_MD5    "md5"
+#define CWX_MQ_NAME   "name"
+#define CWX_MQ_AUTH_USER "auth_user"
+#define CWX_MQ_AUTH_PASSWD "auth_passwd"
+#define CWX_MQ_COMMIT  "commit"
 
 ///错误代码定义
 #define CWX_MQ_SUCCESS          0  ///<成功
@@ -59,6 +66,9 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_NO_QUEUE        15 ///<队列不存在
 #define CWX_MQ_INVALID_SUBSCRIBE 16 ///<无效的消息订阅类型
 #define CWX_MQ_INNER_ERR        17 ///<其他内部错误，一般为内存
+#define CWX_MQ_INVALID_MD5      18 ///<MD5校验失败
+#define CWX_MQ_INVALID_CRC32    19 ///<CRC32校验失败
+#define CWX_MQ_NO_NAME          20 ///<没有name字段
 
 #define CWX_MQ_PROXY_NO_AUTH_GROUP    100 ///<消息的group没有被允许
 #define CWX_MQ_PROXY_FORBID_GROUP     101 ///<消息的group被禁止
