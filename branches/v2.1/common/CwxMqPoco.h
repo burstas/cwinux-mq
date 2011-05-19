@@ -418,6 +418,8 @@ public:
     static int parseDelQueue(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         char const*& name,
+        char const*& user,
+        char const*& passwd,
         char const*& auth_user,
         char const*& auth_passwd,
         char* szErr2K=NULL);
@@ -425,6 +427,8 @@ public:
     static int packDelQueue(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         char const* name,
+        char const* user,
+        char const* passwd,
         char const* auth_user,
         char const* auth_passwd,
         char* szErr2K=NULL);
