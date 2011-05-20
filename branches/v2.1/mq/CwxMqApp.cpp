@@ -305,7 +305,7 @@ int CwxMqApp::onConnClosed(CwxAppHandler4Msg& conn)
         pBlock->event().setEvent(CwxEventInfo::CONN_CLOSED);
         m_pRecvThreadPool->append(pBlock);
     }
-    else if (SVR_TYPE_MONITOR != conn.getConnInfo().getSvrId())
+    else if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId())
     {///若是监控的连接关闭，则必须释放先前所创建的string对象。
         if (conn.getConnInfo().getUserData())
         {

@@ -26,6 +26,16 @@ int CwxMproxyConfig::loadConfig(string const & strConfFile)
         return -1;
     }
     m_uiTimeout = strtoul(pValue, NULL, 0);
+    //ªÒ»°º‡øÿµÿ÷∑
+    //load mproxy:common:monitor
+    if (parser.getElementNode("mproxy:common:monitor"))
+    {
+        if (!fetchHost(parser, "mproxy:common:monitor", m_monitor)) return -1;
+    }
+    else
+    {
+        m_monitor.reset();
+    }
     //recv
     if (!fetchHost(parser, "mproxy:recv:listen", m_recv)) return -1;
     CwxXmlTreeNode const* pNode = NULL;   
@@ -132,6 +142,18 @@ int CwxMproxyConfig::loadConfig(string const & strConfFile)
     }
     //mq server
     if (!fetchHost(parser, "mproxy:mq:recv", m_mq)) return -1;
+    if ((NULL == (pValue=parser.getElementAttr("mproxy:mq:mq", "sign"))) || !pValue[0])
+    {
+        m_mqSign = "";
+    }
+    m_mqSign = pValue;
+    if ((m_mqSign  != CWX_MQ_MD5) || (m_mqSign != CWX_MQ_CRC32))
+    {
+        snprintf(m_szErrMsg, 2047, "Invalid mq sign[%s], it must be %s or %s",
+            CWX_MQ_MD5,
+            CWX_MQ_CRC32);
+        return -1;
+    }
     return 0;
 }
 
@@ -139,6 +161,7 @@ void CwxMproxyConfig::outputConfig()
 {
 	CWX_INFO(("*****************BEGIN CONFIG *******************"));
     CWX_INFO(("workdir=%s", m_strWorkDir.c_str()));
+    CWX_INFO(("monitor ip=%s  port=%u", m_monitor.getHostName().c_str(), m_monitor.getPort()));
     CWX_INFO(("timeout mili-second = %u", m_uiTimeout));
     CWX_INFO(("recv keep-alive=%s ip=%s  port=%u  user=%s  passwd=%s unix=%s",
         m_recv.isKeepAlive()?"true":"false",
@@ -188,13 +211,14 @@ void CwxMproxyConfig::outputConfig()
         }
     }
 
-    CWX_INFO(("Mq server:  keep-alive=%s ip=%s  port=%u  user=%s  passwd=%s unix=%s",
+    CWX_INFO(("Mq server:  keep-alive=%s ip=%s  port=%u  user=%s  passwd=%s unix=%s sign=%s",
         m_mq.isKeepAlive()?"true":"false",
         m_mq.getHostName().c_str(),
         m_mq.getPort(),
         m_mq.getUser().c_str(),
         m_mq.getPasswd().c_str(),
-        m_mq.getUnixDomain().c_str()));
+        m_mq.getUnixDomain().c_str(),
+        m_mqSign.c_str()));
     CWX_INFO(("\n*****************END   CONFIG *******************\n"));   
 }
 

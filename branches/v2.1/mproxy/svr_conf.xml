@@ -1,6 +1,7 @@
 <?xml version='1.0'?>
 <mproxy>
     <workdir path="/usr/home/wenbo/cwinux-mq/mq/trunk/mproxy"/>
+    <monitor ip="172.16.42.65"  port="9900"/>
     <timeout mili_second="5000"/>
     <recv>
         <listen keep_alive="no" ip="172.16.42.65" port="9600" user="recv" passwd="recv_passwd" unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mproxy/recv.unix"/>

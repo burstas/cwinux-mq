@@ -48,6 +48,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 uiAttr,
                 m_pApp->getConfig().m_mq.getUser().c_str(),
                 m_pApp->getConfig().m_mq.getPasswd().c_str(),
+                m_pApp->getConfig().m_mqSign.c_str(),
                 pTss->m_szBuf2K))
             {
                 CWX_ERROR((pTss->m_szBuf2K));
