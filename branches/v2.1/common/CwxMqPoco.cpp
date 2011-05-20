@@ -1002,6 +1002,8 @@ int CwxMqPoco::packFetchMq(CwxPackageWriter* writer,
                        char const* queue_name,
                        char const* user,
                        char const* passwd,
+                       CWX_UINT32  timeout,
+                       bool        next,
                        char* szErr2K)
 {
     writer->beginPack();
@@ -1021,6 +1023,16 @@ int CwxMqPoco::packFetchMq(CwxPackageWriter* writer,
         return CWX_MQ_INNER_ERR;
     }
     if (passwd && !writer->addKeyValue(CWX_MQ_PASSWD, passwd, strlen(passwd)))
+    {
+        if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
+        return CWX_MQ_INNER_ERR;
+    }
+    if (timeout && !writer->addKeyValue(CWX_MQ_TIMEOUT, timeout))
+    {
+        if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
+        return CWX_MQ_INNER_ERR;
+    }
+    if (!writer->addKeyValue(CWX_MQ_NEXT, next))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_INNER_ERR;
@@ -1048,6 +1060,8 @@ int CwxMqPoco::parseFetchMq(CwxPackageReader* reader,
                         char const*& queue_name,
                         char const*& user,
                         char const*& passwd,
+                        CWX_UINT32&  timeout,
+                        bool&        next,
                         char* szErr2K)
 {
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
@@ -1089,8 +1103,16 @@ int CwxMqPoco::parseFetchMq(CwxPackageReader* reader,
     {
         passwd = pItem->m_szData;
     }
+    //get timeout
+    if (!reader->getKey(CWX_MQ_TIMEOUT, timeout))
+    {
+        timeout = 0;
+    }
+    if (!reader->getKey(CWX_MQ_NEXT, next))
+    {
+        next = true;
+    }
     return CWX_MQ_SUCCESS;
-
 }
 
 int CwxMqPoco::packFetchMqReply(CwxPackageWriter* writer,

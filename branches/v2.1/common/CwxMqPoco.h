@@ -339,6 +339,8 @@ public:
         char const* queue_name,
         char const* user=NULL,
         char const* passwd=NULL,
+        CWX_UINT32  timeout = 0,
+        bool        next=true,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
     static int parseFetchMq(CwxPackageReader* reader,
@@ -347,6 +349,8 @@ public:
         char const*& queue_name,
         char const*& user,
         char const*& passwd,
+        CWX_UINT32&  timeout,
+        bool&        next,
         char* szErr2K=NULL);
 
     ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败

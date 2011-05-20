@@ -46,6 +46,8 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_AUTH_USER "auth_user"
 #define CWX_MQ_AUTH_PASSWD "auth_passwd"
 #define CWX_MQ_COMMIT  "commit"
+#define CWX_MQ_TIMEOUT "timeout"
+#define CWX_MQ_NEXT    "next"
 
 ///错误代码定义
 #define CWX_MQ_SUCCESS          0  ///<成功
