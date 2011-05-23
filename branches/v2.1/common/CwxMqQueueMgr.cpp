@@ -14,6 +14,7 @@ CwxMqQueue::CwxMqQueue(string strName,
     m_strUser = strUser;
     m_strPasswd = strPasswd;
     m_ullStartSid = ullStartSid;
+    m_ullMaxCommitSid = ullStartSid;
     m_bCommit = bCommit;
     m_uiDefTimeout = uiDefTimeout;
     m_uiMaxTimeout = uiMaxTimeout;
@@ -171,6 +172,7 @@ int CwxMqQueue::commitBinlog(CWX_UINT64 ullSid, bool bCommit=true)
         if (bCommit)
         {
             delete item;
+            if (m_ullMaxCommitSid < ullSid) m_ullMaxCommitSid = ullSid;
         }
         else
         {
@@ -185,6 +187,7 @@ int CwxMqQueue::commitBinlog(CWX_UINT64 ullSid, bool bCommit=true)
         if (bCommit)
         {
             CwxMsgBlockAlloc::free(msg);
+            if (m_ullMaxCommitSid < ullSid) m_ullMaxCommitSid = ullSid;
         }
         else
         {
@@ -196,15 +199,14 @@ int CwxMqQueue::commitBinlog(CWX_UINT64 ullSid, bool bCommit=true)
 }
 
 ///检测commit类型队列超时的消息
-void CwxMqQueue::checkTimeout()
+void CwxMqQueue::checkTimeout(CWX_UINT32 ttTimestamp)
 {
     if (m_bCommit)
     {
-        CWX_UINT32 uiTime = time(NULL);
         CwxMqQueueHeapItem * item = NULL;
         while(m_pUncommitMsg->count())
         {
-            if (m_pUncommitMsg->top()->timestamp() > uiTime) break;
+            if (m_pUncommitMsg->top()->timestamp() > ttTimestamp) break;
             item = m_pUncommitMsg->pop();
             m_uncommitMap.erase(m_uncommitMap.find(item->sid()));
             m_memMsgTail->push_head(item->msg());

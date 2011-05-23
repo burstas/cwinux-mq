@@ -117,7 +117,7 @@ public:
     ///返回值：0：不存在，1：成功.
     int commitBinlog(CWX_UINT64 ullSid, bool bCommit=true);
     ///检测commit类型队列超时的消息
-    void checkTimeout();
+    void checkTimeout(CWX_UINT32 ttTimestamp);
     ///添加自start sid后，已经commit的消息sid
     void addCommitSid(CWX_UINT64 ullSid)
     {
@@ -152,9 +152,39 @@ public:
     {
         return m_uiMaxTimeout;
     }
+    inline bool isCommit() const
+    {
+        return m_bCommit;
+    }
     inline CWX_UINT64 getCurSid() const
     {
         return m_cursor?m_cursor->getHeader().getSid():0;
+    }
+    inline CWX_UINT32 getWaitCommitNum() const
+    {
+        return m_uncommitMap.size();
+    }
+    inline CWX_UINT64 getCommittedSid() const
+    {
+        CWX_UINT64 ullSid = m_ullStartSid;
+        if (m_ullStartSid < m_binLog->getMinSid())
+        {
+            if (m_binLog->getMinSid()) m_ullStartSid = m_binLog->getMinSid()-1;
+        }
+        if (m_uncommitMap.size())
+        {
+            ullSid = m_uncommitMap.begin()->first - 1;
+        }
+        else
+        {
+            ullSid = m_ullMaxCommitSid;
+        }
+        return ullSid;
+    }
+    inline CWX_UINT64 getCursorSid() const
+    {
+        if (m_cursor && !m_cursor->isDangling()) return m_cursor->getHeader().getSid();
+        return m_ullMaxCommitSid;
     }
     CWX_UINT64 getMqNum();
 private:
@@ -171,12 +201,13 @@ private:
     string                           m_strUser; ///<队列鉴权的用户名
     string                           m_strPasswd; ///<队列鉴权的口令
     CWX_UINT64                       m_ullStartSid; ///<队列开始的sid
+    CWX_UINT64                       m_ullMaxCommitSid; ///<最大的commit sid号
     bool                             m_bCommit; ///<是否commit类型的队列
     CWX_UINT32                       m_uiDefTimeout; ///<缺省的timeout值
     CWX_UINT32                       m_uiMaxTimeout; ///<最大的timeout值
     string                           m_strSubScribe; ///<订阅规则
     CwxBinLogMgr*                    m_binLog; ///<binlog
-    CwxMinHeap<CwxMqQueueHeapItem>* m_pUncommitMsg; ///<commit队列中未commit的消息
+    CwxMinHeap<CwxMqQueueHeapItem>*  m_pUncommitMsg; ///<commit队列中未commit的消息
     map<CWX_UINT64, void*>           m_uncommitMap; ///<commit队列中未commit的消息sid索引
     set<CWX_UINT64>                  m_dispatchSid; ///<已经分发的消息
     CwxBinLogCursor*                 m_cursor; ///<队列的游标
@@ -185,6 +216,62 @@ private:
 };
 
 
+class CwxMqQueueInfo
+{
+public:
+    CwxMqQueueInfo()
+    {
+        m_bCommit = false;
+        m_uiDefTimeout = 0;
+        m_uiMaxTimeout = 0;
+        m_ullCommitSid = 0;
+        m_ullCursorSid = 0;
+        m_ullLeftNum = 0;
+        m_uiWaitCommitNum = 0;
+    }
+public:
+    CwxMqQueueInfo(CwxMqQueueInfo const& item)
+    {
+        m_strName = item.m_strName; ///<队列的名字
+        m_strUser = item.m_strUser; ///<队列鉴权的用户名
+        m_bCommit = item.m_bCommit; ///<是否commit类型的队列
+        m_uiDefTimeout = item.m_uiDefTimeout; ///<缺省的timeout值
+        m_uiMaxTimeout = item.m_uiMaxTimeout; ///<最大的timeout值
+        m_strSubScribe = item.m_strSubScribe; ///<订阅规则
+        m_ullCommitSid = item.m_ullCommitSid;
+        m_ullCursorSid = item.m_ullCursorSid;
+        m_ullLeftNum = item.m_ullLeftNum; ///<剩余消息的数量
+        m_uiWaitCommitNum = item.m_uiWaitCommitNum; ///<等待commit的消息数量
+    }
+    CwxMqQueueInfo& operator=CwxMqQueueInfo(CwxMqQueueInfo const& item)
+    {
+        if (this != &item)
+        {
+            m_strName = item.m_strName; ///<队列的名字
+            m_strUser = item.m_strUser; ///<队列鉴权的用户名
+            m_bCommit = item.m_bCommit; ///<是否commit类型的队列
+            m_uiDefTimeout = item.m_uiDefTimeout; ///<缺省的timeout值
+            m_uiMaxTimeout = item.m_uiMaxTimeout; ///<最大的timeout值
+            m_strSubScribe = item.m_strSubScribe; ///<订阅规则
+            m_ullCommitSid = item.m_ullCommitSid;
+            m_ullCursorSid = item.m_ullCursorSid;
+            m_ullLeftNum = item.m_ullLeftNum; ///<剩余消息的数量
+            m_uiWaitCommitNum = item.m_uiWaitCommitNum; ///<等待commit的消息数量
+        }
+        return *this;
+    }
+public:
+    string                           m_strName; ///<队列的名字
+    string                           m_strUser; ///<队列鉴权的用户名
+    bool                             m_bCommit; ///<是否commit类型的队列
+    CWX_UINT32                       m_uiDefTimeout; ///<缺省的timeout值
+    CWX_UINT32                       m_uiMaxTimeout; ///<最大的timeout值
+    string                           m_strSubScribe; ///<订阅规则
+    CWX_UINT64                       m_ullCommitSid; ///<已经提交的的最小commit sid
+    CWX_UINT64                       m_ullCursorSid; ///<当前cursor的sid
+    CWX_UINT64                       m_ullLeftNum; ///<剩余消息的数量
+    CWX_UINT32                       m_uiWaitCommitNum; ///<等待commit的消息数量
+};
 class CwxMqQueueMgr
 {
 public:
@@ -195,39 +282,98 @@ public:
     };
 public:
     CwxMqQueueMgr(string const& strQueueFile,
-        string const& strQueueLogFile);
+        string const& strQueueLogFile,
+        CWX_UINT32 uiMaxFsyncNum,
+        CWX_UINT32 uiMaxFsyncSecond);
     ~CwxMqQueueMgr();
 public:
     int init(CwxBinLogMgr* binLog);
 public:
-    inline CwxMqQueue* getQueue(CWX_UINT32 uiQueueId) const
+    ///0：没有消息；
+    ///1：获取一个消息；
+    ///2：达到了搜索点，但没有发现消息；
+    ///-1：失败；
+    ///-2：队列不存在
+    int getNextBinlog(CwxMqTss* pTss,
+        string const& strQueue,
+        CwxMsgBlock*&msg,
+        CWX_UINT32 uiTimeout,
+        int& err_num,
+        char* szErr2K);
+
+    ///对于非commit类型的队列，bCommit=true此表示消息已经写到socket buf，否则表示写失败。
+    ///对于commit类型的队列，bCommit=true此表示已经收到对方的commit确认，否则写socket失败。
+    ///返回值：0：不存在；1：成功；-1：失败；-2：队列不存在
+    int commitBinlog(string const& strQueue,
+        CWX_UINT64 ullSid,
+        bool bCommit=true);
+    ///检测commit类型队列超时的消息
+    void checkTimeout(CWX_UINT32 ttTimestamp);
+    ///1：成功
+    ///0：存在
+    ///-1：其他错误
+    int addQueue(string const& strQueue,
+        bool bCommit,
+        string const& strUser,
+        string const& strPasswd,
+        string const& strScribe,
+        CWX_UINT32 uiDefTimeout,
+        CWX_UINT32 uiMaxTimeout,
+        char* szErr2K=NULL);
+    ///1：成功
+    ///0：不存在
+    ///-1：其他错误
+    int delQueue(string const& strQueue,
+        string const& strUser,
+        string const& strPasswd,
+        char* szErr2K=NULL);
+
+    inline bool isExistQueue(string const& strQueue) const
     {
-        map<CWX_UINT32, CwxMqQueue*>::const_iterator iter = m_idQueues.find(uiQueueId);
-        return iter == m_idQueues.end()?NULL:iter->second;
+        CwxMutexGuard<CwxMutexLock>  lock;
+        return m_queues.find(strQueue) != m_queues.end();
     }
-
-    inline CwxMqQueue* getQueue(string const& strQueueName) const
+    //-1：失败；0：队列不存在；1：成功
+    inline int authQueue(string const& strQueue, string const& user, string const& passwd) const
     {
-        map<string, CwxMqQueue*>::const_iterator iter = m_nameQueues.find(strQueueName);
-        return iter == m_nameQueues.end()?NULL:iter->second;
-
+        CwxMutexGuard<CwxMutexLock>  lock;
+        map<string, CwxMqQueue*>::const_iterator iter = m_queues.find(strQueue);
+        if (iter == m_queues.end()) return 0;
+        if (iter->second.getUserName().length())
+        {
+            return ((user != iter->second.getUserName()) || (passwd != iter->second->getPasswd()))?-1:1;
+        }
+        return 1;
     }
     inline CWX_UINT32 getQueueNum() const
     {
-        return m_nameQueues.size();
+        CwxMutexGuard<CwxMutexLock>  lock;
+        return m_queues.size();
     }
-    inline map<string, CwxMqQueue*> const& getNameQueues() const
+    inline void getQueuesInfo(list<CwxMqQueueInfo>& queues) const
     {
-        return m_nameQueues;
-    }
-    inline map<CWX_UINT32, CwxMqQueue*> const& getIdQueues() const
-    {
-        return m_idQueues;
+        CwxMqQueueInfo info;
+        map<string, CwxMqQueue*>::const_iterator iter = m_queues.begin();
+        while(iter != m_queues.end())
+        {
+            info.m_strName = iter->second->getName();
+            info.m_strUser = iter->second->getUserName();
+            info.m_bCommit = iter->second->isCommit();
+            info.m_uiDefTimeout = iter->second->getDefTimeout();
+            info.m_uiMaxTimeout = iter->second->getMaxTimeout();
+            info.m_strSubScribe = iter->second->getSubscribeRule();
+            info.m_ullCommitSid = iter->second->getCommittedSid();
+            info.m_ullCursorSid = iter->second->getCursorSid();
+            info.m_ullLeftNum = iter->second->getMqNum();
+            info.m_uiWaitCommitNum = iter->second->getWaitCommitNum();
+            queues.push_back(info);
+            iter++;
+        }
     }
 
 private:
-    map<string, CwxMqQueue*>   m_nameQueues;
-    CwxMutexLock
+    map<string, CwxMqQueue*>   m_queues;
+    CwxMutexLock               m_lock;
 };
 
 
