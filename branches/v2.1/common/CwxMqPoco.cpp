@@ -1277,6 +1277,8 @@ int CwxMqPoco::parseCreateQueue(CwxPackageReader* reader,
                             char const*& auth_passwd,
                             CWX_UINT64&  ullSid,///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
                             bool&  bCommit, ///< true：commit类型；false：uncommit类型
+                            CWX_UINT32& uiDefTimeout, ///< 0：采用系统默认的timeout，否则为具体的timeout值，单位为s
+                            CWX_UINT32& uiMaxTimeout, ///< 0：采用系统最大的timeout值，否则为具体的最大timeout值，单位为s
                             char* szErr2K)
 {
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
@@ -1349,6 +1351,17 @@ int CwxMqPoco::parseCreateQueue(CwxPackageReader* reader,
     //get commit
     if (!reader->getKey(CWX_MQ_COMMIT, bCommit))
         bCommit = false;
+
+    uiDefTimeout = 0;
+    uiMaxTimeout = 0;
+    if (bCommit)
+    {
+        //get def time
+        if (!reader->getKey(CWX_MQ_DEF_TIMEOUT, uiDefTimeout))
+            uiDefTimeout = 0;
+        if (!reader->getKey(CWX_MQ_MAX_TIMEOUT, uiMaxTimeout))
+            uiMaxTimeout = 0;
+    }
     return CWX_MQ_SUCCESS;
 
 }
@@ -1363,6 +1376,8 @@ int CwxMqPoco::packCreateQueue(CwxPackageWriter* writer,
                            char const* auth_passwd,
                            CWX_UINT64  ullSid,///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
                            bool  bCommit, ///< true：commit类型；false：uncommit类型
+                           CWX_UINT32 uiDefTimeout, ///< 0：采用系统默认的timeout，否则为具体的timeout值，单位为s
+                           CWX_UINT32 uiMaxTimeout, ///< 0：采用系统最大的timeout值，否则为具体的最大timeout值，单位为s
                            char* szErr2K)
 {
     writer->beginPack();
@@ -1410,6 +1425,19 @@ int CwxMqPoco::packCreateQueue(CwxPackageWriter* writer,
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_INNER_ERR;
+    }
+    if (bCommit)
+    {
+        if (!writer->addKeyValue(CWX_MQ_DEF_TIMEOUT, uiDefTimeout))
+        {
+            if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
+            return CWX_MQ_INNER_ERR;
+        }
+        if (!writer->addKeyValue(CWX_MQ_MAX_TIMEOUT, uiMaxTimeout))
+        {
+            if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
+            return CWX_MQ_INNER_ERR;
+        }
     }
     if (!writer->pack())
     {

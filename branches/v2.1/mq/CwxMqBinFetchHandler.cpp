@@ -99,6 +99,14 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
             return 0;
         }while(0);
     }
+    else if (CwxMqPoco::MSG_TYPE_CREATE_QUEUE == m_header.getMsgType())
+    {
+
+    }
+    else if (CwxMqPoco::MSG_TYPE_DEL_QUEUE == m_header.getMsgType())
+    {
+
+    }
     else
     {
         bClose = true;

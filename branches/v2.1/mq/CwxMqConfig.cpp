@@ -257,11 +257,11 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
     //fetch mq:mq
     if (parser.getElementNode("mq:mq"))
     {
-        if (!fetchMq(parser, "mq:mq", m_mq)) return -1;
+        if (!fetchHost(parser, "mq:mq:listen", m_mq)) return -1;
     }
     else
     {
-        m_mq.m_listen.reset();
+        m_mq.reset();
     }
 
     return 0;
@@ -332,96 +332,6 @@ bool CwxMqConfig::fetchHost(CwxXmlFileConfigParser& parser,
 
 }
 
-bool CwxMqConfig::fetchMq(CwxXmlFileConfigParser& parser,
-             string const& path,
-             CwxMqConfigMq& mq)
-{
-    string strErrMsg;
-    string strPath = path + ":listen";
-    if (!fetchHost(parser, strPath.c_str(), mq.m_listen))
-    {
-        mq.m_listen.reset();
-    }
-    if (!mq.m_listen.getHostName().length())
-    {
-        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s:listen].",path.c_str(),path.c_str());
-        return false;
-    }
-    //fetch queue
-    CwxXmlTreeNode const* pNodeRoot = NULL;
-    CwxXmlTreeNode const* node = NULL;
-    CwxHostInfo host;
-    pair<char*, char*> key;
-    //load mq:mq:queues
-    {
-        CwxMqConfigQueue queue;
-        strPath = path + ":queues";
-        pNodeRoot = parser.getElementNode(strPath.c_str());
-        if (!pNodeRoot || !pNodeRoot->m_pChildHead)
-        {
-            CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s:queues].",path.c_str());
-            return false;
-        }
-        node = pNodeRoot->m_pChildHead;
-        while(node)
-        {
-            if (strcmp(node->m_szElement, "queue") == 0)
-            {
-                //find name
-                if (CwxCommon::findKey(node->m_lsAttrs, "name",  key) && strlen(key.second))
-                {
-                    queue.m_strName = key.second;
-                }
-                else
-                {
-                    CwxCommon::snprintf(m_szErrMsg, 2047, "[%:queues]'s queue must have name.", path.c_str());
-                    return false;
-                }
-                if (mq.m_queues.find(queue.m_strName) != mq.m_queues.end())
-                {
-                    CwxCommon::snprintf(m_szErrMsg, 2047, "[%s:queues]'s queue name[%s] is duplicate.", path.c_str(), queue.m_strName.c_str());
-                    return false;
-                }
-                //find user
-                if (CwxCommon::findKey(node->m_lsAttrs, "user",  key) && strlen(key.second))
-                {
-                    queue.m_strUser = key.second;
-                }
-                else
-                {
-                    queue.m_strUser = "";
-                }
-                //find passwd
-                if (CwxCommon::findKey(node->m_lsAttrs, "passwd",  key) && strlen(key.second))
-                {
-                    queue.m_strPasswd = key.second;
-                }
-                else
-                {
-                    queue.m_strPasswd = "";
-                }
-                //find subcribe
-                if (CwxCommon::findKey(node->m_lsAttrs, "subcribe",  key) && strlen(key.second))
-                {
-                    queue.m_strSubScribe = key.second;
-                }
-                else
-                {
-                    CwxCommon::snprintf(m_szErrMsg, 2047, "Must set queue[%s]'s [subcribe].", queue.m_strName.c_str());
-                    return false;
-                }
-                if (!CwxMqPoco::isValidSubscribe(queue.m_strSubScribe, strErrMsg))
-                {
-                    CwxCommon::snprintf(m_szErrMsg, 2047, "queue[%s]'s subcribe[%s] is not valid, err:%s.", queue.m_strName.c_str(), strErrMsg.c_str());
-                    return false;
-                }
-                mq.m_queues[queue.m_strName] = queue;
-            }
-            node = node->m_next;
-        }
-    }
-    return true;
-}
 
 void CwxMqConfig::outputConfig() const
 {
@@ -485,20 +395,10 @@ void CwxMqConfig::outputConfig() const
         if (m_mq.m_listen.getHostName().length())
         {
             CWX_INFO(("listen keep_alive=%s  ip=%s port=%u unix=%s",
-                m_mq.m_listen.isKeepAlive()?"yes":"no",
-                m_mq.m_listen.getHostName().c_str(),
-                m_mq.m_listen.getPort(),
-                m_mq.m_listen.getUnixDomain().c_str()));
-        }
-        map<string, CwxMqConfigQueue>::const_iterator iter = m_mq.m_queues.begin(); ///<消息分发的队列
-        while(iter != m_mq.m_queues.end())
-        {
-            CWX_INFO(("queue name=%s\tuser=%s\tpasswd=%s\tsubscribe=%s",
-                iter->second.m_strName.c_str(),
-                iter->second.m_strUser.c_str(),
-                iter->second.m_strPasswd.c_str(),
-                iter->second.m_strSubScribe.c_str()));
-            iter++;
+                m_mq.isKeepAlive()?"yes":"no",
+                m_mq.getHostName().c_str(),
+                m_mq.getPort(),
+                m_mq.getUnixDomain().c_str()));
         }
     }
 

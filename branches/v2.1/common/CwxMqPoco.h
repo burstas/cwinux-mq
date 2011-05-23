@@ -389,6 +389,8 @@ public:
         char const*& auth_passwd,
         CWX_UINT64&  ullSid,///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
         bool&  bCommit, ///< true：commit类型；false：uncommit类型
+        CWX_UINT32& uiDefTimeout, ///< 0：采用系统默认的timeout，否则为具体的timeout值，单位为s
+        CWX_UINT32& uiMaxTimeout, ///< 0：采用系统最大的timeout值，否则为具体的最大timeout值，单位为s
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
     static int packCreateQueue(CwxPackageWriter* writer,
@@ -401,6 +403,8 @@ public:
         char const* auth_passwd,
         CWX_UINT64  ullSid=0,///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
         bool  bCommit=false, ///< true：commit类型；false：uncommit类型
+        CWX_UINT32 uiDefTimeout, ///< 0：采用系统默认的timeout，否则为具体的timeout值，单位为s
+        CWX_UINT32 uiMaxTimeout, ///< 0：采用系统最大的timeout值，否则为具体的最大timeout值，单位为s
         char* szErr2K=NULL);
 
 

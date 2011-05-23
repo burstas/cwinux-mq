@@ -64,6 +64,7 @@ class CwxMqConfigQueue
 public:
     CwxMqConfigQueue()
     {
+        m_bCommit = false;
     }
     CwxMqConfigQueue(CwxMqConfigQueue const& item)
     {
@@ -71,6 +72,7 @@ public:
         m_strUser = item.m_strUser;
         m_strPasswd = item.m_strPasswd;
         m_strSubScribe = item.m_strSubScribe;
+        m_bCommit = item.m_bCommit;
     }
     CwxMqConfigQueue& operator=(CwxMqConfigQueue const& item)
     {
@@ -80,6 +82,7 @@ public:
             m_strUser = item.m_strUser;
             m_strPasswd = item.m_strPasswd;
             m_strSubScribe = item.m_strSubScribe;
+            m_bCommit = item.m_bCommit;
         }
         return *this;
     }
@@ -92,6 +95,7 @@ public:
     string  m_strUser; ///<队列的用户名
     string  m_strPasswd; ///<队列的口令
     string  m_strSubScribe; ///<队列的消息订阅
+    bool    m_bCommit; ///<是否commit类型
 };
 
 class CwxMqIdRange

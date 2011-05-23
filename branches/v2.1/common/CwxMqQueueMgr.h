@@ -24,31 +24,106 @@
 #include "CwxDTail.h"
 #include "CwxSTail.h"
 #include "CwxMqDef.h"
+#include "CwxMinHeap.h"
+
+class CwxMqQueueHeapItem
+{
+public:
+    CwxMqQueueHeapItem()
+    {
+        m_msg = NULL;
+        m_index = -1;
+        m_ttTimestamp = 0;
+        m_ullSid = 0;
+    }
+    ~CwxMqQueueHeapItem()
+    {
+        if (m_msg) CwxMsgBlockAlloc::free(m_msg);
+    }
+public:
+    bool operator <(CwxMqQueueHeapItem const& item) const
+    {
+        return m_ttTimestamp < item.m_ttTimestamp;
+    }
+
+    CWX_INT32 index() const
+    {
+        return m_index;
+    }
+    void index(CWX_INT32 index)
+    {
+        m_index = index;
+    }
+    CwxMsgBlock* msg()
+    {
+        return m_msg;
+    }
+    void msg(CwxMsgBlock* msg)
+    {
+        m_msg = msg;
+    }
+    CWX_UINT32 timestamp() const
+    {
+        return m_ttTimestamp;
+    }
+    void timestamp(CWX_UINT32 uiTimestamp)
+    {
+        m_ttTimestamp = uiTimestamp;
+    }
+    CWX_UINT64 sid() const
+    {
+        return m_ullSid;
+    }
+    void sid(CWX_UINT64 ullSid)
+    {
+        m_ullSid = ullSid;
+    }
+
+private:
+    CWX_INT32   m_index;
+    CWX_UINT32  m_ttTimestamp;
+    CWX_UINT64  m_ullSid;
+    CwxMsgBlock*  m_msg;
+};
 
 class CwxMqQueue
 {
 public:
-    CwxMqQueue(CWX_UINT32 uiId,
-        string strName,
+    CwxMqQueue(string strName,
         string strUser,
         string strPasswd,
         CWX_UINT64 ullStartSid,
+        bool    bCommit,
+        string strSubscribe,
+        CWX_UINT32 uiDefTimeout,
+        CWX_UINT32 uiMaxTimeout,
         CwxBinLogMgr* pBinlog);
     ~CwxMqQueue();
 public:
+    ///0:成功;-1：失败
+    int init(string& strErrMsg);
     ///0：没有消息；
     ///1：获取一个消息；
     ///2：达到了搜索点，但没有发现消息；
     ///-1：失败；
-    int getNextBinlog(CwxMqTss* pTss, int& err_num, char* szErr2K);
-    ///将一个发送失败的消息，送回queue。
-    ///true：成功；false：失败。此时是内存分配错误
-    bool backMsg(CwxBinLogHeader const& header, CwxKeyValueItem const& data);
+    int getNextBinlog(CwxMqTss* pTss,
+        CwxMsgBlock*&msg,
+        CWX_UINT32 uiTimeout,
+        int& err_num,
+        char* szErr2K);
 
-    inline CWX_UINT32 getId() const
+    ///对于非commit类型的队列，bCommit=true此表示消息已经写到socket buf，否则表示写失败。
+    ///对于commit类型的队列，bCommit=true此表示已经收到对方的commit确认，否则写socket失败。
+    ///返回值：0：不存在，1：成功.
+    int commitBinlog(CWX_UINT64 ullSid, bool bCommit=true);
+    ///检测commit类型队列超时的消息
+    void checkTimeout();
+    ///添加自start sid后，已经commit的消息sid
+    void addCommitSid(CWX_UINT64 ullSid)
     {
-        return m_uiId;
+        m_dispatchSid.insert(ullSid);
     }
+
     inline string const& getName() const
     {
         return m_strName;
@@ -65,62 +140,65 @@ public:
     {
         return m_subscribe;
     }
+    inline string const& getSubscribeRule() const
+    {
+        return m_strSubScribe;
+    }
+    inline CWX_UINT32 getDefTimeout() const
+    {
+        return m_uiDefTimeout;
+    }
+    inline CWX_UINT32 getMaxTimeout() const
+    {
+        return m_uiMaxTimeout;
+    }
     inline CWX_UINT64 getCurSid() const
     {
         return m_cursor?m_cursor->getHeader().getSid():0;
     }
-    inline CWX_UINT64 getMqNum()
-    {
-        if (!m_cursor)
-        {
-            if (m_ullStartSid < m_binLog->getMaxSid())
-            {
-                m_cursor = m_binLog->createCurser();
-                if (!m_cursor)
-                {
-                    return 0;
-                }
-                int iRet = m_binLog->seek(m_cursor, m_ullStartSid);
-                if (1 != iRet)
-                {
-                    m_binLog->destoryCurser(m_cursor);
-                    m_cursor = NULL;
-                    return 0;
-                }
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        return m_binLog->leftLogNum(m_cursor) + m_memMsgTail->count();
-    }
+    CWX_UINT64 getMqNum();
 private:
-    CWX_UINT32                       m_uiId; ///<队列的id
+    ///0：没有消息；
+    ///1：获取一个消息；
+    ///2：达到了搜索点，但没有发现消息；
+    ///-1：失败；
+    int fetchNextBinlog(CwxMqTss* pTss,
+        CwxMsgBlock*&msg,
+        int& err_num,
+        char* szErr2K);
+private:
     string                           m_strName; ///<队列的名字
     string                           m_strUser; ///<队列鉴权的用户名
     string                           m_strPasswd; ///<队列鉴权的口令
     CWX_UINT64                       m_ullStartSid; ///<队列开始的sid
+    bool                             m_bCommit; ///<是否commit类型的队列
+    CWX_UINT32                       m_uiDefTimeout; ///<缺省的timeout值
+    CWX_UINT32                       m_uiMaxTimeout; ///<最大的timeout值
+    string                           m_strSubScribe; ///<订阅规则
+    CwxBinLogMgr*                    m_binLog; ///<binlog
+    CwxMinHeap<CwxMqQueueHeapItem>* m_pUncommitMsg; ///<commit队列中未commit的消息
+    map<CWX_UINT64, void*>           m_uncommitMap; ///<commit队列中未commit的消息sid索引
+    set<CWX_UINT64>                  m_dispatchSid; ///<已经分发的消息
     CwxBinLogCursor*                 m_cursor; ///<队列的游标
     CwxSTail<CwxMsgBlock>*           m_memMsgTail; ///<队列的数据
-    CwxBinLogMgr*                    m_binLog; ///<binlog
     CwxMqSubscribe                   m_subscribe; ///<订阅
 };
+
 
 class CwxMqQueueMgr
 {
 public:
     enum
     {
-        QUEUE_ID_START = 1
+        QUEUE_DEF_TIMEOUT_SECOND = 10,
+        QUEUE_MAX_TIMEOUT_SECOND = 300
     };
 public:
-    CwxMqQueueMgr();
+    CwxMqQueueMgr(string const& strQueueFile,
+        string const& strQueueLogFile);
     ~CwxMqQueueMgr();
 public:
-    int init(CwxBinLogMgr* binLog,
-        map<string, CWX_UINT64> const& queueSid,
-        map<string, CwxMqConfigQueue> const& queueInfo);
+    int init(CwxBinLogMgr* binLog);
 public:
     inline CwxMqQueue* getQueue(CWX_UINT32 uiQueueId) const
     {
@@ -149,7 +227,7 @@ public:
 
 private:
     map<string, CwxMqQueue*>   m_nameQueues;
-    map<CWX_UINT32, CwxMqQueue*> m_idQueues;
+    CwxMutexLock
 };
 
 

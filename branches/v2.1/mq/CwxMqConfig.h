@@ -109,23 +109,6 @@ public:
     CwxHostInfo     m_async; ///<slave bin协议异步分发的端口信息
 };
 
-///配置文件的mq参数对象
-class CwxMqConfigMq
-{
-public:
-    CwxMqConfigMq()
-    {
-    }
-public:
-    CwxMqConfigQueue const* getQueue(string const& strQueue) const
-    {
-        map<string, CwxMqConfigQueue>::const_iterator iter = m_queues.find(strQueue);
-        return iter == m_queues.end()?NULL:&iter->second;
-    }
-public:
-    CwxHostInfo     m_listen; ///<mq的bin协议listen的连接信息
-    map<string, CwxMqConfigQueue>  m_queues; ///<消息分发的队列
-};
 
 ///配置文件加载对象
 class CwxMqConfig
@@ -166,7 +149,7 @@ public:
     {
         return m_slave;
     }
-    inline CwxMqConfigMq const& getMq() const
+    inline CwxHostInfo const& getMq() const
     {
         return m_mq;
     }
@@ -179,16 +162,12 @@ private:
     bool fetchHost(CwxXmlFileConfigParser& parser,
         string const& path,
         CwxHostInfo& host);
-    bool fetchMq(CwxXmlFileConfigParser& parser,
-        string const& path,
-        CwxMqConfigMq&  mq);
-
 private:
-    CwxMqConfigCmn  m_common; ///<common的配置信息
-    CwxMqConfigBinLog m_binlog; ///<binlog的配置信息
-    CwxMqConfigMaster m_master; ///<master的配置信息
-    CwxMqConfigSlave  m_slave; ///<slave的配置信息
-    CwxMqConfigMq     m_mq; ///<mq的fetch的配置信息
+    CwxMqConfigCmn      m_common; ///<common的配置信息
+    CwxMqConfigBinLog   m_binlog; ///<binlog的配置信息
+    CwxMqConfigMaster   m_master; ///<master的配置信息
+    CwxMqConfigSlave    m_slave; ///<slave的配置信息
+    CwxHostInfo          m_mq; ///<mq的fetch的配置信息
     char                m_szErrMsg[2048];///<错误消息的buf
 };
 
