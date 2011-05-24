@@ -21,11 +21,9 @@
 #include "CwxMqPoco.h"
 #include "CwxMsgBlock.h"
 #include "CwxMqTss.h"
-#include "CwxDTail.h"
-#include "CwxSTail.h"
 #include "CwxMqDef.h"
 #include "CwxMinHeap.h"
-
+#include "
 class CwxMqQueueHeapItem
 {
 public:
@@ -122,23 +120,23 @@ public:
     void addCommitSid(CWX_UINT64 ullSid)
     {
         set<CWX_UINT64>::iterator iter;
-        if (ullSid <= m_ullMaxUnCommitSid)
+        if (ullSid <= m_ullStartMaxUnCommitSid)
         {//删除未commit sid
-            iter = m_uncommitSid.find(ullSid);
-            if (iter != m_uncommitSid.end())
+            iter = m_startUncommitSid.find(ullSid);
+            if (iter != m_startUncommitSid.end())
             {
-                m_uncommitSid.erase(iter);
+                m_startUncommitSid.erase(iter);
             }
             return;
         }
-        m_dispatchedSid.insert(ullSid);
+        m_startDispatchedSid.insert(ullSid);
     }
     ///添加flush文件时，未提交的sid，必须在addCommitSid之前完成
     void addUnCommitSid(CWX_UINT64 ullSid)
     {
-        CWX_ASSERT(!m_dispatchedSid.size());
-        if (m_ullMaxUnCommitSid < ullSid) m_ullMaxUnCommitSid = ullSid;
-        m_uncommitSid.insert(ullSid); ///<未commit的sid
+        CWX_ASSERT(!m_startDispatchedSid.size());
+        if (m_ullStartMaxUnCommitSid < ullSid) m_ullStartMaxUnCommitSid = ullSid;
+        m_startUncommitSid.insert(ullSid); ///<未commit的sid
     }
 
     inline string const& getName() const
@@ -180,6 +178,19 @@ public:
     inline CWX_UINT32 getWaitCommitNum() const
     {
         return m_uncommitMap.size();
+    }
+    inline map<CWX_UINT64, void*>& getUncommitMap()
+    {
+        return m_uncommitMap; ///<commit队列中未commit的消息sid索引
+    }
+    inline map<CWX_UINT64, CwxMsgBlock*>& getMemMsgMap()
+    {
+        return m_memMsgMap;///<发送失败消息队列
+    }
+
+    inline CwxBinLogCursor* getCursor() 
+    {
+        return m_cursor;
     }
     inline CWX_UINT64 getCommittedSid() const
     {
@@ -240,12 +251,12 @@ private:
     CwxBinLogMgr*                    m_binLog; ///<binlog
     CwxMinHeap<CwxMqQueueHeapItem>*  m_pUncommitMsg; ///<commit队列中未commit的消息
     map<CWX_UINT64, void*>           m_uncommitMap; ///<commit队列中未commit的消息sid索引
-    set<CWX_UINT64>                  m_uncommitSid; ///<未commit的sid
-    CWX_UINT64                       m_ullMaxUnCommitSid; ///<最大的未commit的sid
-    set<CWX_UINT64>                  m_dispatchedSid; ///<已经分发的消息
-    CwxBinLogCursor*                 m_cursor; ///<队列的游标
     map<CWX_UINT64, CwxMsgBlock*>    m_memMsgMap;///<发送失败消息队列
+    CwxBinLogCursor*                 m_cursor; ///<队列的游标
     CwxMqSubscribe                   m_subscribe; ///<订阅
+    set<CWX_UINT64>                  m_startUncommitSid; ///<启动后，获取的未commit的sid
+    CWX_UINT64                       m_ullStartMaxUnCommitSid; ///<最大的未commit的sid
+    set<CWX_UINT64>                  m_startDispatchedSid; ///<已经分发的消息
 };
 
 
@@ -261,6 +272,7 @@ public:
         m_ullCursorSid = 0;
         m_ullLeftNum = 0;
         m_uiWaitCommitNum = 0;
+        m_ucQueueState = CwxBinLogMgr::CURSOR_STATE_UNSEEK;
     }
 public:
     CwxMqQueueInfo(CwxMqQueueInfo const& item)
@@ -275,6 +287,8 @@ public:
         m_ullCursorSid = item.m_ullCursorSid;
         m_ullLeftNum = item.m_ullLeftNum; ///<剩余消息的数量
         m_uiWaitCommitNum = item.m_uiWaitCommitNum; ///<等待commit的消息数量
+        m_ucQueueState = item.m_ucQueueState;
+        m_strQueueErrMsg = item.m_strQueueErrMsg;
     }
     CwxMqQueueInfo& operator=CwxMqQueueInfo(CwxMqQueueInfo const& item)
     {
@@ -290,6 +304,8 @@ public:
             m_ullCursorSid = item.m_ullCursorSid;
             m_ullLeftNum = item.m_ullLeftNum; ///<剩余消息的数量
             m_uiWaitCommitNum = item.m_uiWaitCommitNum; ///<等待commit的消息数量
+            m_ucQueueState = item.m_ucQueueState;
+            m_strQueueErrMsg = item.m_strQueueErrMsg;
         }
         return *this;
     }
@@ -304,6 +320,8 @@ public:
     CWX_UINT64                       m_ullCursorSid; ///<当前cursor的sid
     CWX_UINT64                       m_ullLeftNum; ///<剩余消息的数量
     CWX_UINT32                       m_uiWaitCommitNum; ///<等待commit的消息数量
+    CWX_UINT8                        m_ucQueueState; ///<队列状态
+    string                           m_strQueueErrMsg; //<队列的错误信息
 };
 class CwxMqQueueMgr
 {
@@ -316,6 +334,7 @@ public:
 public:
     CwxMqQueueMgr(string const& strQueueFile,
         string const& strQueueLogFile,
+        string const& strQueuePosFile,
         CWX_UINT32 uiMaxFsyncNum,
         CWX_UINT32 uiMaxFsyncSecond);
     ~CwxMqQueueMgr();
@@ -399,6 +418,23 @@ public:
             info.m_ullCursorSid = iter->second->getCursorSid();
             info.m_ullLeftNum = iter->second->getMqNum();
             info.m_uiWaitCommitNum = iter->second->getWaitCommitNum();
+            if (iter->second->getCursor())
+            {
+                info.m_ucQueueState = iter->second->getCursor()->getSeekState();
+                if (CwxBinLogMgr::CURSOR_STATE_ERROR == info.m_ucQueueState)
+                {
+                    info.m_strQueueErrMsg = iter->second->getCursor()->getErrMsg();
+                }
+                else
+                {
+                    info.m_strQueueErrMsg = "";
+                }
+            }
+            else
+            {
+                info.m_ucQueueState = CwxBinLogMgr::CURSOR_STATE_UNSEEK;
+                info.m_strQueueErrMsg = "";
+            }
             queues.push_back(info);
             iter++;
         }
@@ -407,6 +443,10 @@ public:
 private:
     map<string, CwxMqQueue*>   m_queues;
     CwxMutexLock               m_lock;
+    string                     m_strQueueFile;
+    string                     m_strQueueLogFile;
+    CWX_UINT32                 m_uiMaxFsyncNum;
+    CWX_UINT32                 m_uiMaxFsyncSecond;
 };
 
 

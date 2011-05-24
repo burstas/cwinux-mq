@@ -21,7 +21,7 @@ CwxMqQueue::CwxMqQueue(string strName,
     m_binLog = pBinlog;
     m_pUncommitMsg =NULL;
     m_cursor = NULL;
-    m_ullMaxUnCommitSid = 0;
+    m_ullStartMaxUnCommitSid = 0;
 }
 
 CwxMqQueue::~CwxMqQueue()
@@ -74,9 +74,9 @@ int CwxMqQueue::init(string& strErrMsg)
     if (m_cursor) m_binLog->destoryCurser(m_cursor);
     m_cursor = NULL;
 
-    m_dispatchedSid.clear();
-    m_uncommitSid.clear();
-    m_ullMaxUnCommitSid = 0;
+    m_startDispatchedSid.clear();
+    m_startUncommitSid.clear();
+    m_ullStartMaxUnCommitSid = 0;
 
     if (m_pUncommitMsg)
     {
@@ -302,8 +302,30 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
             continue;
         }
 
-        if (!m_dispatchedSid.size() ||
-            (m_dispatchedSid.find(m_cursor->getHeader()->getSid()) == m_dispatchedSid.end()))
+        bFetch = false;
+        if (m_cursor->getHeader().getSid() <= m_ullStartMaxUnCommitSid)
+        {
+            if (m_startUncommitSid.size() &&
+                (m_startUncommitSid.find(m_cursor->getHeader().getSid()) != m_startUncommitSid.end()))
+            {
+                bFetch = true;
+                m_startUncommitSid.erase(m_startUncommitSid.find(m_cursor->getHeader().getSid()));
+            }
+        }
+        else
+        {
+            if (!m_startDispatchedSid.size() ||
+                (m_startDispatchedSid.find(m_cursor->getHeader().getSid()) != m_startDispatchedSid.end()))
+            {
+                bFetch = true;
+            }
+            else
+            {
+                m_startDispatchedSid.erase(m_startDispatchedSid.find(m_cursor->getHeader().getSid()));
+            }
+        }
+
+        if (bFetch)
         {
             //fetch data
             ///获取binlog的data长度
@@ -362,10 +384,6 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
                 CWX_ERROR(("Can't unpack binlog, sid=%s",
                     CwxCommon::toString(m_cursor->getHeader().getSid(), szBuf)));
             }
-        }
-        else
-        {
-            m_dispatchedSid.erase(m_cursor->getHeader()->getSid());
         }
         uiSkipNum ++;
         if (!CwxMqPoco::isContinueSeek(uiSkipNum)) return 2;
