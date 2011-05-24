@@ -90,7 +90,6 @@ public:
     CwxMqQueue(string strName,
         string strUser,
         string strPasswd,
-        CWX_UINT64 ullStartSid,
         bool    bCommit,
         string strSubscribe,
         CWX_UINT32 uiDefTimeout,
@@ -99,7 +98,10 @@ public:
     ~CwxMqQueue();
 public:
     ///0:成功;-1：失败
-    int init(string& strErrMsg);
+    int init(CWX_UINT64 ullLastCommitSid,
+        set<CWX_UINT64>& uncommitSid,
+        set<CWX_UINT64>& commitSid,
+        string& strErrMsg);
     ///0：没有消息；
     ///1：获取一个消息；
     ///2：达到了搜索点，但没有发现消息；
@@ -116,28 +118,6 @@ public:
     int commitBinlog(CWX_UINT64 ullSid, bool bCommit=true);
     ///检测commit类型队列超时的消息
     void checkTimeout(CWX_UINT32 ttTimestamp);
-    ///添加自start sid后，已经commit的消息sid
-    void addCommitSid(CWX_UINT64 ullSid)
-    {
-        set<CWX_UINT64>::iterator iter;
-        if (ullSid <= m_ullStartMaxUnCommitSid)
-        {//删除未commit sid
-            iter = m_startUncommitSid.find(ullSid);
-            if (iter != m_startUncommitSid.end())
-            {
-                m_startUncommitSid.erase(iter);
-            }
-            return;
-        }
-        m_startDispatchedSid.insert(ullSid);
-    }
-    ///添加flush文件时，未提交的sid，必须在addCommitSid之前完成
-    void addUnCommitSid(CWX_UINT64 ullSid)
-    {
-        CWX_ASSERT(!m_startDispatchedSid.size());
-        if (m_ullStartMaxUnCommitSid < ullSid) m_ullStartMaxUnCommitSid = ullSid;
-        m_startUncommitSid.insert(ullSid); ///<未commit的sid
-    }
 
     inline string const& getName() const
     {
@@ -192,43 +172,33 @@ public:
     {
         return m_cursor;
     }
-    inline CWX_UINT64 getCommittedSid() const
+    inline CWX_UINT32 getMemSidNum() const
     {
-        CWX_UINT64 ullSid = 0;
-        if (m_uncommitMap.size()||m_memMsgMap.size())
-        {
-            if (m_uncommitMap.size())
-                ullSid = m_uncommitMap.begin()->first - 1;
-            if (m_memMsgMap.size())
-            {
-                if (ullSid > m_memMsgMap.begin()->first)
-                {
-                    ullSid = m_memMsgMap.begin()->first - 1;
-                }
-            }
-        }
-        else
-        {
-            if (m_cursor && !m_cursor->isDangling()) 
-            {
-                ullSid = m_cursor->getHeader().getSid();
-            }
-            else if (m_ullStartSid  < m_binLog->getMinSid())
-            {
-                ullSid = m_binLog->getMinSid()-1;
-            }
-            else
-            {
-                ullSid = m_ullStartSid;
-            }
-        }
-        return ullSid;
+        return m_memMsgMap.size();
+    }
+    inline CWX_UINT32 getUncommitSidNum() const
+    {
+        return m_uncommitMap.size();
     }
     inline CWX_UINT64 getCursorSid() const
     {
-        if (m_cursor && !m_cursor->isDangling()) return m_cursor->getHeader().getSid();
-        return m_ullStartSid;
+        if (m_cursor && (CwxBinLogMgr::CURSOR_STATE_READY == m_cursor->getSeekState()))
+            return m_cursor->getHeader().getSid();
+        return getStartSid();
     }
+    ///获取cursor的起始sid
+    inline CWX_UINT64 getStartSid()
+    {
+        if (m_lastUncommitSid.size())
+        {
+           return *m_lastUncommitSid.begin() - 1;
+        }
+        return m_ullLastCommitSid;
+    }
+    ///获取dump信息
+    void getQueueDumpInfo(CWX_UINT64 ullLastCommitSid,
+        set<CWX_UINT64>& uncommitSid,
+        set<CWX_UINT64>& commitSid);
     CWX_UINT64 getMqNum();
 private:
     ///0：没有消息；
@@ -243,7 +213,6 @@ private:
     string                           m_strName; ///<队列的名字
     string                           m_strUser; ///<队列鉴权的用户名
     string                           m_strPasswd; ///<队列鉴权的口令
-    CWX_UINT64                       m_ullStartSid; ///<队列开始的sid
     bool                             m_bCommit; ///<是否commit类型的队列
     CWX_UINT32                       m_uiDefTimeout; ///<缺省的timeout值
     CWX_UINT32                       m_uiMaxTimeout; ///<最大的timeout值
@@ -254,9 +223,10 @@ private:
     map<CWX_UINT64, CwxMsgBlock*>    m_memMsgMap;///<发送失败消息队列
     CwxBinLogCursor*                 m_cursor; ///<队列的游标
     CwxMqSubscribe                   m_subscribe; ///<订阅
-    set<CWX_UINT64>                  m_startUncommitSid; ///<启动后，获取的未commit的sid
-    CWX_UINT64                       m_ullStartMaxUnCommitSid; ///<最大的未commit的sid
-    set<CWX_UINT64>                  m_startDispatchedSid; ///<已经分发的消息
+
+    CWX_UINT64                       m_ullLastCommitSid; ///<日志文件记录的cursor的sid
+    set<CWX_UINT64>                  m_lastUncommitSid; ///<m_ullLastCommitSid之前未commit的binlog
+    set<CWX_UINT64>                  m_lastCommitSid; ///<m_ullLastCommitSid之后commit的binlog
 };
 
 
@@ -268,10 +238,10 @@ public:
         m_bCommit = false;
         m_uiDefTimeout = 0;
         m_uiMaxTimeout = 0;
-        m_ullCommitSid = 0;
         m_ullCursorSid = 0;
         m_ullLeftNum = 0;
         m_uiWaitCommitNum = 0;
+        m_uiMemLogNum = 0;
         m_ucQueueState = CwxBinLogMgr::CURSOR_STATE_UNSEEK;
     }
 public:
@@ -283,10 +253,10 @@ public:
         m_uiDefTimeout = item.m_uiDefTimeout; ///<缺省的timeout值
         m_uiMaxTimeout = item.m_uiMaxTimeout; ///<最大的timeout值
         m_strSubScribe = item.m_strSubScribe; ///<订阅规则
-        m_ullCommitSid = item.m_ullCommitSid;
         m_ullCursorSid = item.m_ullCursorSid;
         m_ullLeftNum = item.m_ullLeftNum; ///<剩余消息的数量
         m_uiWaitCommitNum = item.m_uiWaitCommitNum; ///<等待commit的消息数量
+        m_uiMemLogNum = item.m_uiMemLogNum;
         m_ucQueueState = item.m_ucQueueState;
         m_strQueueErrMsg = item.m_strQueueErrMsg;
     }
@@ -300,10 +270,10 @@ public:
             m_uiDefTimeout = item.m_uiDefTimeout; ///<缺省的timeout值
             m_uiMaxTimeout = item.m_uiMaxTimeout; ///<最大的timeout值
             m_strSubScribe = item.m_strSubScribe; ///<订阅规则
-            m_ullCommitSid = item.m_ullCommitSid;
             m_ullCursorSid = item.m_ullCursorSid;
             m_ullLeftNum = item.m_ullLeftNum; ///<剩余消息的数量
             m_uiWaitCommitNum = item.m_uiWaitCommitNum; ///<等待commit的消息数量
+            m_uiMemLogNum = item.m_uiMemLogNum;
             m_ucQueueState = item.m_ucQueueState;
             m_strQueueErrMsg = item.m_strQueueErrMsg;
         }
@@ -316,10 +286,10 @@ public:
     CWX_UINT32                       m_uiDefTimeout; ///<缺省的timeout值
     CWX_UINT32                       m_uiMaxTimeout; ///<最大的timeout值
     string                           m_strSubScribe; ///<订阅规则
-    CWX_UINT64                       m_ullCommitSid; ///<已经提交的的最小commit sid
     CWX_UINT64                       m_ullCursorSid; ///<当前cursor的sid
     CWX_UINT64                       m_ullLeftNum; ///<剩余消息的数量
     CWX_UINT32                       m_uiWaitCommitNum; ///<等待commit的消息数量
+    CWX_UINT32                       m_uiMemLogNum; ///<内存中消息的数量
     CWX_UINT8                        m_ucQueueState; ///<队列状态
     string                           m_strQueueErrMsg; //<队列的错误信息
 };
@@ -414,10 +384,10 @@ public:
             info.m_uiDefTimeout = iter->second->getDefTimeout();
             info.m_uiMaxTimeout = iter->second->getMaxTimeout();
             info.m_strSubScribe = iter->second->getSubscribeRule();
-            info.m_ullCommitSid = iter->second->getCommittedSid();
             info.m_ullCursorSid = iter->second->getCursorSid();
             info.m_ullLeftNum = iter->second->getMqNum();
             info.m_uiWaitCommitNum = iter->second->getWaitCommitNum();
+            info.m_uiMemLogNum = iter->second->getMemMsgMap().size();
             if (iter->second->getCursor())
             {
                 info.m_ucQueueState = iter->second->getCursor()->getSeekState();

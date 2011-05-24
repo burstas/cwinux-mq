@@ -3,7 +3,6 @@
 CwxMqQueue::CwxMqQueue(string strName,
                        string strUser,
                        string strPasswd,
-                       CWX_UINT64 ullStartSid,
                        bool    bCommit,
                        string strSubscribe,
                        CWX_UINT32 uiDefTimeout,
@@ -13,7 +12,6 @@ CwxMqQueue::CwxMqQueue(string strName,
     m_strName = strName;
     m_strUser = strUser;
     m_strPasswd = strPasswd;
-    m_ullStartSid = ullStartSid;
     m_bCommit = bCommit;
     m_uiDefTimeout = uiDefTimeout;
     m_uiMaxTimeout = uiMaxTimeout;
@@ -21,7 +19,6 @@ CwxMqQueue::CwxMqQueue(string strName,
     m_binLog = pBinlog;
     m_pUncommitMsg =NULL;
     m_cursor = NULL;
-    m_ullStartMaxUnCommitSid = 0;
 }
 
 CwxMqQueue::~CwxMqQueue()
@@ -58,7 +55,10 @@ CwxMqQueue::~CwxMqQueue()
     m_uncommitMap.clear();
 }
 
-int CwxMqQueue::init(string& strErrMsg)
+int CwxMqQueue::init(CWX_UINT64 ullLastCommitSid,
+                     set<CWX_UINT64>& uncommitSid,
+                     set<CWX_UINT64>& commitSid,
+                     string& strErrMsg)
 {
     if (m_memMsgMap.size())
     {
@@ -74,9 +74,6 @@ int CwxMqQueue::init(string& strErrMsg)
     if (m_cursor) m_binLog->destoryCurser(m_cursor);
     m_cursor = NULL;
 
-    m_startDispatchedSid.clear();
-    m_startUncommitSid.clear();
-    m_ullStartMaxUnCommitSid = 0;
 
     if (m_pUncommitMsg)
     {
@@ -107,6 +104,11 @@ int CwxMqQueue::init(string& strErrMsg)
     {
         return -1;
     }
+
+    m_ullLastCommitSid = ullLastCommitSid; ///<日志文件记录的cursor的sid
+    m_lastUncommitSid = uncommitSid; ///<m_ullLastCommitSid之前未commit的binlog
+    m_lastCommitSid = commitSid;
+
     return 0;
 }
 
@@ -227,7 +229,8 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
 
     if (!m_cursor)
     {
-        if (m_ullStartSid < m_binLog->getMaxSid())
+        CWX_UINT64 ullStartSid = getStartSid();
+        if (ullStartSid < m_binLog->getMaxSid())
         {
             m_cursor = m_binLog->createCurser();
             if (!m_cursor)
@@ -236,7 +239,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
                 strcpy(szErr2K, "Failure to create cursor");
                 return -1;
             }
-            iRet = m_binLog->seek(m_cursor, m_ullStartSid);
+            iRet = m_binLog->seek(m_cursor, ullStartSid);
             if (1 != iRet)
             {
                 if (-1 == iRet)
@@ -252,7 +255,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
                 err_num = CWX_MQ_INNER_ERR;
                 return -1;
             }
-            if (m_ullStartSid ==m_cursor->getHeader().getSid())
+            if (ullStartSid ==m_cursor->getHeader().getSid())
             {
                 iRet = m_binLog->next(m_cursor);
                 if (0 == iRet) return 0; ///<到了尾部
@@ -301,27 +304,26 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
             if (!CwxMqPoco::isContinueSeek(uiSkipNum)) return 2;
             continue;
         }
-
         bFetch = false;
-        if (m_cursor->getHeader().getSid() <= m_ullStartMaxUnCommitSid)
-        {
-            if (m_startUncommitSid.size() &&
-                (m_startUncommitSid.find(m_cursor->getHeader().getSid()) != m_startUncommitSid.end()))
+        if (m_cursor->getHeader().getSid() <= m_ullLastCommitSid)
+        {//只取m_lastUncommitSid中的数据
+            if (m_lastUncommitSid.size() && 
+                (m_lastUncommitSid.find(m_cursor->getHeader().getSid()) != m_lastUncommitSid.end()))
             {
                 bFetch = true;
-                m_startUncommitSid.erase(m_startUncommitSid.find(m_cursor->getHeader().getSid()));
+                m_lastUncommitSid.erase(m_lastUncommitSid.find(m_cursor->getHeader().getSid()));
             }
         }
         else
-        {
-            if (!m_startDispatchedSid.size() ||
-                (m_startDispatchedSid.find(m_cursor->getHeader().getSid()) != m_startDispatchedSid.end()))
+        {//不取m_lastCommitSid中已经commit的数据
+            if (!m_lastCommitSid.size()||
+                (m_lastCommitSid.find(m_cursor->getHeader().getSid()) == m_lastCommitSid.end()))
             {
                 bFetch = true;
             }
             else
             {
-                m_startDispatchedSid.erase(m_startDispatchedSid.find(m_cursor->getHeader().getSid()));
+                m_lastCommitSid.erase(m_lastCommitSid.find(m_cursor->getHeader().getSid()));
             }
         }
 
@@ -401,16 +403,17 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
 
 CWX_UINT64 CwxMqQueue::getMqNum()
 {
+    CWX_UINT64 ullStartSid = getStartSid();
     if (!m_cursor)
     {
-        if (m_ullStartSid < m_binLog->getMaxSid())
+        if (ullStartSid < m_binLog->getMaxSid())
         {
             m_cursor = m_binLog->createCurser();
             if (!m_cursor)
             {
                 return 0;
             }
-            int iRet = m_binLog->seek(m_cursor, m_ullStartSid);
+            int iRet = m_binLog->seek(m_cursor, ullStartSid);
             if (1 != iRet)
             {
                 m_binLog->destoryCurser(m_cursor);
@@ -423,6 +426,63 @@ CWX_UINT64 CwxMqQueue::getMqNum()
     return m_binLog->leftLogNum(m_cursor) + m_memMsgMap.size();
 }
 
+void CwxMqQueue::getQueueDumpInfo(CWX_UINT64 ullLastCommitSid,
+                      set<CWX_UINT64>& uncommitSid,
+                      set<CWX_UINT64>& commitSid)
+{
+    if (m_cursor && (CwxBinLogMgr::CURSOR_STATE_READY == m_cursor->getSeekState()))
+    {///cursor有效，此时，m_lastUncommitSid中小于cursor sid的记录应该删除
+        ///原因是：1、已有记录已经失效；2、才内存或uncommit中记录。
+        set<CWX_UINT64>::iterator iter = m_lastUncommitSid.begin();
+        while(iter != m_lastUncommitSid.end())
+        {
+            if (*iter >= m_cursor->getHeader().getSid()) break;
+            m_lastUncommitSid.erase(iter);
+            iter = m_lastUncommitSid.begin();
+        }
+        ///m_lastCommitSid中，小于cursor sid的记录应该删除
+        ///因为其记录的是cursor sid后的commit记录。
+        iter = m_lastCommitSid.begin();
+        while(iter != m_lastCommitSid.end())
+        {
+            if (*iter >= m_cursor->getHeader().getSid()) break;
+            m_lastCommitSid.erase(iter);
+            iter = m_lastCommitSid.begin();
+        }
+        ullLastCommitSid = m_cursor->getHeader().getSid();
+    }
+    else
+    {
+        ullLastCommitSid = m_ullLastCommitSid;
+    }
+    {//形成未commit的sid
+        uncommitSid.clear();
+        //添加m_lastUncommitSid中的记录
+        uncommitSid = m_lastUncommitSid;
+        //添加m_uncommitMap中的记录
+        {
+            map<CWX_UINT64, void*>::iterator iter = m_uncommitMap.begin();
+            while(iter != m_uncommitMap.end())
+            {
+                uncommitSid.insert(iter->first);
+                iter++;
+            }
+        }
+        //添加m_memMsgMap中的记录
+        {
+            map<CWX_UINT64, CwxMsgBlock*>::iterator iter = m_memMsgMap.begin();
+            while(iter != m_memMsgMap.end())
+            {
+                uncommitSid.insert(iter->first);
+                iter++;
+            }
+        }
+    }
+    {///形成commit的记录
+        commitSid.clear();
+        commitSid = m_lastCommitSid;
+    }
+}
 
 CwxMqQueueMgr::CwxMqQueueMgr()
 {
