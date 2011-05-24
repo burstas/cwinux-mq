@@ -121,7 +121,24 @@ public:
     ///添加自start sid后，已经commit的消息sid
     void addCommitSid(CWX_UINT64 ullSid)
     {
-        m_dispatchSid.insert(ullSid);
+        set<CWX_UINT64>::iterator iter;
+        if (ullSid <= m_ullMaxUnCommitSid)
+        {//删除未commit sid
+            iter = m_uncommitSid.find(ullSid);
+            if (iter != m_uncommitSid.end())
+            {
+                m_uncommitSid.erase(iter);
+            }
+            return;
+        }
+        m_dispatchedSid.insert(ullSid);
+    }
+    ///添加flush文件时，未提交的sid，必须在addCommitSid之前完成
+    void addUnCommitSid(CWX_UINT64 ullSid)
+    {
+        CWX_ASSERT(!m_dispatchedSid.size());
+        if (m_ullMaxUnCommitSid < ullSid) m_ullMaxUnCommitSid = ullSid;
+        m_uncommitSid.insert(ullSid); ///<未commit的sid
     }
 
     inline string const& getName() const
@@ -166,25 +183,40 @@ public:
     }
     inline CWX_UINT64 getCommittedSid() const
     {
-        CWX_UINT64 ullSid = m_ullStartSid;
-        if (m_ullStartSid < m_binLog->getMinSid())
+        CWX_UINT64 ullSid = 0;
+        if (m_uncommitMap.size()||m_memMsgMap.size())
         {
-            if (m_binLog->getMinSid()) m_ullStartSid = m_binLog->getMinSid()-1;
-        }
-        if (m_uncommitMap.size())
-        {
-            ullSid = m_uncommitMap.begin()->first - 1;
+            if (m_uncommitMap.size())
+                ullSid = m_uncommitMap.begin()->first - 1;
+            if (m_memMsgMap.size())
+            {
+                if (ullSid > m_memMsgMap.begin()->first)
+                {
+                    ullSid = m_memMsgMap.begin()->first - 1;
+                }
+            }
         }
         else
         {
-            ullSid = m_ullMaxCommitSid;
+            if (m_cursor && !m_cursor->isDangling()) 
+            {
+                ullSid = m_cursor->getHeader().getSid();
+            }
+            else if (m_ullStartSid  < m_binLog->getMinSid())
+            {
+                ullSid = m_binLog->getMinSid()-1;
+            }
+            else
+            {
+                ullSid = m_ullStartSid;
+            }
         }
         return ullSid;
     }
     inline CWX_UINT64 getCursorSid() const
     {
         if (m_cursor && !m_cursor->isDangling()) return m_cursor->getHeader().getSid();
-        return m_ullMaxCommitSid;
+        return m_ullStartSid;
     }
     CWX_UINT64 getMqNum();
 private:
@@ -201,7 +233,6 @@ private:
     string                           m_strUser; ///<队列鉴权的用户名
     string                           m_strPasswd; ///<队列鉴权的口令
     CWX_UINT64                       m_ullStartSid; ///<队列开始的sid
-    CWX_UINT64                       m_ullMaxCommitSid; ///<最大的commit sid号
     bool                             m_bCommit; ///<是否commit类型的队列
     CWX_UINT32                       m_uiDefTimeout; ///<缺省的timeout值
     CWX_UINT32                       m_uiMaxTimeout; ///<最大的timeout值
@@ -209,9 +240,11 @@ private:
     CwxBinLogMgr*                    m_binLog; ///<binlog
     CwxMinHeap<CwxMqQueueHeapItem>*  m_pUncommitMsg; ///<commit队列中未commit的消息
     map<CWX_UINT64, void*>           m_uncommitMap; ///<commit队列中未commit的消息sid索引
-    set<CWX_UINT64>                  m_dispatchSid; ///<已经分发的消息
+    set<CWX_UINT64>                  m_uncommitSid; ///<未commit的sid
+    CWX_UINT64                       m_ullMaxUnCommitSid; ///<最大的未commit的sid
+    set<CWX_UINT64>                  m_dispatchedSid; ///<已经分发的消息
     CwxBinLogCursor*                 m_cursor; ///<队列的游标
-    CwxSTail<CwxMsgBlock>*           m_memMsgTail; ///<队列的数据
+    map<CWX_UINT64, CwxMsgBlock*>    m_memMsgMap;///<发送失败消息队列
     CwxMqSubscribe                   m_subscribe; ///<订阅
 };
 

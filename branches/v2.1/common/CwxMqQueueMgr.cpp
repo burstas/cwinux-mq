@@ -14,7 +14,6 @@ CwxMqQueue::CwxMqQueue(string strName,
     m_strUser = strUser;
     m_strPasswd = strPasswd;
     m_ullStartSid = ullStartSid;
-    m_ullMaxCommitSid = ullStartSid;
     m_bCommit = bCommit;
     m_uiDefTimeout = uiDefTimeout;
     m_uiMaxTimeout = uiMaxTimeout;
@@ -22,21 +21,22 @@ CwxMqQueue::CwxMqQueue(string strName,
     m_binLog = pBinlog;
     m_pUncommitMsg =NULL;
     m_cursor = NULL;
-    m_memMsgTail = NULL;
+    m_ullMaxUnCommitSid = 0;
 }
 
 CwxMqQueue::~CwxMqQueue()
 {
     if (m_cursor) m_binLog->destoryCurser(m_cursor);
-    if (m_memMsgTail->count())
+    if (m_memMsgMap.size())
     {
-        CwxMsgBlock* msg = NULL;
-        while((msg=m_memMsgTail->pop_head()))
+        map<CWX_UINT64, CwxMsgBlock*>::iterator iter = m_memMsgMap.begin();
+        while(iter != m_memMsgMap.end())
         {
-            CwxMsgBlockAlloc::free(msg);
+            CwxMsgBlockAlloc::free(iter->second);
+            iter++;
         }
+        m_memMsgMap.clear();
     }
-    delete m_memMsgTail;
     if (m_pUncommitMsg)
     {
         CwxMqQueueHeapItem* item=NULL;
@@ -60,24 +60,23 @@ CwxMqQueue::~CwxMqQueue()
 
 int CwxMqQueue::init(string& strErrMsg)
 {
-    if (m_memMsgTail)
+    if (m_memMsgMap.size())
     {
-        if (m_memMsgTail->count())
+        map<CWX_UINT64, CwxMsgBlock*>::iterator iter = m_memMsgMap.begin();
+        while(iter != m_memMsgMap.end())
         {
-            CwxMsgBlock* msg = NULL;
-            while((msg=m_memMsgTail->pop_head()))
-            {
-                CwxMsgBlockAlloc::free(msg);
-            }
+            CwxMsgBlockAlloc::free(iter->second);
+            iter++;
         }
-        delete m_memMsgTail;
+        m_memMsgMap.clear();
     }
-    m_memMsgTail = new CwxSTail<CwxMsgBlock>;
 
     if (m_cursor) m_binLog->destoryCurser(m_cursor);
     m_cursor = NULL;
 
-    m_dispatchSid.clear();
+    m_dispatchedSid.clear();
+    m_uncommitSid.clear();
+    m_ullMaxUnCommitSid = 0;
 
     if (m_pUncommitMsg)
     {
@@ -129,9 +128,10 @@ int CwxMqQueue::getNextBinlog(CwxMqTss* pTss,
         if (uiTimeout > m_uiMaxTimeout) uiTimeout = m_uiMaxTimeout;
     }
 
-    if (m_memMsgTail && m_memMsgTail->count())
+    if (m_memMsgMap.size())
     {
-        msg = m_memMsgTail->pop_head();
+        msg = m_memMsgMap.begin()->second;
+        m_memMsgMap.erase(m_memMsgMap.begin())
     }
     else
     {
@@ -172,11 +172,10 @@ int CwxMqQueue::commitBinlog(CWX_UINT64 ullSid, bool bCommit=true)
         if (bCommit)
         {
             delete item;
-            if (m_ullMaxCommitSid < ullSid) m_ullMaxCommitSid = ullSid;
         }
         else
         {
-            m_memMsgTail->push_head(item->msg());
+            m_memMsgMap[ullSid] = item->msg();
             item->msg(NULL);
             delete item;
         }
@@ -187,11 +186,10 @@ int CwxMqQueue::commitBinlog(CWX_UINT64 ullSid, bool bCommit=true)
         if (bCommit)
         {
             CwxMsgBlockAlloc::free(msg);
-            if (m_ullMaxCommitSid < ullSid) m_ullMaxCommitSid = ullSid;
         }
         else
         {
-            m_memMsgTail->pop_head(msg);
+            m_memMsgMap[ullSid] = msg;
         }
     }
     m_uncommitMap.erase(iter);
@@ -209,7 +207,7 @@ void CwxMqQueue::checkTimeout(CWX_UINT32 ttTimestamp)
             if (m_pUncommitMsg->top()->timestamp() > ttTimestamp) break;
             item = m_pUncommitMsg->pop();
             m_uncommitMap.erase(m_uncommitMap.find(item->sid()));
-            m_memMsgTail->push_head(item->msg());
+            m_memMsgMap[item->sid()] = item->msg();
             item->msg(NULL);
             delete item;
         }
@@ -282,9 +280,10 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
             return -1;
         }
     }
+    CWX_UINT32 uiSkipNum = 0;
+    bool bFetch = false;
     do 
     {
-        CWX_UINT32 uiSkipNum = 0;
         while(!CwxMqPoco::isSubscribe(m_subscribe,
             false,
             m_cursor->getHeader().getGroup(),
@@ -302,8 +301,9 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
             if (!CwxMqPoco::isContinueSeek(uiSkipNum)) return 2;
             continue;
         }
-        if (!m_dispatchSid.size() ||
-            (m_dispatchSid.find(m_cursor->getHeader()->getSid()) == m_dispatchSid.end()))
+
+        if (!m_dispatchedSid.size() ||
+            (m_dispatchedSid.find(m_cursor->getHeader()->getSid()) == m_dispatchedSid.end()))
         {
             //fetch data
             ///获取binlog的data长度
@@ -365,7 +365,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
         }
         else
         {
-            m_dispatchSid.erase(m_cursor->getHeader()->getSid());
+            m_dispatchedSid.erase(m_cursor->getHeader()->getSid());
         }
         uiSkipNum ++;
         if (!CwxMqPoco::isContinueSeek(uiSkipNum)) return 2;
@@ -402,7 +402,7 @@ CWX_UINT64 CwxMqQueue::getMqNum()
         }
         return 0;
     }
-    return m_binLog->leftLogNum(m_cursor) + m_memMsgTail->count();
+    return m_binLog->leftLogNum(m_cursor) + m_memMsgMap.size();
 }
 
 
