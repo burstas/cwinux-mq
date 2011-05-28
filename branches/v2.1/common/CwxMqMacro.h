@@ -50,6 +50,8 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_NEXT    "next"
 #define CWX_MQ_DEF_TIMEOUT "def_timeout"
 #define CWX_MQ_MAX_TIMEOUT "max_timeout"
+#define CWX_MQ_COMMIT "commit"
+#define CWX_MQ_UNCOMMIT "uncommit"
 
 ///错误代码定义
 #define CWX_MQ_SUCCESS          0  ///<成功
@@ -79,4 +81,10 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_PROXY_NO_AUTH          102 ///<消息的group被禁止
 #define CWX_MQ_PROXY_TIMEOUT          103 ///<发送超时
 #define CWX_MQ_PROXY_MQ_INVALID       104 ///<mq服务不可用
+
+
+
+#define CWX_MQ_MIN_TIMEOUT_SECOND     1 ///<最小的超时秒数
+#define CWX_MQ_MAX_TIMEOUT_SECOND     300 ///<最大的超时秒数
+#define CWX_MQ_DEF_TIMEOUT_SECOND     5  ///<缺省的超时秒数
 #endif

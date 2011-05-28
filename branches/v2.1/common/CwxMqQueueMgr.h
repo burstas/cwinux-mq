@@ -230,69 +230,6 @@ private:
 };
 
 
-class CwxMqQueueInfo
-{
-public:
-    CwxMqQueueInfo()
-    {
-        m_bCommit = false;
-        m_uiDefTimeout = 0;
-        m_uiMaxTimeout = 0;
-        m_ullCursorSid = 0;
-        m_ullLeftNum = 0;
-        m_uiWaitCommitNum = 0;
-        m_uiMemLogNum = 0;
-        m_ucQueueState = CwxBinLogMgr::CURSOR_STATE_UNSEEK;
-    }
-public:
-    CwxMqQueueInfo(CwxMqQueueInfo const& item)
-    {
-        m_strName = item.m_strName; ///<队列的名字
-        m_strUser = item.m_strUser; ///<队列鉴权的用户名
-        m_bCommit = item.m_bCommit; ///<是否commit类型的队列
-        m_uiDefTimeout = item.m_uiDefTimeout; ///<缺省的timeout值
-        m_uiMaxTimeout = item.m_uiMaxTimeout; ///<最大的timeout值
-        m_strSubScribe = item.m_strSubScribe; ///<订阅规则
-        m_ullCursorSid = item.m_ullCursorSid;
-        m_ullLeftNum = item.m_ullLeftNum; ///<剩余消息的数量
-        m_uiWaitCommitNum = item.m_uiWaitCommitNum; ///<等待commit的消息数量
-        m_uiMemLogNum = item.m_uiMemLogNum;
-        m_ucQueueState = item.m_ucQueueState;
-        m_strQueueErrMsg = item.m_strQueueErrMsg;
-    }
-    CwxMqQueueInfo& operator=CwxMqQueueInfo(CwxMqQueueInfo const& item)
-    {
-        if (this != &item)
-        {
-            m_strName = item.m_strName; ///<队列的名字
-            m_strUser = item.m_strUser; ///<队列鉴权的用户名
-            m_bCommit = item.m_bCommit; ///<是否commit类型的队列
-            m_uiDefTimeout = item.m_uiDefTimeout; ///<缺省的timeout值
-            m_uiMaxTimeout = item.m_uiMaxTimeout; ///<最大的timeout值
-            m_strSubScribe = item.m_strSubScribe; ///<订阅规则
-            m_ullCursorSid = item.m_ullCursorSid;
-            m_ullLeftNum = item.m_ullLeftNum; ///<剩余消息的数量
-            m_uiWaitCommitNum = item.m_uiWaitCommitNum; ///<等待commit的消息数量
-            m_uiMemLogNum = item.m_uiMemLogNum;
-            m_ucQueueState = item.m_ucQueueState;
-            m_strQueueErrMsg = item.m_strQueueErrMsg;
-        }
-        return *this;
-    }
-public:
-    string                           m_strName; ///<队列的名字
-    string                           m_strUser; ///<队列鉴权的用户名
-    bool                             m_bCommit; ///<是否commit类型的队列
-    CWX_UINT32                       m_uiDefTimeout; ///<缺省的timeout值
-    CWX_UINT32                       m_uiMaxTimeout; ///<最大的timeout值
-    string                           m_strSubScribe; ///<订阅规则
-    CWX_UINT64                       m_ullCursorSid; ///<当前cursor的sid
-    CWX_UINT64                       m_ullLeftNum; ///<剩余消息的数量
-    CWX_UINT32                       m_uiWaitCommitNum; ///<等待commit的消息数量
-    CWX_UINT32                       m_uiMemLogNum; ///<内存中消息的数量
-    CWX_UINT8                        m_ucQueueState; ///<队列状态
-    string                           m_strQueueErrMsg; //<队列的错误信息
-};
 class CwxMqQueueMgr
 {
 public:

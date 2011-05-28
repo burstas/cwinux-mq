@@ -1,83 +1,48 @@
-#ifndef __CWX_MQ_SYS_FILE_H__
-#define __CWX_MQ_SYS_FILE_H__
+#ifndef __CWX_MQ_QUEUE_LOG_FILE_H__
+#define __CWX_MQ_QUEUE_LOG_FILE_H__
 /*
 版权声明：
     本软件遵循GNU GPL V3（http://www.gnu.org/licenses/gpl.html），
     联系方式：email:cwinux@gmail.com；微博:http://t.sina.com.cn/cwinux
 */
 #include "CwxMqMacro.h"
-#include "CwxSysLogFile.h"
 #include "CwxMutexLock.h"
 #include "CwxStl.h"
 #include "CwxStlFunc.h"
 
 /**
-@file CwxMqSysFile.h
-@brief MQ消息分发的分发点记录文件。
+@file CwxMqQueueLogFile.h
+@brief MQ Queue 队列的log对象定义。
 @author cwinux@gmail.com
 @version 1.0
-@date 2010-09-23
+@date 2011-05-27
 @warning
 @bug
 */
 
-class CwxMqSysFile
+
+class CwxMqQueueLogFile
 {
 public:
     enum
     {
-        SWITCH_SYS_FILE_NUM = 100000, ///<同一个系统文件，写多少次切换文件
-        DEF_WRITE_DISK_INTERNAL = 100 ///<所有消息队列的sid多少次，写到数据文件。此只是write而不fsync
+        SWITCH_FILE_LOG_NUM = 100000, ///<写入多少个Log记录，需要切换日志文件
     };
 public:
-    CwxMqSysFile(CWX_UINT32 uiWriteDiskInternal, string const& strFileName);
-    ~CwxMqSysFile();
+    CwxMqQueueLogFile(CWX_UINT32 uiFsyncInternal, string const& strFileName);
+    ~CwxMqQueueLogFile();
 public:
     ///初始化系统文件；0：成功；-1：失败
-    int init(set<string> const& queues);
+    int init(map<string, CwxMqQueueInfo>& queues,
+        map<string, set<CWX_UINT64>*>& uncommitSets,
+        map<string, set<CWX_UINT64>*>& commitSets);
+    ///保存队列信息；0：成功；-1：失败
+    int save(map<string, CwxMqQueueInfo> const& queues, map<string, set<CWX_UINT64>*>& uncommitSets);
+    ///写commit记录；-1：失败；否则返回已经写入的log数量
+    int log(char const* queue, CWX_UINT64 sid);
+    ///强行fsync日志文件；0：成功；-1：失败
+    int fsync();
 public:
-    ///提交系统文件；0：成功；-1：失败
-    inline int commit()
-    {
-        if (!m_bValid) return -1;
-        {
-            if (m_uiModifyCount)
-            {
-                if (!write()) return -1;
-            }
-            return m_pSysLogFile->commit();
-        }
-    }
-    ///记录新的sid；1：成功；0：队列不存在；-1：失败
-    inline int setSid(string const& strQueue, CWX_UINT64 ullSid, bool bMoreChange=true)
-    {
-        if (!m_bValid) return -1;
-        {
-            map<string, CWX_UINT64>::iterator iter=m_sids.find(strQueue);
-            if (iter == m_sids.end()) return 0;
-            if (bMoreChange && (iter->second>=ullSid)) return 1;
-            m_uiModifyCount++;
-            iter->second = ullSid;
-            if (m_uiModifyCount > m_uiWriteDiskInternal)
-            {
-                if (!write()) return -1;
-            }
-        }
-        return 1;
-    }
-    ///获取当前记录的sid
-    inline bool getSid(string const& strQueue, CWX_UINT64& ullSid) const
-    {
-        map<string, CWX_UINT64>::const_iterator iter = m_sids.find(strQueue);
-        if (iter == m_sids.end()) return false;
-        ullSid = iter->second;
-        return true;
-    }
-    ///获取队列的当前sid
-    inline map<string, CWX_UINT64> const& getQueues() const
-    {
-        return m_sids;
-    }
     ///获取系统文件的名字
     inline string const& getFileName() const
     {
@@ -91,60 +56,53 @@ public:
     ///是否有效
     inline bool isValid() const
     {
-        return m_bValid;
+        return m_fd!=NULL;
     }
-    ///是否存在队列
-    inline bool isExistQueue(string const& strQueue)
+    inline CWX_UINT32 getCurLogCount() const
     {
-        return m_sids.find(strQueue) != m_sids.end();
+        return m_uiCurLogCount;
+    }
+    inline CWX_UINT32 getTotalLogCount() const
+    {
+        return m_uiTotalLogCount;
     }
 private:
-    inline bool write()
+    ///0：成功；-1：失败
+    int prepare();
+    ///0：成功；-1：失败
+    int load(map<string, CwxMqQueueInfo>& queues,
+        map<string, set<CWX_UINT64>*>& uncommitSets,
+        map<string, set<CWX_UINT64>*>& commitSets);
+    ///0：成功；-1：失败
+    int parseQueue(string const& line, CwxMqQueueInfo& queue);
+    ///0：成功；-1：失败
+    int parseSid(string const& line, string& queue, CWX_UINT64& ullSid);
+    ///关闭文件
+    inline void closeFile(bool bSync=true)
     {
-        m_uiModifyCount = 0;
-        map<string, CWX_UINT64>::const_iterator iter = m_sids.begin();
-        if (!m_szBuf)
+        if (m_fd)
         {
-            CWX_UINT32 uiLen = 0;
-            while(iter != m_sids.end())
+            if (bSync) ::fsync(fileno(m_fd));
+            if (m_bLock)
             {
-                uiLen = iter->first.length() + 64;
-                iter++;
+                CwxFile::unlock(fileno(m_fd));
+                m_bLock = false;
             }
-            m_szBuf = new char[uiLen];
-            if (!m_szBuf)
-            {
-                CwxCommon::snprintf(m_szErr2K, 2047, "Failure to malloc buf, size=%u", uiLen);
-                return false;
-            }
-            iter = m_sids.begin();
+            fclose(m_fd);
+            m_fd = NULL;
         }
-        CWX_UINT32 uiPos = 0;
-        char sid[32];
-        while (iter != m_sids.end())
-        {
-            CwxCommon::toString(iter->second, sid, 16);
-            uiPos += sprintf(m_szBuf + uiPos, "%s=%s\n", iter->first.c_str(), sid);
-            iter++;
-        }
-        if (0 != m_pSysLogFile->write(m_szBuf, uiPos, true))
-        {
-            m_bValid = false;
-            strcpy(m_szErr2K, m_pSysLogFile->getErrMsg());
-            return false;
-        }
-        return true;
     }
-
 private:
     string          m_strFileName; ///<系统文件名字
-    map<string, CWX_UINT64>  m_sids; ///<mq的map
-    CwxSysLogFile*  m_pSysLogFile; ///<系统文件handle
-    CWX_UINT32      m_uiWriteDiskInternal; ///<sid修改多少次写一次硬盘
-    CWX_UINT32      m_uiModifyCount; ///<所有sid修改的次数
+    string          m_strOldFileName; ///<旧系统文件名字
+    string          m_strNewFileName; ///<新系统文件的名字
+    FILE*           m_fd; ///<文件handle
+    bool            m_bLock; ///<文件是否已经加锁
+    CWX_UINT32      m_uiFsyncInternal; ///<flush硬盘的间隔
+    CWX_UINT32      m_uiCurLogCount; ///<自上次fsync来，log记录的次数
+    CWX_UINT32      m_uiTotalLogCount; ///<当前文件log的数量
+    CWX_UINT32      m_uiLine; ///<读取文件的当前行数
     char            m_szErr2K[2048]; ///<错误消息
-    bool            m_bValid;  ///<是否有效
-    char*           m_szBuf; ///<sid输出的buf。
 };
 
 #endif 
