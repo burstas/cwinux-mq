@@ -37,7 +37,7 @@ public:
         map<string, set<CWX_UINT64>*>& uncommitSets,
         map<string, set<CWX_UINT64>*>& commitSets);
     ///保存队列信息；0：成功；-1：失败
-    int save(map<string, CwxMqQueueInfo> const& queues, map<string, set<CWX_UINT64>*>& uncommitSets);
+    int save(map<string, CwxMqQueueInfo> const& queues, map<string, set<CWX_UINT64>*> const& uncommitSets);
     ///写commit记录；-1：失败；否则返回已经写入的log数量
     int log(char const* queue, CWX_UINT64 sid);
     ///强行fsync日志文件；0：成功；-1：失败

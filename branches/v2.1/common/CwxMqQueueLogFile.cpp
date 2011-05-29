@@ -71,7 +71,7 @@ int CwxMqQueueLogFile::init(map<string, CwxMqQueueInfo>& queues,
 }
 
 ///保存队列信息；0：成功；-1：失败
-int CwxMqQueueLogFile::save(map<string, CwxMqQueueInfo> const& queues, map<string, set<CWX_UINT64>*>& uncommitSets)
+int CwxMqQueueLogFile::save(map<string, CwxMqQueueInfo> const& queues, map<string, set<CWX_UINT64>*> const& uncommitSets)
 {
     if (!m_fd) return -1;
     //写新文件
@@ -88,7 +88,7 @@ int CwxMqQueueLogFile::save(map<string, CwxMqQueueInfo> const& queues, map<strin
     char line[1024];
     char szSid[64];
     size_t len = 0;
-    map<string, CwxMqQueueInfo>::iterator iter_queue = queues.begin();
+    map<string, CwxMqQueueInfo>::const_iterator iter_queue = queues.begin();
     while(iter_queue != queues.end())
     {//queue:name=q1|sid=12345|commit=true|def_timeout=5|max_timeout=300|user=u_q1|passwd=p_q1|subcribe=*
         len = CwxCommon::snprintf(line, 1023, "%s:name=%s|sid=%s|commit=%s|def_timeout=%u|max_timeout=%u|user=%s|passwd=%s|subscribe=%s\n",
@@ -109,6 +109,29 @@ int CwxMqQueueLogFile::save(map<string, CwxMqQueueInfo> const& queues, map<strin
             return -1;
         }
         iter_queue++;
+    }
+    //写未提交的sid
+    map<string, set<CWX_UINT64>*>::const_iterator iter_sid = uncommitSets.begin();
+    while(iter_sid != uncommitSets.end())
+    {
+        set<CWX_UINT64>::const_iterator iter = iter_sid->second->begin();
+        while(iter != iter_sid->second->end())
+        {//uncommit:name=q1|sid=1
+            len = CwxCommon::snprintf(line, 1023, "%s:name=%s|sid=%s",
+                CWX_MQ_UNCOMMIT,
+                iter_sid->first.c_str(),
+                CwxCommon::toString(*iter, szSid, 10));
+            if (len != write(fd, line, len))
+            {
+                CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write new sys file:%s, errno=%d",
+                    m_strNewFileName.c_str(),
+                    errno);
+                closeFile(true);
+                return -1;
+            }
+            iter++;
+        }
+        iter_sid++;
     }
     ::fsync(fd);
     ::close(fd);
