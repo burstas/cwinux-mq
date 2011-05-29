@@ -23,7 +23,8 @@
 #include "CwxMqTss.h"
 #include "CwxMqDef.h"
 #include "CwxMinHeap.h"
-#include "
+#include "CwxMqQueueLogFile.h"
+
 class CwxMqQueueHeapItem
 {
 public:
@@ -99,8 +100,8 @@ public:
 public:
     ///0:成功;-1：失败
     int init(CWX_UINT64 ullLastCommitSid,
-        set<CWX_UINT64>& uncommitSid,
-        set<CWX_UINT64>& commitSid,
+        set<CWX_UINT64> const& uncommitSid,
+        set<CWX_UINT64> const& commitSid,
         string& strErrMsg);
     ///0：没有消息；
     ///1：获取一个消息；
@@ -233,17 +234,8 @@ private:
 class CwxMqQueueMgr
 {
 public:
-    enum
-    {
-        QUEUE_DEF_TIMEOUT_SECOND = 10,
-        QUEUE_MAX_TIMEOUT_SECOND = 300
-    };
-public:
-    CwxMqQueueMgr(string const& strQueueFile,
-        string const& strQueueLogFile,
-        string const& strQueuePosFile,
-        CWX_UINT32 uiMaxFsyncNum,
-        CWX_UINT32 uiMaxFsyncSecond);
+    CwxMqQueueMgr(string const& strQueueLogFile,
+        CWX_UINT32 uiMaxFsyncNum);
     ~CwxMqQueueMgr();
 public:
     int init(CwxBinLogMgr* binLog);
@@ -309,51 +301,19 @@ public:
         CwxMutexGuard<CwxMutexLock>  lock;
         return m_queues.size();
     }
-    inline void getQueuesInfo(list<CwxMqQueueInfo>& queues) const
-    {
-        CwxMqQueueInfo info;
-        map<string, CwxMqQueue*>::const_iterator iter = m_queues.begin();
-        while(iter != m_queues.end())
-        {
-            info.m_strName = iter->second->getName();
-            info.m_strUser = iter->second->getUserName();
-            info.m_bCommit = iter->second->isCommit();
-            info.m_uiDefTimeout = iter->second->getDefTimeout();
-            info.m_uiMaxTimeout = iter->second->getMaxTimeout();
-            info.m_strSubScribe = iter->second->getSubscribeRule();
-            info.m_ullCursorSid = iter->second->getCursorSid();
-            info.m_ullLeftNum = iter->second->getMqNum();
-            info.m_uiWaitCommitNum = iter->second->getWaitCommitNum();
-            info.m_uiMemLogNum = iter->second->getMemMsgMap().size();
-            if (iter->second->getCursor())
-            {
-                info.m_ucQueueState = iter->second->getCursor()->getSeekState();
-                if (CwxBinLogMgr::CURSOR_STATE_ERROR == info.m_ucQueueState)
-                {
-                    info.m_strQueueErrMsg = iter->second->getCursor()->getErrMsg();
-                }
-                else
-                {
-                    info.m_strQueueErrMsg = "";
-                }
-            }
-            else
-            {
-                info.m_ucQueueState = CwxBinLogMgr::CURSOR_STATE_UNSEEK;
-                info.m_strQueueErrMsg = "";
-            }
-            queues.push_back(info);
-            iter++;
-        }
-    }
+    
+    void getQueuesInfo(list<CwxMqQueueInfo>& queues) const;
+private:
+    ///保存数据
+    bool _save();
 
 private:
     map<string, CwxMqQueue*>   m_queues;
     CwxMutexLock               m_lock;
-    string                     m_strQueueFile;
     string                     m_strQueueLogFile;
     CWX_UINT32                 m_uiMaxFsyncNum;
-    CWX_UINT32                 m_uiMaxFsyncSecond;
+    CwxMqQueueLogFile*         m_mqLogFile;
+    CwxBinLogMgr*              m_binLog;
 };
 
 

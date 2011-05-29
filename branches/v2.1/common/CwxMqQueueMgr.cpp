@@ -56,8 +56,8 @@ CwxMqQueue::~CwxMqQueue()
 }
 
 int CwxMqQueue::init(CWX_UINT64 ullLastCommitSid,
-                     set<CWX_UINT64>& uncommitSid,
-                     set<CWX_UINT64>& commitSid,
+                     set<CWX_UINT64> const& uncommitSid,
+                     set<CWX_UINT64> const& commitSid,
                      string& strErrMsg)
 {
     if (m_memMsgMap.size())
@@ -484,49 +484,193 @@ void CwxMqQueue::getQueueDumpInfo(CWX_UINT64 ullLastCommitSid,
     }
 }
 
-CwxMqQueueMgr::CwxMqQueueMgr()
+CwxMqQueueMgr::CwxMqQueueMgr(string const& strQueueLogFile,
+                             CWX_UINT32 uiMaxFsyncNum)
 {
+    m_strQueueLogFile = strQueueLogFile;
+    m_uiMaxFsyncNum = uiMaxFsyncNum;
+    m_mqLogFile = NULL;
+    m_binLog = NULL;
+
 }
 
 CwxMqQueueMgr::~CwxMqQueueMgr()
 {
-    map<string, CwxMqQueue*>::iterator iter =  m_nameQueues.begin();
+    map<string, CwxMqQueue*>::iterator iter =  m_queues.begin();
     while(iter != m_nameQueues.end())
     {
         delete iter->second;
         iter++;
     }
-    m_nameQueues.clear();
-    m_idQueues.clear();
+    if (m_mqLogFile) delete m_mqLogFile;
 }
 
-int CwxMqQueueMgr::init(CwxBinLogMgr* binLog,
-                        map<string, CWX_UINT64> const& queueSid,
-                        map<string, CwxMqConfigQueue> const& queueInfo)
+int CwxMqQueueMgr::init(CwxBinLogMgr* binLog)
 {
-    CWX_UINT32 uiId = QUEUE_ID_START;
+    bool bSuccess = false;
     CwxMqQueue* mq = NULL;
-    map<string, CWX_UINT64>::const_iterator iter=queueSid.begin();
-    map<string, CwxMqConfigQueue>::const_iterator iter_info ;
-    string errMsg;
-    while(iter != queueSid.end())
+    if (m_mqLogFile) delete m_mqLogFile;
+    m_mqLogFile = new CwxMqQueueLogFile(m_uiMaxFsyncNum, m_strQueueLogFile);
+    map<string, CwxMqQueueInfo> queues;
+    map<string, set<CWX_UINT64>*> uncommitSets;
+    map<string, set<CWX_UINT64>*> commitSets;
+    
+    if (0 != m_mqLogFile->init(queues, uncommitSets, commitSets))
     {
-        iter_info = queueInfo.find(iter->first);
-        CWX_ASSERT(iter_info != queueInfo.end());
-        mq = new CwxMqQueue(uiId,
-            iter->first,
-            iter_info->second.m_strUser,
-            iter_info->second.m_strPasswd,
-            iter->second,
-            binLog);
-        if (!CwxMqPoco::parseSubsribe(iter_info->second.m_strSubScribe, mq->getSubscribe(), errMsg))
+        CWX_ERROR(("Failure to init mq queue log-file, err:%s", m_mqLogFile->getErrMsg()));
+        delete m_mqLogFile;
+        m_mqLogFile = NULL;
+        return -1;
+    }
+    set<CWX_UINT64> empty;
+    map<string, CwxMqQueueInfo>::iterator iter_queue = queues.begin();
+    set<CWX_UINT64>* pUncommitSet = NULL;
+    set<CWX_UINT64>* pCommitSet = NULL;
+    string strErr;
+    do 
+    {
+        while(iter_queue != queues.end())
         {
-            delete mq;
-            return -1;
+            mq = new CwxMqQueue(iter_queue->second.m_strName, 
+                iter_queue->second.m_strUser,
+                iter_queue->second.m_strPasswd,
+                iter_queue->second.m_bCommit,
+                iter_queue->second.m_strSubScribe,
+                iter_queue->second.m_uiDefTimeout,
+                iter_queue->second.m_uiMaxTimeout,
+                m_binLog);
+            if (uncommitSets.find(iter_queue->second.m_strName) != uncommitSets.end())
+            {
+                pUncommitSet = uncommitSets[iter_queue->second.m_strName];
+            }
+            else
+            {
+                pUncommitSet = &empty;
+            }
+            if (commitSets.find(iter_queue->second.m_strName) != commitSets.end())
+            {
+                pCommitSet = commitSets[iter_queue->second.m_strName];
+            }
+            else
+            {
+                pCommitSet = &empty;
+            }
+            if (0 != mq->init(iter_queue->second.m_ullCursorSid, *pUncommitSet, *pCommitSet, strErr))
+            {
+                break;
+            }
+            iter_queue ++;
         }
-        m_nameQueues[iter->first] = mq;
-        m_idQueues[uiId++] = mq;
+    } while(0);
+    map<string, set<CWX_UINT64>*>::iterator iter = uncommitSets.begin();
+    while(iter != uncommitSets.end())
+    {
+        delete iter->second;
         iter++;
     }
-    return 0;
+    iter = commitSets.begin();
+    while(iter != commitSets.end())
+    {
+        delete iter->second;
+        iter++;
+    }
+    if (iter_queue != queues.end())
+    {
+        delete m_mqLogFile;
+        m_mqLogFile = NULL;
+    }
+    return iter_queue == queues.end()?0:-1;
+}
+
+
+///0：没有消息；
+///1：获取一个消息；
+///2：达到了搜索点，但没有发现消息；
+///-1：失败；
+///-2：队列不存在
+int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss,
+                  string const& strQueue,
+                  CwxMsgBlock*&msg,
+                  CWX_UINT32 uiTimeout,
+                  int& err_num,
+                  char* szErr2K)
+{
+
+}
+
+///对于非commit类型的队列，bCommit=true此表示消息已经写到socket buf，否则表示写失败。
+///对于commit类型的队列，bCommit=true此表示已经收到对方的commit确认，否则写socket失败。
+///返回值：0：不存在；1：成功；-1：失败；-2：队列不存在
+int CwxMqQueueMgr::commitBinlog(string const& strQueue,
+                 CWX_UINT64 ullSid,
+                 bool bCommit)
+{
+
+}
+///检测commit类型队列超时的消息
+void CwxMqQueueMgr::checkTimeout(CWX_UINT32 ttTimestamp)
+{
+
+}
+///1：成功
+///0：存在
+///-1：其他错误
+int CwxMqQueueMgr::addQueue(string const& strQueue,
+             bool bCommit,
+             string const& strUser,
+             string const& strPasswd,
+             string const& strScribe,
+             CWX_UINT32 uiDefTimeout,
+             CWX_UINT32 uiMaxTimeout,
+             char* szErr2K)
+{
+
+}
+///1：成功
+///0：不存在
+///-1：其他错误
+int CwxMqQueueMgr::delQueue(string const& strQueue,
+             string const& strUser,
+             string const& strPasswd,
+             char* szErr2K)
+{
+
+}
+
+void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues) const
+{
+    CwxMqQueueInfo info;
+    map<string, CwxMqQueue*>::const_iterator iter = m_queues.begin();
+    while(iter != m_queues.end())
+    {
+        info.m_strName = iter->second->getName();
+        info.m_strUser = iter->second->getUserName();
+        info.m_bCommit = iter->second->isCommit();
+        info.m_uiDefTimeout = iter->second->getDefTimeout();
+        info.m_uiMaxTimeout = iter->second->getMaxTimeout();
+        info.m_strSubScribe = iter->second->getSubscribeRule();
+        info.m_ullCursorSid = iter->second->getCursorSid();
+        info.m_ullLeftNum = iter->second->getMqNum();
+        info.m_uiWaitCommitNum = iter->second->getWaitCommitNum();
+        info.m_uiMemLogNum = iter->second->getMemMsgMap().size();
+        if (iter->second->getCursor())
+        {
+            info.m_ucQueueState = iter->second->getCursor()->getSeekState();
+            if (CwxBinLogMgr::CURSOR_STATE_ERROR == info.m_ucQueueState)
+            {
+                info.m_strQueueErrMsg = iter->second->getCursor()->getErrMsg();
+            }
+            else
+            {
+                info.m_strQueueErrMsg = "";
+            }
+        }
+        else
+        {
+            info.m_ucQueueState = CwxBinLogMgr::CURSOR_STATE_UNSEEK;
+            info.m_strQueueErrMsg = "";
+        }
+        queues.push_back(info);
+        iter++;
+    }
 }
