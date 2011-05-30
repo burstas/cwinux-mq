@@ -491,7 +491,7 @@ CwxMqQueueMgr::CwxMqQueueMgr(string const& strQueueLogFile,
     m_uiMaxFsyncNum = uiMaxFsyncNum;
     m_mqLogFile = NULL;
     m_binLog = NULL;
-
+    m_strErrMsg = "Not init".
 }
 
 CwxMqQueueMgr::~CwxMqQueueMgr()
@@ -517,7 +517,9 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog)
     
     if (0 != m_mqLogFile->init(queues, uncommitSets, commitSets))
     {
-        CWX_ERROR(("Failure to init mq queue log-file, err:%s", m_mqLogFile->getErrMsg()));
+        char szBuf[2048];
+        CwxCommon::snprintf(szBuf, 2047, "Failure to init mq queue log-file, err:%s", m_mqLogFile->getErrMsg());
+        m_strErrMsg = szBuf;
         delete m_mqLogFile;
         m_mqLogFile = NULL;
         return -1;
@@ -526,7 +528,6 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog)
     map<string, CwxMqQueueInfo>::iterator iter_queue = queues.begin();
     set<CWX_UINT64>* pUncommitSet = NULL;
     set<CWX_UINT64>* pCommitSet = NULL;
-    string strErr;
     do 
     {
         while(iter_queue != queues.end())
@@ -555,7 +556,7 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog)
             {
                 pCommitSet = &empty;
             }
-            if (0 != mq->init(iter_queue->second.m_ullCursorSid, *pUncommitSet, *pCommitSet, strErr))
+            if (0 != mq->init(iter_queue->second.m_ullCursorSid, *pUncommitSet, *pCommitSet, m_strErrMsg))
             {
                 break;
             }
@@ -595,7 +596,15 @@ int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss,
                   int& err_num,
                   char* szErr2K)
 {
-
+    if (m_mqLogFile)
+    {
+        CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
+        map<string, CwxMqQueue*>::iterator iter = m_queues.find(strQueue);
+        if (iter == m_queues.end()) return -2;
+        return iter->second->getNextBinlog(pTss, msg, uiTimeout, err_num, szErr2K);
+    }
+    if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
+    return -1;
 }
 
 ///对于非commit类型的队列，bCommit=true此表示消息已经写到socket buf，否则表示写失败。
@@ -603,42 +612,136 @@ int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss,
 ///返回值：0：不存在；1：成功；-1：失败；-2：队列不存在
 int CwxMqQueueMgr::commitBinlog(string const& strQueue,
                  CWX_UINT64 ullSid,
-                 bool bCommit)
+                 bool bCommit,
+                 char* szErr2K)
 {
-
+    if (m_mqLogFile)
+    {
+        CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
+        map<string, CwxMqQueue*>::iterator iter = m_queues.find(strQueue);
+        if (iter == m_queues.end()) return -2;
+        int ret = iter->second->commitBinlog(ullSid, bCommit);
+        if (0 == ret) return 0;
+        if (1 == ret)
+        {
+            int num = m_mqLogFile->log(iter->second->getName().c_str(), ullSid);
+            if (-1 == num)
+            {
+                m_strErrMsg = m_mqLogFile->getErrMsg();
+                delete m_mqLogFile;
+                m_mqLogFile = NULL;
+                if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
+                return -1;
+            }
+            if (num >= MQ_SWITCH_LOG_NUM)
+            {
+                if (!_save())
+                {
+                    delete m_mqLogFile;
+                    m_mqLogFile = NULL;
+                    if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
+                    return -1;
+                }
+            }
+        }
+    }
+    if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
+    return -1;
 }
+
+///强行flush mq的log文件
+void CwxMqQueueMgr::commit()
+{
+    if (m_mqLogFile) m_mqLogFile->fsync();
+}
+
 ///检测commit类型队列超时的消息
 void CwxMqQueueMgr::checkTimeout(CWX_UINT32 ttTimestamp)
 {
-
+    CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
+    map<string, CwxMqQueue*>::iterator iter = m_queues.begin();
+    while(iter != m_queues.end())
+    {
+        if (iter->second->isCommit()) iter->second->checkTimeout(ttTimestamp);
+        iter++;
+    }
 }
+
 ///1：成功
 ///0：存在
 ///-1：其他错误
 int CwxMqQueueMgr::addQueue(string const& strQueue,
-             bool bCommit,
-             string const& strUser,
-             string const& strPasswd,
-             string const& strScribe,
-             CWX_UINT32 uiDefTimeout,
-             CWX_UINT32 uiMaxTimeout,
-             char* szErr2K)
+                            CWX_UINT64 ullSid,
+                            bool bCommit,
+                            string const& strUser,
+                            string const& strPasswd,
+                            string const& strScribe,
+                            CWX_UINT32 uiDefTimeout,
+                            CWX_UINT32 uiMaxTimeout,
+                            char* szErr2K)
 {
-
+    if (m_mqLogFile)
+    {
+        CwxWriteLockGuard<CwxRwLock>  lock(&m_lock);
+        map<string, CwxMqQueue*>::iterator iter = m_queues.find(strQueue);
+        if (iter != m_queues.end()) return 0;
+        set<CWX_UINT64> empty;
+        CwxMqQueue* mq = new CwxMqQueue(strQueue, 
+            strUser,
+            strPasswd,
+            bCommit,
+            strScribe,
+            uiDefTimeout,
+            uiMaxTimeout,
+            m_binLog);
+        string strErr;
+        if (0 != mq->init(ullSid, empty, empty, strErr))
+        {
+            delete mq;
+            return -1;
+        }
+        m_queues[strQueue] = mq;
+        if (!_save())
+        {
+            delete m_mqLogFile;
+            m_mqLogFile = NULL;
+            if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
+            return -1;
+        }
+        return 1;
+    }
+    if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
+    return -1;
 }
 ///1：成功
 ///0：不存在
 ///-1：其他错误
 int CwxMqQueueMgr::delQueue(string const& strQueue,
-             string const& strUser,
-             string const& strPasswd,
              char* szErr2K)
 {
-
+    if (m_mqLogFile)
+    {
+        CwxWriteLockGuard<CwxRwLock>  lock(&m_lock);
+        map<string, CwxMqQueue*>::iterator iter = m_queues.find(strQueue);
+        if (iter == m_queues.end()) return 0;
+        delete iter->second;
+        m_queues->erase(iter);
+        if (!_save())
+        {
+            delete m_mqLogFile;
+            m_mqLogFile = NULL;
+            if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
+            return -1;
+        }
+        return 1;
+    }
+    if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
+    return -1;
 }
 
 void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues) const
 {
+    CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
     CwxMqQueueInfo info;
     map<string, CwxMqQueue*>::const_iterator iter = m_queues.begin();
     while(iter != m_queues.end())
@@ -673,4 +776,9 @@ void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues) const
         queues.push_back(info);
         iter++;
     }
+}
+
+bool CwxMqQueueMgr::_save()
+{
+
 }

@@ -234,6 +234,11 @@ private:
 class CwxMqQueueMgr
 {
 public:
+    enum
+    {
+        MQ_SWITCH_LOG_NUM = 100000
+    };
+public:
     CwxMqQueueMgr(string const& strQueueLogFile,
         CWX_UINT32 uiMaxFsyncNum);
     ~CwxMqQueueMgr();
@@ -250,20 +255,24 @@ public:
         CwxMsgBlock*&msg,
         CWX_UINT32 uiTimeout,
         int& err_num,
-        char* szErr2K);
+        char* szErr2K=NULL);
 
     ///对于非commit类型的队列，bCommit=true此表示消息已经写到socket buf，否则表示写失败。
     ///对于commit类型的队列，bCommit=true此表示已经收到对方的commit确认，否则写socket失败。
     ///返回值：0：不存在；1：成功；-1：失败；-2：队列不存在
     int commitBinlog(string const& strQueue,
         CWX_UINT64 ullSid,
-        bool bCommit=true);
+        bool bCommit=true,
+        char* szErr2K=NULL);
+    ///强行flush mq的log文件
+    void commit();
     ///检测commit类型队列超时的消息
     void checkTimeout(CWX_UINT32 ttTimestamp);
     ///1：成功
     ///0：存在
     ///-1：其他错误
     int addQueue(string const& strQueue,
+        CWX_UINT64 ullSid,
         bool bCommit,
         string const& strUser,
         string const& strPasswd,
@@ -275,19 +284,19 @@ public:
     ///0：不存在
     ///-1：其他错误
     int delQueue(string const& strQueue,
-        string const& strUser,
-        string const& strPasswd,
         char* szErr2K=NULL);
+
+    void getQueuesInfo(list<CwxMqQueueInfo>& queues) const;
 
     inline bool isExistQueue(string const& strQueue) const
     {
-        CwxMutexGuard<CwxMutexLock>  lock;
+        CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
         return m_queues.find(strQueue) != m_queues.end();
     }
     //-1：失败；0：队列不存在；1：成功
     inline int authQueue(string const& strQueue, string const& user, string const& passwd) const
     {
-        CwxMutexGuard<CwxMutexLock>  lock;
+        CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
         map<string, CwxMqQueue*>::const_iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return 0;
         if (iter->second.getUserName().length())
@@ -298,22 +307,30 @@ public:
     }
     inline CWX_UINT32 getQueueNum() const
     {
-        CwxMutexGuard<CwxMutexLock>  lock;
+        CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
         return m_queues.size();
+    }    
+    inline bool isValid() const
+    {
+        return m_mqLogFile != NULL;
     }
-    
-    void getQueuesInfo(list<CwxMqQueueInfo>& queues) const;
+    inline string const& getErrMsg() const
+    {
+        return m_strErrMsg;
+    }
+
 private:
     ///保存数据
     bool _save();
 
 private:
     map<string, CwxMqQueue*>   m_queues;
-    CwxMutexLock               m_lock;
+    CwxRwLock                  m_lock;
     string                     m_strQueueLogFile;
     CWX_UINT32                 m_uiMaxFsyncNum;
     CwxMqQueueLogFile*         m_mqLogFile;
     CwxBinLogMgr*              m_binLog;
+    string                     m_strErrMsg;
 };
 
 
