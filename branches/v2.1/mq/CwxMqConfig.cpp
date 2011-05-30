@@ -257,11 +257,18 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
     //fetch mq:mq
     if (parser.getElementNode("mq:mq"))
     {
-        if (!fetchHost(parser, "mq:mq:listen", m_mq)) return -1;
+        if (!fetchHost(parser, "mq:mq:listen", m_mq.m_mq)) return -1;
+        //load mq:mq:log:file
+        if ((NULL == (pValue=parser.getElementAttr("mq:mq:log", "file"))) || !pValue[0])
+        {
+            snprintf(m_szErrMsg, 2047, "Must set [mq:mq:log:file].");
+            return -1;
+        }
+        m_mq.m_strLogFile = pValue;
     }
     else
     {
-        m_mq.reset();
+        m_mq.m_mq.reset();
     }
 
     return 0;
@@ -389,19 +396,15 @@ void CwxMqConfig::outputConfig() const
         }
     }
 
-    if (m_mq.m_listen.getHostName().length())
+    if (m_mq.m_mq.getHostName().length())
     {
         CWX_INFO(("*****************mq-fetch*******************"));
-        if (m_mq.m_listen.getHostName().length())
-        {
-            CWX_INFO(("listen keep_alive=%s  ip=%s port=%u unix=%s",
-                m_mq.isKeepAlive()?"yes":"no",
-                m_mq.getHostName().c_str(),
-                m_mq.getPort(),
-                m_mq.getUnixDomain().c_str()));
-        }
+        CWX_INFO(("listen keep_alive=%s  ip=%s port=%u unix=%s",
+            m_mq.m_mq.isKeepAlive()?"yes":"no",
+            m_mq.m_mq.getHostName().c_str(),
+            m_mq.m_mq.getPort(),
+            m_mq.m_mq.getUnixDomain().c_str()));
+        CWX_INFO(("mq queue file:%s", m_mq.m_strLogFile.c_str()));
     }
-
-
     CWX_INFO(("*****************END   CONFIG *******************"));
 }

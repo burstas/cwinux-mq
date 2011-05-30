@@ -109,6 +109,18 @@ public:
     CwxHostInfo     m_async; ///<slave bin协议异步分发的端口信息
 };
 
+///配置文件的mq对象
+class CwxMqConfigMq
+{
+public:
+    CwxMqConfigMq()
+    {
+    }
+public:
+    CwxHostInfo          m_mq; ///<mq的fetch的配置信息
+    string               m_strLogFile; ///<mq的log文件
+
+};
 
 ///配置文件加载对象
 class CwxMqConfig
@@ -149,7 +161,7 @@ public:
     {
         return m_slave;
     }
-    inline CwxHostInfo const& getMq() const
+    inline CwxMqConfigMq const& getMq() const
     {
         return m_mq;
     }
@@ -167,7 +179,7 @@ private:
     CwxMqConfigBinLog   m_binlog; ///<binlog的配置信息
     CwxMqConfigMaster   m_master; ///<master的配置信息
     CwxMqConfigSlave    m_slave; ///<slave的配置信息
-    CwxHostInfo          m_mq; ///<mq的fetch的配置信息
+    CwxMqConfigMq       m_mq; ///<mq的fetch的配置信息
     char                m_szErrMsg[2048];///<错误消息的buf
 };
 

@@ -22,5 +22,6 @@
     </slave>
     <mq>
         <listen keep_alive="yes" user="mq_admin" passwd="mq_admin_passwd"  ip="*" port="9907" unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/mq.sock"/>
+        <log    file="/data1/mq_data/data/binlog/mq_queue.log"
     </mq>
 </mq>
