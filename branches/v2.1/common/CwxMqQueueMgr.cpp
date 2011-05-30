@@ -426,7 +426,7 @@ CWX_UINT64 CwxMqQueue::getMqNum()
     return m_binLog->leftLogNum(m_cursor) + m_memMsgMap.size();
 }
 
-void CwxMqQueue::getQueueDumpInfo(CWX_UINT64 ullLastCommitSid,
+void CwxMqQueue::getQueueDumpInfo(CWX_UINT64& ullLastCommitSid,
                       set<CWX_UINT64>& uncommitSid,
                       set<CWX_UINT64>& commitSid)
 {
@@ -780,5 +780,65 @@ void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues) const
 
 bool CwxMqQueueMgr::_save()
 {
+    if (m_mqLogFile)
+    {
+        map<string, CwxMqQueueInfo> queues;
+        map<string, set<CWX_UINT64>*> uncommitSets;
+        map<string, set<CWX_UINT64>*> commitSets;
+        CwxMqQueueInfo queueInfo;
+        set<CWX_UINT64>* sidUncommitSet=NULL;
+        set<CWX_UINT64>* sidCommitSet =NULL;
+        map<string, CwxMqQueue*>::iterator iter = m_queues.begin();
+        while(iter != m_queues.end())
+        {
+            queueInfo.m_strName = iter->second->getName();
+            queueInfo.m_strUser = iter->second->getUserName();
+            queueInfo.m_strPasswd = iter->second->getPasswd();
+            queueInfo.m_bCommit = iter->second->isCommit();
+            queueInfo.m_uiDefTimeout = iter->second->getDefTimeout();
+            queueInfo.m_uiMaxTimeout = iter->second->getMaxTimeout();
+            queueInfo.m_strSubScribe = iter->second->getSubscribeRule();
+            queueInfo.m_ullCursorSid = iter->second->getCursorSid();
+            queueInfo[queueInfo.m_strName] = queueInfo;
 
+            if (!sidUncommitSet) sidUncommitSet = new set<CWX_UINT64>;
+            if (!sidCommitSet) sidCommitSet = new set<CWX_UINT64>;
+
+            iter->second->getQueueDumpInfo(queueInfo.m_ullCursorSid, *sidUncommitSet, *sidCommitSet);
+            if (sidUncommitSet->size())
+            {
+                uncommitSets[queueInfo.m_strName] = sidUncommitSet;
+                sidUncommitSet = NULL;
+            }
+            if (sidCommitSet->size())
+            {
+                commitSets[queueInfo->m_strName] = sidCommitSet;
+                sidCommitSet = NULL;
+            }
+            iter++;
+        }
+        if (sidUncommitSet) delete  sidUncommitSet;
+        if (sidCommitSet) delete sidCommitSet;
+
+        //保存到log中
+        if (0 != m_mqLogFile->save(queues, uncommitSets, commitSets))
+        {
+            m_strErrMsg = m_mqLogFile->getErrMsg();
+            return false;
+        }
+        //清空map
+        map<string, set<CWX_UINT64>*>::iterator iter_sid = uncommitSets.begin();
+        while(iter_sid != uncommitSets.end())
+        {
+            delete iter_sid->second;
+            iter_sid ++;
+        }
+        iter_sid = commitSets.begin();
+        while(iter_sid != commitSets.end())
+        {
+            delete iter_sid->second;
+            iter_sid ++;
+        }
+    }
+    return false;
 }

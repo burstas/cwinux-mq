@@ -197,7 +197,7 @@ public:
         return m_ullLastCommitSid;
     }
     ///获取dump信息
-    void getQueueDumpInfo(CWX_UINT64 ullLastCommitSid,
+    void getQueueDumpInfo(CWX_UINT64& ullLastCommitSid,
         set<CWX_UINT64>& uncommitSid,
         set<CWX_UINT64>& commitSid);
     CWX_UINT64 getMqNum();
