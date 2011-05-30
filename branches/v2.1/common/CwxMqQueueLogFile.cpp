@@ -71,7 +71,9 @@ int CwxMqQueueLogFile::init(map<string, CwxMqQueueInfo>& queues,
 }
 
 ///保存队列信息；0：成功；-1：失败
-int CwxMqQueueLogFile::save(map<string, CwxMqQueueInfo> const& queues, map<string, set<CWX_UINT64>*> const& uncommitSets)
+int CwxMqQueueLogFile::save(map<string, CwxMqQueueInfo> const& queues,
+                            map<string, set<CWX_UINT64>*> const& uncommitSets,
+                            map<string, set<CWX_UINT64>*> const& commitSets)
 {
     if (!m_fd) return -1;
     //写新文件
@@ -119,6 +121,29 @@ int CwxMqQueueLogFile::save(map<string, CwxMqQueueInfo> const& queues, map<strin
         {//uncommit:name=q1|sid=1
             len = CwxCommon::snprintf(line, 1023, "%s:name=%s|sid=%s",
                 CWX_MQ_UNCOMMIT,
+                iter_sid->first.c_str(),
+                CwxCommon::toString(*iter, szSid, 10));
+            if (len != write(fd, line, len))
+            {
+                CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write new sys file:%s, errno=%d",
+                    m_strNewFileName.c_str(),
+                    errno);
+                closeFile(true);
+                return -1;
+            }
+            iter++;
+        }
+        iter_sid++;
+    }
+    //写提交的sid
+    iter_sid = commitSets.begin();
+    while(iter_sid != commitSets.end())
+    {
+        set<CWX_UINT64>::const_iterator iter = iter_sid->second->begin();
+        while(iter != iter_sid->second->end())
+        {//commit:name=q1|sid=1
+            len = CwxCommon::snprintf(line, 1023, "%s:name=%s|sid=%s",
+                CWX_MQ_COMMIT,
                 iter_sid->first.c_str(),
                 CwxCommon::toString(*iter, szSid, 10));
             if (len != write(fd, line, len))
