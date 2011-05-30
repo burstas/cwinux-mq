@@ -172,29 +172,6 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
     {
         m_binlog.m_uiFlushSecond = 1;
     }
-    //load mq:binlog:mq_flush:fetch_num
-    if ((NULL == (pValue=parser.getElementAttr("mq:binlog:mq_flush", "fetch_num"))) || !pValue[0])
-    {
-        snprintf(m_szErrMsg, 2047, "Must set [mq:binlog:mq_flush:fetch_num].");
-        return -1;
-    }
-    m_binlog.m_uiMqFetchFlushNum = strtoul(pValue, NULL, 0);
-    if (m_binlog.m_uiMqFetchFlushNum < 1)
-    {
-        m_binlog.m_uiMqFetchFlushNum = 1;
-    }
-    //load mq:binlog:mq_flush:second
-    if ((NULL == (pValue=parser.getElementAttr("mq:binlog:mq_flush", "second"))) || !pValue[0])
-    {
-        snprintf(m_szErrMsg, 2047, "Must set [mq:binlog:mq_flush:second].");
-        return -1;
-    }
-    m_binlog.m_uiMqFetchFlushSecond = strtoul(pValue, NULL, 0);
-    if (m_binlog.m_uiMqFetchFlushSecond < 1)
-    {
-        m_binlog.m_uiMqFetchFlushSecond = 1;
-    }
-
     //load master
     if (m_common.m_bMaster)
     {
@@ -265,6 +242,29 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
             return -1;
         }
         m_mq.m_strLogFile = pValue;
+        //load mq:mq:flush:fetch_num
+        if ((NULL == (pValue=parser.getElementAttr("mq:mq:flush", "fetch_num"))) || !pValue[0])
+        {
+            snprintf(m_szErrMsg, 2047, "Must set [mq:mq:flush:fetch_num].");
+            return -1;
+        }
+        m_mq.m_uiFlushNum = strtoul(pValue, NULL, 0);
+        if (m_mq.m_uiFlushNum < 1)
+        {
+            m_mq.m_uiFlushNum = 1;
+        }
+        //load mq:mq:flush:second
+        if ((NULL == (pValue=parser.getElementAttr("mq:mq:flush", "second"))) || !pValue[0])
+        {
+            snprintf(m_szErrMsg, 2047, "Must set [mq:mq:flush:second].");
+            return -1;
+        }
+        m_mq.m_uiFlushSecond = strtoul(pValue, NULL, 0);
+        if (m_mq.m_uiFlushSecond < 1)
+        {
+            m_mq.m_uiFlushSecond = 1;
+        }
+
     }
     else
     {
@@ -351,7 +351,6 @@ void CwxMqConfig::outputConfig() const
     CWX_INFO(("file path=%s prefix=%s max-file-size(Mbyte)=%u", m_binlog.m_strBinlogPath.c_str(), m_binlog.m_strBinlogPrex.c_str(), m_binlog.m_uiBinLogMSize));
     CWX_INFO(("manager binlog file max_day=%u  del_outday_logfile=%s", m_binlog.m_uiMgrMaxDay, m_binlog.m_bDelOutdayLogFile?"yes":"no"));
     CWX_INFO(("binlog flush log_num=%u second=%u", m_binlog.m_uiFlushNum, m_binlog.m_uiFlushSecond));
-    CWX_INFO(("mq-fetch flush log_num=%u second=%u", m_binlog.m_uiMqFetchFlushNum, m_binlog.m_uiMqFetchFlushSecond));
     if (m_common.m_bMaster){
         CWX_INFO(("*****************master*******************"));
         if (m_master.m_recv.getHostName().length())
@@ -405,6 +404,7 @@ void CwxMqConfig::outputConfig() const
             m_mq.m_mq.getPort(),
             m_mq.m_mq.getUnixDomain().c_str()));
         CWX_INFO(("mq queue file:%s", m_mq.m_strLogFile.c_str()));
+        CWX_INFO(("mq flush log_num=%u second=%u", m_mq.m_uiFlushNum, m_mq.m_uiFlushSecond));
     }
     CWX_INFO(("*****************END   CONFIG *******************"));
 }

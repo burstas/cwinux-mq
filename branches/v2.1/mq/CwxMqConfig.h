@@ -69,8 +69,6 @@ public:
         m_bDelOutdayLogFile = false;
         m_uiFlushNum = 100;
         m_uiFlushSecond = 30;
-        m_uiMqFetchFlushNum = 1;
-        m_uiMqFetchFlushSecond = 30;
     }
 public:
     string              m_strBinlogPath; ///<binlog的目录
@@ -80,8 +78,6 @@ public:
     bool                m_bDelOutdayLogFile; ///<是否删除不管理的消息文件
     CWX_UINT32          m_uiFlushNum; ///<接收多少条记录后，flush binlog文件
     CWX_UINT32          m_uiFlushSecond; ///<间隔多少秒，必须flush binlog文件
-    CWX_UINT32          m_uiMqFetchFlushNum; ///<fetch多少条日志，必须flush获取点
-    CWX_UINT32          m_uiMqFetchFlushSecond; ///<多少秒必须flush获取点
 };
 
 ///配置文件的master参数对象
@@ -115,10 +111,14 @@ class CwxMqConfigMq
 public:
     CwxMqConfigMq()
     {
+        m_uiFlushNum = 1;
+        m_uiFlushSecond = 30;
     }
 public:
     CwxHostInfo          m_mq; ///<mq的fetch的配置信息
     string               m_strLogFile; ///<mq的log文件
+    CWX_UINT32          m_uiFlushNum; ///<fetch多少条日志，必须flush获取点
+    CWX_UINT32          m_uiFlushSecond; ///<多少秒必须flush获取点
 
 };
 

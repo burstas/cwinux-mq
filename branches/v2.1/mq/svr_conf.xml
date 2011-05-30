@@ -10,7 +10,6 @@
     	<file path="/data1/mq_data/data/binlog"  prefix="binlog" max_mbyte="1024"/>
     	<manage max_day="1" del_out_file ="yes"/>
         <flush  log_num="10000000" second="10000"/>
-        <mq_flush fetch_num="50000" second ="1"/>
     </binlog>
     <master>
     	<recv keep_alive="yes" user="recv" passwd="recv_passwd" ip="*" port="9901"  unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/recv.sock"/>
@@ -23,5 +22,6 @@
     <mq>
         <listen keep_alive="yes" user="mq_admin" passwd="mq_admin_passwd"  ip="*" port="9907" unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/mq.sock"/>
         <log    file="/data1/mq_data/data/binlog/mq_queue.log"
+        <flush fetch_num="50000" second ="1"/>
     </mq>
 </mq>
