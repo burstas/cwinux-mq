@@ -156,6 +156,13 @@ int CwxMqQueue::getNextBinlog(CwxMqTss* pTss,
     {
         m_uncommitMap[msg->event().m_ullArg] = msg;
     }
+    //clone msg，防止消息double free的问题出现
+    CwxMsgBlock* clone=CwxMsgBlockAlloc::malloc(msg->length());
+    clone->event() = msg->event();
+    clone->send_ctrl() = msg->send_ctrl();
+    memcpy(clone->wr_ptr(), msg->rd_ptr(), msg->length());
+    clone->wr_ptr(msg->length());
+    msg = clone;
     return 1;
 }
 
@@ -594,6 +601,7 @@ int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss,
                   CwxMsgBlock*&msg,
                   CWX_UINT32 uiTimeout,
                   int& err_num,
+                  bool& bCommitType, ///<是否为commit类型的队列
                   char* szErr2K)
 {
     if (m_mqLogFile)
@@ -601,6 +609,7 @@ int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss,
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
         map<string, CwxMqQueue*>::iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return -2;
+        bCommitType = iter->second->isCommit();
         return iter->second->getNextBinlog(pTss, msg, uiTimeout, err_num, szErr2K);
     }
     if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());

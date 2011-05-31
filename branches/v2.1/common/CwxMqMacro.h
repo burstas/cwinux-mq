@@ -75,6 +75,7 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_INVALID_MD5      18 ///<MD5校验失败
 #define CWX_MQ_INVALID_CRC32    19 ///<CRC32校验失败
 #define CWX_MQ_NO_NAME          20 ///<没有name字段
+#define CWX_MQ_TIMEOUT          21 ///<commit队列类型的消息commit超时
 
 #define CWX_MQ_PROXY_NO_AUTH_GROUP    100 ///<消息的group没有被允许
 #define CWX_MQ_PROXY_FORBID_GROUP     101 ///<消息的group被禁止

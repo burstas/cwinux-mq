@@ -250,11 +250,12 @@ public:
     ///2：达到了搜索点，但没有发现消息；
     ///-1：失败；
     ///-2：队列不存在
-    int getNextBinlog(CwxMqTss* pTss,
-        string const& strQueue,
-        CwxMsgBlock*&msg,
-        CWX_UINT32 uiTimeout,
-        int& err_num,
+    int getNextBinlog(CwxMqTss* pTss, ///<tss变量
+        string const& strQueue, ///<队列的名字
+        CwxMsgBlock*&msg, ///<消息
+        CWX_UINT32 uiTimeout, ///<消息的超时时间
+        int& err_num, ///<错误消息
+        bool& bCommitType, ///<是否为commit类型的队列
         char* szErr2K=NULL);
 
     ///对于非commit类型的队列，bCommit=true此表示消息已经写到socket buf，否则表示写失败。

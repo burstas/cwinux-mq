@@ -22,12 +22,26 @@ CwxMqFetchConn::CwxMqFetchConn()
 {
     m_bWaiting = false;
     m_bBlock = false;
+    m_bCommit = false;
+    m_uiTimeout = 0;
+    m_bNext = true;
+    m_ullSendSid = 0;
     m_uiTaskId = 0;
-    m_pQueue = NULL;
 }
 
 CwxMqFetchConn::~CwxMqFetchConn()
 {
 
+}
+
+void CwxMqFetchConn::reset()
+{
+    m_bWaiting = false;
+    m_bBlock = false;
+    m_bCommit = false;
+    m_uiTimeout = 0;
+    m_bNext = true;
+    m_ullSendSid = 0;
+    m_uiTaskId = 0;
 }
 
