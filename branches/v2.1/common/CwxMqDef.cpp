@@ -24,8 +24,8 @@ CwxMqFetchConn::CwxMqFetchConn()
     m_bBlock = false;
     m_bCommit = false;
     m_uiTimeout = 0;
-    m_bNext = true;
     m_ullSendSid = 0;
+    m_bSent = true;
     m_uiTaskId = 0;
 }
 
@@ -40,7 +40,7 @@ void CwxMqFetchConn::reset()
     m_bBlock = false;
     m_bCommit = false;
     m_uiTimeout = 0;
-    m_bNext = true;
+    m_bSent = true;
     m_ullSendSid = 0;
     m_uiTaskId = 0;
 }

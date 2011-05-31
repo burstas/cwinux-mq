@@ -135,6 +135,8 @@ public:
         ///MQ Fetch服务类型的消息类型定义
         MSG_TYPE_FETCH_DATA = 9, ///<数据获取消息类型
         MSG_TYPE_FETCH_DATA_REPLY = 10, ///<回复数据获取消息类型
+        MSG_TYPE_FETCH_COMMIT = 11, ///<commit 获取的消息
+        MSG_TYPE_FETCH_COMMIT_REPLY = 12, ///<reply commit的消息
         ///创建mq queue消息
         MSG_TYPE_CREATE_QUEUE = 100, ///<创建MQ QUEUE的消息类型
         MSG_TYPE_CREATE_QUEUE_REPLY = 101, ///<回复创建MQ QUEUE的消息类型
@@ -340,7 +342,6 @@ public:
         char const* user=NULL,
         char const* passwd=NULL,
         CWX_UINT32  timeout = 0,
-        bool        next=true,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
     static int parseFetchMq(CwxPackageReader* reader,
@@ -350,7 +351,6 @@ public:
         char const*& user,
         char const*& passwd,
         CWX_UINT32&  timeout,
-        bool&        next,
         char* szErr2K=NULL);
 
     ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
@@ -376,6 +376,31 @@ public:
         CWX_UINT32& group,
         CWX_UINT32& type,
         CWX_UINT32& attr,
+        char* szErr2K=NULL);
+
+
+    ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+    static int packFetchMqCommit(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        bool bCommit,
+        char* szErr2K=NULL);
+    ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+    static int parseFetchMqCommit(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        bool& bCommit,
+        char* szErr2K=NULL);
+
+    ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+    static int packFetchMqCommitReply(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        int  ret,
+        char const* szErrMsg,
+        char* szErr2K=NULL);
+    ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+    static int parseFetchMqCommitReply(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        int&  ret,
+        char const*& szErrMsg,
         char* szErr2K=NULL);
 
     ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败

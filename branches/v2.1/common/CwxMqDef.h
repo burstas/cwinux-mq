@@ -58,8 +58,8 @@ public:
     bool            m_bBlock; ///<是否为block连接
     bool            m_bCommit; ///<是否commit类型的queue
     CWX_UINT32      m_uiTimeout; ///<当前消息的timeout值
-    bool            m_bNext; ///<是否获取下一个消息
     CWX_UINT64      m_ullSendSid; ///<已经发送的sid
+    bool            m_bSent;     ///<当前的消息是否发送完毕
     CWX_UINT32      m_uiTaskId; ///<连接的taskid
     string          m_strQueueName; ///<队列的名字
 };
