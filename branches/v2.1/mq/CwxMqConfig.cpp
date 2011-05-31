@@ -242,10 +242,10 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
             return -1;
         }
         m_mq.m_strLogFile = pValue;
-        //load mq:mq:flush:fetch_num
-        if ((NULL == (pValue=parser.getElementAttr("mq:mq:flush", "fetch_num"))) || !pValue[0])
+        //load mq:mq:log:fetch_num
+        if ((NULL == (pValue=parser.getElementAttr("mq:mq:log", "fetch_num"))) || !pValue[0])
         {
-            snprintf(m_szErrMsg, 2047, "Must set [mq:mq:flush:fetch_num].");
+            snprintf(m_szErrMsg, 2047, "Must set [mq:mq:log:fetch_num].");
             return -1;
         }
         m_mq.m_uiFlushNum = strtoul(pValue, NULL, 0);
@@ -253,10 +253,10 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
         {
             m_mq.m_uiFlushNum = 1;
         }
-        //load mq:mq:flush:second
-        if ((NULL == (pValue=parser.getElementAttr("mq:mq:flush", "second"))) || !pValue[0])
+        //load mq:mq:log:second
+        if ((NULL == (pValue=parser.getElementAttr("mq:mq:log", "second"))) || !pValue[0])
         {
-            snprintf(m_szErrMsg, 2047, "Must set [mq:mq:flush:second].");
+            snprintf(m_szErrMsg, 2047, "Must set [mq:mq:log:second].");
             return -1;
         }
         m_mq.m_uiFlushSecond = strtoul(pValue, NULL, 0);
