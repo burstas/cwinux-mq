@@ -178,16 +178,12 @@ int CwxMqQueue::commitBinlog(CWX_UINT64 ullSid, bool bCommit=true)
     {
         CwxMqQueueHeapItem* item = (CwxMqQueueHeapItem*)iter->second;
         m_pUncommitMsg->erase(item);
-        if (bCommit)
-        {
-            delete item;
-        }
-        else
+        if (!bCommit)
         {
             m_memMsgMap[ullSid] = item->msg();
             item->msg(NULL);
-            delete item;
         }
+        delete item;
     }
     else
     {
