@@ -149,6 +149,7 @@ int CwxMqQueue::getNextBinlog(CwxMqTss* pTss,
         item->msg(msg);
         item->timestamp(uiTimestamp);
         item->sid(msg->event().m_ullArg);
+        item->send(false);
         m_uncommitMap[item->sid()] = item;
         m_pUncommitMsg->push(item);
     }
@@ -156,39 +157,68 @@ int CwxMqQueue::getNextBinlog(CwxMqTss* pTss,
     {
         m_uncommitMap[msg->event().m_ullArg] = msg;
     }
-    //clone msg，防止消息double free的问题出现
-    CwxMsgBlock* clone=CwxMsgBlockAlloc::malloc(msg->length());
-    clone->event() = msg->event();
-    clone->send_ctrl() = msg->send_ctrl();
-    memcpy(clone->wr_ptr(), msg->rd_ptr(), msg->length());
-    clone->wr_ptr(msg->length());
-    msg = clone;
     return 1;
 }
 
-///ullSid的消息已经完成发送。
-///对于非commit类型的队列，此表示消息已经写到socket buf。
-///对于commit类型的队列，此表示已经收到对方的commit确认。
+///用于commit类型的队列，提交commit消息。
 ///返回值：0：不存在，1：成功.
-int CwxMqQueue::commitBinlog(CWX_UINT64 ullSid, bool bCommit=true)
+int CwxMqQueue::commitBinlog(CWX_UINT64 ullSid)
+{
+    if (!m_bCommit) return 0;
+    map<CWX_UINT64, void*>::iterator iter=m_uncommitMap.find(ullSid);
+    if (iter == m_uncommitMap.end()) return 0;
+    ///由于是单线程环境，此时，消息一定没有超时
+    CwxMqQueueHeapItem* item = (CwxMqQueueHeapItem*)iter->second;
+    CWX_ASSERT(-1 != item->index());
+    //从堆中删除元素
+    m_pUncommitMsg->erase(item);
+    //从uncommit map中删除元素
+    m_uncommitMap->erase(iter);
+    //删除元素自身，同时
+    delete item;
+    return 1;
+}
+
+///消息发送完毕，bSend=true表示已经发送成功；false表示发送失败
+///返回值：0：不存在，1：成功.
+int CwxMqQueue::endSendMsg(CWX_UINT64 ullSid, bool bSend)
 {
     map<CWX_UINT64, void*>::iterator iter=m_uncommitMap.find(ullSid);
     if (iter == m_uncommitMap.end()) return 0;
     if (m_bCommit)
     {
         CwxMqQueueHeapItem* item = (CwxMqQueueHeapItem*)iter->second;
-        m_pUncommitMsg->erase(item);
-        if (!bCommit)
-        {
+        if (-1 == item->index())
+        {///消息已经超时
+            ///从未commit map中删除消息
+            m_uncommitMap.erase(iter);
+            ///将消息放到内存消息map
             m_memMsgMap[ullSid] = item->msg();
             item->msg(NULL);
+            ///删除item
+            delete item;
         }
-        delete item;
+        else if (!bSend)
+        {///消息发送失败
+            ///从heap中删除消息
+            m_pUncommitMsg->erase(item);///<从未
+            ///从未commit map中删除消息
+            m_uncommitMap.erase(iter);
+            ///将消息放到内存消息map
+            m_memMsgMap[ullSid] = item->msg();
+            item->msg(NULL);
+            ///删除item
+            delete item;
+        }
+        else
+        {///消息发送成功而且没有超时
+            item->send(true);
+        }
     }
     else
     {
         CwxMsgBlock* msg = (CwxMsgBlock*)iter->second;
-        if (bCommit)
+        if (bSend)
         {
             CwxMsgBlockAlloc::free(msg);
         }
@@ -196,8 +226,8 @@ int CwxMqQueue::commitBinlog(CWX_UINT64 ullSid, bool bCommit=true)
         {
             m_memMsgMap[ullSid] = msg;
         }
+        m_uncommitMap.erase(iter);
     }
-    m_uncommitMap.erase(iter);
     return 1;
 }
 
@@ -210,11 +240,21 @@ void CwxMqQueue::checkTimeout(CWX_UINT32 ttTimestamp)
         while(m_pUncommitMsg->count())
         {
             if (m_pUncommitMsg->top()->timestamp() > ttTimestamp) break;
+            ///消息超时
             item = m_pUncommitMsg->pop();
-            m_uncommitMap.erase(m_uncommitMap.find(item->sid()));
-            m_memMsgMap[item->sid()] = item->msg();
-            item->msg(NULL);
-            delete item;
+            if (item->send())
+            {///消息已经发送完毕
+                ///从未提交map中删除消息
+                m_uncommitMap.erase(item->sid());
+                ///将消息放到未发送的内存map中
+                m_memMsgMap[item->sid()] = item->msg();
+                item->msg(NULL);
+                delete item;
+            }
+            else
+            {///消息还没有发送完毕，此时将index置为-1，表示已经超时
+                item->index(-1)
+            }
         }
     }
 }
@@ -612,12 +652,10 @@ int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss,
     return -1;
 }
 
-///对于非commit类型的队列，bCommit=true此表示消息已经写到socket buf，否则表示写失败。
-///对于commit类型的队列，bCommit=true此表示已经收到对方的commit确认，否则写socket失败。
-///返回值：0：不存在；1：成功；-1：失败；-2：队列不存在
+///用于commit类型的队列，提交commit消息。
+///返回值：0：不存在，1：成功，-1：失败；-2：队列不存在
 int CwxMqQueueMgr::commitBinlog(string const& strQueue,
                  CWX_UINT64 ullSid,
-                 bool bCommit,
                  char* szErr2K)
 {
     if (m_mqLogFile)
@@ -625,7 +663,7 @@ int CwxMqQueueMgr::commitBinlog(string const& strQueue,
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
         map<string, CwxMqQueue*>::iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return -2;
-        int ret = iter->second->commitBinlog(ullSid, bCommit);
+        int ret = iter->second->commitBinlog(ullSid);
         if (0 == ret) return 0;
         if (1 == ret)
         {
@@ -648,11 +686,58 @@ int CwxMqQueueMgr::commitBinlog(string const& strQueue,
                     return -1;
                 }
             }
+            return 1;
         }
     }
     if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
     return -1;
 }
+
+///消息发送完毕，bSend=true表示已经发送成功；false表示发送失败
+///返回值：0：不存在，1：成功，-1：失败，-2：队列不存在
+int CwxMqQueueMgr::endSendMsg(string const& strQueue,
+               CWX_UINT64 ullSid,
+               bool bSend,
+               char* szErr2K)
+{
+    if (m_mqLogFile)
+    {
+        CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
+        map<string, CwxMqQueue*>::iterator iter = m_queues.find(strQueue);
+        if (iter == m_queues.end()) return -2;
+        int ret = iter->second->endSendMsg(ullSid, bSend);
+        if (0 == ret) return 0;
+        if (1 == ret) 
+        {
+            if (!iter->second->isCommit())
+            {
+                int num = m_mqLogFile->log(iter->second->getName().c_str(), ullSid);
+                if (-1 == num)
+                {
+                    m_strErrMsg = m_mqLogFile->getErrMsg();
+                    delete m_mqLogFile;
+                    m_mqLogFile = NULL;
+                    if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
+                    return -1;
+                }
+                if (num >= MQ_SWITCH_LOG_NUM)
+                {
+                    if (!_save())
+                    {
+                        delete m_mqLogFile;
+                        m_mqLogFile = NULL;
+                        if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
+                        return -1;
+                    }
+                }
+            }
+            return 1;
+        }
+    }
+    if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
+    return -1;
+}
+
 
 ///强行flush mq的log文件
 void CwxMqQueueMgr::commit()

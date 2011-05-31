@@ -34,6 +34,7 @@ public:
         m_index = -1;
         m_ttTimestamp = 0;
         m_ullSid = 0;
+        m_bSend = false;
     }
     ~CwxMqQueueHeapItem()
     {
@@ -77,12 +78,21 @@ public:
     {
         m_ullSid = ullSid;
     }
+    bool send() const
+    {
+        return m_bSend;
+    }
+    void send(bool bSend)
+    {
+        m_bSend = bSend;
+    }
 
 private:
-    CWX_INT32   m_index;
-    CWX_UINT32  m_ttTimestamp;
-    CWX_UINT64  m_ullSid;
-    CwxMsgBlock*  m_msg;
+    CWX_INT32   m_index;///<heap的index
+    CWX_UINT32  m_ttTimestamp; ///<消息的时间戳
+    CWX_UINT64  m_ullSid; ///<消息的sid
+    bool        m_bSend; ///<消息是否发送完毕
+    CwxMsgBlock*  m_msg; ///<消息
 };
 
 class CwxMqQueue
@@ -113,10 +123,12 @@ public:
         int& err_num,
         char* szErr2K);
 
-    ///对于非commit类型的队列，bCommit=true此表示消息已经写到socket buf，否则表示写失败。
-    ///对于commit类型的队列，bCommit=true此表示已经收到对方的commit确认，否则写socket失败。
+    ///用于commit类型的队列，提交commit消息。
     ///返回值：0：不存在，1：成功.
-    int commitBinlog(CWX_UINT64 ullSid, bool bCommit=true);
+    int commitBinlog(CWX_UINT64 ullSid);
+    ///消息发送完毕，bSend=true表示已经发送成功；false表示发送失败
+    ///返回值：0：不存在，1：成功.
+    int endSendMsg(CWX_UINT64 ullSid, bool bSend=true);
     ///检测commit类型队列超时的消息
     void checkTimeout(CWX_UINT32 ttTimestamp);
 
@@ -258,13 +270,18 @@ public:
         bool& bCommitType, ///<是否为commit类型的队列
         char* szErr2K=NULL);
 
-    ///对于非commit类型的队列，bCommit=true此表示消息已经写到socket buf，否则表示写失败。
-    ///对于commit类型的队列，bCommit=true此表示已经收到对方的commit确认，否则写socket失败。
-    ///返回值：0：不存在；1：成功；-1：失败；-2：队列不存在
+    ///用于commit类型的队列，提交commit消息。
+    ///返回值：0：不存在，1：成功，-1：失败；-2：队列不存在
     int commitBinlog(string const& strQueue,
         CWX_UINT64 ullSid,
-        bool bCommit=true,
         char* szErr2K=NULL);
+    ///消息发送完毕，bSend=true表示已经发送成功；false表示发送失败
+    ///返回值：0：不存在，1：成功，-1：失败，-2：队列不存在
+    int endSendMsg(string const& strQueue,
+        CWX_UINT64 ullSid,
+        bool bSend=true,
+        char* szErr2K=NULL);
+
     ///强行flush mq的log文件
     void commit();
     ///检测commit类型队列超时的消息
