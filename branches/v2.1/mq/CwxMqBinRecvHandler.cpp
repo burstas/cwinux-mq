@@ -98,7 +98,8 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 (time(NULL) > (time_t)(m_pApp->getLastCommitTime() + m_pApp->getConfig().getBinLog().m_uiFlushSecond)))
             {
                 ///若达到提交的数量或第一次提交，则提交
-                if (0 != commit(pTss->m_szBuf2K)){
+                if (0 != commit(pTss->m_szBuf2K))
+                {
                     CWX_ERROR((pTss->m_szBuf2K));
                     iRet = CWX_MQ_BINLOG_INVALID;
                     break;
