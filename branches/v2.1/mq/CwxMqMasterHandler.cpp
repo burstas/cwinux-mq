@@ -39,7 +39,6 @@ int CwxMqMasterHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             CwxMsgBlockAlloc::free(pBlock);
         }
     }
-    m_pApp->updateAppRunState();
     return 1;
 }
 
@@ -48,7 +47,6 @@ int CwxMqMasterHandler::onConnClosed(CwxMsgBlock*& , CwxTss* )
 {
     CWX_ERROR(("Master is closed."));
     m_uiConnId = 0;
-    m_pApp->updateAppRunState();
     return 1;
 }
 
@@ -116,7 +114,6 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         }
         if (-1 == iRet)
         {
-            m_pApp->updateAppRunState();
             m_pApp->noticeCloseConn(m_uiConnId);
             m_uiConnId = 0;
         }
@@ -129,7 +126,6 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             pTss->m_szBuf2K))
         {
             CWX_ERROR(("Failure to pack sync data reply, errno=%s", pTss->m_szBuf2K));
-            m_pApp->updateAppRunState();
             m_pApp->noticeCloseConn(m_uiConnId);
             m_uiConnId = 0;
             return 1;
@@ -142,7 +138,6 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         {//connect should be closed
             CWX_ERROR(("Failure to send sync data reply to master"));
             CwxMsgBlockAlloc::free(reply_block);
-            m_pApp->updateAppRunState();
             m_pApp->noticeCloseConn(m_uiConnId);
             return 1;
         }

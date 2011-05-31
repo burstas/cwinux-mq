@@ -88,8 +88,6 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             {
                 CWX_ERROR((pTss->m_szBuf2K));
                 iRet = CWX_MQ_FAIL_ADD_BINLOG;
-                ///更新服务的运行状态
-                m_pApp->updateAppRunState();
                 break;
             }
             ///增加未提交的binlog数量
