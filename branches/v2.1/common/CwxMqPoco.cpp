@@ -987,7 +987,7 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
         CwxMd5 md5;
         md5.update(szData, pItem->m_szKey - szData - CwxPackage::getKeyOffset());
         md5.final(szMd5);
-        if (memcmp(szMd5, pItem->m_szData) != 0)
+        if (memcmp(szMd5, pItem->m_szData, 16) != 0)
         {
             if (szErr2K)
             {

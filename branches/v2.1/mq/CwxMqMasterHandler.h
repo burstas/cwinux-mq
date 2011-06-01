@@ -27,11 +27,13 @@ public:
     CwxMqMasterHandler(CwxMqApp* pApp):m_pApp(pApp)
     {
         m_uiConnId = 0;
+        m_unzipBuf = NULL;
+        m_uiBufLen = 0;
     }
     ///析构函数
     virtual ~CwxMqMasterHandler()
     {
-
+        if (m_unzipBuf) delete [] m_unzipBuf;
     }
 public:
     ///连接建立后，需要往master报告sid
@@ -47,11 +49,32 @@ public:
     }
 private:
     //0：成功；-1：失败
-    int saveBinlog(CwxMqTss* pTss, char const* szBinLog, CWX_UINT32 uiLen, CWX_UINT64& ullSid);
+    int saveBinlog(CwxMqTss* pTss,
+        char const* szBinLog,
+        CWX_UINT32 uiLen,
+        CWX_UINT64& ullSid,
+        char const* sign);
+    bool checkSign(char const* data,
+        CWX_UINT32 uiDateLen,
+        char const* szSign,
+        char const* sign);
+    //获取unzip的buf
+    inline bool prepareUnzipBuf()
+    {
+        if (!m_unzipBuf)
+        {
+            m_uiBufLen = m_pApp->getConfig().getCommon().m_uiChunkSize * 20;
+            if (m_uiBufLen < 20 * 1024 * 1024) m_uiBufLen = uiSize < 20 * 1024 * 1024;
+            m_unzipBuf = new char[m_uiBufLen];
+        }
+        return m_unzipBuf!=NULL;
+    }
 private:
-    CwxMqApp*     m_pApp;  ///<app对象
-    CWX_UINT32          m_uiConnId; ///<master的连接ID
-    CwxPackageReader      m_reader; 
+    CwxMqApp*               m_pApp;  ///<app对象
+    CWX_UINT32              m_uiConnId; ///<master的连接ID
+    CwxPackageReader        m_reader; ///<解包的reader
+    char*                   m_unzipBuf; ///<解压的buffer
+    CWX_UINT32              m_uiBufLen; ///<解压buffer的大小，其为trunk的20倍，最小为20M。
 };
 
 #endif 
