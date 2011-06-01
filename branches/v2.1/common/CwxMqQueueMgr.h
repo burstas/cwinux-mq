@@ -125,7 +125,7 @@ public:
 
     ///用于commit类型的队列，提交commit消息。
     ///返回值：0：不存在，1：成功.
-    int commitBinlog(CWX_UINT64 ullSid);
+    int commitBinlog(CWX_UINT64 ullSid, bool bCommit=true);
     ///消息发送完毕，bSend=true表示已经发送成功；false表示发送失败
     ///返回值：0：不存在，1：成功.
     int endSendMsg(CWX_UINT64 ullSid, bool bSend=true);
@@ -274,6 +274,7 @@ public:
     ///返回值：0：不存在，1：成功，-1：失败；-2：队列不存在
     int commitBinlog(string const& strQueue,
         CWX_UINT64 ullSid,
+        bool bCommit=true,
         char* szErr2K=NULL);
     ///消息发送完毕，bSend=true表示已经发送成功；false表示发送失败
     ///返回值：0：不存在，1：成功，-1：失败，-2：队列不存在

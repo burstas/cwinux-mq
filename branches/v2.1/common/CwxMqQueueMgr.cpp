@@ -162,7 +162,7 @@ int CwxMqQueue::getNextBinlog(CwxMqTss* pTss,
 
 ///用于commit类型的队列，提交commit消息。
 ///返回值：0：不存在，1：成功.
-int CwxMqQueue::commitBinlog(CWX_UINT64 ullSid)
+int CwxMqQueue::commitBinlog(CWX_UINT64 ullSid, bool bCommit)
 {
     if (!m_bCommit) return 0;
     map<CWX_UINT64, void*>::iterator iter=m_uncommitMap.find(ullSid);
@@ -174,6 +174,11 @@ int CwxMqQueue::commitBinlog(CWX_UINT64 ullSid)
     m_pUncommitMsg->erase(item);
     //从uncommit map中删除元素
     m_uncommitMap->erase(iter);
+    if (!bCommit)
+    {
+        m_memMsgMap[item->sid()] = item->msg();
+        item->msg(NULL);
+    }
     //删除元素自身，同时
     delete item;
     return 1;
@@ -656,6 +661,7 @@ int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss,
 ///返回值：0：不存在，1：成功，-1：失败；-2：队列不存在
 int CwxMqQueueMgr::commitBinlog(string const& strQueue,
                  CWX_UINT64 ullSid,
+                 bool bCommit,
                  char* szErr2K)
 {
     if (m_mqLogFile)
@@ -663,7 +669,7 @@ int CwxMqQueueMgr::commitBinlog(string const& strQueue,
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
         map<string, CwxMqQueue*>::iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return -2;
-        int ret = iter->second->commitBinlog(ullSid);
+        int ret = iter->second->commitBinlog(ullSid, bCommit);
         if (0 == ret) return 0;
         if (1 == ret)
         {
