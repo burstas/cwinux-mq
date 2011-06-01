@@ -77,6 +77,14 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_INVALID_CRC32    19 ///<CRC32校验失败
 #define CWX_MQ_NO_NAME          20 ///<没有name字段
 #define CWX_MQ_TIMEOUT          21 ///<commit队列类型的消息commit超时
+#define CWX_MQ_INVALID_COMMIT   22 ///<commit命令无效
+#define CWX_MQ_USER_TO0_LONG     23 ///<队列的用户名太长
+#define CWX_MQ_PASSWD_TOO_LONG   24 ///<队列的口令太长
+#define CWX_MQ_NAME_TOO_LONG   25 ///<队列名字太长
+#define CWX_MQ_SCRIBE_TOO_LONG   26 ///<队列订阅表达式太长
+#define CWX_MQ_NAME_EMPTY        27 ///<队列的名字为空
+#define CWX_MQ_QUEUE_EXIST       28 ///<队列存在
+
 
 #define CWX_MQ_PROXY_NO_AUTH_GROUP    100 ///<消息的group没有被允许
 #define CWX_MQ_PROXY_FORBID_GROUP     101 ///<消息的group被禁止
@@ -89,4 +97,10 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_MIN_TIMEOUT_SECOND     1 ///<最小的超时秒数
 #define CWX_MQ_MAX_TIMEOUT_SECOND     300 ///<最大的超时秒数
 #define CWX_MQ_DEF_TIMEOUT_SECOND     5  ///<缺省的超时秒数
+
+#define CWX_MAX_QUEUE_NAME_LEN        64 ///<最大队列名长度
+#define CWX_MAX_QUEUE_USER_LEN        64 ///<最大的队列用户长度
+#define CWX_MAX_QUEUE_PASSWD_LEN      64 ///<最大的用户口令长度
+#define CWX_MAX_QUEUE_SCRIBE_LEN      800 ///<最大订阅表达式的长度
+
 #endif

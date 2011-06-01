@@ -312,7 +312,7 @@ public:
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
         return m_queues.find(strQueue) != m_queues.end();
     }
-    //-1：失败；0：队列不存在；1：成功
+    //-1：权限失败；0：队列不存在；1：成功
     inline int authQueue(string const& strQueue, string const& user, string const& passwd) const
     {
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
