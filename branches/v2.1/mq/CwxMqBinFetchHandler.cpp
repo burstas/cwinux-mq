@@ -377,15 +377,229 @@ int CwxMqBinFetchHandler::fetchMqCommit(CwxMqTss* pTss)
 ///create queue
 int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
 {
+    int iRet = CWX_MQ_SUCCESS;
+    bool bCommit = true;
+    char const* queue_name = NULL;
+    char const* user = NULL;
+    char const* passwd = NULL;
+    char const* scribe = NULL;
+    char const* auth_user = NULL;
+    char const* auth_passwd = NULL;
+    CWX_UINT64 ullSid = 0;
+    bool bCommit = true;
+    CWX_UINT32 uiDefTimeout = 0;
+    CWX_UINT32 uiMaxTimeout = 0;
 
+    do
+    {
+        iRet = CwxMqPoco::parseCreateQueue(pTss->m_pReader,
+            m_recvMsgData,
+            queue_name,
+            user,
+            passwd,
+            scribe,
+            auth_user,
+            auth_passwd,
+            ullSid,
+            bCommit,
+            uiDefTimeout,
+            uiMaxTimeout,
+            pTss->m_szBuf2K);
+        ///如果解析失败，则进入错误消息处理
+        if (CWX_MQ_SUCCESS != iRet) break;
+        //校验权限
+        if (m_pApp->getConfig().getMq().m_mq.m_strUser.length())
+        {
+            if ((m_pApp->getConfig().getMq().m_mq.m_strUser != auth_user) ||
+                (m_pApp->getConfig().getMq().m_mq.m_strPasswd != auth_passwd))
+            {
+                iRet = CWX_MQ_FAIL_AUTH;
+                strcpy(pTss->m_szBuf2K, "No auth");
+                break;
+            }
+        }
+        //检测参数
+        if (!strlen(queue_name))
+        {
+            iRet = CWX_MQ_NAME_EMPTY;
+            strcpy(pTss->m_szBuf2K, "queue name is empty");
+            break;
+        }
+        if (strlen(queue_name) > CWX_MAX_QUEUE_NAME_LEN)
+        {
+            iRet = CWX_MQ_NAME_TOO_LONG;
+            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue name[%s] is too long, max:%u", queue_name, CWX_MAX_QUEUE_NAME_LEN);
+            break;
+        }
+        if (strlen(user) > CWX_MAX_QUEUE_USER_LEN)
+        {
+            iRet = CWX_MQ_USER_TO0_LONG;
+            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue's user name[%s] is too long, max:%u", user, CWX_MAX_QUEUE_USER_LEN);
+            break;
+        }
+        if (strlen(passwd) > CWX_MAX_QUEUE_PASSWD_LEN)
+        {
+            iRet = CWX_MQ_PASSWD_TOO_LONG;
+            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue's passwd [%s] is too long, max:%u", passwd, CWX_MAX_QUEUE_PASSWD_LEN);
+            break;
+        }
+        if (!strlen(scribe)) scribe = "*";
+        if (strlen(scribe) > CWX_MAX_QUEUE_SCRIBE_LEN)
+        {
+            iRet = CWX_MQ_SCRIBE_TOO_LONG;
+            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue's scribe [%s] is too long, max:%u", scribe, CWX_MAX_QUEUE_SCRIBE_LEN);
+            break;
+        }
+        string strErrMsg;
+        if (CwxMqPoco::isValidSubscribe(string(scribe), strErrMsg))
+        {
+            iRet = CWX_MQ_INVALID_SUBSCRIBE;
+            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "%s", strErrMsg.c_str());
+            break;
+        }
+        //设置超时范围
+        if (0 == uiDefTimeout) uiDefTimeout = CWX_MQ_DEF_TIMEOUT_SECOND;
+        if (uiDefTimeout < CWX_MQ_MIN_TIMEOUT_SECOND) uiDefTimeout = CWX_MQ_MIN_TIMEOUT_SECOND;
+        if (uiDefTimeout > CWX_MQ_MAX_TIMEOUT_SECOND) uiDefTimeout = CWX_MQ_MAX_TIMEOUT_SECOND;
+        if (0 == uiMaxTimeout) uiMaxTimeout = CWX_MQ_MAX_TIMEOUT_SECOND;
+        if (uiMaxTimeout < CWX_MQ_MIN_TIMEOUT_SECOND) uiMaxTimeout = CWX_MQ_MIN_TIMEOUT_SECOND;
+        if (uiMaxTimeout > CWX_MQ_MAX_TIMEOUT_SECOND) uiMaxTimeout = CWX_MQ_MAX_TIMEOUT_SECOND;
+
+        iRet = m_pApp->getQueueMgr()->addQueue(string(queue_name),
+            ullSid,
+            bCommit,
+            string(user),
+            string(passwd),
+            string(scribe),
+            uiDefTimeout,
+            uiMaxTimeout,
+            pTss->m_szBuf2K);
+        if (1 == iRet)
+        {//成功
+            iRet = CWX_MQ_SUCCESS;
+            break;
+        }
+        else if (0 == iRet)
+        {//exist
+            iRet = CWX_MQ_QUEUE_EXIST;
+            strcpy(pTss->m_szBuf2K, "Queue exists");
+            break;
+        }
+        else
+        {//内部错误
+            iRet = CWX_MQ_INNER_ERR;
+            break;
+        }
+    }while(0);
+
+    CwxMsgBlock* block = NULL;
+    iRet = CwxMqPoco::packCreateQueueReply(pTss->m_pWriter, block, iRet, pTss->m_szBuf2K, pTss->m_szBuf2K);
+    if (CWX_MQ_SUCCESS != iRet)
+    {
+        CWX_ERROR(("Failure to pack create-queue-reply, err:%s", pTss->m_szBuf2K));
+        return -1;
+    }
+
+    block->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
+    block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
+    block->send_ctrl().setHostId(0);
+    block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
+    ///将消息放到连接的发送队列等待发送
+    if (!putMsg(block))
+    {///放发送队列失败
+        CWX_ERROR(("Failure to reply create queue"));
+        CwxMsgBlockAlloc::free(block);
+        return -1;
+    }
+    return 0;
 }
 ///del queue
 int CwxMqBinFetchHandler::delQueue(CwxMqTss* pTss)
 {
+    int iRet = CWX_MQ_SUCCESS;
+    char const* queue_name = NULL;
+    char const* user = NULL;
+    char const* passwd = NULL;
+    char const* auth_user = NULL;
+    char const* auth_passwd = NULL;
+    do
+    {
+        iRet = CwxMqPoco::parseDelQueue(pTss->m_pReader,
+            m_recvMsgData,
+            queue_name,
+            user,
+            passwd,
+            auth_user,
+            auth_passwd,
+            pTss->m_szBuf2K);
+        ///如果解析失败，则进入错误消息处理
+        if (CWX_MQ_SUCCESS != iRet) break;
+        //校验权限
+        if (m_pApp->getConfig().getMq().m_mq.m_strUser.length())
+        {
+            if ((m_pApp->getConfig().getMq().m_mq.m_strUser != auth_user) ||
+                (m_pApp->getConfig().getMq().m_mq.m_strPasswd != auth_passwd))
+            {
+                iRet = CWX_MQ_FAIL_AUTH;
+                strcpy(pTss->m_szBuf2K, "No auth");
+                break;
+            }
+        }
+        iRet = m_pApp->getQueueMgr()->authQueue(string(queue_name), string(user), string(passwd));
+        if (0 == iRet)
+        {//队列不存在
+            iRet = CWX_MQ_NO_QUEUE;
+            strcpy(pTss->m_szBuf2K, "Queue doesn't exists");
+            break;
 
+        }
+        ///如果权限错误，则返回错误消息
+        if (-1 == iRet)
+        {
+            iRet = CWX_MQ_FAIL_AUTH;
+            strcpy(pTss->m_szBuf2K, "No auth");
+            break;
+        }
+        iRet = m_pApp->getQueueMgr()->delQueue(string(queue_name), pTss->m_szBuf2K);
+        if (1 == iRet)
+        {//成功
+            iRet = CWX_MQ_SUCCESS;
+            break;
+        }
+        else if (0 == iRet)
+        {//exist
+            iRet = CWX_MQ_QUEUE_EXIST;
+            strcpy(pTss->m_szBuf2K, "Queue exists");
+            break;
+        }
+        else
+        {//内部错误
+            iRet = CWX_MQ_INNER_ERR;
+            break;
+        }
+    }while(0);
+
+    CwxMsgBlock* block = NULL;
+    iRet = CwxMqPoco::packDelQueueReply(pTss->m_pWriter, block, iRet, pTss->m_szBuf2K, pTss->m_szBuf2K);
+    if (CWX_MQ_SUCCESS != iRet)
+    {
+        CWX_ERROR(("Failure to pack del-queue-reply, err:%s", pTss->m_szBuf2K));
+        return -1;
+    }
+
+    block->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
+    block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
+    block->send_ctrl().setHostId(0);
+    block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
+    ///将消息放到连接的发送队列等待发送
+    if (!putMsg(block))
+    {///放发送队列失败
+        CWX_ERROR(("Failure to reply delete queue"));
+        CwxMsgBlockAlloc::free(block);
+        return -1;
+    }
+    return 0;
 }
-
-
 
 
 CwxMsgBlock* CwxMqBinFetchHandler::packEmptyFetchMsg(CwxMqTss* pTss,
