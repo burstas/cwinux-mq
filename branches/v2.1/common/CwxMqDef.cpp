@@ -1,14 +1,14 @@
 #include "CwxMqDef.h"
 #include "CwxMqQueueMgr.h"
 #include "CwxMqPoco.h"
-CwxMqDispatchConn::CwxMqDispatchConn(CwxAppHandler4Channel* handler)
+CwxMqDispatchConn::CwxMqDispatchConn()
 {
-    m_handler = handler;
     m_pCursor = NULL;
     m_ullStartSid = 0;
     m_uiChunk = 0;
     m_bNext = false;
     m_bSync = false;
+    m_bZip = false;
     m_uiWindow = 1;
 }
 

@@ -29,10 +29,9 @@ class CwxMqQueue;
 class CwxMqDispatchConn
 {
 public:
-    CwxMqDispatchConn(CwxAppHandler4Channel* handler);
+    CwxMqDispatchConn();
     ~CwxMqDispatchConn();
 public:
-    CwxAppHandler4Channel*   m_handler; ///<连接对象
     CwxBinLogCursor*         m_pCursor; ///<binlog的读取cursor
     CWX_UINT32               m_uiChunk; ///<chunk大小
     CWX_UINT64               m_ullStartSid; ///<report的sid
@@ -41,6 +40,8 @@ public:
     bool                     m_bSync; ///<是否接受sync数据
     CwxMqSubscribe           m_subscribe; ///<消息订阅对象
     CWX_UINT32               m_uiWindow; ///<窗口的大小
+    string                   m_strSign; ///<签名类型
+    bool                     m_bZip; ///<是否压缩
     set<CWX_UINT64>          m_sendingSid; ///<发送中的sid
 };
 
