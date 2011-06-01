@@ -16,7 +16,7 @@
         <async keep_alive="yes" user="async" passwd="async_passwd" ip="*" port="9903" unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/async.sock"/>
     </master>
     <slave>
-        <master keep_alive="yes" user="async" passwd="async_passwd" subscribe="*" ip="172.16.42.65" port="9903"/>
+        <master keep_alive="yes" user="async" passwd="async_passwd" subscribe="*" ip="172.16.42.65" port="9903" zip="yes"/>
         <async keep_alive="yes" user="async" passwd="async_passwd" ip="*" port="9905" unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/async.sock"/>
     </slave>
     <mq>
