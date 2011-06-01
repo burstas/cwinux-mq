@@ -1,4 +1,5 @@
 #include "CwxMqPoco.h"
+#include "CwxZlib.h"
 
 CwxPackageWriter* CwxMqPoco::m_pWriter =NULL;
 ///初始化协议。返回值，CWX_MQ_SUCCESS：成功；其他都是失败
@@ -466,6 +467,7 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
                           char const* user,
                           char const* passwd,
                           char const* sign,
+                          bool  zip,
                           char* szErr2K)
 {
     writer->beginPack();
@@ -513,6 +515,14 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
             }
         }
     }
+    if (zip)
+    {
+        if (!writer->addKeyValue(CWX_MQ_ZIP,zip))
+        {
+            if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
+            return CWX_MQ_INNER_ERR;
+        }
+    }
 
     if (!writer->pack())
     {
@@ -520,6 +530,7 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
         return CWX_MQ_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_SYNC_REPORT, uiTaskId, writer->getMsgSize());
+
     msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
     if (!msg)
     {
@@ -540,6 +551,7 @@ int CwxMqPoco::parseReportData(CwxPackageReader* reader,
                            char const*& user,
                            char const*& passwd,
                            char const*& sign,
+                           bool&        zip,
                            char* szErr2K)
 {
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
@@ -612,6 +624,10 @@ int CwxMqPoco::parseReportData(CwxPackageReader* reader,
             sign = "";
         }
 
+    }
+    if (!reader->getKey(CWX_MQ_ZIP, zip))
+    {
+        zip = false;
     }
 
     return CWX_MQ_SUCCESS;
@@ -715,6 +731,7 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
                         CWX_UINT32 type,
                         CWX_UINT32 attr,
                         char const* sign,
+                        bool       zip,
                         char* szErr2K)
 {
     writer->beginPack();
@@ -735,11 +752,33 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
         return CWX_MQ_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_SYNC_DATA, uiTaskId, writer->getMsgSize());
-    msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
+
+    msg = CwxMsgBlockAlloc::malloc(CwxMsgHead::MSG_HEAD_LEN + writer->getMsgSize());
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
         return CWX_MQ_INNER_ERR;
+    }
+    unsigned long ulDestLen = writer->getMsgSize();
+    if (zip)
+    {
+        if (!CwxZlib::zip(msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN, ulDestLen, writer->getMsg(), writer->getMsgSize()))
+        {
+            zip = false;
+        }
+    }
+    if (zip)
+    {
+        head.addAttr(CwxMsgHead::ATTR_COMPRESS);
+        head.setDataLen(ulDestLen);
+        memcpy(msg->wr_ptr(), head.toNet(), CwxMsgHead::MSG_HEAD_LEN);
+        msg->wr_ptr(CwxMsgHead::MSG_HEAD_LEN + ulDestLen);
+    }
+    else
+    {
+        memcpy(msg->wr_ptr(), head.toNet(), CwxMsgHead::MSG_HEAD_LEN);
+        memcpy(msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN, writer->getMsg(), writer->getMsgSize());
+        msg->wr_ptr(CwxMsgHead::MSG_HEAD_LEN + writer->getMsgSize());        
     }
     return CWX_MQ_SUCCESS;
 }
@@ -802,7 +841,7 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
             char szMd5[16];
             md5.update(writer->getMsg(), writer->getMsgSize());
             md5.final(szMd5);
-            if (!writer->addKeyValue(CWX_MQ_MD5, szBuf, 16))
+            if (!writer->addKeyValue(CWX_MQ_MD5, szMd5, 16))
             {
                 if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
                 return CWX_MQ_INNER_ERR;
@@ -818,17 +857,41 @@ int CwxMqPoco::packMultiSyncData(
                                      char const* szData,
                                      CWX_UINT32 uiDataLen,
                                      CwxMsgBlock*& msg,
+                                     bool  zip,
                                      char* szErr2K
                                  )
 {
     CwxMsgHead head(0, 0, MSG_TYPE_SYNC_DATA, uiTaskId, uiDataLen);
-    msg = CwxMsgBlockAlloc::pack(head, szData, uiDataLen);
+
+    msg = CwxMsgBlockAlloc::malloc(CwxMsgHead::MSG_HEAD_LEN + uiDataLen);
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", uiDataLen);
         return CWX_MQ_INNER_ERR;
     }
+    unsigned long ulDestLen = uiDataLen;
+    if (zip)
+    {
+        if (!CwxZlib::zip(msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN, ulDestLen, szData, uiDataLen))
+        {
+            zip = false;
+        }
+    }
+    if (zip)
+    {
+        head.addAttr(CwxMsgHead::ATTR_COMPRESS);
+        head.setDataLen(ulDestLen);
+        memcpy(msg->wr_ptr(), head.toNet(), CwxMsgHead::MSG_HEAD_LEN);
+        msg->wr_ptr(CwxMsgHead::MSG_HEAD_LEN + ulDestLen);
+    }
+    else
+    {
+        memcpy(msg->wr_ptr(), head.toNet(), CwxMsgHead::MSG_HEAD_LEN);
+        memcpy(msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN, szData, uiDataLen);
+        msg->wr_ptr(CwxMsgHead::MSG_HEAD_LEN + uiDataLen);
+    }
     return CWX_MQ_SUCCESS;
+
 }
 
 

@@ -52,6 +52,7 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_MAX_TIMEOUT "max_timeout"
 #define CWX_MQ_COMMIT "commit"
 #define CWX_MQ_UNCOMMIT "uncommit"
+#define CWX_MQ_ZIP     "zip"
 
 ///错误代码定义
 #define CWX_MQ_SUCCESS          0  ///<成功

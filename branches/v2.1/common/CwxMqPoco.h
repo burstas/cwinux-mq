@@ -241,6 +241,7 @@ public:
         char const* user=NULL,
         char const* passwd=NULL,
         char const* sign=NULL,
+        bool        zip = 0,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
     static int parseReportData(CwxPackageReader* reader,
@@ -253,6 +254,7 @@ public:
         char const*& user,
         char const*& passwd,
         char const*& sign,
+        bool&        zip,
         char* szErr2K=NULL);
 
 
@@ -283,6 +285,7 @@ public:
         CWX_UINT32 type,
         CWX_UINT32 attr,
         char const* sign=NULL,
+        bool       zip = false,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
     static int packSyncDataItem(CwxPackageWriter* writer,
@@ -299,6 +302,7 @@ public:
         char const* szData,
         CWX_UINT32 uiDataLen,
         CwxMsgBlock*& msg,
+        bool  zip = false,
         char* szErr2K=NULL
         );
     ///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
