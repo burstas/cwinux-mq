@@ -19,6 +19,7 @@ int CwxMqMasterHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         m_pApp->getConfig().getSlave().m_strSubScribe.c_str(),
         m_pApp->getConfig().getSlave().m_master.getUser().c_str(),
         m_pApp->getConfig().getSlave().m_master.getPasswd().c_str(),
+        m_pApp->getConfig().getSlave().
         pTss->m_szBuf2K);
     if (ret != CWX_MQ_SUCCESS)
     {///数据包创建失败

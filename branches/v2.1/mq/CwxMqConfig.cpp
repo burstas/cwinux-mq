@@ -215,6 +215,20 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
             else
                 m_slave.m_bzip = false;
         }
+        //load mq:slave:master:sign
+        if ((NULL == (pValue=parser.getElementAttr("mq:slave:master", "sign"))) || !pValue[0])
+        {
+            m_slave.m_strSign = "";
+        }
+        else
+        {
+            if (strcmp(CWX_MQ_CRC32, pValue) == 0)
+                m_slave.m_strSign = CWX_MQ_CRC32;
+            else if (strcmp(CWX_MQ_MD5, pValue) == 0)
+                m_slave.m_strSign = CWX_MQ_MD5;
+            else
+                m_slave.m_strSign = "";
+        }
         //fetch mq:slave:master:subcribe
         if ((NULL == (pValue=parser.getElementAttr("mq:slave:master", "subcribe"))) || !pValue[0])
         {
@@ -387,15 +401,16 @@ void CwxMqConfig::outputConfig() const
         }
     }else{
         CWX_INFO(("*****************slave*******************"));
-        CWX_INFO(("master zip=%s keep_alive=%s user=%s passwd=%s subscribe=%s ip=%s port=%u unix=%s",
+        CWX_INFO(("master zip=%s sign=%s, keep_alive=%s user=%s passwd=%s subscribe=%s ip=%s port=%u unix=%s",
+            m_slave.m_bzip?"yes":"no",
+            m_slave.m_strSign.c_str(),
             m_slave.m_master.isKeepAlive()?"yes":"no",
             m_slave.m_master.getUser().c_str(),
             m_slave.m_master.getPasswd().c_str(),
             m_slave.m_strSubScribe.c_str(),
             m_slave.m_master.getHostName().c_str(),
             m_slave.m_master.getPort(),
-            m_slave.m_master.getUnixDomain().c_str(),
-            m_slave.m_bzip?"yes":"no"));
+            m_slave.m_master.getUnixDomain().c_str()));
         if (m_slave.m_async.getHostName().length())
         {
             CWX_INFO(("async keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",

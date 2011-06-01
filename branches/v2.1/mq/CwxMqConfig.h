@@ -104,6 +104,7 @@ public:
     CwxHostInfo     m_master; ///<slave的master的连接信息
     string          m_strSubScribe;///<消息订阅表达式
     bool            m_bzip; ///<是否zip压缩
+    string          m_strSign; ///<签名类型
     CwxHostInfo     m_async; ///<slave bin协议异步分发的端口信息
 };
 
