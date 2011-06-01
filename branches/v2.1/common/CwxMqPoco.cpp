@@ -853,12 +853,12 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
 }
 
 int CwxMqPoco::packMultiSyncData(
-                                     CWX_UINT32 uiTaskId,
-                                     char const* szData,
-                                     CWX_UINT32 uiDataLen,
-                                     CwxMsgBlock*& msg,
-                                     bool  zip,
-                                     char* szErr2K
+                                 CWX_UINT32 uiTaskId,
+                                 char const* szData,
+                                 CWX_UINT32 uiDataLen,
+                                 CwxMsgBlock*& msg,
+                                 bool  zip,
+                                 char* szErr2K
                                  )
 {
     CwxMsgHead head(0, 0, MSG_TYPE_SYNC_DATA, uiTaskId, uiDataLen);
