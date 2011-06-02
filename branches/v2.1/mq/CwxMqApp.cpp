@@ -830,16 +830,30 @@ CWX_UINT32 CwxMqApp::packMonitorInfo()
         CwxMqQueue* pQueue = 0;
         char szSid1[64];
         char szSid2[64];
-        map<string, CwxMqConfigQueue>::const_iterator iter = getConfig().getMq().m_queues.begin();
-        while(iter != getConfig().getMq().m_queues.end())
+        list<CwxMqQueueInfo> queues;
+        m_queueMgr->getQueuesInfo(queues);
+        list<CwxMqQueueInfo>::iterator iter = queues.begin();
+        char const* state="";
+        while(iter != queues.end())
         {
-            pQueue = getQueueMgr()->getQueue(iter->first);
-            ullMqSid = pQueue->getCurSid(); 
-            ullMqNum = pQueue->getMqNum();
-            CwxCommon::toString(ullMqSid, szSid1, 10);
-            CwxCommon::toString(ullMqNum, szSid2, 10);
-            CwxCommon::snprintf(szLine, 4096, "STAT mq name(%s):sid(%s):mq_num(%s)\r\n",
-                iter->first.c_str(), szSid1, szSid2);
+            if (iter->m_ucQueueState==CwxBinLogMgr::CURSOR_STATE_UNSEEK)
+                state = "unseek";
+            else if (iter->m_ucQueueState==CwxBinLogMgr::CURSOR_STATE_ERROR)
+                state = "error";
+            else if (iter->m_ucQueueState==CwxBinLogMgr::CURSOR_STATE_READY)
+                state = "ready";
+            else
+                state = "unknown";
+
+            CwxCommon::toString(iter->m_ullCursorSid, szSid1, 10);
+            CwxCommon::toString(iter->m_ullLeftNum, szSid2, 10);
+            CwxCommon::snprintf(szLine, 4096, "STAT mq name(%s)|type(%s)|state(%s)|sid(%s)|mq_num(%s)|subscribe(%s)\r\n",
+                iter->m_strName.c_str(),
+                iter->m_bCommit?"true":"false",
+                state,
+                szSid1,
+                szSid2,
+                iter->m_strSubScribe.c_str());
             MQ_MONITOR_APPEND();
             iter++;
         }
@@ -923,7 +937,7 @@ int CwxMqApp::DispatchThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppCha
 }
 
 ///分发mq channel的线程函数，arg为app对象
-void* CwxMqApp::MqThreadMain(CwxTss* pTss, CwxMsgQueue* queue, void* arg)
+void* CwxMqApp::MqThreadMain(CwxTss* , CwxMsgQueue* queue, void* arg)
 {
     CwxMqApp* app = (CwxMqApp*) arg;
     if (0 != app->getMqChannel()->open())
