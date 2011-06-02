@@ -70,7 +70,7 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
         if (strcmp(sign, CWX_MQ_CRC32) == 0)//CRC32签名
         {
             CWX_UINT32 uiCrc32 = CwxCrc32::value(writer->getMsg(), writer->getMsgSize());
-            if (!writer->addKeyValue(CWX_MQ_CRC32, &uiCrc32, sizeof(uiCrc32)))
+            if (!writer->addKeyValue(CWX_MQ_CRC32, (char*)&uiCrc32, sizeof(uiCrc32)))
             {
                 if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
                 return CWX_MQ_ERR_INNER_ERR;
@@ -79,10 +79,10 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
         else if (strcmp(sign, CWX_MQ_MD5) == 0)//md5签名
         {
             CwxMd5 md5;
-            char szMd5[16];
-            md5.update(writer->getMsg(), writer->getMsgSize());
+            unsigned char szMd5[16];
+            md5.update((unsigned char*)writer->getMsg(), writer->getMsgSize());
             md5.final(szMd5);
-            if (!writer->addKeyValue(CWX_MQ_MD5, szBuf, 16))
+            if (!writer->addKeyValue(CWX_MQ_MD5, (char*)szMd5, 16))
             {
                 if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
                 return CWX_MQ_ERR_INNER_ERR;
@@ -190,9 +190,9 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
     //get md5
     if ((pItem = reader->getKey(CWX_MQ_MD5)))
     {
-        char szMd5[16];
+        unsigned char szMd5[16];
         CwxMd5 md5;
-        md5.update(msg->rd_ptr(), pItem->m_szKey - msg->rd_ptr() - CwxPackage::getKeyOffset());
+        md5.update((unsigned char*)msg->rd_ptr(), pItem->m_szKey - msg->rd_ptr() - CwxPackage::getKeyOffset());
         md5.final(szMd5);
         if (memcmp(szMd5, pItem->m_szData) != 0)
         {
@@ -829,7 +829,7 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
         if (strcmp(sign, CWX_MQ_CRC32) == 0)//CRC32签名
         {
             CWX_UINT32 uiCrc32 = CwxCrc32::value(writer->getMsg(), writer->getMsgSize());
-            if (!writer->addKeyValue(CWX_MQ_CRC32, &uiCrc32, sizeof(uiCrc32)))
+            if (!writer->addKeyValue(CWX_MQ_CRC32, (char*)&uiCrc32, sizeof(uiCrc32)))
             {
                 if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
                 return CWX_MQ_ERR_INNER_ERR;
@@ -838,8 +838,8 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
         else if (strcmp(sign, CWX_MQ_MD5) == 0)//md5签名
         {
             CwxMd5 md5;
-            char szMd5[16];
-            md5.update(writer->getMsg(), writer->getMsgSize());
+            unsigned char szMd5[16];
+            md5.update((char unsigned*)writer->getMsg(), writer->getMsgSize());
             md5.final(szMd5);
             if (!writer->addKeyValue(CWX_MQ_MD5, szMd5, 16))
             {
@@ -983,9 +983,9 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
     //get md5
     if ((pItem = reader->getKey(CWX_MQ_MD5)))
     {
-        char szMd5[16];
+        unsigned char szMd5[16];
         CwxMd5 md5;
-        md5.update(szData, pItem->m_szKey - szData - CwxPackage::getKeyOffset());
+        md5.update((unsigned char*)szData, pItem->m_szKey - szData - CwxPackage::getKeyOffset());
         md5.final(szMd5);
         if (memcmp(szMd5, pItem->m_szData, 16) != 0)
         {

@@ -598,7 +598,7 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqTss* pTss)
             if (m_dispatch.m_strSign == CWX_MQ_CRC32)//CRC32Ç©Ãû
             {
                 CWX_UINT32 uiCrc32 = CwxCrc32::value(pTss->m_pWriter->getMsg(), pTss->m_pWriter->getMsgSize());
-                if (!pTss->m_pWriter->addKeyValue(CWX_MQ_CRC32, &uiCrc32, sizeof(uiCrc32)))
+                if (!pTss->m_pWriter->addKeyValue(CWX_MQ_CRC32, (char*)&uiCrc32, sizeof(uiCrc32)))
                 {
                     CWX_ERROR(("Failure to add key value, err:%s", pTss->m_pWriter->getErrMsg()));
                     return -1;
@@ -607,8 +607,8 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqTss* pTss)
             else if (m_dispatch.m_strSign == CWX_MQ_MD5)//md5Ç©Ãû
             {
                 CwxMd5 md5;
-                char szMd5[16];
-                md5.update(pTss->m_pWriter->getMsg(), pTss->m_pWriter->getMsgSize());
+                unsigned char szMd5[16];
+                md5.update((unsigned char*)pTss->m_pWriter->getMsg(), pTss->m_pWriter->getMsgSize());
                 md5.final(szMd5);
                 if (!pTss->m_pWriter->addKeyValue(CWX_MQ_MD5, szMd5, 16))
                 {
