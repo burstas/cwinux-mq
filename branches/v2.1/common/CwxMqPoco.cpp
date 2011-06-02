@@ -999,7 +999,7 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
                     sprintf(szTmp1 + i*2, "%2.2x", pItem->m_szData[i]);
                     sprintf(szTmp2 + i*2, "%2.2x", szMd5[i]);
                 }
-                CwxCommon::snprintf(szErr2K, 2047, "MD5 signture error. recv signture:%x, local signture:%x", szTmp1, szTmp2);
+                CwxCommon::snprintf(szErr2K, 2047, "MD5 signture error. recv signture:%s, local signture:%s", szTmp1, szTmp2);
             }
             return CWX_MQ_ERR_INVALID_MD5;
         }
