@@ -237,7 +237,7 @@ int CwxMproxyApp::onRecvMsg(CwxMsgBlock* msg, CwxAppHandler4Msg & conn, CwxMsgHe
 }
 ///收到消息的响应函数
 int CwxMproxyApp::onRecvMsg(CwxAppHandler4Msg& conn,
-                      bool& bSuspendConn)
+                      bool& )
 {
     if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId())
     {
@@ -481,7 +481,7 @@ int CwxMproxyApp::monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHand
     while(0);
 
     msg->send_ctrl().setConnId(conn.getConnInfo().getConnId());
-    msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_MONITOR);
+    msg->send_ctrl().setSvrId(CwxMproxyApp::SVR_TYPE_MONITOR);
     msg->send_ctrl().setHostId(0);
     msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
     if (-1 == sendMsgByConn(msg))
@@ -503,7 +503,6 @@ int CwxMproxyApp::monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHand
 CWX_UINT32 CwxMproxyApp::packMonitorInfo()
 {
     string strValue;
-    char szTmp[128];
     char szLine[4096];
     CWX_UINT32 uiLen = 0;
     CWX_UINT32 uiPos = 0;
@@ -528,7 +527,7 @@ CWX_UINT32 CwxMproxyApp::packMonitorInfo()
         CwxCommon::snprintf(szLine, 4096, "STAT start %s\r\n", m_strStartTime.c_str());
         MQ_MONITOR_APPEND();
         //state
-        CwxCommon::snprintf(szLine, 4096, "STAT mq %s\r\n", CWX_INVALID_HANDLE==m_uiMqConnId?"connected":"closed");
+        CwxCommon::snprintf(szLine, 4096, "STAT mq %s\r\n", CWX_INVALID_HANDLE==(int)m_uiMqConnId?"connected":"closed");
         MQ_MONITOR_APPEND();
     }
     while(0);
