@@ -648,9 +648,9 @@ int cwx_mq_parse_fetch_mq_commit_reply(struct CWX_PG_READER* reader,
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
-int cwx_mq_pack_create_queue(struct CWX_PG_READER* reader,
-                             char const* msg,
-                             CWX_UINT32 msg_len,
+int cwx_mq_pack_create_queue(struct CWX_PG_WRITER * writer,
+                             char* buf,
+                             CWX_UINT32* buf_len,
                              char const* name,
                              char const* user,
                              char const* passwd,

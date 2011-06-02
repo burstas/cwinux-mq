@@ -1371,9 +1371,9 @@ int cwx_mq_parse_fetch_mq_commit_reply(struct CWX_PG_READER* reader,
     return CWX_MQ_ERR_SUCCESS;
 }
 
-int cwx_mq_pack_create_queue(struct CWX_PG_READER* reader,
-                             char const* msg,
-                             CWX_UINT32 msg_len,
+int cwx_mq_pack_create_queue(struct CWX_PG_WRITER * writer,
+                             char* buf,
+                             CWX_UINT32* buf_len,
                              char const* name,
                              char const* user,
                              char const* passwd,
