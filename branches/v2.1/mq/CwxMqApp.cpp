@@ -680,10 +680,9 @@ int CwxMqApp::startNetwork()
     return 0;
 }
 
-int CwxMqApp::commit_mq(char* szErr2K)
+int CwxMqApp::commit_mq()
 {
-    int iRet = 0;
-    CWX_INFO(("Begin flush mq sys file......."));
+    CWX_INFO(("Begin flush mq queue log file......."));
     getQueueMgr()->commit();
     setMqLastCommitTime(time(NULL));
     return 0;
@@ -926,7 +925,6 @@ int CwxMqApp::DispatchThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppCha
 ///分发mq channel的线程函数，arg为app对象
 void* CwxMqApp::MqThreadMain(CwxTss* pTss, CwxMsgQueue* queue, void* arg)
 {
-    CWX_UINT64 ullLastCommitTime = 0;
     CwxMqApp* app = (CwxMqApp*) arg;
     if (0 != app->getMqChannel()->open())
     {
@@ -941,22 +939,6 @@ void* CwxMqApp::MqThreadMain(CwxTss* pTss, CwxMsgQueue* queue, void* arg)
         {
             CWX_ERROR(("Failure to invoke mq channel CwxAppChannel::dispatch()"));
             sleep(1);
-        }
-
-        if (ullLastCommitTime + 1000000 < app->getMqChannel()->getCurTime().to_usec())
-        {
-            ullLastCommitTime = app->getMqChannel()->getCurTime().to_usec();
-            if (app->getMqUncommitNum())
-            {
-                if ((app->getMqUncommitNum() >= app->getConfig().getBinLog().m_uiMqFetchFlushNum) ||
-                    (time(NULL) > (time_t)(app->getMqLastCommitTime() + app->getConfig().getBinLog().m_uiMqFetchFlushSecond)))
-                {
-                    if (0 != app->commit_mq(pTss->m_szBuf2K))
-                    {
-                        CWX_ERROR(("Failure to commit sys file, err=%s", pTss->m_szBuf2K));
-                    }
-                }
-            }
         }
     }
     app->getMqChannel()->stop();
@@ -1010,7 +992,7 @@ int CwxMqApp::MqThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* 
             {
                 CWX_ASSERT(block->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
                 CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_FETCH);
-                app->commit_mq(NULL);
+                app->commit_mq();
             }
         } while(0);
         CwxMsgBlockAlloc::free(block);

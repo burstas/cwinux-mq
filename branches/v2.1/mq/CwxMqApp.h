@@ -80,7 +80,7 @@ public:
            bool& bSuspendConn);
 public:
     ///-1:失败；0：成功
-    int commit_mq(char* szErr2K);
+    int commit_mq();
     ///是否是第一条binlog
     inline bool isFirstBinLog() const
     {
