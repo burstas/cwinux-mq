@@ -825,9 +825,6 @@ CWX_UINT32 CwxMqApp::packMonitorInfo()
         CwxCommon::snprintf(szLine, 4096, "STAT max_binlog_file %s\r\n",
             m_pBinLogMgr->getMaxFile(strValue).c_str());
         MQ_MONITOR_APPEND();
-        CWX_UINT64 ullMqSid = 0;
-        CWX_UINT64 ullMqNum = 0;
-        CwxMqQueue* pQueue = 0;
         char szSid1[64];
         char szSid2[64];
         list<CwxMqQueueInfo> queues;
