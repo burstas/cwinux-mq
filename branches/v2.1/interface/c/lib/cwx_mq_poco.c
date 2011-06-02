@@ -1805,11 +1805,11 @@ int cwx_mq_pack_del_queue_reply(struct CWX_PG_WRITER * writer,
     return CWX_MQ_ERR_SUCCESS;
 }
 
-int cwx_mq_del_create_queue_reply(struct CWX_PG_READER* reader,
+int cwx_mq_parse_del_queue_reply(struct CWX_PG_READER* reader,
                                     char const* msg,
                                     CWX_UINT32 msg_len,
-                                    int&  ret,
-                                    char const*& szErrMsg,
+                                    int*  ret,
+                                    char const** szErrMsg,
                                     char* szErr2K)
 {
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))

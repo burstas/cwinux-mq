@@ -807,8 +807,8 @@ int cwx_mq_pack_del_queue_reply(struct CWX_PG_WRITER * writer,
 int cwx_mq_parse_del_queue_reply(struct CWX_PG_READER* reader,
                           char const* msg,
                           CWX_UINT32 msg_len,
-                          int&  ret,
-                          char const*& szErrMsg,
+                          int*  ret,
+                          char const** szErrMsg,
                           char* szErr2K);
 
 
