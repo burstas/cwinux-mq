@@ -9,6 +9,10 @@
 #include "CwxMutexLock.h"
 #include "CwxStl.h"
 #include "CwxStlFunc.h"
+#include "CwxCommon.h"
+#include "CwxFile.h"
+#include "CwxDate.h"
+#include "CwxMqDef.h"
 
 /**
 @file CwxMqQueueLogFile.h
