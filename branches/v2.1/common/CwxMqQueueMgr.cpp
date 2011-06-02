@@ -283,7 +283,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
             m_cursor = m_binLog->createCurser();
             if (!m_cursor)
             {
-                err_num = CWX_MQ_INNER_ERR;
+                err_num = CWX_MQ_ERR_INNER_ERR;
                 strcpy(szErr2K, "Failure to create cursor");
                 return -1;
             }
@@ -300,7 +300,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
                 }
                 m_binLog->destoryCurser(m_cursor);
                 m_cursor = NULL;
-                err_num = CWX_MQ_INNER_ERR;
+                err_num = CWX_MQ_ERR_INNER_ERR;
                 return -1;
             }
             if (ullStartSid ==m_cursor->getHeader().getSid())
@@ -310,7 +310,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
                 if (-1 == iRet)
                 {///<失败
                     strcpy(szErr2K, m_cursor->getErrMsg());
-                    err_num = CWX_MQ_INNER_ERR;
+                    err_num = CWX_MQ_ERR_INNER_ERR;
                     return -1;
                 }
             }
@@ -327,7 +327,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
         if (-1 == iRet)
         {///<失败
             strcpy(szErr2K, m_cursor->getErrMsg());
-            err_num = CWX_MQ_INNER_ERR;
+            err_num = CWX_MQ_ERR_INNER_ERR;
             return -1;
         }
     }
@@ -345,7 +345,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
             if (-1 == iRet)
             {///<失败
                 strcpy(szErr2K, m_cursor->getErrMsg());
-                err_num = CWX_MQ_INNER_ERR;
+                err_num = CWX_MQ_ERR_INNER_ERR;
                 return -1;
             }
             uiSkipNum ++;
@@ -387,7 +387,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
             if (-1 == iRet)
             {//读取失败
                 strcpy(szErr2K, m_cursor->getErrMsg());
-                err_num = CWX_MQ_INNER_ERR;
+                err_num = CWX_MQ_ERR_INNER_ERR;
                 return -1;
             }
             ///unpack data的数据包
@@ -398,9 +398,9 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
                 if (pItem)
                 {
                     ///形成binlog发送的数据包
-                    if (CWX_MQ_SUCCESS != CwxMqPoco::packFetchMqReply(pTss,
+                    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packFetchMqReply(pTss,
                         msg,
-                        CWX_MQ_SUCCESS,
+                        CWX_MQ_ERR_SUCCESS,
                         "",
                         m_cursor->getHeader().getSid(),
                         m_cursor->getHeader().getDatetime(),
@@ -411,13 +411,13 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
                         pTss->m_szBuf2K))
                     {
                         ///形成数据包失败
-                        err_num = CWX_MQ_INNER_ERR;
+                        err_num = CWX_MQ_ERR_INNER_ERR;
                         return -1;
                     }
                     else
                     {
                         msg->event().m_ullArg = m_cursor->getHeader().getSid();
-                        err_num = CWX_MQ_SUCCESS;
+                        err_num = CWX_MQ_ERR_SUCCESS;
                         return 1;
                     }
                 }
@@ -442,7 +442,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
         if (-1 == iRet)
         {///<失败
             strcpy(szErr2K, m_cursor->getErrMsg());
-            err_num = CWX_MQ_INNER_ERR;
+            err_num = CWX_MQ_ERR_INNER_ERR;
             return -1;
         }
     }while(1);

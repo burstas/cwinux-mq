@@ -26,7 +26,7 @@ int CwxMqBinRecvHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss* )
 int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
-    int iRet = CWX_MQ_SUCCESS;
+    int iRet = CWX_MQ_ERR_SUCCESS;
     char const* user=NULL;
     char const* passwd=NULL;
     map<CWX_UINT32, bool>::iterator conn_iter = m_clientMap.find(msg->event().getConnId());
@@ -43,11 +43,11 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             if (m_pApp->getBinLogMgr()->isInvalid())
             {
                 ///如果binlog mgr无效，则停止接收
-                iRet = CWX_MQ_BINLOG_INVALID;
+                iRet = CWX_MQ_ERR_BINLOG_INVALID;
                 strcpy(pTss->m_szBuf2K, m_pApp->getBinLogMgr()->getInvalidMsg());
                 break;
             }
-            if (CWX_MQ_SUCCESS != CwxMqPoco::parseRecvData(pTss->m_pReader,
+            if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseRecvData(pTss->m_pReader,
                 msg,
                 pData,
                 uiGroup,
@@ -59,7 +59,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             {
                 //如果是无效数据，返回
                 CWX_DEBUG(("Failure to parse the recieve msg, err=%s", pTss->m_szBuf2K));
-                iRet = CWX_MQ_INVALID_MSG;
+                iRet = CWX_MQ_ERR_INVALID_MSG;
                 break;
             }
             if (!bAuth && m_pApp->getConfig().getMaster().m_recv.getUser().length())
@@ -69,7 +69,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 {
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
                     CWX_DEBUG((pTss->m_szBuf2K));
-                    iRet = CWX_MQ_FAIL_AUTH;
+                    iRet = CWX_MQ_ERR_FAIL_AUTH;
                     break;
                 }
                 conn_iter->second = true;
@@ -87,7 +87,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 pTss->m_szBuf2K))
             {
                 CWX_ERROR((pTss->m_szBuf2K));
-                iRet = CWX_MQ_FAIL_ADD_BINLOG;
+                iRet = CWX_MQ_ERR_FAIL_ADD_BINLOG;
                 break;
             }
             ///增加未提交的binlog数量
@@ -101,20 +101,20 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 if (0 != commit(pTss->m_szBuf2K))
                 {
                     CWX_ERROR((pTss->m_szBuf2K));
-                    iRet = CWX_MQ_BINLOG_INVALID;
+                    iRet = CWX_MQ_ERR_BINLOG_INVALID;
                     break;
                 }
             }
             if (-1 == this->checkSyncLog(true, pTss->m_szBuf2K))
             {
                 CWX_ERROR(("Failure to check sync log,err=%s", pTss->m_szBuf2K));
-                iRet = CWX_MQ_BINLOG_INVALID;
+                iRet = CWX_MQ_ERR_BINLOG_INVALID;
                 break;
             }
         }
         else if(CwxMqPoco::MSG_TYPE_RECV_COMMIT == msg->event().getMsgHeader().getMsgType())
         {
-            if (CWX_MQ_SUCCESS != CwxMqPoco::parseCommit(pTss->m_pReader,
+            if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseCommit(pTss->m_pReader,
                 msg,
                 user,
                 passwd,
@@ -122,7 +122,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             {
                 //如果是无效数据，返回
                 CWX_DEBUG(("Failure to parse the commit msg, err=%s", pTss->m_szBuf2K));
-                iRet = CWX_MQ_INVALID_MSG;
+                iRet = CWX_MQ_ERR_INVALID_MSG;
                 break;
             }
             if (m_pApp->getConfig().getMaster().m_recv.getUser().length())
@@ -132,7 +132,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 {
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
                     CWX_DEBUG((pTss->m_szBuf2K));
-                    iRet = CWX_MQ_FAIL_AUTH;
+                    iRet = CWX_MQ_ERR_FAIL_AUTH;
                     break;
                 }
             }
@@ -140,7 +140,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             if (0 != commit(pTss->m_szBuf2K))
             {
                 CWX_ERROR(("Failure to commit the binlog, err=%s", pTss->m_szBuf2K));
-                iRet = CWX_MQ_BINLOG_INVALID;
+                iRet = CWX_MQ_ERR_BINLOG_INVALID;
                 break;
             }
         }
@@ -148,14 +148,14 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         {
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u", msg->event().getMsgHeader().getMsgType());
             CWX_ERROR((pTss->m_szBuf2K));
-            iRet = CWX_MQ_INVALID_MSG_TYPE;
+            iRet = CWX_MQ_ERR_INVALID_MSG_TYPE;
             break;
         }
     }while(0);
     CwxMsgBlock* pBlock = NULL;
     if (CwxMqPoco::MSG_TYPE_RECV_COMMIT==msg->event().getMsgHeader().getMsgType())
     {
-        if (CWX_MQ_SUCCESS != CwxMqPoco::packCommitReply(pTss->m_pWriter,
+        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packCommitReply(pTss->m_pWriter,
             pBlock,
             msg->event().getMsgHeader().getTaskId(),
             iRet,
@@ -169,7 +169,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     }
     else
     {
-        if (CWX_MQ_SUCCESS != CwxMqPoco::packRecvDataReply(pTss->m_pWriter,
+        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packRecvDataReply(pTss->m_pWriter,
             pBlock,
             msg->event().getMsgHeader().getTaskId(),
             iRet,

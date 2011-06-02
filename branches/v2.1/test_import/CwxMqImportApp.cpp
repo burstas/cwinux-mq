@@ -192,7 +192,7 @@ void CwxMqImportApp::sendNextMsg(CWX_UINT32 uiSvrId, CWX_UINT32 uiHostId, CWX_UI
     data.m_szData = m_szBuf100K;
     data.m_uiDataLen = m_config.m_unDataSize;
     data.m_bKeyValue = false;
-    if (CWX_MQ_SUCCESS != CwxMqPoco::packRecvData(pTss->m_pWriter,
+    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packRecvData(pTss->m_pWriter,
         pBlock,
         0,
         data,

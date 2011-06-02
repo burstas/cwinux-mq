@@ -187,7 +187,7 @@ CwxTss* CwxMqFetchApp::onTssEnv()
 void CwxMqFetchApp::sendNextMsg(CWX_UINT32 uiSvrId, CWX_UINT32 uiHostId, CWX_UINT32 uiConnId){
     CwxMqTss* pTss = (CwxMqTss*)getAppTss();
     CwxMsgBlock* pBlock=NULL;
-    if (CWX_MQ_SUCCESS != CwxMqPoco::packFetchMq(pTss->m_pWriter,
+    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packFetchMq(pTss->m_pWriter,
         pBlock,
         m_config.m_bBlock,
         m_config.m_strQueue.c_str(),

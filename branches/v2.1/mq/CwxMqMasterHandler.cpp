@@ -22,7 +22,7 @@ int CwxMqMasterHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         m_pApp->getConfig().getSlave().m_strSign.c_str(),
         m_pApp->getConfig().getSlave().m_bzip,
         pTss->m_szBuf2K);
-    if (ret != CWX_MQ_SUCCESS)
+    if (ret != CWX_MQ_ERR_SUCCESS)
     {///数据包创建失败
         CWX_ERROR(("Failure to create report package, err:%s", pTss->m_szBuf2K));
         m_pApp->noticeCloseConn(m_uiConnId); ///关闭连接，不再执行同步
@@ -66,7 +66,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         CWX_UINT64 ullSid = 0;
         char const* szMsg = NULL;
         int ret = 0;
-        if (CWX_MQ_SUCCESS != CwxMqPoco::parseReportDataReply(pTss->m_pReader,
+        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseReportDataReply(pTss->m_pReader,
             msg,
             ret,
             ullSid,
@@ -186,7 +186,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         }
         //回复发送者
         CwxMsgBlock* reply_block = NULL;
-        if (CWX_MQ_SUCCESS != CwxMqPoco::packSyncDataReply(pTss->m_pWriter,
+        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(pTss->m_pWriter,
             reply_block,
             msg->event().getMsgHeader().getTaskId(),
             ullSid,
@@ -227,7 +227,7 @@ int CwxMqMasterHandler::saveBinlog(CwxMqTss* pTss, char const* szBinLog, CWX_UIN
     CWX_UINT32 uiAttr;
     CwxKeyValueItem const* data;
     ///获取binlog的数据
-    if (CWX_MQ_SUCCESS != CwxMqPoco::parseSyncData(pTss->m_pReader, 
+    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseSyncData(pTss->m_pReader, 
         szBinLog,
         uiLen,
         ullSid,

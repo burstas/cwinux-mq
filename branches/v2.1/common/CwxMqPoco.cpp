@@ -2,7 +2,7 @@
 #include "CwxZlib.h"
 
 CwxPackageWriter* CwxMqPoco::m_pWriter =NULL;
-///初始化协议。返回值，CWX_MQ_SUCCESS：成功；其他都是失败
+///初始化协议。返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::init(char* )
 {
     char const* data="This is binlog sync record.";
@@ -10,7 +10,7 @@ int CwxMqPoco::init(char* )
     m_pWriter->beginPack();
     m_pWriter->addKeyValue(CWX_MQ_DATA, data, strlen(data), false);
     m_pWriter->pack();
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 ///释放协议。
 void CwxMqPoco::destory()
@@ -19,7 +19,7 @@ void CwxMqPoco::destory()
     m_pWriter = NULL;
 }
 
-///返回值，CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 
 int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
                         CwxMsgBlock*& msg,
@@ -38,32 +38,32 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
     if (!writer->addKeyValue(CWX_MQ_DATA, data.m_szData, data.m_uiDataLen, data.m_bKeyValue))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_GROUP, group))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_TYPE, type))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_ATTR, attr))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (user && !writer->addKeyValue(CWX_MQ_USER, user, strlen(user)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (passwd && !writer->addKeyValue(CWX_MQ_PASSWD, passwd, strlen(passwd)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (sign)
     {
@@ -73,7 +73,7 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
             if (!writer->addKeyValue(CWX_MQ_CRC32, &uiCrc32, sizeof(uiCrc32)))
             {
                 if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-                return CWX_MQ_INNER_ERR;
+                return CWX_MQ_ERR_INNER_ERR;
             }
         }
         else if (strcmp(sign, CWX_MQ_MD5) == 0)//md5签名
@@ -85,27 +85,27 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
             if (!writer->addKeyValue(CWX_MQ_MD5, szBuf, 16))
             {
                 if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-                return CWX_MQ_INNER_ERR;
+                return CWX_MQ_ERR_INNER_ERR;
             }
         }
     }
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_RECV_DATA, uiTaskId, writer->getMsgSize());
     msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
 
-///返回值，CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
                          CwxMsgBlock const* msg,
                          CwxKeyValueItem const*& data,
@@ -119,21 +119,21 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
-        return CWX_MQ_INVALID_MSG;
+        return CWX_MQ_ERR_INVALID_MSG;
     }
     //get data
     data = reader->getKey(CWX_MQ_DATA);
     if (!data)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_DATA);
-        return CWX_MQ_NO_KEY_DATA;
+        return CWX_MQ_ERR_NO_KEY_DATA;
     }
     if (data->m_bKeyValue)
     {
         if (!CwxPackage::isValidPackage(data->m_szData, data->m_uiDataLen))
         {
             if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "key[%s] is key/value, but it's format is not valid..", CWX_MQ_DATA);
-            return CWX_MQ_INVALID_DATA_KV;
+            return CWX_MQ_ERR_INVALID_DATA_KV;
         }
     }
     //get group
@@ -149,7 +149,7 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
     if (SYNC_GROUP_TYPE == type)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "mq's type can't be [%X], it's binlog sync type.", SYNC_GROUP_TYPE);
-        return CWX_MQ_INVALID_BINLOG_TYPE;
+        return CWX_MQ_ERR_INVALID_BINLOG_TYPE;
     }
     //get attr
     if (!reader->getKey(CWX_MQ_ATTR, attr))
@@ -184,7 +184,7 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
         if (uiCrc32 != uiOrgCrc32)
         {
             if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "CRC32 signture error. recv signture:%x, local signture:%x", uiOrgCrc32, uiCrc32);
-            return CWX_MQ_INVALID_CRC32;
+            return CWX_MQ_ERR_INVALID_CRC32;
         }
     }
     //get md5
@@ -208,15 +208,15 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
                 }
                 CwxCommon::snprintf(szErr2K, 2047, "MD5 signture error. recv signture:%x, local signture:%x", szTmp1, szTmp2);
             }
-            return CWX_MQ_INVALID_MD5;
+            return CWX_MQ_ERR_INVALID_MD5;
         }
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
 
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::packRecvDataReply(CwxPackageWriter* writer,
                              CwxMsgBlock*& msg,
                              CWX_UINT32 uiTaskId,
@@ -229,14 +229,14 @@ int CwxMqPoco::packRecvDataReply(CwxPackageWriter* writer,
     if (!writer->addKeyValue(CWX_MQ_RET, ret))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_SID, ullSid))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    if (CWX_MQ_SUCCESS != ret)
+    if (CWX_MQ_ERR_SUCCESS != ret)
     {
 
         if (!writer->addKeyValue(CWX_MQ_ERR,
@@ -244,25 +244,25 @@ int CwxMqPoco::packRecvDataReply(CwxPackageWriter* writer,
             szErrMsg?strlen(szErrMsg):0))
         {
             if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-            return CWX_MQ_INNER_ERR;
+            return CWX_MQ_ERR_INNER_ERR;
         }
     }
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_RECV_DATA_REPLY, uiTaskId, writer->getMsgSize());
     msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseRecvDataReply(CwxPackageReader* reader,
                                   CwxMsgBlock const* msg,
                                   int& ret,
@@ -273,28 +273,28 @@ int CwxMqPoco::parseRecvDataReply(CwxPackageReader* reader,
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
-        return CWX_MQ_INVALID_MSG;
+        return CWX_MQ_ERR_INVALID_MSG;
     }
     //get ret
     if (!reader->getKey(CWX_MQ_RET, ret))
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_RET);
-        return CWX_MQ_NO_RET;
+        return CWX_MQ_ERR_NO_RET;
     }
     //get sid
     if (!reader->getKey(CWX_MQ_SID, ullSid))
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_SID);
-        return CWX_MQ_NO_SID;
+        return CWX_MQ_ERR_NO_SID;
     }
     //get err
-    if (CWX_MQ_SUCCESS != ret)
+    if (CWX_MQ_ERR_SUCCESS != ret)
     {
         CwxKeyValueItem const* pItem = NULL;
         if (!(pItem = reader->getKey(CWX_MQ_ERR)))
         {
             if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_ERR);
-            return CWX_MQ_NO_ERR;
+            return CWX_MQ_ERR_NO_ERR;
         }
         szErrMsg = pItem->m_szData;
     }
@@ -302,11 +302,11 @@ int CwxMqPoco::parseRecvDataReply(CwxPackageReader* reader,
     {
         szErrMsg = "";
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 
 }
 
-///返回值，CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::packCommit(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
@@ -321,32 +321,32 @@ int CwxMqPoco::packCommit(CwxPackageWriter* writer,
         if (!writer->addKeyValue(CWX_MQ_USER, user, strlen(user)))
         {
             if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-            return CWX_MQ_INNER_ERR;
+            return CWX_MQ_ERR_INNER_ERR;
         }
         if (passwd)
         {
             if (!writer->addKeyValue(CWX_MQ_PASSWD, passwd, strlen(passwd)))
             {
                 if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-                return CWX_MQ_INNER_ERR;
+                return CWX_MQ_ERR_INNER_ERR;
             }
         }
     }
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_RECV_COMMIT, uiTaskId, writer->getMsgSize());
     msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
-    ///返回值，CWX_MQ_SUCCESS：成功；其他都是失败
+    ///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseCommit(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         char const*& user,
@@ -356,7 +356,7 @@ int CwxMqPoco::parseCommit(CwxPackageReader* reader,
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
-        return CWX_MQ_INVALID_MSG;
+        return CWX_MQ_ERR_INVALID_MSG;
     }
     CwxKeyValueItem const* pItem = NULL;
     //get user
@@ -377,10 +377,10 @@ int CwxMqPoco::parseCommit(CwxPackageReader* reader,
     {
         passwd = pItem->m_szData;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::packCommitReply(CwxPackageWriter* writer,
                            CwxMsgBlock*& msg,
                            CWX_UINT32 uiTaskId,
@@ -392,9 +392,9 @@ int CwxMqPoco::packCommitReply(CwxPackageWriter* writer,
     if (!writer->addKeyValue(CWX_MQ_RET, ret))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    if (CWX_MQ_SUCCESS != ret)
+    if (CWX_MQ_ERR_SUCCESS != ret)
     {
 
         if (!writer->addKeyValue(CWX_MQ_ERR,
@@ -402,25 +402,25 @@ int CwxMqPoco::packCommitReply(CwxPackageWriter* writer,
             szErrMsg?strlen(szErrMsg):0))
         {
             if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-            return CWX_MQ_INNER_ERR;
+            return CWX_MQ_ERR_INNER_ERR;
         }
     }
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_RECV_COMMIT_REPLY, uiTaskId, writer->getMsgSize());
     msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseCommitReply(CwxPackageReader* reader,
                             CwxMsgBlock const* msg,
                             int& ret,
@@ -430,22 +430,22 @@ int CwxMqPoco::parseCommitReply(CwxPackageReader* reader,
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
-        return CWX_MQ_INVALID_MSG;
+        return CWX_MQ_ERR_INVALID_MSG;
     }
     //get ret
     if (!reader->getKey(CWX_MQ_RET, ret))
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_RET);
-        return CWX_MQ_NO_RET;
+        return CWX_MQ_ERR_NO_RET;
     }
     //get err
-    if (CWX_MQ_SUCCESS != ret)
+    if (CWX_MQ_ERR_SUCCESS != ret)
     {
         CwxKeyValueItem const* pItem = NULL;
         if (!(pItem = reader->getKey(CWX_MQ_ERR)))
         {
             if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_ERR);
-            return CWX_MQ_NO_ERR;
+            return CWX_MQ_ERR_NO_ERR;
         }
         szErrMsg = pItem->m_szData;
     }
@@ -453,7 +453,7 @@ int CwxMqPoco::parseCommitReply(CwxPackageReader* reader,
     {
         szErrMsg = "";
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
 int CwxMqPoco::packReportData(CwxPackageWriter* writer,
@@ -476,33 +476,33 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
         if (!writer->addKeyValue(CWX_MQ_SID, ullSid))
         {
             if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-            return CWX_MQ_INNER_ERR;
+            return CWX_MQ_ERR_INNER_ERR;
         }
     }
     if (uiChunkSize && !writer->addKeyValue(CWX_MQ_CHUNK, uiChunkSize))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (uiWindow && !writer->addKeyValue(CWX_MQ_WINDOW, uiWindow))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (subscribe && !writer->addKeyValue(CWX_MQ_SUBSCRIBE, subscribe, strlen(subscribe)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (user && !writer->addKeyValue(CWX_MQ_USER, user, strlen(user)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (passwd && !writer->addKeyValue(CWX_MQ_PASSWD, passwd, strlen(passwd)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (sign)
     {
@@ -511,7 +511,7 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
             if (!writer->addKeyValue(CWX_MQ_SIGN, sign, strlen(sign)))
             {
                 if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-                return CWX_MQ_INNER_ERR;
+                return CWX_MQ_ERR_INNER_ERR;
             }
         }
     }
@@ -520,14 +520,14 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
         if (!writer->addKeyValue(CWX_MQ_ZIP,zip))
         {
             if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-            return CWX_MQ_INNER_ERR;
+            return CWX_MQ_ERR_INNER_ERR;
         }
     }
 
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_SYNC_REPORT, uiTaskId, writer->getMsgSize());
 
@@ -535,12 +535,12 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseReportData(CwxPackageReader* reader,
                            CwxMsgBlock const* msg,
                            CWX_UINT64& ullSid,
@@ -557,7 +557,7 @@ int CwxMqPoco::parseReportData(CwxPackageReader* reader,
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
-        return CWX_MQ_INVALID_MSG;
+        return CWX_MQ_ERR_INVALID_MSG;
     }
     //get sid
     if (!reader->getKey(CWX_MQ_SID, ullSid))
@@ -630,10 +630,10 @@ int CwxMqPoco::parseReportData(CwxPackageReader* reader,
         zip = false;
     }
 
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 
 }
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::packReportDataReply(CwxPackageWriter* writer,
                                CwxMsgBlock*& msg,
                                CWX_UINT32 uiTaskId,
@@ -646,37 +646,37 @@ int CwxMqPoco::packReportDataReply(CwxPackageWriter* writer,
     if (!writer->addKeyValue(CWX_MQ_RET, ret))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_SID, ullSid))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_ERR,
         szErrMsg?szErrMsg:"",
         szErrMsg?strlen(szErrMsg):0))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_SYNC_REPORT_REPLY, uiTaskId, writer->getMsgSize());
     msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseReportDataReply(CwxPackageReader* reader,
                                 CwxMsgBlock const* msg,
                                 int& ret,
@@ -687,28 +687,28 @@ int CwxMqPoco::parseReportDataReply(CwxPackageReader* reader,
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
-        return CWX_MQ_INVALID_MSG;
+        return CWX_MQ_ERR_INVALID_MSG;
     }
     //get ret
     if (!reader->getKey(CWX_MQ_RET, ret))
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_RET);
-        return CWX_MQ_NO_RET;
+        return CWX_MQ_ERR_NO_RET;
     }
     //get sid
     if (!reader->getKey(CWX_MQ_SID, ullSid))
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_SID);
-        return CWX_MQ_NO_SID;
+        return CWX_MQ_ERR_NO_SID;
     }
     //get err
-    if (CWX_MQ_SUCCESS != ret)
+    if (CWX_MQ_ERR_SUCCESS != ret)
     {
         CwxKeyValueItem const* pItem = NULL;
         if (!(pItem = reader->getKey(CWX_MQ_ERR)))
         {
             if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_ERR);
-            return CWX_MQ_NO_ERR;
+            return CWX_MQ_ERR_NO_ERR;
         }
         szErrMsg = pItem->m_szData;
     }
@@ -716,11 +716,11 @@ int CwxMqPoco::parseReportDataReply(CwxPackageReader* reader,
     {
         szErrMsg = "";
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
                         CwxMsgBlock*& msg,
                         CWX_UINT32 uiTaskId,
@@ -744,12 +744,12 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
         attr,
         sign,
         szErr2K);
-    if (CWX_MQ_SUCCESS != ret) return ret;
+    if (CWX_MQ_ERR_SUCCESS != ret) return ret;
 
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_SYNC_DATA, uiTaskId, writer->getMsgSize());
 
@@ -757,7 +757,7 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     unsigned long ulDestLen = writer->getMsgSize();
     if (zip)
@@ -780,7 +780,7 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
         memcpy(msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN, writer->getMsg(), writer->getMsgSize());
         msg->wr_ptr(CwxMsgHead::MSG_HEAD_LEN + writer->getMsgSize());        
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
 int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
@@ -797,32 +797,32 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
     if (!writer->addKeyValue(CWX_MQ_SID, ullSid))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_TIMESTAMP, uiTimeStamp))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_DATA, data.m_szData, data.m_uiDataLen, data.m_bKeyValue))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_GROUP, group))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_TYPE, type))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_ATTR, attr))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (sign)
     {
@@ -832,7 +832,7 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
             if (!writer->addKeyValue(CWX_MQ_CRC32, &uiCrc32, sizeof(uiCrc32)))
             {
                 if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-                return CWX_MQ_INNER_ERR;
+                return CWX_MQ_ERR_INNER_ERR;
             }
         }
         else if (strcmp(sign, CWX_MQ_MD5) == 0)//md5签名
@@ -844,12 +844,12 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
             if (!writer->addKeyValue(CWX_MQ_MD5, szMd5, 16))
             {
                 if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-                return CWX_MQ_INNER_ERR;
+                return CWX_MQ_ERR_INNER_ERR;
             }
         }
     }
     writer->pack();
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
 int CwxMqPoco::packMultiSyncData(
@@ -867,7 +867,7 @@ int CwxMqPoco::packMultiSyncData(
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", uiDataLen);
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     unsigned long ulDestLen = uiDataLen;
     if (zip)
@@ -890,7 +890,7 @@ int CwxMqPoco::packMultiSyncData(
         memcpy(msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN, szData, uiDataLen);
         msg->wr_ptr(CwxMsgHead::MSG_HEAD_LEN + uiDataLen);
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 
 }
 
@@ -917,7 +917,7 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
         szErr2K);
 }
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
                          char const* szData,
                          CWX_UINT32 uiDataLen,
@@ -932,25 +932,25 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
     if (!reader->unpack(szData, uiDataLen, false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
-        return CWX_MQ_INVALID_MSG;
+        return CWX_MQ_ERR_INVALID_MSG;
     }
     //get SID
     if (!reader->getKey(CWX_MQ_SID, ullSid))
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_SID);
-        return CWX_MQ_NO_SID;
+        return CWX_MQ_ERR_NO_SID;
     }
     //get timestamp
     if (!reader->getKey(CWX_MQ_TIMESTAMP, uiTimeStamp))
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_TIMESTAMP);
-        return CWX_MQ_NO_TIMESTAMP;
+        return CWX_MQ_ERR_NO_TIMESTAMP;
     }
     //get data
     if (!(data=reader->getKey(CWX_MQ_DATA)))
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_DATA);
-        return CWX_MQ_NO_KEY_DATA;
+        return CWX_MQ_ERR_NO_KEY_DATA;
     }
     //get group
     if (!reader->getKey(CWX_MQ_GROUP, group))
@@ -977,7 +977,7 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
         if (uiCrc32 != uiOrgCrc32)
         {
             if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "CRC32 signture error. recv signture:%x, local signture:%x", uiOrgCrc32, uiCrc32);
-            return CWX_MQ_INVALID_CRC32;
+            return CWX_MQ_ERR_INVALID_CRC32;
         }
     }
     //get md5
@@ -1001,16 +1001,16 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
                 }
                 CwxCommon::snprintf(szErr2K, 2047, "MD5 signture error. recv signture:%x, local signture:%x", szTmp1, szTmp2);
             }
-            return CWX_MQ_INVALID_MD5;
+            return CWX_MQ_ERR_INVALID_MD5;
         }
 
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 
 }
 
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::packSyncDataReply(CwxPackageWriter* writer,
                             CwxMsgBlock*& msg,
                             CWX_UINT32 uiTaskId,
@@ -1021,21 +1021,21 @@ int CwxMqPoco::packSyncDataReply(CwxPackageWriter* writer,
     if (!writer->addKeyValue(CWX_MQ_SID, ullSid))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_SYNC_DATA_REPLY, uiTaskId, writer->getMsgSize());
     msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
 
@@ -1047,18 +1047,18 @@ int CwxMqPoco::parseSyncDataReply(CwxPackageReader* reader,
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
-        return CWX_MQ_INVALID_MSG;
+        return CWX_MQ_ERR_INVALID_MSG;
     }
     //get SID
     if (!reader->getKey(CWX_MQ_SID, ullSid))
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_SID);
-        return CWX_MQ_NO_SID;
+        return CWX_MQ_ERR_NO_SID;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::packFetchMq(CwxPackageWriter* writer,
                        CwxMsgBlock*& msg,
                        bool bBlock,
@@ -1072,45 +1072,45 @@ int CwxMqPoco::packFetchMq(CwxPackageWriter* writer,
     if (!writer->addKeyValue(CWX_MQ_BLOCK, bBlock))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (queue_name && !writer->addKeyValue(CWX_MQ_QUEUE, queue_name, strlen(queue_name)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (user && !writer->addKeyValue(CWX_MQ_USER, user, strlen(user)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (passwd && !writer->addKeyValue(CWX_MQ_PASSWD, passwd, strlen(passwd)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    if (timeout && !writer->addKeyValue(CWX_MQ_TIMEOUT, timeout))
+    if (timeout && !writer->addKeyValue(CWX_MQ_ERR_TIMEOUT, timeout))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_FETCH_DATA, 0, writer->getMsgSize());
     msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 
 }
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseFetchMq(CwxPackageReader* reader,
                         CwxMsgBlock const* msg,
                         bool& bBlock,
@@ -1123,7 +1123,7 @@ int CwxMqPoco::parseFetchMq(CwxPackageReader* reader,
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
-        return CWX_MQ_INVALID_MSG;
+        return CWX_MQ_ERR_INVALID_MSG;
     }
     //get block
     if (!reader->getKey(CWX_MQ_BLOCK, bBlock, false))
@@ -1160,11 +1160,11 @@ int CwxMqPoco::parseFetchMq(CwxPackageReader* reader,
         passwd = pItem->m_szData;
     }
     //get timeout
-    if (!reader->getKey(CWX_MQ_TIMEOUT, timeout))
+    if (!reader->getKey(CWX_MQ_ERR_TIMEOUT, timeout))
     {
         timeout = 0;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
 int CwxMqPoco::packFetchMqReply(CwxPackageWriter* writer,
@@ -1183,60 +1183,60 @@ int CwxMqPoco::packFetchMqReply(CwxPackageWriter* writer,
     if (!writer->addKeyValue(CWX_MQ_RET, ret))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    if(CWX_MQ_SUCCESS != ret)
+    if(CWX_MQ_ERR_SUCCESS != ret)
     {
         if (!szErrMsg) szErrMsg="";
         if (!writer->addKeyValue(CWX_MQ_ERR, szErrMsg, strlen(szErrMsg)))
         {
             if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-            return CWX_MQ_INNER_ERR;
+            return CWX_MQ_ERR_INNER_ERR;
         }
     }
     if (!writer->addKeyValue(CWX_MQ_SID, ullSid))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_TIMESTAMP, uiTimeStamp))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_DATA, data.m_szData, data.m_uiDataLen, data.m_bKeyValue))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_GROUP, group))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_TYPE, type))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_ATTR, attr))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_FETCH_DATA_REPLY, 0, writer->getMsgSize());
     msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 
 }
 
@@ -1256,22 +1256,22 @@ int CwxMqPoco::parseFetchMqReply(CwxPackageReader* reader,
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
-        return CWX_MQ_INVALID_MSG;
+        return CWX_MQ_ERR_INVALID_MSG;
     }
     //get ret
     if (!reader->getKey(CWX_MQ_RET, ret))
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_RET);
-        return CWX_MQ_NO_RET;
+        return CWX_MQ_ERR_NO_RET;
     }
-    if (CWX_MQ_SUCCESS != ret)
+    if (CWX_MQ_ERR_SUCCESS != ret)
     {
         //get err
         CwxKeyValueItem const* pItem = NULL;
         if (!(pItem = reader->getKey(CWX_MQ_ERR)))
         {
             if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_ERR);
-            return CWX_MQ_NO_ERR;
+            return CWX_MQ_ERR_NO_ERR;
         }
         szErrMsg = pItem->m_szData;
     }
@@ -1283,19 +1283,19 @@ int CwxMqPoco::parseFetchMqReply(CwxPackageReader* reader,
     if (!reader->getKey(CWX_MQ_SID, ullSid))
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_SID);
-        return CWX_MQ_NO_SID;
+        return CWX_MQ_ERR_NO_SID;
     }
     //get timestamp
     if (!reader->getKey(CWX_MQ_TIMESTAMP, uiTimeStamp))
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_TIMESTAMP);
-        return CWX_MQ_NO_TIMESTAMP;
+        return CWX_MQ_ERR_NO_TIMESTAMP;
     }
     //get data
     if (!(data=reader->getKey(CWX_MQ_DATA)))
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_DATA);
-        return CWX_MQ_NO_KEY_DATA;
+        return CWX_MQ_ERR_NO_KEY_DATA;
     }
     //get group
     if (!reader->getKey(CWX_MQ_GROUP, group))
@@ -1312,11 +1312,11 @@ int CwxMqPoco::parseFetchMqReply(CwxPackageReader* reader,
     {
         type = 0;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 
 }
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::packFetchMqCommit(CwxPackageWriter* writer,
                              CwxMsgBlock*& msg,
                              bool bCommit,
@@ -1326,24 +1326,24 @@ int CwxMqPoco::packFetchMqCommit(CwxPackageWriter* writer,
     if (!writer->addKeyValue(CWX_MQ_COMMIT, bCommit))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_FETCH_COMMIT, 0, writer->getMsgSize());
     msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 
 }
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseFetchMqCommit(CwxPackageReader* reader,
                               CwxMsgBlock const* msg,
                               bool& bCommit,
@@ -1352,17 +1352,17 @@ int CwxMqPoco::parseFetchMqCommit(CwxPackageReader* reader,
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
-        return CWX_MQ_INVALID_MSG;
+        return CWX_MQ_ERR_INVALID_MSG;
     }
     //get SID
     if (!reader->getKey(CWX_MQ_COMMIT, bCommit))
     {
         bCommit = true;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::packFetchMqCommitReply(CwxPackageWriter* writer,
                                   CwxMsgBlock*& msg,
                                   int  ret,
@@ -1373,33 +1373,33 @@ int CwxMqPoco::packFetchMqCommitReply(CwxPackageWriter* writer,
     if (!writer->addKeyValue(CWX_MQ_RET, ret))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    if (CWX_MQ_SUCCESS != ret)
+    if (CWX_MQ_ERR_SUCCESS != ret)
     {
         if (!szErrMsg) szErrMsg = "";
         if (!writer->addKeyValue(CWX_MQ_ERR, szErrMsg, strlen(szErrMsg)))
         {
             if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-            return CWX_MQ_INNER_ERR;
+            return CWX_MQ_ERR_INNER_ERR;
         }
     }
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_FETCH_COMMIT_REPLY, 0, writer->getMsgSize());
     msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 
 }
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseFetchMqCommitReply(CwxPackageReader* reader,
                               CwxMsgBlock const* msg,
                               int&  ret,
@@ -1410,16 +1410,16 @@ int CwxMqPoco::parseFetchMqCommitReply(CwxPackageReader* reader,
     if (!reader->getKey(CWX_MQ_RET, ret))
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_RET);
-        return CWX_MQ_NO_RET;
+        return CWX_MQ_ERR_NO_RET;
     }
-    if (CWX_MQ_SUCCESS != ret)
+    if (CWX_MQ_ERR_SUCCESS != ret)
     {
         //get err
         CwxKeyValueItem const* pItem = NULL;
         if (!(pItem = reader->getKey(CWX_MQ_ERR)))
         {
             if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_ERR);
-            return CWX_MQ_NO_ERR;
+            return CWX_MQ_ERR_NO_ERR;
         }
         szErrMsg = pItem->m_szData;
     }
@@ -1427,12 +1427,12 @@ int CwxMqPoco::parseFetchMqCommitReply(CwxPackageReader* reader,
     {
         szErrMsg = "";
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
 
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseCreateQueue(CwxPackageReader* reader,
                             CwxMsgBlock const* msg,
                             char const*& name,
@@ -1450,7 +1450,7 @@ int CwxMqPoco::parseCreateQueue(CwxPackageReader* reader,
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
-        return CWX_MQ_INVALID_MSG;
+        return CWX_MQ_ERR_INVALID_MSG;
     }
     CwxKeyValueItem const* pItem = NULL;
     //get name
@@ -1458,7 +1458,7 @@ int CwxMqPoco::parseCreateQueue(CwxPackageReader* reader,
     if (!pItem)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv package.", CWX_MQ_NAME);
-        return CWX_MQ_NO_NAME;
+        return CWX_MQ_ERR_NO_NAME;
     }
     name = pItem->m_szData;
     //get user
@@ -1528,10 +1528,10 @@ int CwxMqPoco::parseCreateQueue(CwxPackageReader* reader,
         if (!reader->getKey(CWX_MQ_MAX_TIMEOUT, uiMaxTimeout))
             uiMaxTimeout = 0;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 
 }
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::packCreateQueue(CwxPackageWriter* writer,
                            CwxMsgBlock*& msg,
                            char const* name,
@@ -1550,77 +1550,77 @@ int CwxMqPoco::packCreateQueue(CwxPackageWriter* writer,
     if (!name)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "Name is null.");
-        return CWX_MQ_NO_NAME;
+        return CWX_MQ_ERR_NO_NAME;
     }
     if (!writer->addKeyValue(CWX_MQ_NAME, name, strlen(name)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (user && !writer->addKeyValue(CWX_MQ_USER, user, strlen(user)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (passwd && !writer->addKeyValue(CWX_MQ_PASSWD, passwd, strlen(passwd)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (scribe && !writer->addKeyValue(CWX_MQ_SUBSCRIBE, scribe, strlen(scribe)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (auth_user && !writer->addKeyValue(CWX_MQ_AUTH_USER, auth_user, strlen(auth_user)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (auth_passwd && !writer->addKeyValue(CWX_MQ_AUTH_PASSWD, auth_passwd, strlen(auth_passwd)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_SID, ullSid))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_COMMIT, bCommit))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (bCommit)
     {
         if (!writer->addKeyValue(CWX_MQ_DEF_TIMEOUT, uiDefTimeout))
         {
             if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-            return CWX_MQ_INNER_ERR;
+            return CWX_MQ_ERR_INNER_ERR;
         }
         if (!writer->addKeyValue(CWX_MQ_MAX_TIMEOUT, uiMaxTimeout))
         {
             if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-            return CWX_MQ_INNER_ERR;
+            return CWX_MQ_ERR_INNER_ERR;
         }
     }
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_CREATE_QUEUE, 0, writer->getMsgSize());
     msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseCreateQueueReply(CwxPackageReader* reader,
                                  CwxMsgBlock const* msg,
                                  int&  ret,
@@ -1630,22 +1630,22 @@ int CwxMqPoco::parseCreateQueueReply(CwxPackageReader* reader,
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
-        return CWX_MQ_INVALID_MSG;
+        return CWX_MQ_ERR_INVALID_MSG;
     }
     //get ret
     if (!reader->getKey(CWX_MQ_RET, ret))
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_RET);
-        return CWX_MQ_NO_RET;
+        return CWX_MQ_ERR_NO_RET;
     }
-    if (CWX_MQ_SUCCESS != ret)
+    if (CWX_MQ_ERR_SUCCESS != ret)
     {
         //get err
         CwxKeyValueItem const* pItem = NULL;
         if (!(pItem = reader->getKey(CWX_MQ_ERR)))
         {
             if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_ERR);
-            return CWX_MQ_NO_ERR;
+            return CWX_MQ_ERR_NO_ERR;
         }
         szErrMsg = pItem->m_szData;
     }
@@ -1653,10 +1653,10 @@ int CwxMqPoco::parseCreateQueueReply(CwxPackageReader* reader,
     {
         szErrMsg = "";
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 
 }
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::packCreateQueueReply(CwxPackageWriter* writer,
                                 CwxMsgBlock*& msg,
                                 int  ret,
@@ -1667,35 +1667,35 @@ int CwxMqPoco::packCreateQueueReply(CwxPackageWriter* writer,
     if (!writer->addKeyValue(CWX_MQ_RET, ret))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
 
-    if (CWX_MQ_SUCCESS != ret)
+    if (CWX_MQ_ERR_SUCCESS != ret)
     {
         if (!szErrMsg) szErrMsg="";
         if (!writer->addKeyValue(CWX_MQ_ERR, szErrMsg, strlen(szErrMsg)))
         {
             if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-            return CWX_MQ_INNER_ERR;
+            return CWX_MQ_ERR_INNER_ERR;
         }
     }
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_CREATE_QUEUE_REPLY, 0, writer->getMsgSize());
     msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseDelQueue(CwxPackageReader* reader,
                          CwxMsgBlock const* msg,
                          char const*& name,
@@ -1708,7 +1708,7 @@ int CwxMqPoco::parseDelQueue(CwxPackageReader* reader,
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
-        return CWX_MQ_INVALID_MSG;
+        return CWX_MQ_ERR_INVALID_MSG;
     }
     CwxKeyValueItem const* pItem = NULL;
     //get name
@@ -1716,7 +1716,7 @@ int CwxMqPoco::parseDelQueue(CwxPackageReader* reader,
     if (!pItem)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv package.", CWX_MQ_NAME);
-        return CWX_MQ_NO_NAME;
+        return CWX_MQ_ERR_NO_NAME;
     }
     name = pItem->m_szData;
     //get user
@@ -1759,9 +1759,9 @@ int CwxMqPoco::parseDelQueue(CwxPackageReader* reader,
     {
         auth_passwd = pItem->m_szData;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::packDelQueue(CwxPackageWriter* writer,
                         CwxMsgBlock*& msg,
                         char const* name,
@@ -1775,50 +1775,50 @@ int CwxMqPoco::packDelQueue(CwxPackageWriter* writer,
     if (!name)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "Name is null.");
-        return CWX_MQ_NO_NAME;
+        return CWX_MQ_ERR_NO_NAME;
     }
     if (!writer->addKeyValue(CWX_MQ_NAME, name, strlen(name)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (user && !writer->addKeyValue(CWX_MQ_USER, user, strlen(user)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (passwd && !writer->addKeyValue(CWX_MQ_PASSWD, passwd, strlen(passwd)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (auth_user && !writer->addKeyValue(CWX_MQ_AUTH_USER, auth_user, strlen(auth_user)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (auth_passwd && !writer->addKeyValue(CWX_MQ_AUTH_PASSWD, auth_passwd, strlen(auth_passwd)))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_DEL_QUEUE, 0, writer->getMsgSize());
     msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
 
 
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseDelQueueReply(CwxPackageReader* reader,
                               CwxMsgBlock const* msg,
                               int&  ret,
@@ -1828,22 +1828,22 @@ int CwxMqPoco::parseDelQueueReply(CwxPackageReader* reader,
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
-        return CWX_MQ_INVALID_MSG;
+        return CWX_MQ_ERR_INVALID_MSG;
     }
     //get ret
     if (!reader->getKey(CWX_MQ_RET, ret))
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_RET);
-        return CWX_MQ_NO_RET;
+        return CWX_MQ_ERR_NO_RET;
     }
-    if (CWX_MQ_SUCCESS != ret)
+    if (CWX_MQ_ERR_SUCCESS != ret)
     {
         //get err
         CwxKeyValueItem const* pItem = NULL;
         if (!(pItem = reader->getKey(CWX_MQ_ERR)))
         {
             if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_ERR);
-            return CWX_MQ_NO_ERR;
+            return CWX_MQ_ERR_NO_ERR;
         }
         szErrMsg = pItem->m_szData;
     }
@@ -1851,9 +1851,9 @@ int CwxMqPoco::parseDelQueueReply(CwxPackageReader* reader,
     {
         szErrMsg = "";
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }
-///返回值：CWX_MQ_SUCCESS：成功；其他都是失败
+///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::packDelQueueReply(CwxPackageWriter* writer,
                              CwxMsgBlock*& msg,
                              int  ret,
@@ -1864,31 +1864,31 @@ int CwxMqPoco::packDelQueueReply(CwxPackageWriter* writer,
     if (!writer->addKeyValue(CWX_MQ_RET, ret))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
 
-    if (CWX_MQ_SUCCESS != ret)
+    if (CWX_MQ_ERR_SUCCESS != ret)
     {
         if (!szErrMsg) szErrMsg="";
         if (!writer->addKeyValue(CWX_MQ_ERR, szErrMsg, strlen(szErrMsg)))
         {
             if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-            return CWX_MQ_INNER_ERR;
+            return CWX_MQ_ERR_INNER_ERR;
         }
     }
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_DEL_QUEUE_REPLY, 0, writer->getMsgSize());
     msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
-        return CWX_MQ_INNER_ERR;
+        return CWX_MQ_ERR_INNER_ERR;
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 
 }
 

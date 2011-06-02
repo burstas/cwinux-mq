@@ -72,12 +72,12 @@ void CwxMproxyTask::reply(CwxTss* pThrEnv)
 {
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     CwxMsgBlock* replyMsg = NULL;
-    int ret = CWX_MQ_SUCCESS;
+    int ret = CWX_MQ_ERR_SUCCESS;
     CWX_UINT64 ullSid = 0;
     char const* szErrMsg = NULL;
     if (m_mqReply)
     {
-        if (CWX_MQ_SUCCESS != CwxMqPoco::parseRecvDataReply(pTss->m_pReader,
+        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseRecvDataReply(pTss->m_pReader,
             m_mqReply,
             ret,
             ullSid,
@@ -85,7 +85,7 @@ void CwxMproxyTask::reply(CwxTss* pThrEnv)
             pTss->m_szBuf2K))
         {
             CWX_ERROR(("Failure to parse mq's reply, err:%s", pTss->m_szBuf2K));
-            ret = CWX_MQ_INNER_ERR;
+            ret = CWX_MQ_ERR_INNER_ERR;
             szErrMsg = "Failure to parse mq's rely";
         }
     }
@@ -102,10 +102,10 @@ void CwxMproxyTask::reply(CwxTss* pThrEnv)
     else
     {
         CWX_ASSERT(0);
-        ret = CWX_MQ_INNER_ERR;
+        ret = CWX_MQ_ERR_INNER_ERR;
         szErrMsg = "Unknown error";
     }
-    if (CWX_MQ_SUCCESS != CwxMqPoco::packRecvDataReply(pTss->m_pWriter,
+    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packRecvDataReply(pTss->m_pWriter,
         replyMsg,
         m_uiMsgTaskId,
         ret,

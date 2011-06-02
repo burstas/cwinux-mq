@@ -64,7 +64,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
     char const* passwd=NULL;
     char const* sign = NULL;
     bool bzip = false;
-    int iRet = CWX_MQ_SUCCESS;
+    int iRet = CWX_MQ_ERR_SUCCESS;
     int iState = 0;
     do 
     {
@@ -75,14 +75,14 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             { ///如果连接不是同步状态，则是错误
                 strcpy(pTss->m_szBuf2K, "Client no in sync state");
                 CWX_DEBUG((pTss->m_szBuf2K));
-                iRet = CWX_MQ_INVALID_MSG_TYPE;
+                iRet = CWX_MQ_ERR_INVALID_MSG_TYPE;
                 break;
             }
             if (!m_dispatch.m_sendingSid.size())
             {
                 strcpy(pTss->m_szBuf2K, "Not sent binlog data");
                 CWX_DEBUG((pTss->m_szBuf2K));
-                iRet = CWX_MQ_INVALID_MSG_TYPE;
+                iRet = CWX_MQ_ERR_INVALID_MSG_TYPE;
                 break;
             }
             ///若是同步sid的报告消息,则获取报告的sid
@@ -90,7 +90,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                 m_recvMsgData,
                 ullSid,
                 pTss->m_szBuf2K);
-            if (CWX_MQ_SUCCESS != iRet)
+            if (CWX_MQ_ERR_SUCCESS != iRet)
             {
                 CWX_DEBUG(("Failure to parse sync_data reply package, err:%s", pTss->m_szBuf2K));
                 break;
@@ -104,7 +104,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                     CwxCommon::toString(ullSid, szBuf1, 10),
                     CwxCommon::toString(*m_dispatch.m_sendingSid.begin(), szBuf2, 10));
                 CWX_ERROR((pTss->m_szBuf2K));
-               iRet = CWX_MQ_INVALID_SID;
+               iRet = CWX_MQ_ERR_INVALID_SID;
                 break;
             }
             ///将sid从分发sid的set中去掉
@@ -128,7 +128,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             ///禁止重复report sid。若cursor存在，表示已经报告过一次
             if (m_dispatch.m_pCursor)
             {
-                iRet = CWX_MQ_INVALID_MSG;
+                iRet = CWX_MQ_ERR_INVALID_MSG;
                 CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Can't report sync sid duplicatly.");
                 CWX_ERROR((pTss->m_szBuf2K));
                 break;
@@ -146,7 +146,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                 sign,
                 bzip,
                 pTss->m_szBuf2K);
-            if (CWX_MQ_SUCCESS != iRet)
+            if (CWX_MQ_ERR_SUCCESS != iRet)
             {///若不存在，则错误返回
                 CWX_ERROR(("Failure to parse report msg, err=%s%s", pTss->m_szBuf2K));
                 break;
@@ -158,7 +158,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                     if ( (m_pApp->getConfig().getMaster().m_async.getUser() != user) ||
                         (m_pApp->getConfig().getMaster().m_async.getPasswd() != passwd))
                     {
-                        iRet = CWX_MQ_FAIL_AUTH;
+                        iRet = CWX_MQ_ERR_FAIL_AUTH;
                         CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
                         CWX_DEBUG((pTss->m_szBuf2K));
                         break;
@@ -172,7 +172,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                     if ( (m_pApp->getConfig().getSlave().m_async.getUser() != user) ||
                         (m_pApp->getConfig().getSlave().m_async.getPasswd() != passwd))
                     {
-                        iRet = CWX_MQ_FAIL_AUTH;
+                        iRet = CWX_MQ_ERR_FAIL_AUTH;
                         CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
                         CWX_DEBUG((pTss->m_szBuf2K));
                         break;
@@ -183,7 +183,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             string strErrMsg;
             if (!CwxMqPoco::parseSubsribe(subscribe, m_dispatch.m_subscribe, strErrMsg))
             {
-                iRet = CWX_MQ_INVALID_SUBSCRIBE;
+                iRet = CWX_MQ_ERR_INVALID_SUBSCRIBE;
                 CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Invalid subscribe[%s], err=%s", strSubcribe.c_str(), strErrMsg.c_str());
                 CWX_DEBUG((pTss->m_szBuf2K));
                 break;
@@ -217,12 +217,12 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                 if (ullSid) ullSid--;
             }
             ///回复iRet的值
-            iRet = CWX_MQ_SUCCESS;
+            iRet = CWX_MQ_ERR_SUCCESS;
             ///创建binlog读取的cursor
             CwxBinLogCursor* pCursor = m_pApp->getBinLogMgr()->createCurser();
             if (!pCursor)
             {
-                iRet = CWX_MQ_INNER_ERR;
+                iRet = CWX_MQ_ERR_INNER_ERR;
                 strcpy(pTss->m_szBuf2K, "Failure to create cursor");
                 CWX_ERROR((pTss->m_szBuf2K));
                 break;
@@ -249,7 +249,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
         {
             ///若其他消息，则返回错误
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u", m_header.getMsgType());
-            iRet = CWX_MQ_INVALID_MSG_TYPE;
+            iRet = CWX_MQ_ERR_INVALID_MSG_TYPE;
             CWX_ERROR((pTss->m_szBuf2K));
         }
 
@@ -258,7 +258,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
 
     ///形成失败时候的回复数据包
     CwxMsgBlock* pBlock = NULL;
-    if (CWX_MQ_SUCCESS != CwxMqPoco::packReportDataReply(pTss->m_pWriter,
+    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packReportDataReply(pTss->m_pWriter,
         pBlock,
         m_header.getTaskId(),
         iRet,
@@ -350,7 +350,7 @@ int CwxMqBinAsyncHandler::packOneBinLog(CwxPackageReader* reader,
         if (pItem)
         {
             ///形成binlog发送的数据包
-            if (CWX_MQ_SUCCESS != CwxMqPoco::packSyncData(writer,
+            if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncData(writer,
                 block,
                 0,
                 m_dispatch.m_pCursor->getHeader().getSid(),
@@ -401,7 +401,7 @@ int CwxMqBinAsyncHandler::packMultiBinLog(CwxPackageReader* reader,
         if (pItem)
         {
             ///形成binlog发送的数据包
-            if (CWX_MQ_SUCCESS != CwxMqPoco::packSyncDataItem(writer_item,
+            if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataItem(writer_item,
                 m_dispatch.m_pCursor->getHeader().getSid(),
                 m_dispatch.m_pCursor->getHeader().getDatetime(),
                 *pItem,
@@ -619,7 +619,7 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqTss* pTss)
         }
 
         pTss->m_pWriter->pack();
-        if (CWX_MQ_SUCCESS != CwxMqPoco::packMultiSyncData(0,
+        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packMultiSyncData(0,
             pTss->m_pWriter->getMsg(), 
             pTss->m_pWriter->getMsgSize(),
             pBlock,
