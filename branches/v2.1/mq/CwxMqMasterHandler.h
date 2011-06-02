@@ -60,15 +60,6 @@ private:
         char const* sign);
     //获取unzip的buf
     bool prepareUnzipBuf();
-    {
-        if (!m_unzipBuf)
-        {
-            m_uiBufLen = m_pApp->getConfig().getCommon().m_uiChunkSize * 20;
-            if (m_uiBufLen < 20 * 1024 * 1024) m_uiBufLen = uiSize < 20 * 1024 * 1024;
-            m_unzipBuf = new char[m_uiBufLen];
-        }
-        return m_unzipBuf!=NULL;
-    }
 private:
     CwxMqApp*               m_pApp;  ///<app对象
     CWX_UINT32              m_uiConnId; ///<master的连接ID
