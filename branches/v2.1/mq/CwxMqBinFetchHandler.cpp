@@ -464,6 +464,8 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
         if (uiMaxTimeout < CWX_MQ_MIN_TIMEOUT_SECOND) uiMaxTimeout = CWX_MQ_MIN_TIMEOUT_SECOND;
         if (uiMaxTimeout > CWX_MQ_MAX_TIMEOUT_SECOND) uiMaxTimeout = CWX_MQ_MAX_TIMEOUT_SECOND;
 
+        if (0 == ullSid) ullSid = m_pApp->getBinLogMgr()->getMaxSid();
+
         iRet = m_pApp->getQueueMgr()->addQueue(string(queue_name),
             ullSid,
             bCommit,
