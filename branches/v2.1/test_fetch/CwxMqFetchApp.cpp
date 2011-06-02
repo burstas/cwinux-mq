@@ -193,6 +193,7 @@ void CwxMqFetchApp::sendNextMsg(CWX_UINT32 uiSvrId, CWX_UINT32 uiHostId, CWX_UIN
         m_config.m_strQueue.c_str(),
         m_config.m_strUser.c_str(),
         m_config.m_strPasswd.c_str(),
+        10,
         pTss->m_szBuf2K))
     {
         CWX_ERROR(("Failure to pack send msg, err=%s", pTss->m_szBuf2K));
