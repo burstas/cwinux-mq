@@ -194,7 +194,7 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
         CwxMd5 md5;
         md5.update((unsigned char*)msg->rd_ptr(), pItem->m_szKey - msg->rd_ptr() - CwxPackage::getKeyOffset());
         md5.final(szMd5);
-        if (memcmp(szMd5, pItem->m_szData) != 0)
+        if (memcmp(szMd5, pItem->m_szData, 16) != 0)
         {
             if (szErr2K)
             {
@@ -762,7 +762,7 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
     unsigned long ulDestLen = writer->getMsgSize();
     if (zip)
     {
-        if (!CwxZlib::zip(msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN, ulDestLen, writer->getMsg(), writer->getMsgSize()))
+        if (!CwxZlib::zip((unsigned char*)msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN, ulDestLen, writer->getMsg(), writer->getMsgSize()))
         {
             zip = false;
         }
@@ -841,7 +841,7 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
             unsigned char szMd5[16];
             md5.update((char unsigned*)writer->getMsg(), writer->getMsgSize());
             md5.final(szMd5);
-            if (!writer->addKeyValue(CWX_MQ_MD5, szMd5, 16))
+            if (!writer->addKeyValue(CWX_MQ_MD5, (char*)szMd5, 16))
             {
                 if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
                 return CWX_MQ_ERR_INNER_ERR;
@@ -872,7 +872,7 @@ int CwxMqPoco::packMultiSyncData(
     unsigned long ulDestLen = uiDataLen;
     if (zip)
     {
-        if (!CwxZlib::zip(msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN, ulDestLen, szData, uiDataLen))
+        if (!CwxZlib::zip((unsigned char*)(msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN), ulDestLen, (unsigned char const*)szData, uiDataLen))
         {
             zip = false;
         }
