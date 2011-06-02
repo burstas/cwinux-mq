@@ -63,7 +63,7 @@ private:
     CwxMqApp*               m_pApp;  ///<app对象
     CWX_UINT32              m_uiConnId; ///<master的连接ID
     CwxPackageReader        m_reader; ///<解包的reader
-    char*                   m_unzipBuf; ///<解压的buffer
+    unsigned char*          m_unzipBuf; ///<解压的buffer
     CWX_UINT32              m_uiBufLen; ///<解压buffer的大小，其为trunk的20倍，最小为20M。
 };
 

@@ -99,7 +99,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             }
             ulUnzipLen = m_uiBufLen;
             //解压
-            if (CwxZlib::unzip(m_unzipBuf, ulUnzipLen, msg->rd_ptr(), msg->length()))
+            if (CwxZlib::unzip(m_unzipBuf, ulUnzipLen, (const unsigned char*)msg->rd_ptr(), msg->length()))
             {
                 CWX_ERROR(("Failure to unzip recv msg, msg size:%u, buf size:%u", msg->length(), m_uiBufLen));
                 m_pApp->noticeReconnect(m_uiConnId, 2000); ///延时2秒钟重连
@@ -302,7 +302,7 @@ bool CwxMqMasterHandler::prepareUnzipBuf()
     {
         m_uiBufLen = m_pApp->getConfig().getCommon().m_uiChunkSize * 20;
         if (m_uiBufLen < 20 * 1024 * 1024) m_uiBufLen = 20 * 1024 * 1024;
-        m_unzipBuf = new char[m_uiBufLen];
+        m_unzipBuf = new unsigned char[m_uiBufLen];
     }
     return m_unzipBuf!=NULL;
 }
