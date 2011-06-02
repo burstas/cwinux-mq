@@ -52,8 +52,7 @@ private:
     int saveBinlog(CwxMqTss* pTss,
         char const* szBinLog,
         CWX_UINT32 uiLen,
-        CWX_UINT64& ullSid,
-        char const* sign);
+        CWX_UINT64& ullSid);
     bool checkSign(char const* data,
         CWX_UINT32 uiDateLen,
         char const* szSign,

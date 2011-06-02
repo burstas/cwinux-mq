@@ -1,5 +1,6 @@
 #include "CwxMqMasterHandler.h"
 #include "CwxMqApp.h"
+#include "CwxZlib.h"
 
 ///连接建立后，需要往master报告sid
 int CwxMqMasterHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* pThrEnv)
@@ -112,11 +113,17 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         {
             if (bZip)
             {
-                iRet = saveBinlog(pTss, m_unzipBuf, uiUnzipLen, ullSid, m_pApp->getConfig().getSlave()->m_strSign.c_str());
+                iRet = saveBinlog(pTss,
+                    m_unzipBuf,
+                    uiUnzipLen,
+                    ullSid);
             }
             else
             {
-                iRet = saveBinlog(pTss, msg->rd_ptr(), msg->length(), ullSid, m_pApp->getConfig().getSlave()->m_strSign.c_str());
+                iRet = saveBinlog(pTss,
+                    msg->rd_ptr(),
+                    msg->length(),
+                    ullSid);
             }
         }
         else
@@ -142,17 +149,17 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 }
             }
             //检测签名
-            if (m_pApp->getConfig().getSlave()->m_strSign.length())
+            if (m_pApp->getConfig().getSlave().m_strSign.length())
             {
-                CwxKeyValueItem const* pItem = m_reader.getKey(m_pApp->getConfig().getSlave()->m_strSign.c_str());
+                CwxKeyValueItem const* pItem = m_reader.getKey(m_pApp->getConfig().getSlave().m_strSign.c_str());
                 if (pItem)
                 {//存在签名key
                     if (!checkSign(m_reader.getMsg(),
                         pItem->m_szKey - CwxPackage::getKeyOffset() - m_reader.getMsg(),
                         pItem->m_szData,
-                        m_pApp->getConfig().getSlave()->m_strSign.c_str()))
+                        m_pApp->getConfig().getSlave().m_strSign.c_str()))
                     {
-                        CWX_ERROR(("Failure to check %s sign", m_pApp->getConfig().getSlave()->m_strSign.c_str()));
+                        CWX_ERROR(("Failure to check %s sign", m_pApp->getConfig().getSlave().m_strSign.c_str()));
                         m_pApp->noticeReconnect(m_uiConnId, 2000); ///延时2秒钟重连
                         m_uiConnId = 0;
                         return 1;
@@ -166,7 +173,10 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                     CWX_ERROR(("Master multi-binlog's key must be:%s, but:%s", CWX_MQ_M, m_reader.getKey(i)->m_szKey));
                     iRet = -1;
                 }
-                if (-1 == saveBinlog(pTss, m_reader.getKey(i)->m_szData, m_reader.getKey(i)->m_uiDataLen, ullSid, ""))
+                if (-1 == saveBinlog(pTss,
+                    m_reader.getKey(i)->m_szData,
+                    m_reader.getKey(i)->m_uiDataLen,
+                    ullSid))
                 {
                     iRet = -1;
                     break;
@@ -219,7 +229,10 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 
 
 //0：成功；-1：失败
-int CwxMqMasterHandler::saveBinlog(CwxMqTss* pTss, char const* szBinLog, CWX_UINT32 uiLen, CWX_UINT64& ullSid, char const* sign)
+int CwxMqMasterHandler::saveBinlog(CwxMqTss* pTss,
+                                   char const* szBinLog,
+                                   CWX_UINT32 uiLen, 
+                                   CWX_UINT64& ullSid)
 {
     CWX_UINT32 ttTimestamp;
     CWX_UINT32 uiGroup;
