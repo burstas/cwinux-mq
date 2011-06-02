@@ -206,8 +206,8 @@ int cwx_mq_parse_mq(struct CWX_PG_READER* reader,
         unsigned char szMd5[16];
         cwx_md5_context md5;
         cwx_md5_start(&md5);
-        cwx_md5_update((unsigned char*)msg, pItem->m_szKey - msg - cwx_pg_get_key_offset());
-        cwx_md5_finish(szMd5);
+        cwx_md5_update(&md5, (unsigned char*)msg, pItem->m_szKey - msg - cwx_pg_get_key_offset());
+        cwx_md5_finish(&md5, szMd5);
         if (memcmp(szMd5, pItem->m_szData, 16) != 0)
         {
             if (szErr2K)
@@ -220,7 +220,7 @@ int cwx_mq_parse_mq(struct CWX_PG_READER* reader,
                     sprintf(szTmp1 + i*2, "%2.2x", pItem->m_szData[i]);
                     sprintf(szTmp2 + i*2, "%2.2x", szMd5[i]);
                 }
-                snprintf(szErr2K, 2047, "MD5 signture error. recv signture:%x, local signture:%x", szTmp1, szTmp2);
+                snprintf(szErr2K, 2047, "MD5 signture error. recv signture:%s, local signture:%s", szTmp1, szTmp2);
             }
             return CWX_MQ_ERR_INVALID_MD5;
         }
@@ -503,7 +503,7 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
             return CWX_MQ_ERR_INNER_ERR;
         }
     }
-    if (uiChunk && (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_CHUNK, uiChunk)))
+    if (uiChunk && (0 != cwx_pg_writer_add_key_uint32(writer, CWX_MQ_KEY_CHUNK, uiChunk)))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
         return CWX_MQ_ERR_INNER_ERR;
@@ -581,7 +581,7 @@ int cwx_mq_parse_sync_report(struct CWX_PG_READER* reader,
     {
         *bNewly = 0;
     }
-    if (0 == cwx_pg_reader_get_uint64(reader, CWX_MQ_KEY_CHUNK, uiChunk, 0))
+    if (0 == cwx_pg_reader_get_uint32(reader, CWX_MQ_KEY_CHUNK, uiChunk, 0))
     {
         *uiChunk = 0;
     }
@@ -800,7 +800,7 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
         unsigned long ulDstLen = *buf_len - CWX_MSG_HEAD_LEN;
         if (Z_OK == compress2((unsigned char*)buf + CWX_MSG_HEAD_LEN,
             &ulDstLen,
-            cwx_pg_writer_get_msg(writer),
+            (const unsigned char*)cwx_pg_writer_get_msg(writer),
             cwx_pg_writer_get_msg_size(writer),
             Z_DEFAULT_COMPRESSION))
         {
@@ -899,8 +899,8 @@ int cwx_mq_parse_sync_data(struct CWX_PG_READER* reader,
         unsigned char szMd5[16];
         cwx_md5_context md5;
         cwx_md5_start(&md5);
-        cwx_md5_update((unsigned char*)msg, pItem->m_szKey - msg - cwx_pg_get_key_offset());
-        cwx_md5_finish(szMd5);
+        cwx_md5_update(&md5, (unsigned char*)msg, pItem->m_szKey - msg - cwx_pg_get_key_offset());
+        cwx_md5_finish(&md5, szMd5);
         if (memcmp(szMd5, pItem->m_szData, 16) != 0)
         {
             if (szErr2K)
@@ -913,7 +913,7 @@ int cwx_mq_parse_sync_data(struct CWX_PG_READER* reader,
                     sprintf(szTmp1 + i*2, "%2.2x", pItem->m_szData[i]);
                     sprintf(szTmp2 + i*2, "%2.2x", szMd5[i]);
                 }
-                snprintf(szErr2K, 2047, "MD5 signture error. recv signture:%x, local signture:%x", szTmp1, szTmp2);
+                snprintf(szErr2K, 2047, "MD5 signture error. recv signture:%s, local signture:%s", szTmp1, szTmp2);
             }
             return CWX_MQ_ERR_INVALID_MD5;
         }
