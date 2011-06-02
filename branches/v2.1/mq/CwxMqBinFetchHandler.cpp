@@ -80,7 +80,7 @@ CWX_UINT32 CwxMqBinFetchHandler::onEndSendMsg(CwxMsgBlock*& msg)
 {
     ///获取tss实例
     CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
-    CWX_ASSERT(!m_conn->m_bSent);
+    CWX_ASSERT(!m_conn.m_bSent);
     int iRet = m_pApp->getQueueMgr()->endSendMsg(m_conn.m_strQueueName,
         m_conn.m_ullSendSid,
         true,
@@ -104,16 +104,16 @@ CWX_UINT32 CwxMqBinFetchHandler::onEndSendMsg(CwxMsgBlock*& msg)
         CWX_ERROR(("Queue[%s]: No queue"));
     }
     ///设置消息已经发送完毕
-    m_conn->m_bSent = true;
-    if (!m_conn->m_bCommit)
-    {///如果是commit队列的，则清空m_conn->m_ullSendSid，否则等待commit的消息
-        m_conn->m_ullSendSid = 0;
+    m_conn.m_bSent = true;
+    if (!m_conn.m_bCommit)
+    {///如果是commit队列的，则清空m_conn.m_ullSendSid，否则等待commit的消息
+        m_conn.m_ullSendSid = 0;
     }
     else if (1 != iRet)
     {
         ///对于commit队列不存在或内部错误或消息发送超时，都需要清空。
         ///此放置错误的commit，因为消息已经进入了可再发送的队列
-        m_conn->m_ullSendSid = 0;
+        m_conn.m_ullSendSid = 0;
     }
     //此msg由queue mgr负责管理，外层不能释放
     msg = NULL;
@@ -305,13 +305,13 @@ int CwxMqBinFetchHandler::fetchMqCommit(CwxMqTss* pTss)
         if (!m_conn.m_bCommit)
         {
             iRet = CWX_MQ_ERR_INVALID_COMMIT;
-            CwxCommon::snprintf(pTss->m_szBuf2K, "Queue is not commit type queue");
+            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue is not commit type queue");
             break;
         }
         if (m_conn.m_bSent)
         {
             iRet = CWX_MQ_ERR_INVALID_COMMIT;
-            CwxCommon::snprintf(pTss->m_szBuf2K, "No message to commit.");
+            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "No message to commit.");
             break;
         }
         if (0 == m_conn.m_ullSendSid)
@@ -386,7 +386,6 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
     char const* auth_user = NULL;
     char const* auth_passwd = NULL;
     CWX_UINT64 ullSid = 0;
-    bool bCommit = true;
     CWX_UINT32 uiDefTimeout = 0;
     CWX_UINT32 uiMaxTimeout = 0;
 
@@ -408,10 +407,10 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
         ///如果解析失败，则进入错误消息处理
         if (CWX_MQ_ERR_SUCCESS != iRet) break;
         //校验权限
-        if (m_pApp->getConfig().getMq().m_mq.m_strUser.length())
+        if (m_pApp->getConfig().getMq().m_mq.getUser().length())
         {
-            if ((m_pApp->getConfig().getMq().m_mq.m_strUser != auth_user) ||
-                (m_pApp->getConfig().getMq().m_mq.m_strPasswd != auth_passwd))
+            if ((m_pApp->getConfig().getMq().m_mq.getUser() != auth_user) ||
+                (m_pApp->getConfig().getMq().m_mq.getPasswd() != auth_passwd))
             {
                 iRet = CWX_MQ_ERR_FAIL_AUTH;
                 strcpy(pTss->m_szBuf2K, "No auth");
@@ -535,10 +534,10 @@ int CwxMqBinFetchHandler::delQueue(CwxMqTss* pTss)
         ///如果解析失败，则进入错误消息处理
         if (CWX_MQ_ERR_SUCCESS != iRet) break;
         //校验权限
-        if (m_pApp->getConfig().getMq().m_mq.m_strUser.length())
+        if (m_pApp->getConfig().getMq().m_mq.getUser().length())
         {
-            if ((m_pApp->getConfig().getMq().m_mq.m_strUser != auth_user) ||
-                (m_pApp->getConfig().getMq().m_mq.m_strPasswd != auth_passwd))
+            if ((m_pApp->getConfig().getMq().m_mq.getUser() != auth_user) ||
+                (m_pApp->getConfig().getMq().m_mq.getPasswd() != auth_passwd))
             {
                 iRet = CWX_MQ_ERR_FAIL_AUTH;
                 strcpy(pTss->m_szBuf2K, "No auth");
@@ -663,9 +662,9 @@ int CwxMqBinFetchHandler::replyFetchMq(CwxMqTss* pTss,
 void CwxMqBinFetchHandler::backMq(CwxMqTss* pTss)
 {
     int iRet = 0;
-    if (m_conn->m_ullSendSid)
+    if (m_conn.m_ullSendSid)
     {
-        if (!m_conn->m_bSent)
+        if (!m_conn.m_bSent)
         {//此时可能是commit队列，也可能是非commit队列。
             iRet = m_pApp->getQueueMgr()->endSendMsg(m_conn.m_strQueueName,
                 m_conn.m_ullSendSid,
@@ -674,7 +673,7 @@ void CwxMqBinFetchHandler::backMq(CwxMqTss* pTss)
         }
         else
         {//此时一定不是非commit队列
-            CWX_ASSERT(m_conn->m_bCommit);
+            CWX_ASSERT(m_conn.m_bCommit);
             iRet = m_pApp->getQueueMgr()->commitBinlog(m_conn.m_strQueueName,
                  m_conn.m_ullSendSid,
                  false,
