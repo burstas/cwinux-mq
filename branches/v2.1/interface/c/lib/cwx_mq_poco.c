@@ -1371,9 +1371,9 @@ int cwx_mq_parse_fetch_mq_commit_reply(struct CWX_PG_READER* reader,
     return CWX_MQ_ERR_SUCCESS;
 }
 
-int cwx_mq_pack_create_queue(struct CWX_PG_WRITER * writer,
-                             char* buf,
-                             CWX_UINT32* buf_len,
+int cwx_mq_pack_create_queue(struct CWX_PG_READER* reader,
+                             char const* msg,
+                             CWX_UINT32 msg_len,
                              char const* name,
                              char const* user,
                              char const* passwd,
@@ -1469,19 +1469,19 @@ int cwx_mq_pack_create_queue(struct CWX_PG_WRITER * writer,
 }
 
 int cwx_mq_parse_create_queue(struct CWX_PG_READER* reader,
-                             char const* msg,
-                             CWX_UINT32 msg_len,
-                             char const* name,
-                             char const* user,
-                             char const* passwd,
-                             char const* scribe,
-                             char const* auth_user,
-                             char const* auth_passwd,
-                             CWX_UINT64  ullSid,
-                             int  commit,
-                             CWX_UINT32 uiDefTimeout,
-                             CWX_UINT32 uiMaxTimeout,
-                             char* szErr2K)
+                              char const* msg,
+                              CWX_UINT32 msg_len,
+                              char const** name,
+                              char const** user,
+                              char const** passwd,
+                              char const** scribe,
+                              char const** auth_user,
+                              char const** auth_passwd,
+                              CWX_UINT64*  ullSid,
+                              int*  commit,
+                              CWX_UINT32* uiDefTimeout,
+                              CWX_UINT32* uiMaxTimeout,
+                              char* szErr2K)
 {
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
@@ -1704,14 +1704,14 @@ int cwx_mq_pack_del_queue(struct CWX_PG_WRITER * writer,
 }
 
 int cwx_mq_parse_del_queue(struct CWX_PG_READER* reader,
-                              char const* msg,
-                              CWX_UINT32 msg_len,
-                              char const* name,
-                              char const* user,
-                              char const* passwd,
-                              char const* auth_user,
-                              char const* auth_passwd,
-                              char* szErr2K)
+                           char const* msg,
+                           CWX_UINT32 msg_len,
+                           char const** name,
+                           char const** user,
+                           char const** passwd,
+                           char const** auth_user,
+                           char const** auth_passwd,
+                           char* szErr2K)
 {
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
