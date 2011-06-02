@@ -89,7 +89,7 @@ int CwxMqQueueLogFile::save(map<string, CwxMqQueueInfo> const& queues,
     //写入队列信息
     char line[1024];
     char szSid[64];
-    size_t len = 0;
+    ssize_t len = 0;
     map<string, CwxMqQueueInfo>::const_iterator iter_queue = queues.begin();
     while(iter_queue != queues.end())
     {//queue:name=q1|sid=12345|commit=true|def_timeout=5|max_timeout=300|user=u_q1|passwd=p_q1|subcribe=*
@@ -318,7 +318,7 @@ int CwxMqQueueLogFile::load(map<string, CwxMqQueueInfo>& queues,
                 if (queues.find(strQueue) == queues.end())
                 {
                     CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] not exists, line:%u",
-                        strQueue, m_uiLine);
+                        strQueue.c_str(), m_uiLine);
                     return -1;
                 }
                 map_iter = uncommitSets.find(strQueue);
@@ -348,7 +348,7 @@ int CwxMqQueueLogFile::load(map<string, CwxMqQueueInfo>& queues,
                 if (queues.find(strQueue) == queues.end())
                 {
                     CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] not exists, line:%u",
-                        strQueue, m_uiLine);
+                        strQueue.c_str(), m_uiLine);
                     return -1;
                 }
                 map_iter = uncommitSets.find(strQueue);
@@ -374,7 +374,7 @@ int CwxMqQueueLogFile::load(map<string, CwxMqQueueInfo>& queues,
                         pUncommitSet->erase(ullSid);
                     if (!pUncommitSet->size())
                     {
-                        uncommitSets->erase(strQueue);
+                        uncommitSets.erase(strQueue);
                         delete pUncommitSet;
                     }
                 }
@@ -435,7 +435,7 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
             m_uiLine);
         return -1;
     }
-    queue.m_bCommit = item.second=="true":true:false;
+    queue.m_bCommit = item.second=="true"?true:false;
     //get def_timeout
     if (!CwxCommon::findKey(items, CWX_MQ_DEF_TIMEOUT, item))
     {
@@ -445,7 +445,7 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
             m_uiLine);
         return -1;
     }
-    queue.m_uiDefTimeout = strtoul(item->second.c_str(), NULL, 0);
+    queue.m_uiDefTimeout = strtoul(item.second.c_str(), NULL, 0);
     if (queue.m_uiDefTimeout < CWX_MQ_MIN_TIMEOUT_SECOND) queue.m_uiDefTimeout = CWX_MQ_MIN_TIMEOUT_SECOND;
     if (queue.m_uiDefTimeout > CWX_MQ_MAX_TIMEOUT_SECOND) queue.m_uiDefTimeout = CWX_MQ_MAX_TIMEOUT_SECOND;
     //get max_timeout
@@ -457,7 +457,7 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
             m_uiLine);
         return -1;
     }
-    queue.m_uiDefTimeout = strtoul(item->second.c_str(), NULL, 0);
+    queue.m_uiDefTimeout = strtoul(item.second.c_str(), NULL, 0);
     if (queue.m_uiMaxTimeout < CWX_MQ_MIN_TIMEOUT_SECOND) queue.m_uiMaxTimeout = CWX_MQ_MIN_TIMEOUT_SECOND;
     if (queue.m_uiMaxTimeout > CWX_MQ_MAX_TIMEOUT_SECOND) queue.m_uiMaxTimeout = CWX_MQ_MAX_TIMEOUT_SECOND;
     //get user
@@ -517,7 +517,7 @@ int CwxMqQueueLogFile::parseSid(string const& line, string& queue, CWX_UINT64& u
             m_uiLine);
         return -1;
     }
-    queue = item->second;
+    queue = item.second;
     //get sid
     if (!CwxCommon::findKey(items, CWX_MQ_SID, item))
     {
