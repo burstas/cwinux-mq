@@ -11,7 +11,7 @@ cwx_mproxy_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)" -W -Wall
 cwx_mproxy_SOURCES = \
         ../common/CwxMqTss.cpp\
         ../common/CwxMqPoco.cpp\
-	../common/CwxMqDef.cpp  ../common/CwxMqQueueMgr.cpp\
+	../common/CwxMqDef.cpp\
 	CwxMproxyApp.cpp  CwxMproxyConfig.cpp  cwx_mproxy.cpp\
 	CwxMproxyMqHandler.cpp  CwxMproxyRecvHandler.cpp  CwxMproxyTask.cpp
 cwx_mproxy_LDADD=
