@@ -55,8 +55,8 @@ am_cwx_mq_OBJECTS = cwx_mq-CwxMqApp.$(OBJEXT) \
 	cwx_mq-CwxMqBinAsyncHandler.$(OBJEXT) \
 	cwx_mq-CwxMqBinRecvHandler.$(OBJEXT) cwx_mq-cwx_mq.$(OBJEXT) \
 	cwx_mq-CwxMqDef.$(OBJEXT) cwx_mq-CwxMqPoco.$(OBJEXT) \
-	cwx_mq-CwxMqQueueMgr.$(OBJEXT) cwx_mq-CwxMqSysFile.$(OBJEXT) \
-	cwx_mq-CwxMqTss.$(OBJEXT)
+	cwx_mq-CwxMqQueueMgr.$(OBJEXT) \
+	cwx_mq-CwxMqQueueLogFile.$(OBJEXT) cwx_mq-CwxMqTss.$(OBJEXT)
 cwx_mq_OBJECTS = $(am_cwx_mq_OBJECTS)
 cwx_mq_DEPENDENCIES =
 DEFAULT_INCLUDES = -I. -I$(srcdir)
@@ -110,7 +110,7 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
-LIBS = -lcwxapp -lcwxnet -lcwxparse -lcwxstore -lcwxcmn -lexpat -lpthread -ldl -lrt
+LIBS = -lcwxapp -lcwxutil -lcwxnet -lcwxparse -lcwxstore -lcwxcmn -lexpat -lpthread -ldl -lrt
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -187,12 +187,12 @@ cwx_mq_SOURCES = CwxMqApp.cpp\
 		../common/CwxMqDef.cpp\
                 ../common/CwxMqPoco.cpp\
 		../common/CwxMqQueueMgr.cpp\
-		../common/CwxMqSysFile.cpp\
+		../common/CwxMqQueueLogFile.cpp\
 		../common/CwxMqTss.cpp
 
 cwx_mq_LDADD = 
 cwx_mq_LDFLAGS = -L@xml_expat_dir@/lib -L@cwinux_dir@/lib
-INCLUDES = -I@cwinux_dir@/include/app -I@cwinux_dir@/include/cmn -I@cwinux_dir@/include/net -I@cwinux_dir@/include/parse -I@cwinux_dir@/include/store -I@xml_expat_dir@/include  -I../common
+INCLUDES = -I@cwinux_dir@/include/app -I@cwinux_dir@/include/util -I@cwinux_dir@/include/cmn -I@cwinux_dir@/include/net -I@cwinux_dir@/include/parse -I@cwinux_dir@/include/store -I@xml_expat_dir@/include  -I../common
 all: all-am
 
 .SUFFIXES:
@@ -272,8 +272,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqDef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqMasterHandler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqPoco.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqQueueMgr.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqSysFile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqTss.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-cwx_mq.Po@am__quote@
 
@@ -438,19 +438,19 @@ cwx_mq-CwxMqQueueMgr.obj: ../common/CwxMqQueueMgr.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqQueueMgr.obj `if test -f '../common/CwxMqQueueMgr.cpp'; then $(CYGPATH_W) '../common/CwxMqQueueMgr.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqQueueMgr.cpp'; fi`
 
-cwx_mq-CwxMqSysFile.o: ../common/CwxMqSysFile.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqSysFile.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqSysFile.Tpo" -c -o cwx_mq-CwxMqSysFile.o `test -f '../common/CwxMqSysFile.cpp' || echo '$(srcdir)/'`../common/CwxMqSysFile.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqSysFile.Tpo" "$(DEPDIR)/cwx_mq-CwxMqSysFile.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqSysFile.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqSysFile.cpp' object='cwx_mq-CwxMqSysFile.o' libtool=no @AMDEPBACKSLASH@
+cwx_mq-CwxMqQueueLogFile.o: ../common/CwxMqQueueLogFile.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqQueueLogFile.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Tpo" -c -o cwx_mq-CwxMqQueueLogFile.o `test -f '../common/CwxMqQueueLogFile.cpp' || echo '$(srcdir)/'`../common/CwxMqQueueLogFile.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Tpo" "$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqQueueLogFile.cpp' object='cwx_mq-CwxMqQueueLogFile.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqSysFile.o `test -f '../common/CwxMqSysFile.cpp' || echo '$(srcdir)/'`../common/CwxMqSysFile.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqQueueLogFile.o `test -f '../common/CwxMqQueueLogFile.cpp' || echo '$(srcdir)/'`../common/CwxMqQueueLogFile.cpp
 
-cwx_mq-CwxMqSysFile.obj: ../common/CwxMqSysFile.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqSysFile.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqSysFile.Tpo" -c -o cwx_mq-CwxMqSysFile.obj `if test -f '../common/CwxMqSysFile.cpp'; then $(CYGPATH_W) '../common/CwxMqSysFile.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqSysFile.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqSysFile.Tpo" "$(DEPDIR)/cwx_mq-CwxMqSysFile.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqSysFile.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqSysFile.cpp' object='cwx_mq-CwxMqSysFile.obj' libtool=no @AMDEPBACKSLASH@
+cwx_mq-CwxMqQueueLogFile.obj: ../common/CwxMqQueueLogFile.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqQueueLogFile.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Tpo" -c -o cwx_mq-CwxMqQueueLogFile.obj `if test -f '../common/CwxMqQueueLogFile.cpp'; then $(CYGPATH_W) '../common/CwxMqQueueLogFile.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqQueueLogFile.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Tpo" "$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqQueueLogFile.cpp' object='cwx_mq-CwxMqQueueLogFile.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqSysFile.obj `if test -f '../common/CwxMqSysFile.cpp'; then $(CYGPATH_W) '../common/CwxMqSysFile.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqSysFile.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqQueueLogFile.obj `if test -f '../common/CwxMqQueueLogFile.cpp'; then $(CYGPATH_W) '../common/CwxMqQueueLogFile.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqQueueLogFile.cpp'; fi`
 
 cwx_mq-CwxMqTss.o: ../common/CwxMqTss.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqTss.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqTss.Tpo" -c -o cwx_mq-CwxMqTss.o `test -f '../common/CwxMqTss.cpp' || echo '$(srcdir)/'`../common/CwxMqTss.cpp; \
