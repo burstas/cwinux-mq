@@ -1545,22 +1545,22 @@ int cwx_mq_parse_create_queue(struct CWX_PG_READER* reader,
         *auth_passwd = pItem->m_szData;
     }
     //get sid
-    if (!cwx_pg_reader_get_uint64(reader, CWX_MQ_KEY_SID, ullSid))
+    if (!cwx_pg_reader_get_uint64(reader, CWX_MQ_KEY_SID, ullSid, 0))
     {
         ullSid = 0;
     }
     //get commit
-    if (!cwx_pg_reader_get_int32(reader, CWX_MQ_KEY_COMMIT, commit))
+    if (!cwx_pg_reader_get_int32(reader, CWX_MQ_KEY_COMMIT, commit, 0))
     {
         commit = 0;
     }
     //get def_timeout
-    if (!cwx_pg_reader_get_int32(reader, CWX_MQ_KEY_DEF_TIMEOUT, uiDefTimeout))
+    if (!cwx_pg_reader_get_uint32(reader, CWX_MQ_KEY_DEF_TIMEOUT, uiDefTimeout, 0))
     {
         uiDefTimeout = 0;
     }
     //get max_timeout
-    if (!cwx_pg_reader_get_int32(reader, CWX_MQ_KEY_MAX_TIMEOUT, uiMaxTimeout))
+    if (!cwx_pg_reader_get_uint32(reader, CWX_MQ_KEY_MAX_TIMEOUT, uiMaxTimeout, 0))
     {
         uiMaxTimeout = 0;
     }
