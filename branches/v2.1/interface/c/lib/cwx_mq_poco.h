@@ -22,6 +22,8 @@ extern "C" {
 #include "cwx_package_reader.h"
 #include "cwx_package_writer.h"
 #include "cwx_msg_header.h"
+#include "cwx_md5.h"
+#include "cwx_crc32.h"
 
 
 ///协议的消息类型定义
@@ -38,6 +40,14 @@ extern "C" {
 ///MQ Fetch服务类型的消息类型定义
 #define CWX_MQ_MSG_TYPE_FETCH_DATA 9 ///<数据获取消息类型
 #define CWX_MQ_MSG_TYPE_FETCH_DATA_REPLY 10 ///<回复数据获取消息类型
+#define CWX_MQ_MSG_TYPE_FETCH_COMMIT  11 ///<commit 获取的消息
+#define CWX_MQ_MSG_TYPE_FETCH_COMMIT_REPLY 12 ///<reply commit的消息
+///创建mq queue消息
+#define CWX_MQ_MSG_TYPE_CREATE_QUEUE 100 ///<创建MQ QUEUE的消息类型
+#define CWX_MQ_MSG_TYPE_CREATE_QUEUE_REPLY 101 ///<回复创建MQ QUEUE的消息类型
+///删除mq queue消息
+#define CWX_MQ_MSG_TYPE_DEL_QUEUE  102 ///<删除MQ QUEUE的消息类型
+#define CWX_MQ_MSG_TYPE_DEL_QUEUE_REPLY 103 ///<回复删除MQ QUEUE的消息类型
 
 ///binlog内部的sync binlogleixing
 #define CWX_MQ_GROUP_SYNC 0XFFFFFFFF 
@@ -59,6 +69,19 @@ extern "C" {
 #define CWX_MQ_KEY_CHUNK "chunk"
 #define CWX_MQ_KEY_WINDOW "window"
 #define CWX_MQ_KEY_M       "m"
+#define CWX_MQ_KEY_SIGN   "sign"
+#define CWX_MQ_KEY_CRC32  "crc32"
+#define CWX_MQ_KEY_MD5    "md5"
+#define CWX_MQ_KEY_NAME   "name"
+#define CWX_MQ_KEY_AUTH_USER "auth_user"
+#define CWX_MQ_KEY_AUTH_PASSWD "auth_passwd"
+#define CWX_MQ_KEY_COMMIT  "commit"
+#define CWX_MQ_KEY_TIMEOUT "timeout"
+#define CWX_MQ_KEY_DEF_TIMEOUT "def_timeout"
+#define CWX_MQ_KEY_MAX_TIMEOUT "max_timeout"
+#define CWX_MQ_KEY_COMMIT "commit"
+#define CWX_MQ_KEY_UNCOMMIT "uncommit"
+#define CWX_MQ_KEY_ZIP     "zip"
 
 
 ///协议错误代码定义
@@ -75,10 +98,22 @@ extern "C" {
 #define CWX_MQ_ERR_FAIL_AUTH         10 ///<鉴权失败
 #define CWX_MQ_ERR_INVALID_BINLOG_TYPE 11 ///<binlog的type错误
 #define CWX_MQ_ERR_INVALID_MSG_TYPE   12 ///<接收到的消息类型无效
-#define CWX_MQ_ERR_FAIL_ADD_BINLOG    13 ///<往binglog mgr中添加binlog失败
-#define CWX_MQ_ERR_NO_QUEUE        14 ///<队列不存在
-#define CWX_MQ_ERR_INVALID_SUBSCRIBE 15 ///<无效的消息订阅类型
-#define CWX_MQ_ERR_INNER_ERR        16 ///<其他内部错误，一般为内存
+#define CWX_MQ_ERR_INVALID_SID        13  ///<回复的sid无效
+#define CWX_MQ_ERR_FAIL_ADD_BINLOG    14 ///<往binglog mgr中添加binlog失败
+#define CWX_MQ_ERR_NO_QUEUE        15 ///<队列不存在
+#define CWX_MQ_ERR_INVALID_SUBSCRIBE 16 ///<无效的消息订阅类型
+#define CWX_MQ_ERR_INNER_ERR        17 ///<其他内部错误，一般为内存
+#define CWX_MQ_ERR_INVALID_MD5      18 ///<MD5校验失败
+#define CWX_MQ_ERR_INVALID_CRC32    19 ///<CRC32校验失败
+#define CWX_MQ_ERR_NO_NAME          20 ///<没有name字段
+#define CWX_MQ_ERR_TIMEOUT          21 ///<commit队列类型的消息commit超时
+#define CWX_MQ_ERR_INVALID_COMMIT   22 ///<commit命令无效
+#define CWX_MQ_ERR_USER_TO0_LONG     23 ///<队列的用户名太长
+#define CWX_MQ_ERR_PASSWD_TOO_LONG   24 ///<队列的口令太长
+#define CWX_MQ_ERR_NAME_TOO_LONG   25 ///<队列名字太长
+#define CWX_MQ_ERR_SCRIBE_TOO_LONG   26 ///<队列订阅表达式太长
+#define CWX_MQ_ERR_NAME_EMPTY        27 ///<队列的名字为空
+#define CWX_MQ_ERR_QUEUE_EXIST       28 ///<队列存在
 
 
 /**
@@ -106,6 +141,7 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
         CWX_UINT32 attr,
         char const* user,
         char const* passwd,
+        char const* sign,
         char* szErr2K
         );
 /**
