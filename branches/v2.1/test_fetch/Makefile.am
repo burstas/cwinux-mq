@@ -13,7 +13,7 @@ cwx_mq_fetch_SOURCES = \
 	CwxMqFetchApp.cpp  CwxMqFetchConfig.cpp  cwx_mq_fetch.cpp
 cwx_mq_fetch_LDADD=
 cwx_mq_fetch_LDFLAGS =-L@xml_expat_dir@/lib -L@cwinux_dir@/lib 
-LIBS=-lcwxapp -lcwxnet -lcwxparse -lcwxstore -lcwxcmn -lexpat  -lpthread -ldl -lrt
+LIBS=-lcwxapp -lcwxnet -lcwxparse -lcwxstore -lcwxcmn -lexpat  -lpthread -ldl -lrt -lz
 INCLUDES=-I@cwinux_dir@/include/app -I@cwinux_dir@/include/cmn -I@cwinux_dir@/include/net -I@cwinux_dir@/include/store -I@cwinux_dir@/include/parse -I@xml_expat_dir@/include  -I../common
 
 ## Clean up template repositories, etc.
