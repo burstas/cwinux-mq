@@ -305,7 +305,7 @@ public:
     int delQueue(string const& strQueue,
         char* szErr2K=NULL);
 
-    void getQueuesInfo(list<CwxMqQueueInfo>& queues) const;
+    void getQueuesInfo(list<CwxMqQueueInfo>& queues);
 
     inline bool isExistQueue(string const& strQueue)
     {
