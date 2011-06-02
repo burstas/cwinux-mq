@@ -114,7 +114,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             if (bZip)
             {
                 iRet = saveBinlog(pTss,
-                    m_unzipBuf,
+                    (char*)m_unzipBuf,
                     ulUnzipLen,
                     ullSid);
             }
@@ -130,7 +130,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         {
             if (bZip)
             {
-                if (!m_reader.unpack(m_unzipBuf, ulUnzipLen, false, true))
+                if (!m_reader.unpack((char*)m_unzipBuf, ulUnzipLen, false, true))
                 {
                     CWX_ERROR(("Failure to unpack master multi-binlog, err:%s", m_reader.getErrMsg()));
                     m_pApp->noticeReconnect(m_uiConnId, 2000); ///—” ±2√Î÷”÷ÿ¡¨
