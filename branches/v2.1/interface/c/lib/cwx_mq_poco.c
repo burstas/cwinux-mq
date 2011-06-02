@@ -2,6 +2,8 @@
 extern "C" {
 #endif
 #include "cwx_mq_poco.h"
+#include "cwx_md5.h"
+#include "cwx_crc32.h"
 #include <zlib.h>
 
 static int cwx_mq_pack_msg(CWX_UINT16 unMsgType,
@@ -1605,8 +1607,8 @@ int cwx_mq_pack_create_queue_reply(struct CWX_PG_WRITER * writer,
 int cwx_mq_parse_create_queue_reply(struct CWX_PG_READER* reader,
                                     char const* msg,
                                     CWX_UINT32 msg_len,
-                                    int&  ret,
-                                    char const*& szErrMsg,
+                                    int*  ret,
+                                    char const** szErrMsg,
                                     char* szErr2K)
 {
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
