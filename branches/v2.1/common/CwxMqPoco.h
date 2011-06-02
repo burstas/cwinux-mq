@@ -242,7 +242,7 @@ public:
         char const* user=NULL,
         char const* passwd=NULL,
         char const* sign=NULL,
-        bool        zip = 0,
+        bool        zip = false,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseReportData(CwxPackageReader* reader,

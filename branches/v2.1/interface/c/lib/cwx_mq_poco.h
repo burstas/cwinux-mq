@@ -475,6 +475,7 @@ int cwx_mq_parse_sync_data_reply(struct CWX_PG_READER* reader,
 *@param [in] queue_name 队列的名字。
 *@param [in] user 接收的mq的user，若为空，则表示没有用户。
 *@param [in] passwd 接收的mq的passwd，若为空，则表示没有口令。
+*@param [in] timeout commit队列的超时时间，若为0表示采用默认超时时间，单位为s。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -485,6 +486,7 @@ int cwx_mq_pack_fetch_mq(struct CWX_PG_WRITER * writer,
         char const* queue_name,
         char const* user,
         char const* passwd,
+        CWX_UINT32  timeout,
         char* szErr2K);
 /**
 *@brief parse  mq的fetch msg的消息包
@@ -495,6 +497,7 @@ int cwx_mq_pack_fetch_mq(struct CWX_PG_WRITER * writer,
 *@param [in] queue_name 队列的名字。
 *@param [in] user 接收的mq的user，若为空，则表示没有用户。
 *@param [in] passwd 接收的mq的passwd，若为空，则表示没有口令。
+*@param [in] timeout commit队列的超时时间，若为0表示采用默认超时时间，单位为s。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -505,6 +508,7 @@ int cwx_mq_parse_fetch_mq(struct CWX_PG_READER* reader,
         char const** queue_name,
         char const** user,
         char const** passwd,
+        CWX_UINT32*  timeout,
         char* szErr2K);
 
 /**

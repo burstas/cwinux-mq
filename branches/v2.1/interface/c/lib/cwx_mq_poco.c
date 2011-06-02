@@ -980,6 +980,7 @@ int cwx_mq_pack_fetch_mq(struct CWX_PG_WRITER * writer,
                          char const* queue_name,
                          char const* user,
                          char const* passwd,
+                         CWX_UINT32  timeout,
                          char* szErr2K)
 {
     cwx_pg_writer_begin_pack(writer);
@@ -999,6 +1000,11 @@ int cwx_mq_pack_fetch_mq(struct CWX_PG_WRITER * writer,
         return CWX_MQ_ERR_INNER_ERR;
     }
     if (passwd && (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_PASSWD, passwd)))
+    {
+        if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
+        return CWX_MQ_ERR_INNER_ERR;
+    }
+    if (timeout && (0 != cwx_pg_writer_add_key_uint32(writer, CWX_MQ_KEY_TIMEOUT, timeout)))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
         return CWX_MQ_ERR_INNER_ERR;
@@ -1031,6 +1037,7 @@ int cwx_mq_parse_fetch_mq(struct CWX_PG_READER* reader,
                           char const** queue_name,
                           char const** user,
                           char const** passwd,
+                          CWX_UINT32*  timeout,
                           char* szErr2K)
 {
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
@@ -1071,6 +1078,11 @@ int cwx_mq_parse_fetch_mq(struct CWX_PG_READER* reader,
     else
     {
         *passwd = pItem->m_szData;
+    }
+    //get timeout
+    if (0 == cwx_pg_reader_get_uint32(reader, CWX_MQ_KEY_TIMEOUT, timeout, 0))
+    {
+        timeout = 0;
     }
     return CWX_MQ_ERR_SUCCESS;
 }
