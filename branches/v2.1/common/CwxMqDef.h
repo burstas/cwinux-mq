@@ -189,7 +189,7 @@ public:
         m_ucQueueState = item.m_ucQueueState;
         m_strQueueErrMsg = item.m_strQueueErrMsg;
     }
-    CwxMqQueueInfo& operator=CwxMqQueueInfo(CwxMqQueueInfo const& item)
+    CwxMqQueueInfo& operator=(CwxMqQueueInfo const& item)
     {
         if (this != &item)
         {
