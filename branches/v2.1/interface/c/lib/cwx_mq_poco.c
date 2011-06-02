@@ -2,6 +2,7 @@
 extern "C" {
 #endif
 #include "cwx_mq_poco.h"
+#include <zlib.h>
 
 static int cwx_mq_pack_msg(CWX_UINT16 unMsgType,
                            CWX_UINT32 uiTaskId,
@@ -487,6 +488,8 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
                             char const* subscribe,
                             char const* user,
                             char const* passwd,
+                            char const* sign,
+                            int        zip,
                             char* szErr2K)
 {
     cwx_pg_writer_begin_pack(writer);
@@ -514,6 +517,16 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
         return CWX_MQ_ERR_INNER_ERR;
     }
     if (passwd && (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_PASSWD, passwd)))
+    {
+        if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
+        return CWX_MQ_ERR_INNER_ERR;
+    }
+    if (sign && (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_SIGN, sign)))
+    {
+        if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
+        return CWX_MQ_ERR_INNER_ERR;
+    }
+    if (zip && (0 != cwx_pg_writer_add_key_int32(writer, CWX_MQ_KEY_ZIP, zip)))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
         return CWX_MQ_ERR_INNER_ERR;
@@ -548,6 +561,8 @@ int cwx_mq_parse_sync_report(struct CWX_PG_READER* reader,
                              char const** subscribe,
                              char const** user,
                              char const** passwd,
+                             char const** sign,
+                             int*        zip,
                              char* szErr2K)
 {
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
@@ -596,6 +611,21 @@ int cwx_mq_parse_sync_report(struct CWX_PG_READER* reader,
     {
         *passwd = pItem->m_szData;
     }
+    //get sign
+    if (!(pItem = cwx_pg_reader_get_key(reader, CWX_MQ_KEY_SIGN, 0)))
+    {
+        *sign = "";
+    }
+    else
+    {
+        *sign = pItem->m_szData;
+    }
+    //get zip
+    if (0 == cwx_pg_reader_get_int32(reader, CWX_MQ_KEY_ZIP, zip, 0))
+    {
+        *zip = 0;
+    }
+
 
     return CWX_MQ_ERR_SUCCESS;
 }
@@ -698,6 +728,8 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
                           CWX_UINT32 group,
                           CWX_UINT32 type,
                           CWX_UINT32 attr,
+                          char const* sign,
+                          int       zip,
                           char* szErr2K)
 {
     cwx_pg_writer_begin_pack(writer);
@@ -731,10 +763,55 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
         return CWX_MQ_ERR_INNER_ERR;
     }
+    if (sign)
+    {
+        if (strcmp(sign, CWX_MQ_KEY_CRC32) == 0)//CRC32Ç©Ãû
+        {
+            CWX_UINT32 uiCrc32 = cwx_crc32_value(cwx_pg_writer_get_msg(writer), cwx_pg_writer_get_msg_size(writer));
+            if (0 != cwx_pg_writer_add_key(writer, CWX_MQ_KEY_CRC32, (char*)&uiCrc32, sizeof(uiCrc32), 0))
+            {
+                if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
+                return CWX_MQ_ERR_INNER_ERR;
+            }
+        }
+        else if (strcmp(sign, CWX_MQ_KEY_MD5) == 0)//md5Ç©Ãû
+        {
+            cwx_md5_context md5;
+            unsigned char szMd5[16];
+            cwx_md5_start(&md5);
+            cwx_md5_update(&md5,cwx_pg_writer_get_msg(writer), cwx_pg_writer_get_msg_size(writer));
+            cwx_md5_finish(&md5, szMd5);
+            if (0 != cwx_pg_writer_add_key(writer, CWX_MQ_KEY_MD5, (char*)szMd5, 16, 0))
+            {
+                if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
+                return CWX_MQ_ERR_INNER_ERR;
+            }
+        }
+    }
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
         return CWX_MQ_ERR_INNER_ERR;
+    }
+    if (zip)
+    {
+        unsigned long ulDstLen = *buf_len - CWX_MSG_HEAD_LEN;
+        if (Z_OK == compress2((unsigned char*)buf + CWX_MSG_HEAD_LEN,
+            &ulDstLen,
+            cwx_pg_writer_get_msg(writer),
+            cwx_pg_writer_get_msg_size(writer),
+            Z_DEFAULT_COMPRESSION))
+        {
+            CWX_MSG_HEADER_S head;
+            head.m_ucVersion = 0;
+            head.m_ucAttr = CWX_MSG_ATTR_COMPRESS;
+            head.m_uiTaskId =uiTaskId;
+            head.m_unMsgType = CWX_MQ_MSG_TYPE_SYNC_DATA;
+            head.m_uiDataLen = ulDstLen;
+            cwx_msg_pack_head(&head, buf);
+        }
+        *buf_len = CWX_MSG_HEAD_LEN + ulDstLen;
+        return CWX_MQ_ERR_SUCCESS;
     }
     if (0 != cwx_mq_pack_msg(CWX_MQ_MSG_TYPE_SYNC_DATA,
         uiTaskId,
@@ -800,6 +877,44 @@ int cwx_mq_parse_sync_data(struct CWX_PG_READER* reader,
     if (0 == cwx_pg_reader_get_uint32(reader, CWX_MQ_KEY_ATTR, attr, 0))
     {
         *attr = 0;
+    }
+    struct CWX_KEY_VALUE_ITEM_S const* pItem = 0;
+    //get crc32
+    if ((pItem = cwx_pg_reader_get_key(reader, CWX_MQ_KEY_CRC32, 0)))
+    {
+        CWX_UINT32 uiOrgCrc32 = 0;
+        memcpy(&uiOrgCrc32, pItem->m_szData, sizeof(uiOrgCrc32));
+        CWX_UINT32 uiCrc32 = cwx_crc32_value(msg, pItem->m_szKey - msg - cwx_pg_get_key_offset());
+        if (uiCrc32 != uiOrgCrc32)
+        {
+            if (szErr2K) snprintf(szErr2K, 2047, "CRC32 signture error. recv signture:%x, local signture:%x", uiOrgCrc32, uiCrc32);
+            return CWX_MQ_ERR_INVALID_CRC32;
+        }
+    }
+    //get md5
+    if ((pItem = cwx_pg_reader_get_key(reader, CWX_MQ_KEY_MD5, 0)))
+    {
+        unsigned char szMd5[16];
+        cwx_md5_context md5;
+        cwx_md5_start(&md5);
+        cwx_md5_update((unsigned char*)msg, pItem->m_szKey - msg - cwx_pg_get_key_offset());
+        cwx_md5_finish(szMd5);
+        if (memcmp(szMd5, pItem->m_szData, 16) != 0)
+        {
+            if (szErr2K)
+            {
+                char szTmp1[33];
+                char szTmp2[33];
+                CWX_UINT32 i=0;
+                for (i=0; i<16; i++)
+                {
+                    sprintf(szTmp1 + i*2, "%2.2x", pItem->m_szData[i]);
+                    sprintf(szTmp2 + i*2, "%2.2x", szMd5[i]);
+                }
+                snprintf(szErr2K, 2047, "MD5 signture error. recv signture:%x, local signture:%x", szTmp1, szTmp2);
+            }
+            return CWX_MQ_ERR_INVALID_MD5;
+        }
     }
     return CWX_MQ_ERR_SUCCESS;
 }

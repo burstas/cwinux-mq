@@ -128,6 +128,7 @@ extern "C" {
 *@param [in] attr msg的attr。
 *@param [in] user 接收mq的user，若为空，则表示没有用户。
 *@param [in] passwd 接收mq的passwd，若为空，则表示没有口令。
+*@param [in] sign  接收的mq的签名类型，若为空，则表示不签名。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -293,6 +294,8 @@ int cwx_mq_parse_commit_reply(struct CWX_PG_READER* reader,
 *@param [in] subscribe 订阅的消息类型。
 *@param [in] user 接收的mq的user，若为空，则表示没有用户。
 *@param [in] passwd 接收的mq的passwd，若为空，则表示没有口令。
+*@param [in] sign  接收的mq的签名类型，若为空，则表示不签名。
+*@param [in] zip  接收的mq是否压缩，1压缩；0不压缩。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -306,6 +309,8 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
     char const* subscribe,
     char const* user,
     char const* passwd,
+    char const* sign,
+    int        zip,
     char* szErr2K);
 /**
 *@brief parse mq的report消息包
@@ -318,6 +323,8 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
 *@param [in] subscribe 订阅的消息类型。
 *@param [in] user 接收的mq的user，若为空，则表示没有用户。
 *@param [in] passwd 接收的mq的passwd，若为空，则表示没有口令。
+*@param [in] sign  接收的mq的签名类型，若为空，则表示不签名。
+*@param [in] zip  接收的mq是否压缩，1压缩；0不压缩。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -330,6 +337,8 @@ int cwx_mq_parse_sync_report(struct CWX_PG_READER* reader,
     char const** subscribe,
     char const** user,
     char const** passwd,
+    char const** sign,
+    int*        zip,
     char* szErr2K);
 
 /**
@@ -383,6 +392,8 @@ int cwx_mq_parse_sync_report_reply(struct CWX_PG_READER* reader,
 *@param [in] group 消息的group。
 *@param [in] type 消息的type。
 *@param [in] attr 消息的attr。
+*@param [in] sign  接收的mq的签名类型，若为空，则表示不签名。
+*@param [in] zip  接收的mq是否压缩，1压缩；0不压缩。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -396,6 +407,8 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
         CWX_UINT32 group,
         CWX_UINT32 type,
         CWX_UINT32 attr,
+        char const* sign,
+        int       zip,
         char* szErr2K);
 /**
 *@brief parse mq的sync msg的消息包
