@@ -762,7 +762,7 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
     unsigned long ulDestLen = writer->getMsgSize();
     if (zip)
     {
-        if (!CwxZlib::zip((unsigned char*)msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN, ulDestLen, writer->getMsg(), writer->getMsgSize()))
+        if (!CwxZlib::zip((unsigned char*)msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN, ulDestLen, (unsigned char const*)writer->getMsg(), writer->getMsgSize()))
         {
             zip = false;
         }
@@ -1089,7 +1089,7 @@ int CwxMqPoco::packFetchMq(CwxPackageWriter* writer,
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_ERR_INNER_ERR;
     }
-    if (timeout && !writer->addKeyValue(CWX_MQ_ERR_TIMEOUT, timeout))
+    if (timeout && !writer->addKeyValue(CWX_MQ_TIMEOUT, timeout))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_ERR_INNER_ERR;
@@ -1160,7 +1160,7 @@ int CwxMqPoco::parseFetchMq(CwxPackageReader* reader,
         passwd = pItem->m_szData;
     }
     //get timeout
-    if (!reader->getKey(CWX_MQ_ERR_TIMEOUT, timeout))
+    if (!reader->getKey(CWX_MQ_TIMEOUT, timeout))
     {
         timeout = 0;
     }
@@ -1406,6 +1406,11 @@ int CwxMqPoco::parseFetchMqCommitReply(CwxPackageReader* reader,
                               char const*& szErrMsg,
                               char* szErr2K)
 {
+    if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
+    {
+        if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
+        return CWX_MQ_ERR_INVALID_MSG;
+    }
     //get ret
     if (!reader->getKey(CWX_MQ_RET, ret))
     {
