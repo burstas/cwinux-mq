@@ -84,7 +84,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     {///binlog数据
         
         CWX_UINT64 ullSid;
-        CWX_UINT32 uiUnzipLen = 0;
+        unsigned long ulUnzipLen = 0;
         bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
         //判断是否压缩数据
         if (bZip)
@@ -97,9 +97,9 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 m_uiConnId = 0;
                 return 1;
             }
-            uiUnzipLen = m_uiBufLen;
+            ulUnzipLen = m_uiBufLen;
             //解压
-            if (CwxZlib::unzip(m_unzipBuf, uiUnzipLen, msg->rd_ptr(), msg->length()))
+            if (CwxZlib::unzip(m_unzipBuf, ulUnzipLen, msg->rd_ptr(), msg->length()))
             {
                 CWX_ERROR(("Failure to unzip recv msg, msg size:%u, buf size:%u", msg->length(), m_uiBufLen));
                 m_pApp->noticeReconnect(m_uiConnId, 2000); ///延时2秒钟重连
@@ -115,7 +115,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             {
                 iRet = saveBinlog(pTss,
                     m_unzipBuf,
-                    uiUnzipLen,
+                    ulUnzipLen,
                     ullSid);
             }
             else
@@ -130,7 +130,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         {
             if (bZip)
             {
-                if (!m_reader.unpack(m_unzipBuf, uiUnzipLen, false, true))
+                if (!m_reader.unpack(m_unzipBuf, ulUnzipLen, false, true))
                 {
                     CWX_ERROR(("Failure to unpack master multi-binlog, err:%s", m_reader.getErrMsg()));
                     m_pApp->noticeReconnect(m_uiConnId, 2000); ///延时2秒钟重连
@@ -288,8 +288,8 @@ bool CwxMqMasterHandler::checkSign(char const* data,
     else if (strcmp(sign, CWX_MQ_MD5)==0)//md5签名
     {
         CwxMd5 md5;
-        char szMd5[16];
-        md5.update(data, uiDateLen);
+        unsigned char szMd5[16];
+        md5.update((const unsigned char*)data, uiDateLen);
         md5.final(szMd5);
         if (memcmp(szMd5, szSign, 16) == 0) return true;
         return false;
