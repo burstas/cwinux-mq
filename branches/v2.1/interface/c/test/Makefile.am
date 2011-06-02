@@ -24,7 +24,7 @@ mq_test_fetch_LDFLAGS = -L@libcwinux_dir@/lib -L$(srcdir)/../lib/.libs  -L@libcw
 
 
 
-LIBS=-lcwxnet -lcwxcmn -lcwxmq -lcwinux 
+LIBS=-lcwxnet -lcwxcmn -lcwxmq -lcwinux  -lz
 INCLUDES=-I$(srcdir)/../lib/ -I@libcwinux_dir@/include/net -I@libcwinux_dir@/include/cmn -I@libcwinux_c_dir@/include
 
 
