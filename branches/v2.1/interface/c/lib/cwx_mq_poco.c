@@ -1,10 +1,11 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "cwx_mq_poco.h"
 #include "cwx_md5.h"
 #include "cwx_crc32.h"
 #include <zlib.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 static int cwx_mq_pack_msg(CWX_UINT16 unMsgType,
                            CWX_UINT32 uiTaskId,
