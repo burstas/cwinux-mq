@@ -59,7 +59,7 @@ private:
         char const* szSign,
         char const* sign);
     //»ñÈ¡unzipµÄbuf
-    inline bool prepareUnzipBuf()
+    bool prepareUnzipBuf();
     {
         if (!m_unzipBuf)
         {

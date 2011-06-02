@@ -174,8 +174,8 @@ int CwxMqApp::initRunEnv()
     }
 
     //创建mq线程池
-    if (m_config.getMq().m_listen.getHostName().length() ||
-        m_config.getMq().m_listen.getUnixDomain().length())
+    if (m_config.getMq().m_mq.getHostName().length() ||
+        m_config.getMq().m_mq.getUnixDomain().length())
     {
         m_mqChannel = new CwxAppChannel();
         m_pMqThreadPool = new CwxThreadPool( CwxAppFramework::THREAD_GROUP_USER_START + 2,
@@ -652,28 +652,28 @@ int CwxMqApp::startNetwork()
     if (m_config.getMq().m_mq.getHostName().length())
     {
         if (0 > this->noticeTcpListen(SVR_TYPE_FETCH, 
-            m_config.getMq().m_listen.getHostName().c_str(),
-            m_config.getMq().m_listen.getPort(),
+            m_config.getMq().m_mq.getHostName().c_str(),
+            m_config.getMq().m_mq.getPort(),
             false,
             CWX_APP_EVENT_MODE,
             CwxMqApp::setMqSockAttr,
             this))
         {
             CWX_ERROR(("Can't register the mq-fetch tcp accept listen: addr=%s, port=%d",
-                m_config.getMq().m_listen.getHostName().c_str(),
-                m_config.getMq().m_listen.getPort()));
+                m_config.getMq().m_mq.getHostName().c_str(),
+                m_config.getMq().m_mq.getPort()));
             return -1;
         }
     }
     if (m_config.getMq().m_mq.getUnixDomain().length())
     {
         if (0 > this->noticeLsockListen(SVR_TYPE_FETCH,
-            m_config.getMq().m_listen.getUnixDomain().c_str(),
+            m_config.getMq().m_mq.getUnixDomain().c_str(),
             false,
             CWX_APP_EVENT_MODE))
         {
             CWX_ERROR(("Can't register the mq-fetch unix-domain accept listen: path-file=%s",
-                m_config.getMq().m_listen.getUnixDomain().c_str()));
+                m_config.getMq().m_mq.getUnixDomain().c_str()));
             return -1;
         }
     }
@@ -1242,7 +1242,7 @@ int CwxMqApp::setMqSockAttr(CWX_HANDLE handle, void* arg)
 {
     CwxMqApp* app = (CwxMqApp*)arg;
 
-    if (app->getConfig().getMq().m_listen.isKeepAlive())
+    if (app->getConfig().getMq().m_mq.isKeepAlive())
     {
         if (0 != CwxSocket::setKeepalive(handle,
             true,
@@ -1251,8 +1251,8 @@ int CwxMqApp::setMqSockAttr(CWX_HANDLE handle, void* arg)
             CWX_APP_DEF_KEEPALIVE_COUNT))
         {
             CWX_ERROR(("Failure to set listen addr:%s, port:%u to keep-alive, errno=%d",
-                app->getConfig().getMq().m_listen.getHostName().c_str(),
-                app->getConfig().getMq().m_listen.getPort(),
+                app->getConfig().getMq().m_mq.getHostName().c_str(),
+                app->getConfig().getMq().m_mq.getPort(),
                 errno));
             return -1;
         }
@@ -1262,8 +1262,8 @@ int CwxMqApp::setMqSockAttr(CWX_HANDLE handle, void* arg)
     if (setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags)) != 0)
     {
         CWX_ERROR(("Failure to set listen addr:%s, port:%u NODELAY, errno=%d",
-            app->getConfig().getMq().m_listen.getHostName().c_str(),
-            app->getConfig().getMq().m_listen.getPort(),
+            app->getConfig().getMq().m_mq.getHostName().c_str(),
+            app->getConfig().getMq().m_mq.getPort(),
             errno));
         return -1;
     }
@@ -1271,8 +1271,8 @@ int CwxMqApp::setMqSockAttr(CWX_HANDLE handle, void* arg)
     if (setsockopt(handle, SOL_SOCKET, SO_LINGER, (void *)&ling, sizeof(ling)) != 0)
     {
         CWX_ERROR(("Failure to set listen addr:%s, port:%u LINGER, errno=%d",
-            app->getConfig().getMq().m_listen.getHostName().c_str(),
-            app->getConfig().getMq().m_listen.getPort(),
+            app->getConfig().getMq().m_mq.getHostName().c_str(),
+            app->getConfig().getMq().m_mq.getPort(),
             errno));
         return -1;
     }

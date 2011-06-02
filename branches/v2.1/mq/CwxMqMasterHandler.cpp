@@ -283,3 +283,13 @@ bool CwxMqMasterHandler::checkSign(char const* data,
     }
     return true;
 }
+bool CwxMqMasterHandler::prepareUnzipBuf()
+{
+    if (!m_unzipBuf)
+    {
+        m_uiBufLen = m_pApp->getConfig().getCommon().m_uiChunkSize * 20;
+        if (m_uiBufLen < 20 * 1024 * 1024) m_uiBufLen = 20 * 1024 * 1024;
+        m_unzipBuf = new char[m_uiBufLen];
+    }
+    return m_unzipBuf!=NULL;
+}
