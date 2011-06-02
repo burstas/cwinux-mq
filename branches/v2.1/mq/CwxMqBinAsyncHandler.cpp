@@ -610,7 +610,7 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqTss* pTss)
                 unsigned char szMd5[16];
                 md5.update((unsigned char*)pTss->m_pWriter->getMsg(), pTss->m_pWriter->getMsgSize());
                 md5.final(szMd5);
-                if (!pTss->m_pWriter->addKeyValue(CWX_MQ_MD5, szMd5, 16))
+                if (!pTss->m_pWriter->addKeyValue(CWX_MQ_MD5, (char*)szMd5, 16))
                 {
                     CWX_ERROR(("Failure to add key value, err:%s", pTss->m_pWriter->getErrMsg()));
                     return -1;
