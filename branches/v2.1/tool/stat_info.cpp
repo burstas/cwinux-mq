@@ -8,7 +8,7 @@ using namespace cwinux;
 string g_strHost;
 CWX_UINT16 g_unPort = 0;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
-bool parseArg(int argc, char**argv)
+int parseArg(int argc, char**argv)
 {
     CwxGetOpt cmd_option(argc, argv, "H:P:h");
     int option;
@@ -20,19 +20,20 @@ bool parseArg(int argc, char**argv)
             printf("%s  -H host -P port\n", argv[0]);
             printf("-H: mq server host\n");
             printf("-P: mq server monitor port\n");
+            printf("-h: help\n");
             return 0;
         case 'H':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
-                printf("-h requires an argument.\n");
+                printf("-H requires an argument.\n");
                 return -1;
             }
             g_strHost = cmd_option.opt_arg();
             break;
-        case 'p':
+        case 'P':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
-                printf("-p requires an argument.\n");
+                printf("-P requires an argument.\n");
                 return -1;
             }
             g_unPort = strtoul(cmd_option.opt_arg(), NULL, 0);
@@ -57,12 +58,12 @@ bool parseArg(int argc, char**argv)
     }
     if (!g_strHost.length())
     {
-        printf("No host, set by -h\n");
+        printf("No host, set by -H\n");
         return -1;
     }
     if (!g_unPort)
     {
-        printf("No port, set by -p\n");
+        printf("No port, set by -P\n");
         return -1;
     }
     return 1;
