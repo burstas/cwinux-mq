@@ -205,8 +205,7 @@ void CwxMqApp::onTime(CwxTimeValue const& current)
     static CWX_UINT32 ttBinLogLastTime = time(NULL);
     static CWX_UINT32 ttMqLogLastTime = time(NULL);
     CWX_UINT32 uiNow = time(NULL);
-    if (m_config.getCommon().m_bMaster &&
-        (uiNow >= ttBinLogLastTime + m_config.getBinLog().m_uiFlushSecond))
+    if (m_config.getCommon().m_bMaster && (uiNow >= ttBinLogLastTime + 1))
     {
         ttBinLogLastTime = uiNow;
         CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
