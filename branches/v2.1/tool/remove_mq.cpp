@@ -155,11 +155,11 @@ int main(int argc ,char** argv)
         if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packDelQueue(
             &writer,
             &block,
-            g_queue->c_str(),
-            g_user->c_str(),
-            g_passwd->c_str(),
-            g_auth_user->c_str(),
-            g_auth_passwd->c_str(),
+            g_queue.c_str(),
+            g_user.c_str(),
+            g_passwd.c_str(),
+            g_auth_user.c_str(),
+            g_auth_passwd.c_str(),
             szErr2K
             ))
         {
