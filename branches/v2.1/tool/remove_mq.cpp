@@ -212,7 +212,7 @@ int main(int argc ,char** argv)
             g_queue.c_str(),
             g_user.c_str(),
             g_passwd.c_str());
-    } while(1);
+    } while(0);
     if (block) 
     {
         CwxMsgBlockAlloc::free(block);

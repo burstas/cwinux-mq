@@ -273,7 +273,7 @@ int main(int argc ,char** argv)
             CwxCommon::toString(g_sid, szErr2K, 10),
             g_def_timeout,
             g_max_timeout);
-    } while(1);
+    } while(0);
     if (block) 
     {
         CwxMsgBlockAlloc::free(block);
