@@ -19,6 +19,8 @@
 #include "CwxMsgBlock.h"
 #include "CwxPackageReader.h"
 #include "CwxPackageWriter.h"
+#include "CwxCrc32.h"
+#include "CwxMd5.h"
 
 class CwxMqSubscribeItem
 {
