@@ -450,7 +450,7 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
             break;
         }
         string strErrMsg;
-        if (CwxMqPoco::isValidSubscribe(string(scribe), strErrMsg))
+        if (!CwxMqPoco::isValidSubscribe(string(scribe), strErrMsg))
         {
             iRet = CWX_MQ_ERR_INVALID_SUBSCRIBE;
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "%s", strErrMsg.c_str());
