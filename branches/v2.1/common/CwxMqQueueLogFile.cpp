@@ -94,6 +94,7 @@ int CwxMqQueueLogFile::save(map<string, CwxMqQueueInfo> const& queues,
     while(iter_queue != queues.end())
     {//queue:name=q1|sid=12345|commit=true|def_timeout=5|max_timeout=300|user=u_q1|passwd=p_q1|subcribe=*
         len = CwxCommon::snprintf(line, 1023, "%s:name=%s|sid=%s|commit=%s|def_timeout=%u|max_timeout=%u|user=%s|passwd=%s|subscribe=%s\n",
+            CWX_MQ_QUEUE,
             iter_queue->second.m_strName.c_str(),
             CwxCommon::toString(iter_queue->second.m_ullCursorSid, szSid, 10),
             iter_queue->second.m_bCommit?"true":"false",
