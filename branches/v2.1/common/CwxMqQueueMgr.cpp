@@ -935,6 +935,7 @@ bool CwxMqQueueMgr::_save()
             delete iter_sid->second;
             iter_sid ++;
         }
+        return true;
     }
     return false;
 }

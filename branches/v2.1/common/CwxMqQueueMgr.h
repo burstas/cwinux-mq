@@ -255,6 +255,7 @@ public:
         CWX_UINT32 uiMaxFsyncNum);
     ~CwxMqQueueMgr();
 public:
+    //0:成功；-1：失败
     int init(CwxBinLogMgr* binLog);
 public:
     ///0：没有消息；
