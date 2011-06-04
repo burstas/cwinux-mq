@@ -16,10 +16,7 @@
 */
 
 #include "CwxMqMacro.h"
-#include "CwxMqTss.h"
 #include "CwxMsgBlock.h"
-#include "CwxCrc32.h"
-#include "CwxMd5.h"
 
 class CwxMqSubscribeItem
 {

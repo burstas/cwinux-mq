@@ -1,4 +1,6 @@
 #include "CwxMqPoco.h"
+#include "CwxCrc32.h"
+#include "CwxMd5.h"
 #include "CwxZlib.h"
 
 CwxPackageWriter* CwxMqPoco::m_pWriter =NULL;
