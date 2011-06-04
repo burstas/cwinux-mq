@@ -206,7 +206,7 @@ int main(int argc ,char** argv)
     {
         if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packCreateQueue(
             &writer,
-            &block,
+            block,
             g_queue.c_str(),
             g_user.c_str(),
             g_passwd.c_str(),
