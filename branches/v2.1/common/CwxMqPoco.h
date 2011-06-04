@@ -17,6 +17,8 @@
 
 #include "CwxMqMacro.h"
 #include "CwxMsgBlock.h"
+#include "CwxPackageReader.h"
+#include "CwxPackageWriter.h"
 
 class CwxMqSubscribeItem
 {
