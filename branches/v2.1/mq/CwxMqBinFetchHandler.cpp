@@ -424,29 +424,29 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
             strcpy(pTss->m_szBuf2K, "queue name is empty");
             break;
         }
-        if (strlen(queue_name) > CWX_MAX_QUEUE_NAME_LEN)
+        if (strlen(queue_name) > CWX_MQ_MAX_QUEUE_NAME_LEN)
         {
             iRet = CWX_MQ_ERR_NAME_TOO_LONG;
-            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue name[%s] is too long, max:%u", queue_name, CWX_MAX_QUEUE_NAME_LEN);
+            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue name[%s] is too long, max:%u", queue_name, CWX_MQ_MAX_QUEUE_NAME_LEN);
             break;
         }
-        if (strlen(user) > CWX_MAX_QUEUE_USER_LEN)
+        if (strlen(user) > CWX_MQ_MAX_QUEUE_USER_LEN)
         {
             iRet = CWX_MQ_ERR_USER_TO0_LONG;
-            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue's user name[%s] is too long, max:%u", user, CWX_MAX_QUEUE_USER_LEN);
+            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue's user name[%s] is too long, max:%u", user, CWX_MQ_MAX_QUEUE_USER_LEN);
             break;
         }
-        if (strlen(passwd) > CWX_MAX_QUEUE_PASSWD_LEN)
+        if (strlen(passwd) > CWX_MQ_MAX_QUEUE_PASSWD_LEN)
         {
             iRet = CWX_MQ_ERR_PASSWD_TOO_LONG;
-            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue's passwd [%s] is too long, max:%u", passwd, CWX_MAX_QUEUE_PASSWD_LEN);
+            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue's passwd [%s] is too long, max:%u", passwd, CWX_MQ_MAX_QUEUE_PASSWD_LEN);
             break;
         }
         if (!strlen(scribe)) scribe = "*";
-        if (strlen(scribe) > CWX_MAX_QUEUE_SCRIBE_LEN)
+        if (strlen(scribe) > CWX_MQ_MAX_QUEUE_SCRIBE_LEN)
         {
             iRet = CWX_MQ_ERR_SCRIBE_TOO_LONG;
-            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue's scribe [%s] is too long, max:%u", scribe, CWX_MAX_QUEUE_SCRIBE_LEN);
+            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue's scribe [%s] is too long, max:%u", scribe, CWX_MQ_MAX_QUEUE_SCRIBE_LEN);
             break;
         }
         string strErrMsg;
