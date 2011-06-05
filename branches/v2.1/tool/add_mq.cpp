@@ -42,8 +42,8 @@ int parseArg(int argc, char**argv)
             printf("-s: queue's subscribe. it can be empty for subscribe all message.\n");
             printf("-d: default timeout second for commit queue. it can be zero for using server's default timeout.\n");
             printf("-m: max timeout second for commit queue. it can be zero for using server's max timeout.\n");
-            printf("--auth_u: authentication user for creating queue.\n");
-            printf("--auth_p: authentication user passwoard for creating queue.\n");
+            printf("--auth_u: authentication user for queue.\n");
+            printf("--auth_p: authentication user password for queue.\n");
             printf("--sid: queue's start sid, zero for the current sid.\n");
             printf("-h: help\n");
             return 0;

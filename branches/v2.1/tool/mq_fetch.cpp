@@ -7,42 +7,35 @@
 using namespace cwinux;
 string g_strHost;
 CWX_UINT16 g_unPort = 0;
-string g_queue;
 string g_user;
 string g_passwd;
-string g_auth_user;
-string g_auth_passwd;
 string g_subscribe;
-CWX_UINT64 g_sid;
-bool   g_commit=false;
-CWX_UINT32 g_def_timeout = 0;
-CWX_UINT32 g_max_timeout = 0;
+CWX_UINT64 g_sid = 0;
+CWX_UINT32 g_window = 1;
+CWX_UINT32 g_num = 1;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:t:s:d:m:h");
+    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:s:w:n:h");
     int option;
-    cmd_option.long_option("auth_u", 'a', CwxGetOpt::ARG_REQUIRED);
-    cmd_option.long_option("auth_p", 'A', CwxGetOpt::ARG_REQUIRED);
     cmd_option.long_option("sid", 'i', CwxGetOpt::ARG_REQUIRED);
-
     while( (option = cmd_option.next()) != -1)
     {
         switch (option)
         {
         case 'h':
             printf("%s  -H host -P port\n", argv[0]);
-            printf("-H: mq server host\n");
-            printf("-P: mq server monitor port\n");
-            printf("-u: queue's user, it can be empty.\n");
-            printf("-p: queue's user passwd, it can be empty.\n");
+            printf("-H: mq server dispatch host\n");
+            printf("-P: mq server dispatch port\n");
+            printf("-u: dispatch user name.\n");
+            printf("-p: dispatch user passwd.\n");
             printf("-q: queue's name, it can't be empty.\n");
             printf("-t: queue's type. 1:commit queue; 0:uncommit queue.\n");
             printf("-s: queue's subscribe. it can be empty for subscribe all message.\n");
             printf("-d: default timeout second for commit queue. it can be zero for using server's default timeout.\n");
             printf("-m: max timeout second for commit queue. it can be zero for using server's max timeout.\n");
             printf("--auth_u: authentication user for creating queue.\n");
-            printf("--auth_p: authentication user passwoard for creating queue.\n");
+            printf("--auth_p: authentication user password for creating queue.\n");
             printf("--sid: queue's start sid, zero for the current sid.\n");
             printf("-h: help\n");
             return 0;

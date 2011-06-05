@@ -30,10 +30,10 @@ int parseArg(int argc, char**argv)
         {
         case 'h':
             printf("%s  -H host -P port\n", argv[0]);
-            printf("-H: mq server host\n");
-            printf("-P: mq server monitor port\n");
+            printf("-H: mq server recieve host\n");
+            printf("-P: mq server recieve port\n");
             printf("-u: mq server's recieve user.\n");
-            printf("-p: mq server's recieve user passwd.\n");
+            printf("-p: mq server's recieve user password.\n");
             printf("-g: message's group.\n");
             printf("-t: message's type.\n");
             printf("-a: message's attribute.\n");

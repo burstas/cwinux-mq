@@ -27,13 +27,13 @@ int parseArg(int argc, char**argv)
         case 'h':
             printf("Delete a queue.\n");
             printf("%s  -H host -P port\n", argv[0]);
-            printf("-H: mq server host\n");
-            printf("-P: mq server monitor port\n");
-            printf("-u: queue's user, it can be empty.\n");
-            printf("-p: queue's user passwd, it can be empty.\n");
+            printf("-H: mq server queue's host name\n");
+            printf("-P: mq server queue's port\n");
+            printf("-u: queue's user.\n");
+            printf("-p: queue's user passwd.\n");
             printf("-q: queue's name, it can't be empty.\n");
-            printf("--auth_u: authentication user for creating queue.\n");
-            printf("--auth_p: authentication user passwoard for creating queue.\n");
+            printf("--auth_u: authentication user for queue.\n");
+            printf("--auth_p: authentication user password for queue.\n");
             printf("-h: help\n");
             return 0;
         case 'H':
