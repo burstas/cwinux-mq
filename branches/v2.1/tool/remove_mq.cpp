@@ -25,6 +25,7 @@ int parseArg(int argc, char**argv)
         switch (option)
         {
         case 'h':
+            printf("Delete a queue.\n");
             printf("%s  -H host -P port\n", argv[0]);
             printf("-H: mq server host\n");
             printf("-P: mq server monitor port\n");
