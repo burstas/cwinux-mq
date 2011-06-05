@@ -97,9 +97,11 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_MAX_TIMEOUT_SECOND     300 ///<最大的超时秒数
 #define CWX_MQ_DEF_TIMEOUT_SECOND     5  ///<缺省的超时秒数
 
-#define CWX_MAX_QUEUE_NAME_LEN        64 ///<最大队列名长度
-#define CWX_MAX_QUEUE_USER_LEN        64 ///<最大的队列用户长度
-#define CWX_MAX_QUEUE_PASSWD_LEN      64 ///<最大的用户口令长度
-#define CWX_MAX_QUEUE_SCRIBE_LEN      800 ///<最大订阅表达式的长度
+#define CWX_MQ_MAX_QUEUE_NAME_LEN        64 ///<最大队列名长度
+#define CWX_MQ_MAX_QUEUE_USER_LEN        64 ///<最大的队列用户长度
+#define CWX_MQ_MAX_QUEUE_PASSWD_LEN      64 ///<最大的用户口令长度
+#define CWX_MQ_MAX_QUEUE_SCRIBE_LEN      800 ///<最大订阅表达式的长度
+
+#define CWX_MQ_MAX_MSG_SIZE           10 * 1024 * 1024 ///<最大的消息大小
 
 #endif
