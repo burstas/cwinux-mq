@@ -31,7 +31,7 @@ int parseArg(int argc, char**argv)
         switch (option)
         {
         case 'h':
-            printf("Add a new queue.\n");
+            printf("create a new queue.\n");
             printf("%s  -H host -P port\n", argv[0]);
             printf("-H: mq server host\n");
             printf("-P: mq server monitor port\n");
@@ -44,7 +44,7 @@ int parseArg(int argc, char**argv)
             printf("-m: max timeout second for commit queue. it can be zero for using server's max timeout.\n");
             printf("--auth_u: authentication user for queue.\n");
             printf("--auth_p: authentication user password for queue.\n");
-            printf("--sid: queue's start sid, zero for the current sid.\n");
+            printf("--sid: queue's start sid, zero for the current max sid.\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -109,7 +109,7 @@ int parseArg(int argc, char**argv)
                 printf("-d requires an argument.\n");
                 return -1;
             }
-            g_def_timeout = strtoul(cmd_option.opt_arg(),NULL,0)==0?false:true;
+            g_def_timeout = strtoul(cmd_option.opt_arg(),NULL,0);
             break;
         case 'm':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -117,7 +117,7 @@ int parseArg(int argc, char**argv)
                 printf("-m requires an argument.\n");
                 return -1;
             }
-            g_max_timeout = strtoul(cmd_option.opt_arg(),NULL,0)==0?false:true;
+            g_max_timeout = strtoul(cmd_option.opt_arg(),NULL,0);
             break;
         case 'a':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -141,7 +141,7 @@ int parseArg(int argc, char**argv)
                 printf("--sid requires an argument.\n");
                 return -1;
             }
-            g_sid = strtoull(cmd_option.opt_arg(),NULL,0)==0?false:true;
+            g_sid = strtoull(cmd_option.opt_arg(),NULL,0);
             break;
         case ':':
             printf("%c requires an argument.\n", cmd_option.opt_opt ());

@@ -29,6 +29,7 @@ int parseArg(int argc, char**argv)
         switch (option)
         {
         case 'h':
+            printf("Send a message to the mq server.\");
             printf("%s  -H host -P port\n", argv[0]);
             printf("-H: mq server recieve host\n");
             printf("-P: mq server recieve port\n");
@@ -87,7 +88,7 @@ int parseArg(int argc, char**argv)
                 printf("-t requires an argument.\n");
                 return -1;
             }
-            g_type = strtoul(cmd_option.opt_arg(),NULL,0)==0?false:true;
+            g_type = strtoul(cmd_option.opt_arg(),NULL,0);
             break;
         case 'a':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -95,7 +96,7 @@ int parseArg(int argc, char**argv)
                 printf("-a requires an argument.\n");
                 return -1;
             }
-            g_attr = strtoul(cmd_option.opt_arg(),NULL,0)==0?false:true;
+            g_attr = strtoul(cmd_option.opt_arg(),NULL,0);
             break;
         case 'd':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
