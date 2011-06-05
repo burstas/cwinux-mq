@@ -275,10 +275,7 @@ int main(int argc ,char** argv)
             g_def_timeout,
             g_max_timeout);
     } while(0);
-    if (block) 
-    {
-        CwxMsgBlockAlloc::free(block);
-    }
+    if (block) CwxMsgBlockAlloc::free(block);
     CwxMqPoco::destory();
     stream.close();
     return iRet;

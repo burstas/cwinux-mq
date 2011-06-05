@@ -4,27 +4,25 @@
 #include "CwxSockConnector.h"
 #include "CwxGetOpt.h"
 #include "CwxMqPoco.h"
+#include "CwxFile.h"
+
 using namespace cwinux;
 string g_strHost;
 CWX_UINT16 g_unPort = 0;
-string g_queue;
 string g_user;
 string g_passwd;
-string g_auth_user;
-string g_auth_passwd;
-string g_subscribe;
-CWX_UINT64 g_sid;
-bool   g_commit=false;
-CWX_UINT32 g_def_timeout = 0;
-CWX_UINT32 g_max_timeout = 0;
+CWX_UINT32 g_group=0;
+CWX_UINT32 g_type=0;
+CWX_UINT32 g_attr=0;
+string     g_data;
+string     g_file;
+char       g_szData = NULL;
+CWX_UINT32 g_uiDataLen = 0;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:t:s:d:m:h");
+    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:g:t:a:d:f:h");
     int option;
-    cmd_option.long_option("auth_u", 'a', CwxGetOpt::ARG_REQUIRED);
-    cmd_option.long_option("auth_p", 'A', CwxGetOpt::ARG_REQUIRED);
-    cmd_option.long_option("sid", 'i', CwxGetOpt::ARG_REQUIRED);
 
     while( (option = cmd_option.next()) != -1)
     {
@@ -34,16 +32,13 @@ int parseArg(int argc, char**argv)
             printf("%s  -H host -P port\n", argv[0]);
             printf("-H: mq server host\n");
             printf("-P: mq server monitor port\n");
-            printf("-u: queue's user, it can be empty.\n");
-            printf("-p: queue's user passwd, it can be empty.\n");
-            printf("-q: queue's name, it can't be empty.\n");
-            printf("-t: queue's type. 1:commit queue; 0:uncommit queue.\n");
-            printf("-s: queue's subscribe. it can be empty for subscribe all message.\n");
-            printf("-d: default timeout second for commit queue. it can be zero for using server's default timeout.\n");
-            printf("-m: max timeout second for commit queue. it can be zero for using server's max timeout.\n");
-            printf("--auth_u: authentication user for creating queue.\n");
-            printf("--auth_p: authentication user passwoard for creating queue.\n");
-            printf("--sid: queue's start sid, zero for the current sid.\n");
+            printf("-u: mq server's recieve user.\n");
+            printf("-p: mq server's recieve user passwd.\n");
+            printf("-g: message's group.\n");
+            printf("-t: message's type.\n");
+            printf("-a: message's attribute.\n");
+            printf("-d: message's data.\n");
+            printf("-f: file name which contains message's data.\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -78,13 +73,13 @@ int parseArg(int argc, char**argv)
             }
             g_passwd = cmd_option.opt_arg();
             break;
-        case 'q':
+        case 'g':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
-                printf("-q requires an argument.\n");
+                printf("-g requires an argument.\n");
                 return -1;
             }
-            g_queue = cmd_option.opt_arg();
+            g_group = strtoul(cmd_option.opt_arg(), NULL, 0);
             break;
         case 't':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -92,15 +87,15 @@ int parseArg(int argc, char**argv)
                 printf("-t requires an argument.\n");
                 return -1;
             }
-            g_commit = strtoul(cmd_option.opt_arg(),NULL,0)==0?false:true;
+            g_type = strtoul(cmd_option.opt_arg(),NULL,0)==0?false:true;
             break;
-        case 's':
+        case 'a':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
-                printf("-s requires an argument.\n");
+                printf("-a requires an argument.\n");
                 return -1;
             }
-            g_subscribe = cmd_option.opt_arg();
+            g_attr = strtoul(cmd_option.opt_arg(),NULL,0)==0?false:true;
             break;
         case 'd':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -108,39 +103,15 @@ int parseArg(int argc, char**argv)
                 printf("-d requires an argument.\n");
                 return -1;
             }
-            g_def_timeout = strtoul(cmd_option.opt_arg(),NULL,0)==0?false:true;
+            g_data = cmd_option.opt_arg();
             break;
-        case 'm':
+        case 'f':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
-                printf("-m requires an argument.\n");
+                printf("-f requires an argument.\n");
                 return -1;
             }
-            g_max_timeout = strtoul(cmd_option.opt_arg(),NULL,0)==0?false:true;
-            break;
-        case 'a':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("--auth_u requires an argument.\n");
-                return -1;
-            }
-            g_auth_user = cmd_option.opt_arg();
-            break;
-        case 'A':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("--auth_p requires an argument.\n");
-                return -1;
-            }
-            g_auth_passwd = cmd_option.opt_arg();
-            break;
-        case 'i':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("--sid requires an argument.\n");
-                return -1;
-            }
-            g_sid = strtoull(cmd_option.opt_arg(),NULL,0)==0?false:true;
+            g_file = cmd_option.opt_arg();
             break;
         case ':':
             printf("%c requires an argument.\n", cmd_option.opt_opt ());
@@ -170,12 +141,45 @@ int parseArg(int argc, char**argv)
         printf("No port, set by -P\n");
         return -1;
     }
-    if (!g_queue.length())
+    if (!g_data.length() && !g_file.length())
     {
-        printf("No queue, set by -q\n");
+        printf("No data, set by -d or -f\n");
         return -1;
     }
-    if (!g_subscribe.length()) g_subscribe = "*";
+    if (g_file.length())
+    {
+        if (!CwxFile::isFile(g_file.c_str()))
+        {
+            printf("File[%s] doesn't exist or isn't a valid file.\n", g_file.c_str());
+            return -1;
+        }
+        offset_t size = CwxFile::getFileSize(g_file.c_str());
+        if (-1 == size)
+        {
+            printf("Failure to get file size, file=%s, errno=%d\n", g_file.c_str(), errno);
+            return -1;
+        }
+        if (size > CWX_MQ_MAX_MSG_SIZE)
+        {
+            printf("Data in file is too long, max is %u.\n", CWX_MQ_MAX_MSG_SIZE);
+            return -1;
+        }
+        g_szData = malloc(size);
+        g_uiDataLen = size;
+        FILE* fd = fopen(g_file.c_str(),"r");
+        if (!fd)
+        {
+            printf("Failure to open file:%s, errno=%d\n", g_file.c_str(), errno);
+            return -1;
+        }
+        if (size != fread(g_szData, 1, size, fd))
+        {
+            printf("Failure to read file:%s, errno=%d\n", g_file.c_str(), errno);
+            fclose(fd);
+            return -1;
+        }
+        fclose(fd);
+    }
     return 1;
 }
 
@@ -200,27 +204,36 @@ int main(int argc ,char** argv)
     CwxMsgBlock* block=NULL;
     char szErr2K[2048];
     char const* pErrMsg=NULL;
+    CwxKeyValueItem item;
 
     CwxMqPoco::init();
+    if (g_file.length())
+    {
+        item.m_szData = g_szData;
+        item.m_uiDataLen = g_uiDataLen;
+    }
+    else
+    {
+        item.m_szData = g_data.c_str();
+        item.m_uiDataLen = g_data.length();
+    }
     do 
     {
-        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packCreateQueue(
+        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packRecvData(
             &writer,
             block,
-            g_queue.c_str(),
+            0,
+            item,
+            g_group,
+            g_type,
+            g_attr,
             g_user.c_str(),
             g_passwd.c_str(),
-            g_subscribe.c_str(),
-            g_auth_user.c_str(),
-            g_auth_passwd.c_str(),
-            g_sid,
-            g_commit,
-            g_def_timeout,
-            g_max_timeout,
+            NULL,
             szErr2K
             ))
         {
-            printf("failure to pack create-queue package, err=%s\n", szErr2K);
+            printf("failure to pack message package, err=%s\n", szErr2K);
             iRet = 1;
             break;
         }
@@ -241,16 +254,17 @@ int main(int argc ,char** argv)
             iRet = 1;
             break;
         }
-        if (CwxMqPoco::MSG_TYPE_CREATE_QUEUE_REPLY != head.getMsgType())
+        if (CwxMqPoco::MSG_TYPE_RECV_DATA_REPLY != head.getMsgType())
         {
             printf("recv a unknow msg type, msg_type=%u\n", head.getMsgType());
             iRet = 1;
             break;
-
         }
-        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseCreateQueueReply(&reader,
+        CWX_UINT64 ullSid;
+        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseRecvDataReply(&reader,
             block,
             iRet,
+            ullSid,
             pErrMsg,
             szErr2K))
         {
@@ -260,24 +274,16 @@ int main(int argc ,char** argv)
         }
         if (CWX_MQ_ERR_SUCCESS != iRet)
         {
-            printf("failure to create queue[%s], err_code=%d, err=%s\n", g_queue.c_str(), iRet, pErrMsg);
+            printf("failure to send message, err_code=%d, err=%s\n", iRet, pErrMsg);
             iRet = 1;
             break;
         }
         iRet = 0;
-        printf("success to create queue[%s],user=%s,passwd=%s,subscribe=%s,sid=%s,def_timeout=%us,max_timeout=%us\n",
-            g_queue.c_str(),
-            g_user.c_str(),
-            g_passwd.c_str(),
-            g_subscribe.c_str(),
-            CwxCommon::toString(g_sid, szErr2K, 10),
-            g_def_timeout,
-            g_max_timeout);
+        printf("success to send msg, data's sid=%s\n",
+            CwxCommon::toString(ullSid, szErr2K, 10));
     } while(0);
-    if (block) 
-    {
-        CwxMsgBlockAlloc::free(block);
-    }
+    if (g_szData) free(g_szData);
+    if (block) CwxMsgBlockAlloc::free(block);
     CwxMqPoco::destory();
     stream.close();
     return iRet;
