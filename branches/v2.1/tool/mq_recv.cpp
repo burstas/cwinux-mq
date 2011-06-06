@@ -227,7 +227,7 @@ int main(int argc ,char** argv)
                 num++;
                 if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseSyncData(
                     &reader,
-                    block,
+                    (CwxMsgBlock const*)block,
                     ullSid,
                     timestamp,
                     &item,
