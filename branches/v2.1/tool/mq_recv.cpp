@@ -257,7 +257,7 @@ int main(int argc ,char** argv)
                 }
                 CwxMsgBlockAlloc::free(block);
                 block = NULL;
-                if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(writer,
+                if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(&writer,
                     block,
                     0,
                     ullSid,
