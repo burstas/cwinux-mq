@@ -168,38 +168,32 @@ int main(int argc ,char** argv)
     CwxMqPoco::init();
     do 
     {
-        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packReportData(
-            &writer,
-            block,
-            0,
-            g_sid>0?g_sid-1:g_sid,
-            g_sid==0?true:false,
-            0,
-            g_window,
-            g_subscribe.c_str(),
-            g_user.c_str(),
-            g_passwd.c_str(),
-            NULL,
-            false,
-            szErr2K
-            ))
-        {
-            printf("failure to pack report-queue package, err=%s\n", szErr2K);
-            iRet = 1;
-            break;
-        }
-        if (block->length() != CwxSocket::write_n(stream.getHandle(),
-            block->rd_ptr(),
-            block->length()))
-        {
-            printf("failure to send message, errno=%d\n", errno);
-            iRet = 1;
-            break;
-        }
-        CwxMsgBlockAlloc::free(block);
-        block = NULL;
         while(1)
         {
+            if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packFetchMq(
+                &writer,
+                block,
+                g_block,
+                g_queue.c_str(),
+                g_user.c_str(),
+                g_passwd.c_str(),
+                g_timeout,
+                szErr2K))
+            {
+                printf("failure to pack fetch-queue package, err=%s\n", szErr2K);
+                iRet = 1;
+                break;
+            }
+            if (block->length() != CwxSocket::write_n(stream.getHandle(),
+                block->rd_ptr(),
+                block->length()))
+            {
+                printf("failure to send message, errno=%d\n", errno);
+                iRet = 1;
+                break;
+            }
+            CwxMsgBlockAlloc::free(block);
+            block = NULL;
             //recv msg
             if (0 >= CwxSocket::read(stream.getHandle(), head, block))
             {
@@ -207,31 +201,14 @@ int main(int argc ,char** argv)
                 iRet = 1;
                 break;
             }
-            if (CwxMqPoco::MSG_TYPE_SYNC_REPORT_REPLY == head.getMsgType())
+            if (CwxMqPoco::MSG_TYPE_FETCH_DATA_REPLY == head.getMsgType())
             {
-                if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseReportDataReply(
+                num++;
+                if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseFetchMqReply(
                     reader,
                     block,
                     iRet,
-                    ullSid,
                     pErrMsg,
-                    szErr2K
-                    ))
-                {
-                    printf("failure to unpack report-reply msg, err=%s\n", szErr2K);
-                    iRet = 1;
-                    break;
-                }
-                printf("failure to report dispatch, err-code=%d, err=%s\n", iRet, pErrMsg);
-                iRet = 1;
-                break;
-            }
-            else if (CwxMqPoco::MSG_TYPE_SYNC_DATA == head.getMsgType())
-            {
-                num++;
-                if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseSyncData(
-                    reader,
-                    block,
                     ullSid,
                     timestamp,
                     item,
@@ -241,6 +218,12 @@ int main(int argc ,char** argv)
                     szErr2K))
                 {
                     printf("failure to unpack recieve msg, err=%s\n", szErr2K);
+                    iRet = 1;
+                    break;
+                }
+                if (CWX_MQ_ERR_SUCCESS != iRet)
+                {
+                    printf("failure to fetch mq, err-code=%u, errmsg=%s\n", iRet, pErrMsg);
                     iRet = 1;
                     break;
                 }
@@ -261,27 +244,6 @@ int main(int argc ,char** argv)
                 }
                 CwxMsgBlockAlloc::free(block);
                 block = NULL;
-                if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(writer,
-                    block,
-                    0,
-                    ullSid,
-                    szErr2K))
-                {
-                    printf("failure to pack recieve data reply package, err=%s\n", szErr2K);
-                    iRet = 1;
-                    break;
-                }
-                if (block->length() != CwxSocket::write_n(stream.getHandle(),
-                    block->rd_ptr(),
-                    block->length()))
-                {
-                    printf("failure to send message, errno=%d\n", errno);
-                    iRet = 1;
-                    break;
-                }
-                CwxMsgBlockAlloc::free(block);
-                block = NULL;
-                continue;
             }
             else
             {
@@ -291,6 +253,73 @@ int main(int argc ,char** argv)
             }
         }
     } while(0);
+    if ((0 == iRet) && (g_commit))
+    {
+        do
+        {
+            if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packFetchMqCommit(
+                &writer,
+                block,
+                true,
+                szErr2K))
+            {
+                printf("failure to pack commit message package, err=%s\n", szErr2K);
+                iRet = 1;
+                break;
+            }
+            if (block->length() != CwxSocket::write_n(stream.getHandle(),
+                block->rd_ptr(),
+                block->length()))
+            {
+                printf("failure to send message, errno=%d\n", errno);
+                iRet = 1;
+                break;
+            }
+            CwxMsgBlockAlloc::free(block);
+            block = NULL;
+            //recv msg
+            if (0 >= CwxSocket::read(stream.getHandle(), head, block))
+            {
+                printf("failure to read the reply, errno=%d\n", errno);
+                iRet = 1;
+                break;
+            }
+            if (CwxMqPoco::MSG_TYPE_FETCH_COMMIT_REPLY == head.getMsgType())
+            {
+                if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseFetchMqCommitReply(
+                    reader,
+                    block,
+                    iRet,
+                    pErrMsg,
+                    szErr2K))
+                {
+                    printf("failure to unpack commit-reply msg, err=%s\n", szErr2K);
+                    iRet = 1;
+                    break;
+                }
+                if (CWX_MQ_ERR_SUCCESS != iRet)
+                {
+                    printf("failure to commit msg, err-code=%u, errmsg=%s\n", iRet, pErrMsg);
+                    iRet = 1;
+                    break;
+                }
+                CwxMsgBlockAlloc::free(block);
+                block = NULL;
+                printf("success to commit last message\n");
+                iRet = 0;
+                break;
+            }
+            else
+            {
+                printf("recv a unknow msg type, msg_type=%u\n", head.getMsgType());
+                iRet = 1;
+                break;
+            }
+
+        }while(0);
+
+    }
+
     if (block) CwxMsgBlockAlloc::free(block);
     CwxMqPoco::destory();
     stream.close();
