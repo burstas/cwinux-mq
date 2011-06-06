@@ -205,7 +205,7 @@ int main(int argc ,char** argv)
             {
                 num++;
                 if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseFetchMqReply(
-                    reader,
+                    &reader,
                     block,
                     iRet,
                     pErrMsg,
@@ -233,7 +233,7 @@ int main(int argc ,char** argv)
                     group,
                     type,
                     attr,
-                    item->m_szData);
+                    item.m_szData);
                 if (g_num)
                 {
                     if (num >= g_num)
@@ -287,7 +287,7 @@ int main(int argc ,char** argv)
             if (CwxMqPoco::MSG_TYPE_FETCH_COMMIT_REPLY == head.getMsgType())
             {
                 if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseFetchMqCommitReply(
-                    reader,
+                    &reader,
                     block,
                     iRet,
                     pErrMsg,

@@ -206,7 +206,7 @@ int main(int argc ,char** argv)
             if (CwxMqPoco::MSG_TYPE_SYNC_REPORT_REPLY == head.getMsgType())
             {
                 if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseReportDataReply(
-                    reader,
+                    &reader,
                     block,
                     iRet,
                     ullSid,
@@ -226,7 +226,7 @@ int main(int argc ,char** argv)
             {
                 num++;
                 if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseSyncData(
-                    reader,
+                    &reader,
                     block,
                     ullSid,
                     timestamp,
@@ -246,7 +246,7 @@ int main(int argc ,char** argv)
                     group,
                     type,
                     attr,
-                    item->m_szData);
+                    item.m_szData);
                 if (g_num)
                 {
                     if (num >= g_num)
