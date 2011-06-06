@@ -418,7 +418,7 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
             m_uiLine);
         return -1;
     }
-    queue.m_strName = item.first;
+    queue.m_strName = item.second;
     //get sid
     if (!CwxCommon::findKey(items, CWX_MQ_SID, item))
     {

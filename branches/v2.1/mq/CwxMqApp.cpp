@@ -493,7 +493,7 @@ int CwxMqApp::startBinLogMgr()
             m_config.getMq().m_uiFlushNum);
         if (0 != m_queueMgr->init(m_pBinLogMgr))
         {
-            CWX_ERROR(("Failure to init mq queue manager"));
+            CWX_ERROR(("Failure to init mq queue manager, err=%s", m_queueMgr->getErrMsg()));
             return -1;
         }
     }
