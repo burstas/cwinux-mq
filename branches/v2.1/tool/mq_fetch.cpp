@@ -163,7 +163,7 @@ int main(int argc ,char** argv)
     CWX_UINT32 type = 0;
     CWX_UINT32 attr = 0;
     CWX_UINT32 timestamp = 0;
-    CwxKeyValueItem const item;
+    CwxKeyValueItem const* item = NULL;
 
     CwxMqPoco::init();
     do 
@@ -211,7 +211,7 @@ int main(int argc ,char** argv)
                     pErrMsg,
                     ullSid,
                     timestamp,
-                    &item,
+                    item,
                     group,
                     type,
                     attr,
@@ -233,7 +233,7 @@ int main(int argc ,char** argv)
                     group,
                     type,
                     attr,
-                    item.m_szData);
+                    item->m_szData);
                 if (g_num)
                 {
                     if (num >= g_num)

@@ -159,7 +159,7 @@ int main(int argc ,char** argv)
     CWX_UINT32 type = 0;
     CWX_UINT32 attr = 0;
     CWX_UINT32 timestamp = 0;
-    CwxKeyValueItem const item;
+    CwxKeyValueItem const* item=NULL;
 
     CwxMqPoco::init();
     do 
@@ -227,14 +227,14 @@ int main(int argc ,char** argv)
                 num++;
                 if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseSyncData(
                     &reader,
-                    (CwxMsgBlock const*)block,
+                    block,
                     ullSid,
                     timestamp,
-                    &item,
+                    item,
                     group,
                     type,
                     attr,
-                    (char*)szErr2K))
+                    szErr2K))
                 {
                     printf("failure to unpack recieve msg, err=%s\n", szErr2K);
                     iRet = 1;
@@ -246,7 +246,7 @@ int main(int argc ,char** argv)
                     group,
                     type,
                     attr,
-                    item.m_szData);
+                    item->m_szData);
                 if (g_num)
                 {
                     if (num >= g_num)
