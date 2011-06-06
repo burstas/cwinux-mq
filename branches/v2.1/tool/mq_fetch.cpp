@@ -11,13 +11,13 @@ string g_user;
 string g_passwd;
 string g_queue;
 CWX_UINT32 g_num = 1;
-bool   g_block = true;
+bool   g_block = false;
 CWX_UINT32 g_timeout = 0;
 bool   g_commit = false;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:b:n:t:h");
+    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:n:chb");
     int option;
     cmd_option.long_option("timeout", 'o', CwxGetOpt::ARG_REQUIRED);
     while( (option = cmd_option.next()) != -1)
@@ -32,9 +32,9 @@ int parseArg(int argc, char**argv)
             printf("-u: queue's user name.\n");
             printf("-p: queue's user password.\n");
             printf("-q: queue's name.\n");
-            printf("-b: block sign, 1:block when no message;0:return when no message.\n");
+            printf("-b: block sign. with this option, fetch will be blocked if no message; otherwize, it will return right now.\n");
             printf("-n: message number to fetch. default is 1. 0 for fetching all.\n");
-            printf("-t: queue type, 0:no commit queue;1:commit queue.\n");
+            printf("-c: queue is commit type. if no this option, the queue is non-commit type.\n");
             printf("--timeout: timeout second for commit queue. 0 for default value.\n");
             printf("-h: help\n");
             return 0;
@@ -79,12 +79,7 @@ int parseArg(int argc, char**argv)
             g_queue = cmd_option.opt_arg();
             break;
         case 'b':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("-b requires an argument.\n");
-                return -1;
-            }
-            g_block = strtoul(cmd_option.opt_arg(),NULL,0)==0?false:true;
+            g_block = true;
             break;
         case 'n':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -94,13 +89,8 @@ int parseArg(int argc, char**argv)
             }
             g_num = strtoul(cmd_option.opt_arg(),NULL,0);
             break;
-        case 't':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("-t requires an argument.\n");
-                return -1;
-            }
-            g_commit = strtoul(cmd_option.opt_arg(),NULL,0)==0?false:true;
+        case 'c':
+            g_commit = true;
             break;
         case '--timeout':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))

@@ -20,7 +20,7 @@ CWX_UINT32 g_max_timeout = 0;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:t:s:d:m:h");
+    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:s:d:m:hc");
     int option;
     cmd_option.long_option("auth_u", 'a', CwxGetOpt::ARG_REQUIRED);
     cmd_option.long_option("auth_p", 'A', CwxGetOpt::ARG_REQUIRED);
@@ -38,7 +38,7 @@ int parseArg(int argc, char**argv)
             printf("-u: queue's user, it can be empty.\n");
             printf("-p: queue's user passwd, it can be empty.\n");
             printf("-q: queue's name, it can't be empty.\n");
-            printf("-t: queue's type. 1:commit queue; 0:uncommit queue.\n");
+            printf("-c: commit type queue. if no this option, the created queue is non-commit type.\n");
             printf("-s: queue's subscribe. it can be empty for subscribe all message.\n");
             printf("-d: default timeout second for commit queue. it can be zero for using server's default timeout.\n");
             printf("-m: max timeout second for commit queue. it can be zero for using server's max timeout.\n");
@@ -87,13 +87,8 @@ int parseArg(int argc, char**argv)
             }
             g_queue = cmd_option.opt_arg();
             break;
-        case 't':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("-t requires an argument.\n");
-                return -1;
-            }
-            g_commit = strtoul(cmd_option.opt_arg(),NULL,0)==0?false:true;
+        case 'c':
+            g_commit = true;
             break;
         case 's':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
