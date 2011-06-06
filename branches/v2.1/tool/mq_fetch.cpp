@@ -10,7 +10,7 @@ CWX_UINT16 g_unPort = 0;
 string g_user;
 string g_passwd;
 string g_queue;
-CWX_UINT32 g_num = 1;
+CWX_UINT32 g_num =1;
 bool   g_block = false;
 CWX_UINT32 g_timeout = 0;
 bool   g_commit = false;
@@ -92,7 +92,7 @@ int parseArg(int argc, char**argv)
         case 'c':
             g_commit = true;
             break;
-        case '--timeout':
+        case 'o':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
                 printf("--timeout requires an argument.\n");
@@ -163,7 +163,7 @@ int main(int argc ,char** argv)
     CWX_UINT32 type = 0;
     CWX_UINT32 attr = 0;
     CWX_UINT32 timestamp = 0;
-    CwxKeyValueItem item;
+    CwxKeyValueItem const item;
 
     CwxMqPoco::init();
     do 
@@ -211,7 +211,7 @@ int main(int argc ,char** argv)
                     pErrMsg,
                     ullSid,
                     timestamp,
-                    item,
+                    &item,
                     group,
                     type,
                     attr,

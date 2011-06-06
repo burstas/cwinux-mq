@@ -159,7 +159,7 @@ int main(int argc ,char** argv)
     CWX_UINT32 type = 0;
     CWX_UINT32 attr = 0;
     CWX_UINT32 timestamp = 0;
-    CwxKeyValueItem item;
+    CwxKeyValueItem const item;
 
     CwxMqPoco::init();
     do 
@@ -230,7 +230,7 @@ int main(int argc ,char** argv)
                     block,
                     ullSid,
                     timestamp,
-                    item,
+                    &item,
                     group,
                     type,
                     attr,
