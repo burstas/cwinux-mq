@@ -7,43 +7,35 @@
 using namespace cwinux;
 string g_strHost;
 CWX_UINT16 g_unPort = 0;
-string g_queue;
 string g_user;
 string g_passwd;
-string g_auth_user;
-string g_auth_passwd;
-string g_subscribe;
-CWX_UINT64 g_sid;
-bool   g_commit=false;
-CWX_UINT32 g_def_timeout = 0;
-CWX_UINT32 g_max_timeout = 0;
+string g_queue;
+CWX_UINT32 g_num = 1;
+bool   g_block = true;
+CWX_UINT32 g_timeout = 0;
+bool   g_commit = false;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:t:s:d:m:h");
+    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:b:n:t:h");
     int option;
-    cmd_option.long_option("auth_u", 'a', CwxGetOpt::ARG_REQUIRED);
-    cmd_option.long_option("auth_p", 'A', CwxGetOpt::ARG_REQUIRED);
-    cmd_option.long_option("sid", 'i', CwxGetOpt::ARG_REQUIRED);
-
+    cmd_option.long_option("timeout", 'o', CwxGetOpt::ARG_REQUIRED);
     while( (option = cmd_option.next()) != -1)
     {
         switch (option)
         {
         case 'h':
+            printf("fetch mq message from queue.\n", argv[0]);
             printf("%s  -H host -P port\n", argv[0]);
-            printf("-H: mq server host\n");
-            printf("-P: mq server monitor port\n");
-            printf("-u: queue's user, it can be empty.\n");
-            printf("-p: queue's user passwd, it can be empty.\n");
-            printf("-q: queue's name, it can't be empty.\n");
-            printf("-t: queue's type. 1:commit queue; 0:uncommit queue.\n");
-            printf("-s: queue's subscribe. it can be empty for subscribe all message.\n");
-            printf("-d: default timeout second for commit queue. it can be zero for using server's default timeout.\n");
-            printf("-m: max timeout second for commit queue. it can be zero for using server's max timeout.\n");
-            printf("--auth_u: authentication user for creating queue.\n");
-            printf("--auth_p: authentication user passwoard for creating queue.\n");
-            printf("--sid: queue's start sid, zero for the current sid.\n");
+            printf("-H: mq server's queue host\n");
+            printf("-P: mq server's queue port\n");
+            printf("-u: queue's user name.\n");
+            printf("-p: queue's user password.\n");
+            printf("-q: queue's name.\n");
+            printf("-b: block sign, 1:block when no message;0:return when no message.\n");
+            printf("-n: message number to fetch. default is 1. 0 for fetching all.\n");
+            printf("-t: queue type, 0:no commit queue;1:commit queue.\n");
+            printf("--timeout: timeout second for commit queue. 0 for default value.\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -86,6 +78,22 @@ int parseArg(int argc, char**argv)
             }
             g_queue = cmd_option.opt_arg();
             break;
+        case 'b':
+            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
+            {
+                printf("-b requires an argument.\n");
+                return -1;
+            }
+            g_block = strtoul(cmd_option.opt_arg(),NULL,0)==0?false:true;
+            break;
+        case 'n':
+            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
+            {
+                printf("-n requires an argument.\n");
+                return -1;
+            }
+            g_num = strtoul(cmd_option.opt_arg(),NULL,0);
+            break;
         case 't':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
@@ -94,53 +102,13 @@ int parseArg(int argc, char**argv)
             }
             g_commit = strtoul(cmd_option.opt_arg(),NULL,0)==0?false:true;
             break;
-        case 's':
+        case '--timeout':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
-                printf("-s requires an argument.\n");
+                printf("--timeout requires an argument.\n");
                 return -1;
             }
-            g_subscribe = cmd_option.opt_arg();
-            break;
-        case 'd':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("-d requires an argument.\n");
-                return -1;
-            }
-            g_def_timeout = strtoul(cmd_option.opt_arg(),NULL,0)==0?false:true;
-            break;
-        case 'm':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("-m requires an argument.\n");
-                return -1;
-            }
-            g_max_timeout = strtoul(cmd_option.opt_arg(),NULL,0)==0?false:true;
-            break;
-        case 'a':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("--auth_u requires an argument.\n");
-                return -1;
-            }
-            g_auth_user = cmd_option.opt_arg();
-            break;
-        case 'A':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("--auth_p requires an argument.\n");
-                return -1;
-            }
-            g_auth_passwd = cmd_option.opt_arg();
-            break;
-        case 'i':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("--sid requires an argument.\n");
-                return -1;
-            }
-            g_sid = strtoull(cmd_option.opt_arg(),NULL,0)==0?false:true;
+            g_timeout = strtoul(cmd_option.opt_arg(),NULL,0);
             break;
         case ':':
             printf("%c requires an argument.\n", cmd_option.opt_opt ());
@@ -175,7 +143,6 @@ int parseArg(int argc, char**argv)
         printf("No queue, set by -q\n");
         return -1;
     }
-    if (!g_subscribe.length()) g_subscribe = "*";
     return 1;
 }
 
@@ -200,27 +167,34 @@ int main(int argc ,char** argv)
     CwxMsgBlock* block=NULL;
     char szErr2K[2048];
     char const* pErrMsg=NULL;
+    CWX_UINT64 ullSid = 0;
+    CWX_UINT32 num = 0;
+    CWX_UINT32 group = 0;
+    CWX_UINT32 type = 0;
+    CWX_UINT32 attr = 0;
+    CWX_UINT32 timestamp = 0;
+    CwxKeyValueItem item;
 
     CwxMqPoco::init();
     do 
     {
-        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packCreateQueue(
+        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packReportData(
             &writer,
             block,
-            g_queue.c_str(),
+            0,
+            g_sid>0?g_sid-1:g_sid,
+            g_sid==0?true:false,
+            0,
+            g_window,
+            g_subscribe.c_str(),
             g_user.c_str(),
             g_passwd.c_str(),
-            g_subscribe.c_str(),
-            g_auth_user.c_str(),
-            g_auth_passwd.c_str(),
-            g_sid,
-            g_commit,
-            g_def_timeout,
-            g_max_timeout,
+            NULL,
+            false,
             szErr2K
             ))
         {
-            printf("failure to pack create-queue package, err=%s\n", szErr2K);
+            printf("failure to pack report-queue package, err=%s\n", szErr2K);
             iRet = 1;
             break;
         }
@@ -234,50 +208,100 @@ int main(int argc ,char** argv)
         }
         CwxMsgBlockAlloc::free(block);
         block = NULL;
-        //recv msg
-        if (0 >= CwxSocket::read(stream.getHandle(), head, block))
+        while(1)
         {
-            printf("failure to read the reply, errno=%d\n", errno);
-            iRet = 1;
-            break;
+            //recv msg
+            if (0 >= CwxSocket::read(stream.getHandle(), head, block))
+            {
+                printf("failure to read the reply, errno=%d\n", errno);
+                iRet = 1;
+                break;
+            }
+            if (CwxMqPoco::MSG_TYPE_SYNC_REPORT_REPLY == head.getMsgType())
+            {
+                if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseReportDataReply(
+                    reader,
+                    block,
+                    iRet,
+                    ullSid,
+                    pErrMsg,
+                    szErr2K
+                    ))
+                {
+                    printf("failure to unpack report-reply msg, err=%s\n", szErr2K);
+                    iRet = 1;
+                    break;
+                }
+                printf("failure to report dispatch, err-code=%d, err=%s\n", iRet, pErrMsg);
+                iRet = 1;
+                break;
+            }
+            else if (CwxMqPoco::MSG_TYPE_SYNC_DATA == head.getMsgType())
+            {
+                num++;
+                if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseSyncData(
+                    reader,
+                    block,
+                    ullSid,
+                    timestamp,
+                    item,
+                    group,
+                    type,
+                    attr,
+                    szErr2K))
+                {
+                    printf("failure to unpack recieve msg, err=%s\n", szErr2K);
+                    iRet = 1;
+                    break;
+                }
+                printf("%s|%u|%u|%u|%u|%s\n",
+                    CwxCommon::toString(ullSid, szErr2K, 10),
+                    timestamp,
+                    group,
+                    type,
+                    attr,
+                    item->m_szData);
+                if (g_num)
+                {
+                    if (num >= g_num)
+                    {
+                        iRet = 0;
+                        break;
+                    }
+                }
+                CwxMsgBlockAlloc::free(block);
+                block = NULL;
+                if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(writer,
+                    block,
+                    0,
+                    ullSid,
+                    szErr2K))
+                {
+                    printf("failure to pack recieve data reply package, err=%s\n", szErr2K);
+                    iRet = 1;
+                    break;
+                }
+                if (block->length() != CwxSocket::write_n(stream.getHandle(),
+                    block->rd_ptr(),
+                    block->length()))
+                {
+                    printf("failure to send message, errno=%d\n", errno);
+                    iRet = 1;
+                    break;
+                }
+                CwxMsgBlockAlloc::free(block);
+                block = NULL;
+                continue;
+            }
+            else
+            {
+                printf("recv a unknow msg type, msg_type=%u\n", head.getMsgType());
+                iRet = 1;
+                break;
+            }
         }
-        if (CwxMqPoco::MSG_TYPE_CREATE_QUEUE_REPLY != head.getMsgType())
-        {
-            printf("recv a unknow msg type, msg_type=%u\n", head.getMsgType());
-            iRet = 1;
-            break;
-
-        }
-        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseCreateQueueReply(&reader,
-            block,
-            iRet,
-            pErrMsg,
-            szErr2K))
-        {
-            printf("failure to unpack reply msg, err=%s\n", szErr2K);
-            iRet = 1;
-            break;
-        }
-        if (CWX_MQ_ERR_SUCCESS != iRet)
-        {
-            printf("failure to create queue[%s], err_code=%d, err=%s\n", g_queue.c_str(), iRet, pErrMsg);
-            iRet = 1;
-            break;
-        }
-        iRet = 0;
-        printf("success to create queue[%s],user=%s,passwd=%s,subscribe=%s,sid=%s,def_timeout=%us,max_timeout=%us\n",
-            g_queue.c_str(),
-            g_user.c_str(),
-            g_passwd.c_str(),
-            g_subscribe.c_str(),
-            CwxCommon::toString(g_sid, szErr2K, 10),
-            g_def_timeout,
-            g_max_timeout);
     } while(0);
-    if (block) 
-    {
-        CwxMsgBlockAlloc::free(block);
-    }
+    if (block) CwxMsgBlockAlloc::free(block);
     CwxMqPoco::destory();
     stream.close();
     return iRet;

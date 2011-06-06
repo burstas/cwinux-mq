@@ -29,7 +29,7 @@ int parseArg(int argc, char**argv)
             printf("-H: mq server dispatch host\n");
             printf("-P: mq server dispatch port\n");
             printf("-u: dispatch's user name.\n");
-            printf("-p: dispatch's user passwd.\n");
+            printf("-p: dispatch's user password.\n");
             printf("-s: dispatch's subscribe. default is *.\n");
             printf("-w: dispatch's window size, default is 1.\n");
             printf("-n: recieve message's number, default is 1.zero is all from the sid.\n");
