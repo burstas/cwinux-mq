@@ -234,7 +234,7 @@ int main(int argc ,char** argv)
                     group,
                     type,
                     attr,
-                    szErr2K))
+                    (char*)szErr2K))
                 {
                     printf("failure to unpack recieve msg, err=%s\n", szErr2K);
                     iRet = 1;
