@@ -165,7 +165,7 @@ int parseArg(int argc, char**argv)
             printf("Data in file is too long, max is %u.\n", CWX_MQ_MAX_MSG_SIZE);
             return -1;
         }
-        g_szData = malloc(size);
+        g_szData = (char*)malloc(size);
         g_uiDataLen = size;
         FILE* fd = fopen(g_file.c_str(),"r");
         if (!fd)
@@ -215,7 +215,7 @@ int main(int argc ,char** argv)
     }
     else
     {
-        item.m_szData = g_data.c_str();
+        item.m_szData = (char*)g_data.c_str();
         item.m_uiDataLen = g_data.length();
     }
     do 
