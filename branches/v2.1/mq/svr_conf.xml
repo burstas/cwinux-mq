@@ -1,10 +1,10 @@
 <?xml version='1.0'?>
 <mq>
     <common>
-        <workdir path="/usr/home/wenbo/cwinux-mq/mq/trunk/mq"/>
+        <workdir path="/usr/home/wenbo/cwinux_mq/svn/branches/v2.1/mq"/>
         <server type="master"/>
         <window sock_buf_kbyte="1024"  max_chunk_kbyte="512" window="32"/>
-        <monitor ip="172.16.42.65"  port="9900"/>
+        <monitor ip="172.16.42.62"  port="9900"/>
     </common>
     <binlog >
     	<file path="/data1/mq_data/data/binlog"  prefix="binlog" max_mbyte="1024"/>
@@ -12,15 +12,15 @@
         <flush  log_num="10000000" second="10000"/>
     </binlog>
     <master>
-    	<recv keep_alive="yes" user="recv" passwd="recv_passwd" ip="*" port="9901"  unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/recv.sock"/>
-        <async keep_alive="yes" user="async" passwd="async_passwd" ip="*" port="9903" unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/async.sock"/>
+    	<recv keep_alive="yes" user="recv" passwd="recv_passwd" ip="*" port="9901"  unix="/usr/home/wenbo/cwinux_mq/svn/branches/v2.1/mq/recv.sock"/>
+        <async keep_alive="yes" user="async" passwd="async_passwd" ip="*" port="9903" unix="/usr/home/wenbo/cwinux_mq/svn/branches/v2.1/mq/async.sock"/>
     </master>
     <slave>
-        <master keep_alive="yes" user="async" passwd="async_passwd" subscribe="*" ip="172.16.42.65" port="9903" zip="yes" sign="crc"/>
-        <async keep_alive="yes" user="async" passwd="async_passwd" ip="*" port="9905" unix="/usr/home/wenbo/cwinux_simple/project/mq/trunk/mq/async.sock"/>
+        <master keep_alive="yes" user="async" passwd="async_passwd" subscribe="*" ip="172.16.42.62" port="9903" zip="yes" sign="crc"/>
+        <async keep_alive="yes" user="async" passwd="async_passwd" ip="*" port="9905" unix="/usr/home/wenbo/cwinux_mq/svn/branches/v2.1/mq/async.sock"/>
     </slave>
     <mq>
-        <listen keep_alive="yes" user="mq_admin" passwd="mq_admin_passwd"  ip="*" port="9907" unix="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/mq.sock"/>
-        <log    file="/data1/mq_data/data/binlog/mq_queue.log" fetch_num="50000" second ="1"/>
+        <listen keep_alive="yes" user="mq_admin" passwd="mq_admin_passwd"  ip="*" port="9906" unix="/usr/home/wenbo/cwinux_mq/svn/branches/v2.1/mq/mq.sock"/>
+        <log    file="/data2/mq_data/data/binlog/mq_queue.log" fetch_num="50000" second ="10"/>
     </mq>
 </mq>

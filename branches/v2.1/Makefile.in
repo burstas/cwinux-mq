@@ -169,7 +169,7 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 xml_expat_dir = @xml_expat_dir@
-SUBDIRS = mq mproxy test_fetch test_import
+SUBDIRS = mq mproxy test_fetch test_import tool
 all: all-recursive
 
 .SUFFIXES:
