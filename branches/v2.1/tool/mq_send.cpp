@@ -16,7 +16,7 @@ CWX_UINT32 g_type=0;
 CWX_UINT32 g_attr=0;
 string     g_data;
 string     g_file;
-char       g_szData = NULL;
+char*       g_szData = NULL;
 CWX_UINT32 g_uiDataLen = 0;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
@@ -29,7 +29,7 @@ int parseArg(int argc, char**argv)
         switch (option)
         {
         case 'h':
-            printf("Send a message to the mq server.\");
+            printf("Send a message to the mq server.\n");
             printf("%s  -H host -P port\n", argv[0]);
             printf("-H: mq server recieve host\n");
             printf("-P: mq server recieve port\n");
@@ -154,7 +154,7 @@ int parseArg(int argc, char**argv)
             printf("File[%s] doesn't exist or isn't a valid file.\n", g_file.c_str());
             return -1;
         }
-        offset_t size = CwxFile::getFileSize(g_file.c_str());
+        off_t size = CwxFile::getFileSize(g_file.c_str());
         if (-1 == size)
         {
             printf("Failure to get file size, file=%s, errno=%d\n", g_file.c_str(), errno);
