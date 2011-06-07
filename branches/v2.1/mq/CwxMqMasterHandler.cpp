@@ -149,6 +149,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 }
             }
             //¼ì²âÇ©Ãû
+            int bSign = 0;
             if (m_pApp->getConfig().getSlave().m_strSign.length())
             {
                 CwxKeyValueItem const* pItem = m_reader.getKey(m_pApp->getConfig().getSlave().m_strSign.c_str());
@@ -164,9 +165,10 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                         m_uiConnId = 0;
                         return 1;
                     }
+                    bSign = 1;
                 }
             }
-            for (i=0; i<m_reader.getKeyNum()-1; i++)
+            for (i=0; i<m_reader.getKeyNum() - bSign; i++)
             {
                 if(0 != strcmp(m_reader.getKey(i)->m_szKey, CWX_MQ_M))
                 {
