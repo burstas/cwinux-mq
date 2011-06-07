@@ -169,9 +169,8 @@ int parseArg(int argc, char**argv)
 }
 
 
-static int output(CwxPackageReader& reader, char const* szMsg, CWX_UINT32 uiMsgLen)
+static int output(CwxPackageReader& reader, char const* szMsg, CWX_UINT32 uiMsgLen, CWX_UINT64& ullSid)
 {
-    CWX_UINT64 ullSid = 0;
     CWX_UINT32 num = 0;
     CWX_UINT32 group = 0;
     CWX_UINT32 type = 0;
@@ -339,7 +338,8 @@ int main(int argc ,char** argv)
                     num++;
                     if (0 != output(reader,
                         head.isAttr(CwxMsgHead::ATTR_COMPRESS)?(char const*)g_unzip:block->rd_ptr(),
-                        head.isAttr(CwxMsgHead::ATTR_COMPRESS)?g_unzip_len:block->length()))
+                        head.isAttr(CwxMsgHead::ATTR_COMPRESS)?g_unzip_len:block->length(),
+                        ullSid))
                     {
                         iRet = 1;
                         break;
@@ -359,6 +359,7 @@ int main(int argc ,char** argv)
                         iRet = 1;
                         break;
                     }
+                    int bSign = 0;
                     if (g_sign.length())
                     {
                         CwxKeyValueItem const* pItem = reader_chunk.getKey(g_sign.c_str());
@@ -373,10 +374,11 @@ int main(int argc ,char** argv)
                                 iRet = 1;
                                 break;
                             }
+                            bSign = 1;
                         }
                     }
                     iRet = 0;
-                    for (CWX_UINT16 i=0; i<reader_chunk.getKeyNum()-1; i++)
+                    for (CWX_UINT16 i=0; i<reader_chunk.getKeyNum()-bSign; i++)
                     {
                         if(0 != strcmp(reader_chunk.getKey(i)->m_szKey, CWX_MQ_M))
                         {
@@ -387,7 +389,8 @@ int main(int argc ,char** argv)
                         num++;
                         if (0 != output(reader,
                             reader_chunk.getKey(i)->m_szData,
-                            reader_chunk.getKey(i)->m_uiDataLen))
+                            reader_chunk.getKey(i)->m_uiDataLen,
+                            ullSid))
                         {
                             iRet = 1;
                             break;
