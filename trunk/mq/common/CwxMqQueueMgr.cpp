@@ -70,7 +70,6 @@ int CwxMqQueue::init(CWX_UINT64 ullLastCommitSid,
         }
         m_memMsgMap.clear();
     }
-
     if (m_cursor) m_binLog->destoryCurser(m_cursor);
     m_cursor = NULL;
 
@@ -99,6 +98,11 @@ int CwxMqQueue::init(CWX_UINT64 ullLastCommitSid,
     if (m_bCommit)
     {
         m_pUncommitMsg = new CwxMinHeap<CwxMqQueueHeapItem>(2048);
+        if (0 != m_pUncommitMsg->init())
+        {
+            strErrMsg = "Failure to init min-heap for no memory.";
+            return -1;
+        }
     }
     if (!CwxMqPoco::parseSubsribe(m_strSubScribe, m_subscribe, strErrMsg))
     {
