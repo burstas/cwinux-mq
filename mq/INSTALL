@@ -1,1 +1,17 @@
+##install cwinux library
+#download cwinux2.0.2.tar.gz from http://cwinux.googlecode.com/files/cwinux2.0.2.tar.gz
+wget http://cwinux.googlecode.com/files/cwinux2.0.2.tar.gz
+tar xvfz cwinux2.0.2.tar.gz
+cd cwinux2.0.2
+configure --with-xml-expat=expat's install path  --with-prefix=install path
+make
+make install
+
+##install cwx-mq
+wget http://cwinux-mq.googlecode.com/files/cwx_mq2.1.tar.gz
+tar xvfz cwx_mq2.1.tar.gz
+cd cwx_mq2.1
+configure --with-xml-expat=expat's install path  --with-cwinux=cwinux install path
+make
+make install
 
