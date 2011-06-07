@@ -338,7 +338,7 @@ int main(int argc ,char** argv)
                 {
                     num++;
                     if (0 != output(reader,
-                        head.isAttr(CwxMsgHead::ATTR_COMPRESS)?g_unzip:block->rd_ptr(),
+                        head.isAttr(CwxMsgHead::ATTR_COMPRESS)?(char const*)g_unzip:block->rd_ptr(),
                         head.isAttr(CwxMsgHead::ATTR_COMPRESS)?g_unzip_len:block->length()))
                     {
                         iRet = 1;
@@ -352,7 +352,7 @@ int main(int argc ,char** argv)
                 }
                 else
                 {
-                    if (0 != reader_chunk.unpack(head.isAttr(CwxMsgHead::ATTR_COMPRESS)?g_unzip:block->rd_ptr(),
+                    if (0 != reader_chunk.unpack(head.isAttr(CwxMsgHead::ATTR_COMPRESS)?(char const*)g_unzip:block->rd_ptr(),
                         head.isAttr(CwxMsgHead::ATTR_COMPRESS)?g_unzip_len:block->length(),
                         false,
                         false))
