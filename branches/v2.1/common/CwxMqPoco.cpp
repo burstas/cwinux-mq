@@ -517,7 +517,7 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
     }
     if (zip)
     {
-        if (!writer->addKeyValue(CWX_MQ_ZIP,zip, false))
+        if (!writer->addKeyValue(CWX_MQ_ZIP,zip))
         {
             if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
             return CWX_MQ_ERR_INNER_ERR;
