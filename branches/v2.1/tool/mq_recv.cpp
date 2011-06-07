@@ -344,11 +344,9 @@ int main(int argc ,char** argv)
                         iRet = 1;
                         break;
                     }
+                    iRet = 0;
                     if (isFinish(num))
-                    {
-                        iRet = 0;
                         break;
-                    }
                 }
                 else
                 {
@@ -377,6 +375,7 @@ int main(int argc ,char** argv)
                             }
                         }
                     }
+                    iRet = 0;
                     for (CWX_UINT16 i=0; i<reader_chunk.getKeyNum()-1; i++)
                     {
                         if(0 != strcmp(reader_chunk.getKey(i)->m_szKey, CWX_MQ_M))
@@ -394,10 +393,7 @@ int main(int argc ,char** argv)
                             break;
                         }
                         if (isFinish(num))
-                        {
-                            iRet = 0;
                             break;
-                        }
                     }
                 }
                 if (1 == iRet) break;
