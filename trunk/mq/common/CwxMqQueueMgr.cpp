@@ -608,6 +608,7 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog)
             {
                 break;
             }
+            m_queues[mq->getName()] = mq;
             iter_queue ++;
         }
     } while(0);
