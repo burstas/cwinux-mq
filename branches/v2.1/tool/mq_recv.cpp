@@ -17,8 +17,8 @@ CWX_UINT32 g_num = 1;
 string    g_sign;
 bool      g_zip = false;
 CWX_UINT32 g_chunk = 0;
-unsigned char g_unzip[CWX_MQ_MAX_CHUNK_SIZE * 2];
-CWX_UINT32 const g_unzip_buf_len = CWX_MQ_MAX_CHUNK_SIZE * 2;
+unsigned char g_unzip[CWX_MQ_MAX_CHUNK_KSIZE * 1024 * 2];
+CWX_UINT32 const g_unzip_buf_len = CWX_MQ_MAX_CHUNK_KSIZE * 1024 * 2;
 unsigned long g_unzip_len = 0;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
@@ -110,7 +110,7 @@ int parseArg(int argc, char**argv)
                 return -1;
             }
             g_chunk = strtoul(cmd_option.opt_arg(),NULL,0);
-            if (g_chunk > CWX_TOOL_MAX_CHUNK_SIZE/1024) g_chunk = CWX_TOOL_MAX_CHUNK_SIZE * 1024;
+            if (g_chunk > CWX_MQ_MAX_CHUNK_KSIZE) g_chunk = CWX_MQ_MAX_CHUNK_KSIZE;
             break;
         case 'z':
             g_zip = true;
@@ -268,7 +268,7 @@ int main(int argc ,char** argv)
             0,
             g_sid>0?g_sid-1:g_sid,
             g_sid==0?true:false,
-            g_chunk * 1024,
+            g_chunk,
             g_window,
             g_subscribe.c_str(),
             g_user.c_str(),
