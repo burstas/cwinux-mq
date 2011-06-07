@@ -16,13 +16,12 @@
 #include "CwxMqBinRecvHandler.h"
 #include "CwxMqMasterHandler.h"
 #include "CwxMqBinFetchHandler.h"
-#include "CwxMqSysFile.h"
 #include "CwxMqQueueMgr.h"
 #include "CwxThreadPool.h"
 
 ///应用信息定义
-#define CWX_MQ_VERSION "2.0"
-#define CWX_MQ_MODIFY_DATE "20110421113000"
+#define CWX_MQ_VERSION "2.1"
+#define CWX_MQ_MODIFY_DATE "20110531083000"
 
 ///MQ服务的app对象
 class CwxMqApp : public CwxAppFramework
@@ -81,7 +80,7 @@ public:
            bool& bSuspendConn);
 public:
     ///-1:失败；0：成功
-    int commit_mq(char* szErr2K);
+    int commit_mq();
     ///是否是第一条binlog
     inline bool isFirstBinLog() const
     {
@@ -93,96 +92,90 @@ public:
         m_bFirstBinLog = false;
     }
     ///获取上一次commit的时间
-    inline time_t getLastCommitTime() const
+    inline CWX_UINT32 getLastCommitTime() const
     {
         return m_ttLastCommitTime;
     }
+
     ///设置上一次commit的时间
-    inline void setLastCommitTime(time_t ttTime)
+    inline void setLastCommitTime(CWX_UINT32 ttTime)
     {
         m_ttLastCommitTime = ttTime;
     }
+
     ///获取未commit的log数量
     inline CWX_UINT32 getUnCommitLogNum() const
     {
         return m_uiUnCommitLogNum;
     }
+
     ///增加未commit的log数量
     inline CWX_UINT32 incUnCommitLogNum()
     {
         return ++m_uiUnCommitLogNum;
     }
+
     ///将未commit的log数量归零
     inline void zeroUnCommitLogNum()
     {
         m_uiUnCommitLogNum = 0;
     }
+
     ///获取MQ上次commit的时间
-    inline time_t getMqLastCommitTime() const
+    inline CWX_UINT32 getMqLastCommitTime() const
     {
         return m_ttMqLastCommitTime;
     }
+
     ///设置MQ上次commit的时间
-    inline void setMqLastCommitTime(time_t ttTime)
+    inline void setMqLastCommitTime(CWX_UINT32 ttTime)
     {
         m_ttMqLastCommitTime = ttTime;
     }
-    ///获取MQ未commit的分发消息的数量
-    inline CWX_UINT32 getMqUncommitNum() const
-    {
-        return m_uiMqUnCommitLogNum;
-    }
-    ///设置MQ未commit的分发消息的数量
-    inline void setMqUncommitNum(CWX_UINT32 uiNum)
-    {
-        m_uiMqUnCommitLogNum = uiNum;
-    }
-    ///MQ未commit的分发消息数量加1
-    inline void incMqUncommitNum()
-    {
-        m_uiMqUnCommitLogNum ++;
-    }
+
 
     ///将当前的SID加1并返回，只有master才形成sid
     inline CWX_UINT64 nextSid()
     {
         return ++m_uiCurSid;
     }
+
     ///获取当前的sid
     inline CWX_UINT64 getCurSid()
     {
         return m_uiCurSid;
     }
+
     ///获取配置信息对象
     inline CwxMqConfig const& getConfig() const
     {
         return m_config;
     }
+
     ///获取binlog manager 对象指针
     inline CwxBinLogMgr* getBinLogMgr()
     {
         return m_pBinLogMgr;
     }
+
     ///获取mq队列管理器
     inline CwxMqQueueMgr* getQueueMgr()
     {
         return m_queueMgr;
     }
+
     ///获取slave从master同步binlog的handler对象
     inline CwxMqMasterHandler* getMasterHandler()
     {
         return m_pMasterHandler;
     }
+
     ///获取master接收binlog的handler对象
     inline CwxMqBinRecvHandler* getBinRecvHandler()
     {
         return m_pBinRecvHandler;
     }
-    ///获取系统文件对象
-    inline CwxMqSysFile* getSysFile()
-    {
-        return m_sysFile;
-    }
+
     ///更新服务状态
     inline void updateAppRunState()
     {
@@ -204,12 +197,12 @@ public:
                     szReason = "Can't connect to master";
                 }
             }
-            else if (m_sysFile)
+            else if (m_queueMgr)
             {
-                if (!m_sysFile->isValid())
+                if (!m_queueMgr->isValid())
                 {
                     bValid = false;
-                    szReason = m_sysFile->getErrMsg();
+                    szReason = m_queueMgr->getErrMsg().c_str();
                 }
 
             }
@@ -218,14 +211,17 @@ public:
         setAppRunValid(bValid);
         setAppRunFailReason(szReason);
     }
+
     CwxAppChannel* getAsyncDispChannel()
     {
         return m_asyncDispChannel;
     }
+
     CwxAppChannel* getMqChannel()
     {
         return m_mqChannel;
     }
+
 protected:
     ///重载运行环境设置API
     virtual int initRunEnv();
@@ -258,16 +254,14 @@ private:
     static int setMqSockAttr(CWX_HANDLE handle, void* arg);
 private:
     bool                        m_bFirstBinLog; ///<服务启动后，收到的第一条binglog
-    time_t                      m_ttLastCommitTime; ///<上一次commit的时候
+    CWX_UINT32                  m_ttLastCommitTime; ///<上一次commit的时候
     CWX_UINT32                  m_uiUnCommitLogNum; ///<自上一次commit以来，未commit的binlog数量
-    time_t                      m_ttMqLastCommitTime; ///<消息分发sys文件上次commit的时候
-    CWX_UINT32                  m_uiMqUnCommitLogNum; ///<消息分发sys文件未commit的数量
+    CWX_UINT32                  m_ttMqLastCommitTime; ///<消息分发sys文件上次commit的时候
     CWX_UINT64                  m_uiCurSid; ///<当前的sid
     CwxMqConfig                 m_config; ///<配置文件
     CwxBinLogMgr*               m_pBinLogMgr; ///<binlog的管理对象
     CwxMqMasterHandler*         m_pMasterHandler; ///<从master接收消息的handle
     CwxMqBinRecvHandler*        m_pBinRecvHandler; ///<bin协议接收binlog的handle。
-    CwxMqSysFile*               m_sysFile; ///<mq分发的分发点记录文件
     CwxMqQueueMgr*              m_queueMgr; ///<队列管理器
     CwxThreadPool*              m_pRecvThreadPool;///<消息接受的线程池对象
     CwxThreadPool*              m_pAsyncDispThreadPool; ///<消息异步分发的线程池对象

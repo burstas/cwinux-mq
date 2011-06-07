@@ -28,7 +28,7 @@ class CwxMqTss:public CwxTss
 public:
     enum
     {
-        MAX_PACKAGE_SIZE = 10 * 1024 * 1024 ///<分发数据包的最大长度
+        MAX_PACKAGE_SIZE = CWX_MQ_MAX_MSG_SIZE ///<分发数据包的最大长度
     };
 public:
     ///构造函数

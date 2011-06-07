@@ -49,10 +49,7 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am_cwx_mproxy_OBJECTS = cwx_mproxy-CwxMqTss.$(OBJEXT) \
-	cwx_mproxy-CwxMqPoco.$(OBJEXT) \
-	cwx_mproxy-CwxMqSysFile.$(OBJEXT) \
-	cwx_mproxy-CwxMqDef.$(OBJEXT) \
-	cwx_mproxy-CwxMqQueueMgr.$(OBJEXT) \
+	cwx_mproxy-CwxMqPoco.$(OBJEXT) cwx_mproxy-CwxMqDef.$(OBJEXT) \
 	cwx_mproxy-CwxMproxyApp.$(OBJEXT) \
 	cwx_mproxy-CwxMproxyConfig.$(OBJEXT) \
 	cwx_mproxy-cwx_mproxy.$(OBJEXT) \
@@ -112,7 +109,7 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
-LIBS = -lcwxapp -lcwxnet -lcwxparse -lcwxstore -lcwxcmn -lexpat -lpthread -ldl -lrt
+LIBS = -lcwxapp -lcwxutil -lcwxnet -lcwxparse -lcwxstore -lcwxcmn -lexpat -lpthread -ldl -lrt -lz
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -182,14 +179,13 @@ cwx_mproxy_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)" -W -Wall
 cwx_mproxy_SOURCES = \
         ../common/CwxMqTss.cpp\
         ../common/CwxMqPoco.cpp\
-        ../common/CwxMqSysFile.cpp\
-	../common/CwxMqDef.cpp  ../common/CwxMqQueueMgr.cpp\
+	../common/CwxMqDef.cpp\
 	CwxMproxyApp.cpp  CwxMproxyConfig.cpp  cwx_mproxy.cpp\
 	CwxMproxyMqHandler.cpp  CwxMproxyRecvHandler.cpp  CwxMproxyTask.cpp
 
 cwx_mproxy_LDADD = 
 cwx_mproxy_LDFLAGS = -L@xml_expat_dir@/lib -L@cwinux_dir@/lib 
-INCLUDES = -I@cwinux_dir@/include/app -I@cwinux_dir@/include/cmn -I@cwinux_dir@/include/net -I@cwinux_dir@/include/parse -I@cwinux_dir@/include/store -I@xml_expat_dir@/include  -I../common
+INCLUDES = -I@cwinux_dir@/include/app -I@cwinux_dir@/include/cmn -I@cwinux_dir@/include/net -I@cwinux_dir@/include/parse -I@cwinux_dir@/include/store -I@cwinux_dir@/include/util -I@xml_expat_dir@/include  -I../common
 all: all-am
 
 .SUFFIXES:
@@ -268,8 +264,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mproxy-CwxMproxyTask.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mproxy-CwxMqDef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mproxy-CwxMqPoco.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mproxy-CwxMqQueueMgr.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mproxy-CwxMqSysFile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mproxy-CwxMqTss.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mproxy-cwx_mproxy.Po@am__quote@
 
@@ -322,20 +316,6 @@ cwx_mproxy-CwxMqPoco.obj: ../common/CwxMqPoco.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mproxy_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mproxy-CwxMqPoco.obj `if test -f '../common/CwxMqPoco.cpp'; then $(CYGPATH_W) '../common/CwxMqPoco.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqPoco.cpp'; fi`
 
-cwx_mproxy-CwxMqSysFile.o: ../common/CwxMqSysFile.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mproxy_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mproxy-CwxMqSysFile.o -MD -MP -MF "$(DEPDIR)/cwx_mproxy-CwxMqSysFile.Tpo" -c -o cwx_mproxy-CwxMqSysFile.o `test -f '../common/CwxMqSysFile.cpp' || echo '$(srcdir)/'`../common/CwxMqSysFile.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mproxy-CwxMqSysFile.Tpo" "$(DEPDIR)/cwx_mproxy-CwxMqSysFile.Po"; else rm -f "$(DEPDIR)/cwx_mproxy-CwxMqSysFile.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqSysFile.cpp' object='cwx_mproxy-CwxMqSysFile.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mproxy_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mproxy-CwxMqSysFile.o `test -f '../common/CwxMqSysFile.cpp' || echo '$(srcdir)/'`../common/CwxMqSysFile.cpp
-
-cwx_mproxy-CwxMqSysFile.obj: ../common/CwxMqSysFile.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mproxy_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mproxy-CwxMqSysFile.obj -MD -MP -MF "$(DEPDIR)/cwx_mproxy-CwxMqSysFile.Tpo" -c -o cwx_mproxy-CwxMqSysFile.obj `if test -f '../common/CwxMqSysFile.cpp'; then $(CYGPATH_W) '../common/CwxMqSysFile.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqSysFile.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mproxy-CwxMqSysFile.Tpo" "$(DEPDIR)/cwx_mproxy-CwxMqSysFile.Po"; else rm -f "$(DEPDIR)/cwx_mproxy-CwxMqSysFile.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqSysFile.cpp' object='cwx_mproxy-CwxMqSysFile.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mproxy_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mproxy-CwxMqSysFile.obj `if test -f '../common/CwxMqSysFile.cpp'; then $(CYGPATH_W) '../common/CwxMqSysFile.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqSysFile.cpp'; fi`
-
 cwx_mproxy-CwxMqDef.o: ../common/CwxMqDef.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mproxy_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mproxy-CwxMqDef.o -MD -MP -MF "$(DEPDIR)/cwx_mproxy-CwxMqDef.Tpo" -c -o cwx_mproxy-CwxMqDef.o `test -f '../common/CwxMqDef.cpp' || echo '$(srcdir)/'`../common/CwxMqDef.cpp; \
 @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mproxy-CwxMqDef.Tpo" "$(DEPDIR)/cwx_mproxy-CwxMqDef.Po"; else rm -f "$(DEPDIR)/cwx_mproxy-CwxMqDef.Tpo"; exit 1; fi
@@ -349,20 +329,6 @@ cwx_mproxy-CwxMqDef.obj: ../common/CwxMqDef.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqDef.cpp' object='cwx_mproxy-CwxMqDef.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mproxy_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mproxy-CwxMqDef.obj `if test -f '../common/CwxMqDef.cpp'; then $(CYGPATH_W) '../common/CwxMqDef.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqDef.cpp'; fi`
-
-cwx_mproxy-CwxMqQueueMgr.o: ../common/CwxMqQueueMgr.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mproxy_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mproxy-CwxMqQueueMgr.o -MD -MP -MF "$(DEPDIR)/cwx_mproxy-CwxMqQueueMgr.Tpo" -c -o cwx_mproxy-CwxMqQueueMgr.o `test -f '../common/CwxMqQueueMgr.cpp' || echo '$(srcdir)/'`../common/CwxMqQueueMgr.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mproxy-CwxMqQueueMgr.Tpo" "$(DEPDIR)/cwx_mproxy-CwxMqQueueMgr.Po"; else rm -f "$(DEPDIR)/cwx_mproxy-CwxMqQueueMgr.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqQueueMgr.cpp' object='cwx_mproxy-CwxMqQueueMgr.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mproxy_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mproxy-CwxMqQueueMgr.o `test -f '../common/CwxMqQueueMgr.cpp' || echo '$(srcdir)/'`../common/CwxMqQueueMgr.cpp
-
-cwx_mproxy-CwxMqQueueMgr.obj: ../common/CwxMqQueueMgr.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mproxy_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mproxy-CwxMqQueueMgr.obj -MD -MP -MF "$(DEPDIR)/cwx_mproxy-CwxMqQueueMgr.Tpo" -c -o cwx_mproxy-CwxMqQueueMgr.obj `if test -f '../common/CwxMqQueueMgr.cpp'; then $(CYGPATH_W) '../common/CwxMqQueueMgr.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqQueueMgr.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mproxy-CwxMqQueueMgr.Tpo" "$(DEPDIR)/cwx_mproxy-CwxMqQueueMgr.Po"; else rm -f "$(DEPDIR)/cwx_mproxy-CwxMqQueueMgr.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqQueueMgr.cpp' object='cwx_mproxy-CwxMqQueueMgr.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mproxy_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mproxy-CwxMqQueueMgr.obj `if test -f '../common/CwxMqQueueMgr.cpp'; then $(CYGPATH_W) '../common/CwxMqQueueMgr.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqQueueMgr.cpp'; fi`
 
 cwx_mproxy-CwxMproxyApp.o: CwxMproxyApp.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mproxy_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mproxy-CwxMproxyApp.o -MD -MP -MF "$(DEPDIR)/cwx_mproxy-CwxMproxyApp.Tpo" -c -o cwx_mproxy-CwxMproxyApp.o `test -f 'CwxMproxyApp.cpp' || echo '$(srcdir)/'`CwxMproxyApp.cpp; \

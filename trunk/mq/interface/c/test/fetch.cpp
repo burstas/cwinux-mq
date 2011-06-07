@@ -44,6 +44,7 @@ int main(int argc ,char** argv)
         argv[3],
         argv[4],
         argv[5],
+        0,
         szErr2K))
     {
         printf("failure to pack fetch msg, err=%s", szErr2K);

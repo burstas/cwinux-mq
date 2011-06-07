@@ -35,6 +35,8 @@ int main(int argc ,char** argv)
         argv[6],
         argv[3],
         argv[4],
+        "",
+        false,
         buf))
     {
         printf("failure to pack report package, err=%s\n", buf);
