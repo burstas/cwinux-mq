@@ -1,6 +1,7 @@
 #include "CwxMqDef.h"
 #include "CwxMqQueueMgr.h"
 #include "CwxMqPoco.h"
+
 CwxMqDispatchConn::CwxMqDispatchConn()
 {
     m_pCursor = NULL;

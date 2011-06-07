@@ -26,6 +26,7 @@
 
 class CwxMqQueue;
 
+///分发连接的session信息对象
 class CwxMqDispatchConn
 {
 public:
@@ -46,7 +47,7 @@ public:
 };
 
 
-///mq的fetch连接
+///mq的fetch连接的session对象
 class CwxMqFetchConn
 {
 public:
@@ -65,7 +66,7 @@ public:
     string          m_strQueueName; ///<队列的名字
 };
 
-
+///mq信息对象
 class CwxMqConfigQueue
 {
 public:
@@ -105,6 +106,7 @@ public:
     bool    m_bCommit; ///<是否commit类型
 };
 
+///id 范围的比较对象
 class CwxMqIdRange
 {
 public:
@@ -158,6 +160,7 @@ private:
 };
 
 
+///mq queue的信息对象
 class CwxMqQueueInfo
 {
 public:
