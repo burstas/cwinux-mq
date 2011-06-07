@@ -122,7 +122,7 @@ int CwxMqQueueLogFile::save(map<string, CwxMqQueueInfo> const& queues,
         set<CWX_UINT64>::const_iterator iter = iter_sid->second->begin();
         while(iter != iter_sid->second->end())
         {//uncommit:name=q1|sid=1
-            len = CwxCommon::snprintf(line, 1023, "%s:name=%s|sid=%s",
+            len = CwxCommon::snprintf(line, 1023, "%s:name=%s|sid=%s\n",
                 CWX_MQ_UNCOMMIT,
                 iter_sid->first.c_str(),
                 CwxCommon::toString(*iter, szSid, 10));
@@ -145,7 +145,7 @@ int CwxMqQueueLogFile::save(map<string, CwxMqQueueInfo> const& queues,
         set<CWX_UINT64>::const_iterator iter = iter_sid->second->begin();
         while(iter != iter_sid->second->end())
         {//commit:name=q1|sid=1
-            len = CwxCommon::snprintf(line, 1023, "%s:name=%s|sid=%s",
+            len = CwxCommon::snprintf(line, 1023, "%s:name=%s|sid=%s\n",
                 CWX_MQ_COMMIT,
                 iter_sid->first.c_str(),
                 CwxCommon::toString(*iter, szSid, 10));
@@ -223,7 +223,7 @@ int CwxMqQueueLogFile::log(char const* queue, CWX_UINT64 sid)
     {
         char szBuf[1024];
         char szSid[64];
-        size_t len = CwxCommon::snprintf(szBuf, 1023, "%s:name=%s|sid=%s", CWX_MQ_COMMIT, queue, CwxCommon::toString(sid, szSid, 10));
+        size_t len = CwxCommon::snprintf(szBuf, 1023, "%s:name=%s|sid=%s\n", CWX_MQ_COMMIT, queue, CwxCommon::toString(sid, szSid, 10));
         if (len != fwrite(szBuf, 1, len, m_fd))
         {
             closeFile(false);
