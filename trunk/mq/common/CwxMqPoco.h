@@ -22,6 +22,7 @@
 #include "CwxCrc32.h"
 #include "CwxMd5.h"
 
+///订阅规则的规则信息对象
 class CwxMqSubscribeItem
 {
 public:
@@ -53,6 +54,7 @@ public:
         return *this;
     }
 public:
+    ///是否订阅指定的id
     inline bool isSubscribe(CWX_UINT32 id) const
     {
         if (m_bAll) return true;
@@ -73,6 +75,7 @@ public:
     list<pair<CWX_UINT32, CWX_UINT32> > m_set; ///<订阅的group或type的范围列表
 };
 
+///订阅规则表达式对象
 class CwxMqSubscribe
 {
 public:
@@ -98,6 +101,7 @@ public:
     }
 
 public:
+    ///是否订阅指定的group、type对
     inline bool isSubscribe(CWX_UINT32 uiGroup, CWX_UINT32 uiType) const
     {
         if (!m_bAll)
