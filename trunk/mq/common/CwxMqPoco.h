@@ -378,7 +378,7 @@ public:
         char const*& szErrMsg,
         CWX_UINT64& ullSid,
         CWX_UINT32& uiTimeStamp,
-        CwxKeyValueItem const* data,
+        CwxKeyValueItem const*& data,
         CWX_UINT32& group,
         CWX_UINT32& type,
         CWX_UINT32& attr,
