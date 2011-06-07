@@ -400,6 +400,8 @@ int main(int argc ,char** argv)
                     }
                 }
                 if (1 == iRet) break;
+                if (isFinish(num))
+                    break;
 
                 CwxMsgBlockAlloc::free(block);
                 block = NULL;
