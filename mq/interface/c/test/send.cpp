@@ -54,6 +54,7 @@ int main(int argc ,char** argv)
         1000,
         argv[5],
         argv[6],
+        "",
         szErr2K))
     {
         printf("failure to pack send msg, err=%s", szErr2K);

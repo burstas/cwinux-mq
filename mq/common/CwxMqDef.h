@@ -29,10 +29,9 @@ class CwxMqQueue;
 class CwxMqDispatchConn
 {
 public:
-    CwxMqDispatchConn(CwxAppHandler4Channel* handler);
+    CwxMqDispatchConn();
     ~CwxMqDispatchConn();
 public:
-    CwxAppHandler4Channel*   m_handler; ///<连接对象
     CwxBinLogCursor*         m_pCursor; ///<binlog的读取cursor
     CWX_UINT32               m_uiChunk; ///<chunk大小
     CWX_UINT64               m_ullStartSid; ///<report的sid
@@ -41,6 +40,8 @@ public:
     bool                     m_bSync; ///<是否接受sync数据
     CwxMqSubscribe           m_subscribe; ///<消息订阅对象
     CWX_UINT32               m_uiWindow; ///<窗口的大小
+    string                   m_strSign; ///<签名类型
+    bool                     m_bZip; ///<是否压缩
     set<CWX_UINT64>          m_sendingSid; ///<发送中的sid
 };
 
@@ -52,10 +53,16 @@ public:
     CwxMqFetchConn();
     ~CwxMqFetchConn();
 public:
+    void reset();
+public:
     bool            m_bWaiting; ///<是否正在等在发送信息
     bool            m_bBlock; ///<是否为block连接
+    bool            m_bCommit; ///<是否commit类型的queue
+    CWX_UINT32      m_uiTimeout; ///<当前消息的timeout值
+    CWX_UINT64      m_ullSendSid; ///<已经发送的sid
+    bool            m_bSent;     ///<当前的消息是否发送完毕
     CWX_UINT32      m_uiTaskId; ///<连接的taskid
-    CwxMqQueue*     m_pQueue; ///<连接的队列
+    string          m_strQueueName; ///<队列的名字
 };
 
 
@@ -64,6 +71,7 @@ class CwxMqConfigQueue
 public:
     CwxMqConfigQueue()
     {
+        m_bCommit = false;
     }
     CwxMqConfigQueue(CwxMqConfigQueue const& item)
     {
@@ -71,6 +79,7 @@ public:
         m_strUser = item.m_strUser;
         m_strPasswd = item.m_strPasswd;
         m_strSubScribe = item.m_strSubScribe;
+        m_bCommit = item.m_bCommit;
     }
     CwxMqConfigQueue& operator=(CwxMqConfigQueue const& item)
     {
@@ -80,6 +89,7 @@ public:
             m_strUser = item.m_strUser;
             m_strPasswd = item.m_strPasswd;
             m_strSubScribe = item.m_strSubScribe;
+            m_bCommit = item.m_bCommit;
         }
         return *this;
     }
@@ -92,6 +102,7 @@ public:
     string  m_strUser; ///<队列的用户名
     string  m_strPasswd; ///<队列的口令
     string  m_strSubScribe; ///<队列的消息订阅
+    bool    m_bCommit; ///<是否commit类型
 };
 
 class CwxMqIdRange
@@ -145,4 +156,73 @@ private:
     CWX_UINT32      m_uiBegin;
     CWX_UINT32      m_uiEnd;
 };
+
+
+class CwxMqQueueInfo
+{
+public:
+    CwxMqQueueInfo()
+    {
+        m_bCommit = false;
+        m_uiDefTimeout = 0;
+        m_uiMaxTimeout = 0;
+        m_ullCursorSid = 0;
+        m_ullLeftNum = 0;
+        m_uiWaitCommitNum = 0;
+        m_uiMemLogNum = 0;
+        m_ucQueueState = CwxBinLogMgr::CURSOR_STATE_UNSEEK;
+    }
+public:
+    CwxMqQueueInfo(CwxMqQueueInfo const& item)
+    {
+        m_strName = item.m_strName; ///<队列的名字
+        m_strUser = item.m_strUser; ///<队列鉴权的用户名
+        m_strPasswd = item.m_strPasswd; ///<队列的用户口令
+        m_bCommit = item.m_bCommit; ///<是否commit类型的队列
+        m_uiDefTimeout = item.m_uiDefTimeout; ///<缺省的timeout值
+        m_uiMaxTimeout = item.m_uiMaxTimeout; ///<最大的timeout值
+        m_strSubScribe = item.m_strSubScribe; ///<订阅规则
+        m_ullCursorSid = item.m_ullCursorSid;
+        m_ullLeftNum = item.m_ullLeftNum; ///<剩余消息的数量
+        m_uiWaitCommitNum = item.m_uiWaitCommitNum; ///<等待commit的消息数量
+        m_uiMemLogNum = item.m_uiMemLogNum;
+        m_ucQueueState = item.m_ucQueueState;
+        m_strQueueErrMsg = item.m_strQueueErrMsg;
+    }
+    CwxMqQueueInfo& operator=(CwxMqQueueInfo const& item)
+    {
+        if (this != &item)
+        {
+            m_strName = item.m_strName; ///<队列的名字
+            m_strUser = item.m_strUser; ///<队列鉴权的用户名
+            m_strPasswd = item.m_strPasswd; ///<队列的用户口令
+            m_bCommit = item.m_bCommit; ///<是否commit类型的队列
+            m_uiDefTimeout = item.m_uiDefTimeout; ///<缺省的timeout值
+            m_uiMaxTimeout = item.m_uiMaxTimeout; ///<最大的timeout值
+            m_strSubScribe = item.m_strSubScribe; ///<订阅规则
+            m_ullCursorSid = item.m_ullCursorSid;
+            m_ullLeftNum = item.m_ullLeftNum; ///<剩余消息的数量
+            m_uiWaitCommitNum = item.m_uiWaitCommitNum; ///<等待commit的消息数量
+            m_uiMemLogNum = item.m_uiMemLogNum;
+            m_ucQueueState = item.m_ucQueueState;
+            m_strQueueErrMsg = item.m_strQueueErrMsg;
+        }
+        return *this;
+    }
+public:
+    string                           m_strName; ///<队列的名字
+    string                           m_strUser; ///<队列鉴权的用户名
+    string                           m_strPasswd; ///<队列的用户口令
+    bool                             m_bCommit; ///<是否commit类型的队列
+    CWX_UINT32                       m_uiDefTimeout; ///<缺省的timeout值
+    CWX_UINT32                       m_uiMaxTimeout; ///<最大的timeout值
+    string                           m_strSubScribe; ///<订阅规则
+    CWX_UINT64                       m_ullCursorSid; ///<当前cursor的sid
+    CWX_UINT64                       m_ullLeftNum; ///<剩余消息的数量
+    CWX_UINT32                       m_uiWaitCommitNum; ///<等待commit的消息数量
+    CWX_UINT32                       m_uiMemLogNum; ///<内存中消息的数量
+    CWX_UINT8                        m_ucQueueState; ///<队列状态
+    string                           m_strQueueErrMsg; //<队列的错误信息
+};
+
 #endif

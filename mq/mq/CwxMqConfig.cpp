@@ -172,29 +172,6 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
     {
         m_binlog.m_uiFlushSecond = 1;
     }
-    //load mq:binlog:mq_flush:fetch_num
-    if ((NULL == (pValue=parser.getElementAttr("mq:binlog:mq_flush", "fetch_num"))) || !pValue[0])
-    {
-        snprintf(m_szErrMsg, 2047, "Must set [mq:binlog:mq_flush:fetch_num].");
-        return -1;
-    }
-    m_binlog.m_uiMqFetchFlushNum = strtoul(pValue, NULL, 0);
-    if (m_binlog.m_uiMqFetchFlushNum < 1)
-    {
-        m_binlog.m_uiMqFetchFlushNum = 1;
-    }
-    //load mq:binlog:mq_flush:second
-    if ((NULL == (pValue=parser.getElementAttr("mq:binlog:mq_flush", "second"))) || !pValue[0])
-    {
-        snprintf(m_szErrMsg, 2047, "Must set [mq:binlog:mq_flush:second].");
-        return -1;
-    }
-    m_binlog.m_uiMqFetchFlushSecond = strtoul(pValue, NULL, 0);
-    if (m_binlog.m_uiMqFetchFlushSecond < 1)
-    {
-        m_binlog.m_uiMqFetchFlushSecond = 1;
-    }
-
     //load master
     if (m_common.m_bMaster)
     {
@@ -226,6 +203,32 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
     {//slave
         //load mq:slave:master
         if (!fetchHost(parser, "mq:slave:master", m_slave.m_master)) return -1;
+        //load mq:slave:master:zip
+        if ((NULL == (pValue=parser.getElementAttr("mq:slave:master", "zip"))) || !pValue[0])
+        {
+            m_slave.m_bzip = false;
+        }
+        else
+        {
+            if (strcmp("true", pValue) == 0)
+                m_slave.m_bzip = true;
+            else
+                m_slave.m_bzip = false;
+        }
+        //load mq:slave:master:sign
+        if ((NULL == (pValue=parser.getElementAttr("mq:slave:master", "sign"))) || !pValue[0])
+        {
+            m_slave.m_strSign = "";
+        }
+        else
+        {
+            if (strcmp(CWX_MQ_CRC32, pValue) == 0)
+                m_slave.m_strSign = CWX_MQ_CRC32;
+            else if (strcmp(CWX_MQ_MD5, pValue) == 0)
+                m_slave.m_strSign = CWX_MQ_MD5;
+            else
+                m_slave.m_strSign = "";
+        }
         //fetch mq:slave:master:subcribe
         if ((NULL == (pValue=parser.getElementAttr("mq:slave:master", "subcribe"))) || !pValue[0])
         {
@@ -257,11 +260,41 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
     //fetch mq:mq
     if (parser.getElementNode("mq:mq"))
     {
-        if (!fetchMq(parser, "mq:mq", m_mq)) return -1;
+        if (!fetchHost(parser, "mq:mq:listen", m_mq.m_mq)) return -1;
+        //load mq:mq:log:file
+        if ((NULL == (pValue=parser.getElementAttr("mq:mq:log", "file"))) || !pValue[0])
+        {
+            snprintf(m_szErrMsg, 2047, "Must set [mq:mq:log:file].");
+            return -1;
+        }
+        m_mq.m_strLogFile = pValue;
+        //load mq:mq:log:fetch_num
+        if ((NULL == (pValue=parser.getElementAttr("mq:mq:log", "fetch_num"))) || !pValue[0])
+        {
+            snprintf(m_szErrMsg, 2047, "Must set [mq:mq:log:fetch_num].");
+            return -1;
+        }
+        m_mq.m_uiFlushNum = strtoul(pValue, NULL, 0);
+        if (m_mq.m_uiFlushNum < 1)
+        {
+            m_mq.m_uiFlushNum = 1;
+        }
+        //load mq:mq:log:second
+        if ((NULL == (pValue=parser.getElementAttr("mq:mq:log", "second"))) || !pValue[0])
+        {
+            snprintf(m_szErrMsg, 2047, "Must set [mq:mq:log:second].");
+            return -1;
+        }
+        m_mq.m_uiFlushSecond = strtoul(pValue, NULL, 0);
+        if (m_mq.m_uiFlushSecond < 1)
+        {
+            m_mq.m_uiFlushSecond = 1;
+        }
+
     }
     else
     {
-        m_mq.m_listen.reset();
+        m_mq.m_mq.reset();
     }
 
     return 0;
@@ -332,96 +365,6 @@ bool CwxMqConfig::fetchHost(CwxXmlFileConfigParser& parser,
 
 }
 
-bool CwxMqConfig::fetchMq(CwxXmlFileConfigParser& parser,
-             string const& path,
-             CwxMqConfigMq& mq)
-{
-    string strErrMsg;
-    string strPath = path + ":listen";
-    if (!fetchHost(parser, strPath.c_str(), mq.m_listen))
-    {
-        mq.m_listen.reset();
-    }
-    if (!mq.m_listen.getHostName().length())
-    {
-        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s:listen].",path.c_str(),path.c_str());
-        return false;
-    }
-    //fetch queue
-    CwxXmlTreeNode const* pNodeRoot = NULL;
-    CwxXmlTreeNode const* node = NULL;
-    CwxHostInfo host;
-    pair<char*, char*> key;
-    //load mq:mq:queues
-    {
-        CwxMqConfigQueue queue;
-        strPath = path + ":queues";
-        pNodeRoot = parser.getElementNode(strPath.c_str());
-        if (!pNodeRoot || !pNodeRoot->m_pChildHead)
-        {
-            CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s:queues].",path.c_str());
-            return false;
-        }
-        node = pNodeRoot->m_pChildHead;
-        while(node)
-        {
-            if (strcmp(node->m_szElement, "queue") == 0)
-            {
-                //find name
-                if (CwxCommon::findKey(node->m_lsAttrs, "name",  key) && strlen(key.second))
-                {
-                    queue.m_strName = key.second;
-                }
-                else
-                {
-                    CwxCommon::snprintf(m_szErrMsg, 2047, "[%:queues]'s queue must have name.", path.c_str());
-                    return false;
-                }
-                if (mq.m_queues.find(queue.m_strName) != mq.m_queues.end())
-                {
-                    CwxCommon::snprintf(m_szErrMsg, 2047, "[%s:queues]'s queue name[%s] is duplicate.", path.c_str(), queue.m_strName.c_str());
-                    return false;
-                }
-                //find user
-                if (CwxCommon::findKey(node->m_lsAttrs, "user",  key) && strlen(key.second))
-                {
-                    queue.m_strUser = key.second;
-                }
-                else
-                {
-                    queue.m_strUser = "";
-                }
-                //find passwd
-                if (CwxCommon::findKey(node->m_lsAttrs, "passwd",  key) && strlen(key.second))
-                {
-                    queue.m_strPasswd = key.second;
-                }
-                else
-                {
-                    queue.m_strPasswd = "";
-                }
-                //find subcribe
-                if (CwxCommon::findKey(node->m_lsAttrs, "subcribe",  key) && strlen(key.second))
-                {
-                    queue.m_strSubScribe = key.second;
-                }
-                else
-                {
-                    CwxCommon::snprintf(m_szErrMsg, 2047, "Must set queue[%s]'s [subcribe].", queue.m_strName.c_str());
-                    return false;
-                }
-                if (!CwxMqPoco::isValidSubscribe(queue.m_strSubScribe, strErrMsg))
-                {
-                    CwxCommon::snprintf(m_szErrMsg, 2047, "queue[%s]'s subcribe[%s] is not valid, err:%s.", queue.m_strName.c_str(), strErrMsg.c_str());
-                    return false;
-                }
-                mq.m_queues[queue.m_strName] = queue;
-            }
-            node = node->m_next;
-        }
-    }
-    return true;
-}
 
 void CwxMqConfig::outputConfig() const
 {
@@ -434,7 +377,6 @@ void CwxMqConfig::outputConfig() const
     CWX_INFO(("file path=%s prefix=%s max-file-size(Mbyte)=%u", m_binlog.m_strBinlogPath.c_str(), m_binlog.m_strBinlogPrex.c_str(), m_binlog.m_uiBinLogMSize));
     CWX_INFO(("manager binlog file max_day=%u  del_outday_logfile=%s", m_binlog.m_uiMgrMaxDay, m_binlog.m_bDelOutdayLogFile?"yes":"no"));
     CWX_INFO(("binlog flush log_num=%u second=%u", m_binlog.m_uiFlushNum, m_binlog.m_uiFlushSecond));
-    CWX_INFO(("mq-fetch flush log_num=%u second=%u", m_binlog.m_uiMqFetchFlushNum, m_binlog.m_uiMqFetchFlushSecond));
     if (m_common.m_bMaster){
         CWX_INFO(("*****************master*******************"));
         if (m_master.m_recv.getHostName().length())
@@ -459,7 +401,9 @@ void CwxMqConfig::outputConfig() const
         }
     }else{
         CWX_INFO(("*****************slave*******************"));
-        CWX_INFO(("master keep_alive=%s user=%s passwd=%s subscribe=%s ip=%s port=%u unix=%s",
+        CWX_INFO(("master zip=%s sign=%s, keep_alive=%s user=%s passwd=%s subscribe=%s ip=%s port=%u unix=%s",
+            m_slave.m_bzip?"yes":"no",
+            m_slave.m_strSign.c_str(),
             m_slave.m_master.isKeepAlive()?"yes":"no",
             m_slave.m_master.getUser().c_str(),
             m_slave.m_master.getPasswd().c_str(),
@@ -479,29 +423,16 @@ void CwxMqConfig::outputConfig() const
         }
     }
 
-    if (m_mq.m_listen.getHostName().length())
+    if (m_mq.m_mq.getHostName().length())
     {
         CWX_INFO(("*****************mq-fetch*******************"));
-        if (m_mq.m_listen.getHostName().length())
-        {
-            CWX_INFO(("listen keep_alive=%s  ip=%s port=%u unix=%s",
-                m_mq.m_listen.isKeepAlive()?"yes":"no",
-                m_mq.m_listen.getHostName().c_str(),
-                m_mq.m_listen.getPort(),
-                m_mq.m_listen.getUnixDomain().c_str()));
-        }
-        map<string, CwxMqConfigQueue>::const_iterator iter = m_mq.m_queues.begin(); ///<消息分发的队列
-        while(iter != m_mq.m_queues.end())
-        {
-            CWX_INFO(("queue name=%s\tuser=%s\tpasswd=%s\tsubscribe=%s",
-                iter->second.m_strName.c_str(),
-                iter->second.m_strUser.c_str(),
-                iter->second.m_strPasswd.c_str(),
-                iter->second.m_strSubScribe.c_str()));
-            iter++;
-        }
+        CWX_INFO(("listen keep_alive=%s  ip=%s port=%u unix=%s",
+            m_mq.m_mq.isKeepAlive()?"yes":"no",
+            m_mq.m_mq.getHostName().c_str(),
+            m_mq.m_mq.getPort(),
+            m_mq.m_mq.getUnixDomain().c_str()));
+        CWX_INFO(("mq queue file:%s", m_mq.m_strLogFile.c_str()));
+        CWX_INFO(("mq flush log_num=%u second=%u", m_mq.m_uiFlushNum, m_mq.m_uiFlushSecond));
     }
-
-
     CWX_INFO(("*****************END   CONFIG *******************"));
 }

@@ -26,6 +26,7 @@ int CwxMproxyMqHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         }
         tasks.clear();
     }
+    m_pApp->setMqConnId(CWX_INVALID_HANDLE);
     return 1;
 }
 

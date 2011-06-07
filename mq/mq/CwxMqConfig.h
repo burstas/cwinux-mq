@@ -26,10 +26,10 @@ public:
     {
         DEF_SOCK_BUF_KB = 64,
         MIN_SOCK_BUF_KB = 4,
-        MAX_SOCK_BUF_KB = 8192 * 1024,
+        MAX_SOCK_BUF_KB = 8 * 1024,
         DEF_CHUNK_SIZE_KB = 32,
         MIN_CHUNK_SIZE_KB = 4,
-        MAX_CHUNK_SIZE_KB = 8192 * 1024,
+        MAX_CHUNK_SIZE_KB = CWX_MQ_MAX_CHUNK_KSIZE,
         DEF_WINDOW_NUM = 1,
         MIN_WINDOW_NUM = 1,
         MAX_WINDOW_NUM = 128
@@ -69,8 +69,6 @@ public:
         m_bDelOutdayLogFile = false;
         m_uiFlushNum = 100;
         m_uiFlushSecond = 30;
-        m_uiMqFetchFlushNum = 1;
-        m_uiMqFetchFlushSecond = 30;
     }
 public:
     string              m_strBinlogPath; ///<binlog的目录
@@ -80,8 +78,6 @@ public:
     bool                m_bDelOutdayLogFile; ///<是否删除不管理的消息文件
     CWX_UINT32          m_uiFlushNum; ///<接收多少条记录后，flush binlog文件
     CWX_UINT32          m_uiFlushSecond; ///<间隔多少秒，必须flush binlog文件
-    CWX_UINT32          m_uiMqFetchFlushNum; ///<fetch多少条日志，必须flush获取点
-    CWX_UINT32          m_uiMqFetchFlushSecond; ///<多少秒必须flush获取点
 };
 
 ///配置文件的master参数对象
@@ -102,29 +98,31 @@ class CwxMqConfigSlave
 public:
     CwxMqConfigSlave()
     {
+        m_bzip = false;
     }
 public:
     CwxHostInfo     m_master; ///<slave的master的连接信息
     string          m_strSubScribe;///<消息订阅表达式
+    bool            m_bzip; ///<是否zip压缩
+    string          m_strSign; ///<签名类型
     CwxHostInfo     m_async; ///<slave bin协议异步分发的端口信息
 };
 
-///配置文件的mq参数对象
+///配置文件的mq对象
 class CwxMqConfigMq
 {
 public:
     CwxMqConfigMq()
     {
+        m_uiFlushNum = 1;
+        m_uiFlushSecond = 30;
     }
 public:
-    CwxMqConfigQueue const* getQueue(string const& strQueue) const
-    {
-        map<string, CwxMqConfigQueue>::const_iterator iter = m_queues.find(strQueue);
-        return iter == m_queues.end()?NULL:&iter->second;
-    }
-public:
-    CwxHostInfo     m_listen; ///<mq的bin协议listen的连接信息
-    map<string, CwxMqConfigQueue>  m_queues; ///<消息分发的队列
+    CwxHostInfo          m_mq; ///<mq的fetch的配置信息
+    string               m_strLogFile; ///<mq的log文件
+    CWX_UINT32          m_uiFlushNum; ///<fetch多少条日志，必须flush获取点
+    CWX_UINT32          m_uiFlushSecond; ///<多少秒必须flush获取点
+
 };
 
 ///配置文件加载对象
@@ -179,16 +177,12 @@ private:
     bool fetchHost(CwxXmlFileConfigParser& parser,
         string const& path,
         CwxHostInfo& host);
-    bool fetchMq(CwxXmlFileConfigParser& parser,
-        string const& path,
-        CwxMqConfigMq&  mq);
-
 private:
-    CwxMqConfigCmn  m_common; ///<common的配置信息
-    CwxMqConfigBinLog m_binlog; ///<binlog的配置信息
-    CwxMqConfigMaster m_master; ///<master的配置信息
-    CwxMqConfigSlave  m_slave; ///<slave的配置信息
-    CwxMqConfigMq     m_mq; ///<mq的fetch的配置信息
+    CwxMqConfigCmn      m_common; ///<common的配置信息
+    CwxMqConfigBinLog   m_binlog; ///<binlog的配置信息
+    CwxMqConfigMaster   m_master; ///<master的配置信息
+    CwxMqConfigSlave    m_slave; ///<slave的配置信息
+    CwxMqConfigMq       m_mq; ///<mq的fetch的配置信息
     char                m_szErrMsg[2048];///<错误消息的buf
 };
 

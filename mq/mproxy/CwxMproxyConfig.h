@@ -44,11 +44,13 @@ private:
 public:
     string               m_strWorkDir;///<工作目录
     CWX_UINT32           m_uiTimeout; ///<查询超时时间，单位为ms
+    CwxHostInfo          m_monitor; ///<代理的监控地址
     CwxHostInfo          m_recv;      ///<代理消息接受的监听地址
     map<CwxMqIdRange, CwxMqConfigQueue>  m_groupPasswd; ///<口令
     map<CwxMqIdRange, string>    m_allowGroup; ///<允许的group，若不为空，则group必须在allow中存在，否则查deny
     map<CwxMqIdRange, string>    m_denyGroup; ///<禁止的group，若allow为空，则查deny。若在deny中存在，则禁止。
     CwxHostInfo          m_mq; ///<mq的服务器
+    string               m_mqSign; ///<mq的签名类型
     char                 m_szErrMsg[2048];///<错误消息buf
 };
 

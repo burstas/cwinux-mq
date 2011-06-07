@@ -8,7 +8,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     CwxMproxyTask* pTask = NULL;
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     bool* bAuth = (bool*)msg->event().getConnUserData();
-    int iRet = CWX_MQ_SUCCESS;
+    int iRet = CWX_MQ_ERR_SUCCESS;
     char const* user=NULL;
     char const* passwd=NULL;
     CWX_UINT32 uiTaskId = 0;
@@ -20,7 +20,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             CWX_UINT32 uiType;
             CWX_UINT32 uiAttr;
             CwxKeyValueItem const* pData;
-            if (CWX_MQ_SUCCESS != (iRet = CwxMqPoco::parseRecvData(pTss->m_pReader,
+            if (CWX_MQ_ERR_SUCCESS != (iRet = CwxMqPoco::parseRecvData(pTss->m_pReader,
                 msg,
                 pData,
                 uiGroup,
@@ -35,11 +35,11 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 break;
             }
             iRet = isAuth(pTss, uiGroup, user, passwd);
-            if (CWX_MQ_SUCCESS != iRet) break;
+            if (CWX_MQ_ERR_SUCCESS != iRet) break;
             *bAuth = true;
             CwxMsgBlock* sndMsg = NULL;
             uiTaskId = m_pApp->getNextTaskId();
-            if (CWX_MQ_SUCCESS != CwxMqPoco::packRecvData(pTss->m_pWriter,
+            if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packRecvData(pTss->m_pWriter,
                 sndMsg,
                 uiTaskId,
                 *pData,
@@ -48,6 +48,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 uiAttr,
                 m_pApp->getConfig().m_mq.getUser().c_str(),
                 m_pApp->getConfig().m_mq.getPasswd().c_str(),
+                m_pApp->getConfig().m_mqSign.c_str(),
                 pTss->m_szBuf2K))
             {
                 CWX_ERROR((pTss->m_szBuf2K));
@@ -63,7 +64,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         }
         else if(CwxMqPoco::MSG_TYPE_RECV_COMMIT == msg->event().getMsgHeader().getMsgType())
         {
-            if (CWX_MQ_SUCCESS != CwxMqPoco::parseCommit(pTss->m_pReader,
+            if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseCommit(pTss->m_pReader,
                 msg,
                 user,
                 passwd,
@@ -71,7 +72,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             {
                 //如果是无效数据，返回
                 CWX_DEBUG(("Failure to parse the commit msg, err=%s", pTss->m_szBuf2K));
-                iRet = CWX_MQ_INVALID_MSG;
+                iRet = CWX_MQ_ERR_INVALID_MSG;
                 break;
             }
             if (!*bAuth)
@@ -82,7 +83,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             }
             CwxMsgBlock* sndMsg = NULL;
             uiTaskId = m_pApp->getNextTaskId();
-            if (CWX_MQ_SUCCESS != (iRet = CwxMqPoco::packCommit(pTss->m_pWriter,
+            if (CWX_MQ_ERR_SUCCESS != (iRet = CwxMqPoco::packCommit(pTss->m_pWriter,
                 sndMsg,
                 uiTaskId,
                 m_pApp->getConfig().m_mq.getUser().c_str(),
@@ -104,7 +105,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         {
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u", msg->event().getMsgHeader().getMsgType());
             CWX_ERROR((pTss->m_szBuf2K));
-            iRet = CWX_MQ_INVALID_MSG_TYPE;
+            iRet = CWX_MQ_ERR_INVALID_MSG_TYPE;
             break;
         }
     }while(0);
@@ -112,7 +113,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     CwxMsgBlock* pBlock = NULL;
     if (CwxMqPoco::MSG_TYPE_RECV_COMMIT==msg->event().getMsgHeader().getMsgType())
     {
-        if (CWX_MQ_SUCCESS != CwxMqPoco::packCommitReply(pTss->m_pWriter,
+        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packCommitReply(pTss->m_pWriter,
             pBlock,
             msg->event().getMsgHeader().getTaskId(),
             iRet,
@@ -126,7 +127,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     }
     else
     {
-        if (CWX_MQ_SUCCESS != CwxMqPoco::packRecvDataReply(pTss->m_pWriter,
+        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packRecvDataReply(pTss->m_pWriter,
             pBlock,
             msg->event().getMsgHeader().getTaskId(),
             iRet,
@@ -220,5 +221,5 @@ CWX_UINT32 CwxMproxyRecvHandler::isAuth(CwxMqTss* pTss, CWX_UINT32 uiGroup, char
             }
         }
     }
-    return CWX_MQ_SUCCESS;
+    return CWX_MQ_ERR_SUCCESS;
 }

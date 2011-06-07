@@ -70,31 +70,36 @@ public:
     */
     virtual void onFailSendMsg(CwxMsgBlock*& msg);
 private:
-    ///0：成功；-1：失败
+    ///接收消息，0：成功；-1：失败
     int recvMessage(CwxMqTss* pTss);
-
-    CwxMsgBlock* packErrMsg(CwxMqTss* pTss,
-        int iRet,
-        char const* szErrMsg
+    ///pack一个不包含mq消息体的消息包。
+    CwxMsgBlock* packEmptyFetchMsg(CwxMqTss* pTss,
+        int iRet, ///<状态码
+        char const* szErrMsg ///<错误消息
         );
     ///发送消息，0：成功；-1：发送失败
-    int reply(CwxMqTss* pTss,
-        CwxMsgBlock* msg,
-        CwxMqQueue* pQueue,
-        int ret,
-        bool bClose=false);
-    //将一个发送失败的消息，还回消息队列
-    void back(CwxMqTss* pTss, CwxMsgBlock* msg);
+    int replyFetchMq(CwxMqTss* pTss,
+        CwxMsgBlock* msg,  ///<消息包
+        bool bBinlog = true, ///<msg是否为binlog，若是在失败时需要回收
+        bool bClose=false ///<是否发送完毕需要关闭连接
+        );
+    //将一个发送失败的消息，返还消息队列
+    void backMq(CwxMqTss* pTss);
     ///发送消息，0：没有消息发送；1：发送一个；-1：发送失败
-    int sentBinlog(CwxMqTss* pTss, CwxMqFetchConn * pConn);
-    ///解压发送失败的msg消息
-    bool unpackMsg(CwxMqTss* pTss, CwxMsgBlock* msg);
-
+    int sentBinlog(CwxMqTss* pTss);
+    ///fetch mq,返回值,0：成功；-1：失败
+    int fetchMq(CwxMqTss* pTss);
+    ///commit mq,返回值,0：成功；-1：失败
+    int fetchMqCommit(CwxMqTss* pTss);
+    ///create queue,返回值,0：成功；-1：失败
+    int createQueue(CwxMqTss* pTss);
+    ///del queue,返回值,0：成功；-1：失败
+    int delQueue(CwxMqTss* pTss);
 private:
-    CwxMqApp*     m_pApp;  ///<app对象
-    CwxMqFetchConn     m_conn; ///<mq fetch的连接
-    CwxMsgHead             m_header;
-    char                   m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN];
+    CwxMqApp*              m_pApp;  ///<app对象
+    CwxMqFetchConn         m_conn; ///<mq fetch的连接
+    CwxMsgHead             m_header; ///<消息头
+    char                   m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN]; ///<消息头的buf
     CWX_UINT32             m_uiRecvHeadLen; ///<recieved msg header's byte number.
     CWX_UINT32             m_uiRecvDataLen; ///<recieved data's byte number.
     CwxMsgBlock*           m_recvMsgData; ///<the recieved msg data
