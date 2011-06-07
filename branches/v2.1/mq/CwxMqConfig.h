@@ -26,10 +26,10 @@ public:
     {
         DEF_SOCK_BUF_KB = 64,
         MIN_SOCK_BUF_KB = 4,
-        MAX_SOCK_BUF_KB = 8192 * 1024,
+        MAX_SOCK_BUF_KB = 8 * 1024,
         DEF_CHUNK_SIZE_KB = 32,
         MIN_CHUNK_SIZE_KB = 4,
-        MAX_CHUNK_SIZE_KB = 8192 * 1024,
+        MAX_CHUNK_SIZE_KB = CWX_MQ_MAX_CHUNK_SIZE,
         DEF_WINDOW_NUM = 1,
         MIN_WINDOW_NUM = 1,
         MAX_WINDOW_NUM = 128
