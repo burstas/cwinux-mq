@@ -13,12 +13,16 @@ string g_subscribe;
 CWX_UINT64 g_sid = 0;
 CWX_UINT32 g_window = 1;
 CWX_UINT32 g_num = 1;
+string    g_sign;
+bool      g_zip = false;
+CWX_UINT32 g_chunk = 0;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:s:w:n:h");
+    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:s:w:n:S:zh");
     int option;
     cmd_option.long_option("sid", 'i', CwxGetOpt::ARG_REQUIRED);
+    cmd_option.long_option("chunk", 'C', CwxGetOpt::ARG_REQUIRED);
     while( (option = cmd_option.next()) != -1)
     {
         switch (option)
@@ -33,7 +37,10 @@ int parseArg(int argc, char**argv)
             printf("-s: dispatch's subscribe. default is *.\n");
             printf("-w: dispatch's window size, default is 1.\n");
             printf("-n: recieve message's number, default is 1.zero is all from the sid.\n");
+            printf("-z: zip compress sign. no compress by default\n");
+            printf("-S: signature type, %s or %s. no signature by default\n", CWX_MQ_MD5, CWX_MQ_CRC32);
             printf("--sid: start sid, zero for the current max sid.\n");
+            printf("--chunk: chunk size in kbyte. default is zero for no chunk.\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -91,6 +98,29 @@ int parseArg(int argc, char**argv)
                 return -1;
             }
             g_num = strtoul(cmd_option.opt_arg(),NULL,0);
+            break;
+        case 'C':
+            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
+            {
+                printf("-c requires an argument.\n");
+                return -1;
+            }
+            g_chunk = strtoul(cmd_option.opt_arg(),NULL,0);
+            break;
+        case 'z':
+            g_zip = true;
+            break;
+        case 'S':
+            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
+            {
+                printf("-s requires an argument.\n");
+                return -1;
+            }
+            g_sign = cmd_option.opt_arg();
+            if ((g_sign != CWX_MQ_CRC32) && (g_sign != CWX_MQ_MD5))
+            {
+                printf("signature must be %s or %s\n", CWX_MQ_MD5, CWX_MQ_CRC32);
+            }
             break;
         case 'i':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -170,13 +200,13 @@ int main(int argc ,char** argv)
             0,
             g_sid>0?g_sid-1:g_sid,
             g_sid==0?true:false,
-            0,
+            g_chunk * 1024,
             g_window,
             g_subscribe.c_str(),
             g_user.c_str(),
             g_passwd.c_str(),
-            NULL,
-            false,
+            g_sign.c_str(),
+            g_zip,
             szErr2K
             ))
         {
