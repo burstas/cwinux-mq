@@ -248,7 +248,7 @@ public:
     enum
     {
         MQ_SWITCH_LOG_NUM = 100000,
-        MQ_MAX_SWITCH_LOG_INTERNAL = 1800
+        MQ_MAX_SWITCH_LOG_INTERNAL = 600
     };
 public:
     CwxMqQueueMgr(string const& strQueueLogFile,
