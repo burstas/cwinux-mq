@@ -17,9 +17,8 @@ CWX_UINT32 g_num = 1;
 string    g_sign;
 bool      g_zip = false;
 CWX_UINT32 g_chunk = 0;
-CWX_UINT32 const CWX_TOOL_MAX_CHUNK_SIZE =10 * 1024 * 1024;
-unsigned char g_unzip[CWX_TOOL_MAX_CHUNK_SIZE * 4];
-CWX_UINT32 const g_unzip_buf_len = CWX_TOOL_MAX_CHUNK_SIZE * 4;
+unsigned char g_unzip[CWX_MQ_MAX_CHUNK_SIZE * 2];
+CWX_UINT32 const g_unzip_buf_len = CWX_MQ_MAX_CHUNK_SIZE * 2;
 unsigned long g_unzip_len = 0;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
