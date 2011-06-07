@@ -196,7 +196,7 @@ int CwxMqBinFetchHandler::fetchMq(CwxMqTss* pTss)
         ///如果解析失败，则进入错误消息处理
         if (CWX_MQ_ERR_SUCCESS != iRet) break; 
         ///如果当前mq的获取处于waiting状态或还没有多的确认，则直接忽略
-        if (m_conn.m_bWaiting || m_conn.m_ullSendSid) 
+        if (m_conn.m_bWaiting || !m_conn.m_bSent) 
         {
             return 0;
         }
