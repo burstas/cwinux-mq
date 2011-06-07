@@ -517,7 +517,7 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
     }
     if (zip)
     {
-        if (!writer->addKeyValue(CWX_MQ_ZIP,zip))
+        if (!writer->addKeyValue(CWX_MQ_ZIP,zip, false))
         {
             if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
             return CWX_MQ_ERR_INNER_ERR;
@@ -611,11 +611,11 @@ int CwxMqPoco::parseReportData(CwxPackageReader* reader,
     }
     else
     {
-        if (strcmp(pItem->m_szData, CWX_MQ_CRC32))
+        if (strcmp(pItem->m_szData, CWX_MQ_CRC32)==0)
         {
             sign = CWX_MQ_CRC32;
         }
-        else if (strcmp(pItem->m_szData, CWX_MQ_MD5))
+        else if (strcmp(pItem->m_szData, CWX_MQ_MD5)==0)
         {
             sign = CWX_MQ_MD5;
         }
@@ -625,7 +625,7 @@ int CwxMqPoco::parseReportData(CwxPackageReader* reader,
         }
 
     }
-    if (!reader->getKey(CWX_MQ_ZIP, zip))
+    if (!reader->getKey(CWX_MQ_ZIP, zip, false))
     {
         zip = false;
     }
@@ -1355,7 +1355,7 @@ int CwxMqPoco::parseFetchMqCommit(CwxPackageReader* reader,
         return CWX_MQ_ERR_INVALID_MSG;
     }
     //get SID
-    if (!reader->getKey(CWX_MQ_COMMIT, bCommit))
+    if (!reader->getKey(CWX_MQ_COMMIT, bCommit, false))
     {
         bCommit = true;
     }
@@ -1520,7 +1520,7 @@ int CwxMqPoco::parseCreateQueue(CwxPackageReader* reader,
     if (!reader->getKey(CWX_MQ_SID, ullSid))
         ullSid = 0;
     //get commit
-    if (!reader->getKey(CWX_MQ_COMMIT, bCommit))
+    if (!reader->getKey(CWX_MQ_COMMIT, bCommit, false))
         bCommit = false;
 
     uiDefTimeout = 0;
