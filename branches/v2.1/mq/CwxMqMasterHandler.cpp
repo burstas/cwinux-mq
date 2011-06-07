@@ -166,7 +166,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                     }
                 }
             }
-            for (i=0; i<m_reader.getKeyNum(); i++)
+            for (i=0; i<m_reader.getKeyNum()-1; i++)
             {
                 if(0 != strcmp(m_reader.getKey(i)->m_szKey, CWX_MQ_M))
                 {

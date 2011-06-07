@@ -4,6 +4,7 @@
 #include "CwxSockConnector.h"
 #include "CwxGetOpt.h"
 #include "CwxMqPoco.h"
+#include "CwxZlib.h"
 using namespace cwinux;
 string g_strHost;
 CWX_UINT16 g_unPort = 0;
@@ -16,6 +17,10 @@ CWX_UINT32 g_num = 1;
 string    g_sign;
 bool      g_zip = false;
 CWX_UINT32 g_chunk = 0;
+CWX_UINT32 const CWX_TOOL_MAX_CHUNK_SIZE =10 * 1024 * 1024;
+unsigned char g_unzip[CWX_TOOL_MAX_CHUNK_SIZE * 4];
+CWX_UINT32 const g_unzip_buf_len = CWX_TOOL_MAX_CHUNK_SIZE * 4;
+unsigned long g_unzip_len = 0;
 ///-1：失败；0：help；1：成功
 int parseArg(int argc, char**argv)
 {
@@ -106,6 +111,7 @@ int parseArg(int argc, char**argv)
                 return -1;
             }
             g_chunk = strtoul(cmd_option.opt_arg(),NULL,0);
+            if (g_chunk > CWX_TOOL_MAX_CHUNK_SIZE/1024) g_chunk = CWX_TOOL_MAX_CHUNK_SIZE * 1024;
             break;
         case 'z':
             g_zip = true;
@@ -162,6 +168,75 @@ int parseArg(int argc, char**argv)
     return 1;
 }
 
+
+static int output(CwxPackageReader& reader, char const* szMsg, CWX_UINT32 uiMsgLen)
+{
+    CWX_UINT64 ullSid = 0;
+    CWX_UINT32 num = 0;
+    CWX_UINT32 group = 0;
+    CWX_UINT32 type = 0;
+    CWX_UINT32 attr = 0;
+    CWX_UINT32 timestamp = 0;
+    CwxKeyValueItem const* item=NULL;
+    char szErr2K[2048];
+    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseSyncData(
+        &reader,
+        szMsg,
+        uiMsgLen,
+        ullSid,
+        timestamp,
+        item,
+        group,
+        type,
+        attr,
+        szErr2K))
+    {
+        printf("failure to unpack recieve msg, err=%s\n", szErr2K);
+        return -1;
+    }
+    printf("%s|%u|%u|%u|%u|%s\n",
+        CwxCommon::toString(ullSid, szErr2K, 10),
+        timestamp,
+        group,
+        type,
+        attr,
+        item->m_szData);
+    return 0;
+}
+
+static bool checkSign(char const* data,
+                                   CWX_UINT32 uiDateLen,
+                                   char const* szSign,
+                                   char const* sign)
+{
+    if (!sign) return true;
+    if (strcmp(sign, CWX_MQ_CRC32) == 0)//CRC32签名
+    {
+        CWX_UINT32 uiCrc32 = CwxCrc32::value(data, uiDateLen);
+        if (memcmp(&uiCrc32, szSign, sizeof(uiCrc32)) == 0) return true;
+        return false;
+    }
+    else if (strcmp(sign, CWX_MQ_MD5)==0)//md5签名
+    {
+        CwxMd5 md5;
+        unsigned char szMd5[16];
+        md5.update((const unsigned char*)data, uiDateLen);
+        md5.final(szMd5);
+        if (memcmp(szMd5, szSign, 16) == 0) return true;
+        return false;
+    }
+    return true;
+}
+
+static bool isFinish(CWX_UINT32 num)
+{
+    if (g_num)
+    {
+        return (num >= g_num);
+    }
+    return false;
+}
+
 int main(int argc ,char** argv)
 {
     int iRet = parseArg(argc, argv);
@@ -179,18 +254,13 @@ int main(int argc ,char** argv)
     }
     CwxPackageWriter writer;
     CwxPackageReader reader;
+    CwxPackageReader reader_chunk;
     CwxMsgHead head;
     CwxMsgBlock* block=NULL;
     char szErr2K[2048];
     char const* pErrMsg=NULL;
     CWX_UINT64 ullSid = 0;
     CWX_UINT32 num = 0;
-    CWX_UINT32 group = 0;
-    CWX_UINT32 type = 0;
-    CWX_UINT32 attr = 0;
-    CWX_UINT32 timestamp = 0;
-    CwxKeyValueItem const* item=NULL;
-
     CwxMqPoco::init();
     do 
     {
@@ -254,37 +324,84 @@ int main(int argc ,char** argv)
             }
             else if (CwxMqPoco::MSG_TYPE_SYNC_DATA == head.getMsgType())
             {
-                num++;
-                if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseSyncData(
-                    &reader,
-                    block,
-                    ullSid,
-                    timestamp,
-                    item,
-                    group,
-                    type,
-                    attr,
-                    szErr2K))
+                if (head.isAttr(CwxMsgHead::ATTR_COMPRESS))
                 {
-                    printf("failure to unpack recieve msg, err=%s\n", szErr2K);
-                    iRet = 1;
-                    break;
+                    g_unzip_len = g_unzip_buf_len;
+                    if (!CwxZlib::unzip(g_unzip, g_unzip_len, (unsigned char const*)block->rd_ptr(), block->length()))
+                    {
+                        printf("failure to unzip recieved msg.\n");
+                        iRet = 1;
+                        break;
+                    }
                 }
-                printf("%s|%u|%u|%u|%u|%s\n",
-                    CwxCommon::toString(ullSid, szErr2K, 10),
-                    timestamp,
-                    group,
-                    type,
-                    attr,
-                    item->m_szData);
-                if (g_num)
+                if (!g_chunk)
                 {
-                    if (num >= g_num)
+                    num++;
+                    if (0 != output(reader,
+                        head.isAttr(CwxMsgHead::ATTR_COMPRESS)?g_unzip:block->rd_ptr(),
+                        head.isAttr(CwxMsgHead::ATTR_COMPRESS)?g_unzip_len:block->length()))
+                    {
+                        iRet = 1;
+                        break;
+                    }
+                    if (isFinish(num))
                     {
                         iRet = 0;
                         break;
                     }
                 }
+                else
+                {
+                    if (0 != reader_chunk.unpack(head.isAttr(CwxMsgHead::ATTR_COMPRESS)?g_unzip:block->rd_ptr(),
+                        head.isAttr(CwxMsgHead::ATTR_COMPRESS)?g_unzip_len:block->length(),
+                        false,
+                        false))
+                    {
+                        printf("failure to unpack msg, err=%s\n", reader_chunk.getErrMsg());
+                        iRet = 1;
+                        break;
+                    }
+                    if (g_sign.length())
+                    {
+                        CwxKeyValueItem const* pItem = reader_chunk.getKey(g_sign.c_str());
+                        if (pItem)
+                        {//存在签名key
+                            if (!checkSign(reader_chunk.getMsg(),
+                                pItem->m_szKey - CwxPackage::getKeyOffset() - reader_chunk.getMsg(),
+                                pItem->m_szData,
+                                g_sign.c_str()))
+                            {
+                                printf("failure to check %s signature\n", g_sign.c_str());
+                                iRet = 1;
+                                break;
+                            }
+                        }
+                    }
+                    for (CWX_UINT16 i=0; i<reader_chunk.getKeyNum()-1; i++)
+                    {
+                        if(0 != strcmp(reader_chunk.getKey(i)->m_szKey, CWX_MQ_M))
+                        {
+                            printf("Master multi-binlog's key must be:%s, but:%s", CWX_MQ_M, reader_chunk.getKey(i)->m_szKey);
+                            iRet = 1;
+                            break;
+                        }
+                        num++;
+                        if (0 != output(reader,
+                            reader_chunk.getKey(i)->m_szData,
+                            reader_chunk.getKey(i)->m_uiDataLen))
+                        {
+                            iRet = 1;
+                            break;
+                        }
+                        if (isFinish(num))
+                        {
+                            iRet = 0;
+                            break;
+                        }
+                    }
+                }
+                if (1 == iRet) break;
+
                 CwxMsgBlockAlloc::free(block);
                 block = NULL;
                 if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(&writer,
