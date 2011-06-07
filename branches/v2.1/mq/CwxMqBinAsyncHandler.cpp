@@ -274,7 +274,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
     pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_ASYNC);
     pBlock->send_ctrl().setHostId(0);
     pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::CLOSE_NOTICE);
-    if (0 != this->putMsg(pBlock))
+    if (!this->putMsg(pBlock))
     {
         CWX_ERROR(("Failure to send msg to reciever, conn[%u]", getHandle()));
         CwxMsgBlockAlloc::free(pBlock);
