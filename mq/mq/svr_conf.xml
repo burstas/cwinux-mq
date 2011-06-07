@@ -21,6 +21,6 @@
     </slave>
     <mq>
         <listen keep_alive="yes" user="mq_admin" passwd="mq_admin_passwd"  ip="*" port="9906" unix="/usr/home/wenbo/cwinux_mq/svn/trunk/mq/mq/mq.sock"/>
-        <log    file="/data2/mq_data/data/binlog/mq_queue.log" fetch_num="50000" second ="10"/>
+        <log    file="/data2/mq_data/data/binlog/mq_queue.log" fetch_num="100" second ="10"/>
     </mq>
 </mq>
