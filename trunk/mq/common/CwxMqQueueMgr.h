@@ -236,7 +236,6 @@ private:
     map<CWX_UINT64, CwxMsgBlock*>    m_memMsgMap;///<发送失败消息队列
     CwxBinLogCursor*                 m_cursor; ///<队列的游标
     CwxMqSubscribe                   m_subscribe; ///<订阅
-
     CWX_UINT64                       m_ullLastCommitSid; ///<日志文件记录的cursor的sid
     set<CWX_UINT64>                  m_lastUncommitSid; ///<m_ullLastCommitSid之前未commit的binlog
     set<CWX_UINT64>                  m_lastCommitSid; ///<m_ullLastCommitSid之后commit的binlog
@@ -248,7 +247,8 @@ class CwxMqQueueMgr
 public:
     enum
     {
-        MQ_SWITCH_LOG_NUM = 100000
+        MQ_SWITCH_LOG_NUM = 100000,
+        MQ_MAX_SWITCH_LOG_INTERNAL = 1800
     };
 public:
     CwxMqQueueMgr(string const& strQueueLogFile,
@@ -350,6 +350,7 @@ private:
     CWX_UINT32                 m_uiMaxFsyncNum;
     CwxMqQueueLogFile*         m_mqLogFile;
     CwxBinLogMgr*              m_binLog;
+    CWX_UINT32                 m_uiLastSaveTime; ///<上一次log文件的保存时间
     string                     m_strErrMsg;
 };
 

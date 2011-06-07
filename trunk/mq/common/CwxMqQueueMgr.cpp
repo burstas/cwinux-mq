@@ -560,6 +560,7 @@ CwxMqQueueMgr::~CwxMqQueueMgr()
 int CwxMqQueueMgr::init(CwxBinLogMgr* binLog)
 {
     CwxMqQueue* mq = NULL;
+    m_uiLastSaveTime = time(NULL);
     if (m_mqLogFile) delete m_mqLogFile;
     m_binLog = binLog;
     m_mqLogFile = new CwxMqQueueLogFile(m_uiMaxFsyncNum, m_strQueueLogFile);
@@ -766,6 +767,14 @@ void CwxMqQueueMgr::checkTimeout(CWX_UINT32 ttTimestamp)
         if (iter->second->isCommit()) iter->second->checkTimeout(ttTimestamp);
         iter++;
     }
+    if (ttTimestamp > m_uiLastSaveTime  + MQ_MAX_SWITCH_LOG_INTERNAL)
+    {
+        if (!_save())
+        {
+            delete m_mqLogFile;
+            m_mqLogFile = NULL;
+        }
+    }
 }
 
 ///1£º³É¹¦
@@ -940,6 +949,7 @@ bool CwxMqQueueMgr::_save()
             delete iter_sid->second;
             iter_sid ++;
         }
+        m_uiLastSaveTime = time(NULL);
         return true;
     }
     return false;
