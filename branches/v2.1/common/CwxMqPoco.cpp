@@ -753,13 +753,13 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
     }
     CwxMsgHead head(0, 0, MSG_TYPE_SYNC_DATA, uiTaskId, writer->getMsgSize());
 
-    msg = CwxMsgBlockAlloc::malloc(CwxMsgHead::MSG_HEAD_LEN + writer->getMsgSize());
+    msg = CwxMsgBlockAlloc::malloc(CwxMsgHead::MSG_HEAD_LEN + writer->getMsgSize() + CWX_MQ_ZIP_EXTRA_BUF);
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
         return CWX_MQ_ERR_INNER_ERR;
     }
-    unsigned long ulDestLen = writer->getMsgSize();
+    unsigned long ulDestLen = writer->getMsgSize() + CWX_MQ_ZIP_EXTRA_BUF;
     if (zip)
     {
         if (!CwxZlib::zip((unsigned char*)msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN, ulDestLen, (unsigned char const*)writer->getMsg(), writer->getMsgSize()))
@@ -863,13 +863,13 @@ int CwxMqPoco::packMultiSyncData(
 {
     CwxMsgHead head(0, 0, MSG_TYPE_SYNC_DATA, uiTaskId, uiDataLen);
 
-    msg = CwxMsgBlockAlloc::malloc(CwxMsgHead::MSG_HEAD_LEN + uiDataLen);
+    msg = CwxMsgBlockAlloc::malloc(CwxMsgHead::MSG_HEAD_LEN + uiDataLen + CWX_MQ_ZIP_EXTRA_BUF);
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", uiDataLen);
         return CWX_MQ_ERR_INNER_ERR;
     }
-    unsigned long ulDestLen = uiDataLen;
+    unsigned long ulDestLen = uiDataLen + CWX_MQ_ZIP_EXTRA_BUF;
     if (zip)
     {
         if (!CwxZlib::zip((unsigned char*)(msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN), ulDestLen, (unsigned char const*)szData, uiDataLen))

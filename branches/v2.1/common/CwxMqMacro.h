@@ -104,4 +104,6 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_MAX_MSG_SIZE           10 * 1024 * 1024 ///<最大的消息大小
 #define CWX_MQ_MAX_CHUNK_KSIZE         20 * 1024 ///<最大的chunk size
 
+#define CWX_MQ_ZIP_EXTRA_BUF           128
+
 #endif
