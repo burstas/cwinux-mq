@@ -502,6 +502,9 @@ void CwxMqQueue::getQueueDumpInfo(CWX_UINT64& ullLastCommitSid,
             iter = m_lastCommitSid.begin();
         }
         ullLastCommitSid = m_cursor->getHeader().getSid();
+        ///如果当前cursor没有移到m_ullLastCommitSid的位置，
+        ///依然采用m_ullLastCommitSid为cursor的位置。
+        if (ullLastCommitSid < m_ullLastCommitSid) ullLastCommitSid = m_ullLastCommitSid;
     }
     else
     {
