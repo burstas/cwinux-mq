@@ -681,7 +681,7 @@ int CwxMqApp::startNetwork()
 
 int CwxMqApp::commit_mq()
 {
-    if (getMqLastCommitTime() + m_config.getMq()->m_uiFlushSecond < (CWX_UINT32)time(NULL))
+    if (getMqLastCommitTime() + m_config.getMq().m_uiFlushSecond < (CWX_UINT32)time(NULL))
     {
         CWX_INFO(("Begin flush mq queue log file......."));
         getQueueMgr()->commit();
