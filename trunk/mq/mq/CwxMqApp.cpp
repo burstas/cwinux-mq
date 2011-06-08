@@ -215,7 +215,7 @@ void CwxMqApp::onTime(CwxTimeValue const& current)
         m_pRecvThreadPool->append(pBlock);
     }
     if (m_queueMgr &&
-        (uiNow >= ttMqLogLastTime + m_config.getMq().m_uiFlushSecond))
+        (uiNow >= ttMqLogLastTime + 1))
     {
         ttMqLogLastTime = uiNow;
         CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
@@ -681,9 +681,13 @@ int CwxMqApp::startNetwork()
 
 int CwxMqApp::commit_mq()
 {
-    CWX_INFO(("Begin flush mq queue log file......."));
-    getQueueMgr()->commit();
-    setMqLastCommitTime(time(NULL));
+    if (getMqLastCommitTime() + m_config.getMq()->m_uiFlushSecond < (CWX_UINT32)time(NULL))
+    {
+        CWX_INFO(("Begin flush mq queue log file......."));
+        getQueueMgr()->commit();
+        setMqLastCommitTime(time(NULL));
+        CWX_INFO(("End flush mq queue log file......."));
+    }
     return 0;
 }
 
@@ -1002,6 +1006,7 @@ int CwxMqApp::MqThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* 
             {
                 CWX_ASSERT(block->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
                 CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_FETCH);
+                app->getQueueMgr->checkTimeout(time(NULL));
                 app->commit_mq();
             }
         } while(0);
