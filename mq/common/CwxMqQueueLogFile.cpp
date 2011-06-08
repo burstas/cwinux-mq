@@ -46,9 +46,10 @@ int CwxMqQueueLogFile::init(map<string, CwxMqQueueInfo>& queues,
         iter++;
     }
     commitSets.clear();
+    //加载数据
     if (0 != load(queues, uncommitSets, commitSets))
     {
-        //清空数据
+        //若失败，清空数据
         queues.clear();
         map<string, set<CWX_UINT64>*>::iterator iter = uncommitSets.begin();
         while(iter != uncommitSets.end())
