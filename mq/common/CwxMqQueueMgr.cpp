@@ -282,6 +282,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
     if (!m_cursor)
     {
         CWX_UINT64 ullStartSid = getStartSid();
+        //
         if (ullStartSid < m_binLog->getMaxSid())
         {
             m_cursor = m_binLog->createCurser();
@@ -455,9 +456,9 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
 
 CWX_UINT64 CwxMqQueue::getMqNum()
 {
-    CWX_UINT64 ullStartSid = getStartSid();
     if (!m_cursor)
     {
+        CWX_UINT64 ullStartSid = getStartSid();
         if (ullStartSid < m_binLog->getMaxSid())
         {
             m_cursor = m_binLog->createCurser();
