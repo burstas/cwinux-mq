@@ -195,16 +195,22 @@ public:
     }
     inline CWX_UINT64 getCursorSid() const
     {
+        ///如果cursor有效，则返回cursor的sid
         if (m_cursor && (CwxBinLogMgr::CURSOR_STATE_READY == m_cursor->getSeekState()))
             return m_cursor->getHeader().getSid();
+        ///否则返回初始sid。
         return getStartSid();
     }
     ///获取cursor的起始sid
     inline CWX_UINT64 getStartSid() const
     {
+        CWX_UINT64 ullSid = 0;
+        //如果存在历史未commit的数据，则从历史未commit的数据中获取最小的sid
         if (m_lastUncommitSid.size())
         {
-           return *m_lastUncommitSid.begin() - 1;
+           ullSid =  *m_lastUncommitSid.begin() - 1;
+           if (ullSid > m_ullLastCommitSid) ullSid = m_ullLastCommitSid;
+           return ullSid;
         }
         return m_ullLastCommitSid;
     }
