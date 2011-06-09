@@ -240,8 +240,8 @@ private:
     CWX_UINT32                       m_uiMaxTimeout; ///<最大的timeout值
     string                           m_strSubScribe; ///<订阅规则
     CwxBinLogMgr*                    m_binLog; ///<binlog
-    CwxMinHeap<CwxMqQueueHeapItem>*  m_pUncommitMsg; ///<commit队列中未commit的消息
-    CwxMinHeap<CwxMqQueueHeapItem>*  m_pDelayMsg; ///<commit队列中delay的消息
+    CwxMinHeap<CwxMqQueueHeapItem>*  m_pUncommitMsg; ///<commit队列中未commit的消息，消息同时在m_uncommitMap中存在
+    CwxMinHeap<CwxMqQueueHeapItem>*  m_pDelayMsg; ///<commit队列中delay的消息,delay的消息不会在m_uncommitMap中存在
     map<CWX_UINT64, void*>           m_uncommitMap; ///<commit队列中未commit的消息sid索引
     map<CWX_UINT64, CwxMsgBlock*>    m_memMsgMap;///<发送失败消息队列
     CwxBinLogCursor*                 m_cursor; ///<队列的游标
