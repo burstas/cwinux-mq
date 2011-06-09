@@ -125,7 +125,9 @@ public:
 
     ///用于commit类型的队列，提交commit消息。
     ///返回值：0：不存在，1：成功.
-    int commitBinlog(CWX_UINT64 ullSid, bool bCommit=true);
+    int commitBinlog(CWX_UINT64 ullSid,
+        bool bCommit=true,
+        CWX_UINT32 uiDeley=0);
     ///消息发送完毕，bSend=true表示已经发送成功；false表示发送失败
     ///返回值：0：不存在，1：成功.
     int endSendMsg(CWX_UINT64 ullSid, bool bSend=true);
@@ -239,6 +241,7 @@ private:
     string                           m_strSubScribe; ///<订阅规则
     CwxBinLogMgr*                    m_binLog; ///<binlog
     CwxMinHeap<CwxMqQueueHeapItem>*  m_pUncommitMsg; ///<commit队列中未commit的消息
+    CwxMinHeap<CwxMqQueueHeapItem>*  m_pDelayMsg; ///<commit队列中delay的消息
     map<CWX_UINT64, void*>           m_uncommitMap; ///<commit队列中未commit的消息sid索引
     map<CWX_UINT64, CwxMsgBlock*>    m_memMsgMap;///<发送失败消息队列
     CwxBinLogCursor*                 m_cursor; ///<队列的游标
@@ -283,6 +286,7 @@ public:
     int commitBinlog(string const& strQueue,
         CWX_UINT64 ullSid,
         bool bCommit=true,
+        CWX_UINT32 uiDeley=0, ///<若bCommit=false，则可设置消息多少秒后可被在此获取
         char* szErr2K=NULL);
     ///消息发送完毕，bSend=true表示已经发送成功；false表示发送失败
     ///返回值：0：不存在，1：成功，-1：失败，-2：队列不存在

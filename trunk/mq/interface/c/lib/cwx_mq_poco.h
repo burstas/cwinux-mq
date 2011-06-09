@@ -82,6 +82,7 @@ extern "C" {
 #define CWX_MQ_KEY_COMMIT "commit"
 #define CWX_MQ_KEY_UNCOMMIT "uncommit"
 #define CWX_MQ_KEY_ZIP     "zip"
+#define CWX_MQ_KEY_DELAY   "delay"
 
 
 ///协议错误代码定义
@@ -129,6 +130,7 @@ extern "C" {
 *@param [in] user 接收mq的user，若为空，则表示没有用户。
 *@param [in] passwd 接收mq的passwd，若为空，则表示没有口令。
 *@param [in] sign  接收的mq的签名类型，若为空，则表示不签名。
+*@param [in] zip  是否对数据压缩，1：压缩；0：不压缩。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -143,6 +145,7 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
         char const* user,
         char const* passwd,
         char const* sign,
+        int         zip,
         char* szErr2K
         );
 /**
@@ -574,6 +577,7 @@ int cwx_mq_parse_fetch_mq_reply(struct CWX_PG_READER* reader,
 *@param [out] buf 输出形成的数据包。
 *@param [in out] buf_len 传入buf的空间大小，返回形成的数据包的大小。
 *@param [in] commit 是否commit。1：commit；0：取消commit
+*@param [in] delay uncommit是，delay的秒数。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -581,6 +585,7 @@ int cwx_mq_pack_fetch_mq_commit(struct CWX_PG_WRITER * writer,
         char* buf,
         CWX_UINT32* buf_len,
         int commit,
+        CWX_UINT32 delay,
         char* szErr2K);
 
 /**
@@ -588,7 +593,8 @@ int cwx_mq_pack_fetch_mq_commit(struct CWX_PG_WRITER * writer,
 *@param [in] reader package的reader。
 *@param [in] msg 接收到的mq消息，不包括msg header。
 *@param [in] msg_len msg的长度。
-*@param [in] commit 是否commit。1：commit；0：取消commit
+*@param [out] commit 是否commit。1：commit；0：取消commit
+*@param [out] delay uncommit是，delay的秒数。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -596,6 +602,7 @@ int cwx_mq_parse_fetch_mq_commit(struct CWX_PG_READER* reader,
                                  char const* msg,
                                  CWX_UINT32 msg_len,
                                  int*  commit,
+                                 CWX_UINT32* delay,
                                  char* szErr2K);
 
 /**

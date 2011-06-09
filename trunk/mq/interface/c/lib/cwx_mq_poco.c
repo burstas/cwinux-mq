@@ -39,6 +39,7 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
                    char const* user,
                    char const* passwd,
                    char const* sign,
+                   int zip,
                    char* szErr2K
                    )
 {
@@ -102,6 +103,26 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
                 return CWX_MQ_ERR_INNER_ERR;
             }
         }
+    }
+    if (zip)
+    {
+        unsigned long ulDstLen = *buf_len - CWX_MSG_HEAD_LEN;
+        if (Z_OK == compress2((unsigned char*)buf + CWX_MSG_HEAD_LEN,
+            &ulDstLen,
+            (const unsigned char*)cwx_pg_writer_get_msg(writer),
+            cwx_pg_writer_get_msg_size(writer),
+            Z_DEFAULT_COMPRESSION))
+        {
+            CWX_MSG_HEADER_S head;
+            head.m_ucVersion = 0;
+            head.m_ucAttr = CWX_MSG_ATTR_COMPRESS;
+            head.m_uiTaskId =uiTaskId;
+            head.m_unMsgType = CWX_MQ_MSG_TYPE_MQ;
+            head.m_uiDataLen = ulDstLen;
+            cwx_msg_pack_head(&head, buf);
+        }
+        *buf_len = CWX_MSG_HEAD_LEN + ulDstLen;
+        return CWX_MQ_ERR_SUCCESS;
     }
 
     if (0 != cwx_mq_pack_msg(CWX_MQ_MSG_TYPE_MQ,
@@ -1249,6 +1270,7 @@ int cwx_mq_pack_fetch_mq_commit(struct CWX_PG_WRITER * writer,
         char* buf,
         CWX_UINT32* buf_len,
         int commit,
+        CWX_UINT32 delay,
         char* szErr2K)
 {
     cwx_pg_writer_begin_pack(writer);
@@ -1257,6 +1279,12 @@ int cwx_mq_pack_fetch_mq_commit(struct CWX_PG_WRITER * writer,
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
         return CWX_MQ_ERR_INNER_ERR;
     }
+    if (0 != cwx_pg_writer_add_key_uint32(writer,CWX_MQ_KEY_DELAY, delay))
+    {
+        if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
+        return CWX_MQ_ERR_INNER_ERR;
+    }
+
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
@@ -1282,6 +1310,7 @@ int cwx_mq_parse_fetch_mq_commit(struct CWX_PG_READER* reader,
                                  char const* msg,
                                  CWX_UINT32 msg_len,
                                  int*  commit,
+                                 CWX_UINT32* delay,
                                  char* szErr2K)
 {
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
@@ -1293,6 +1322,11 @@ int cwx_mq_parse_fetch_mq_commit(struct CWX_PG_READER* reader,
     if (0 == cwx_pg_reader_get_int32(reader, CWX_MQ_KEY_COMMIT, commit, 0))
     {
         *commit = 0;
+    }
+    //get delay
+    if (0 == cwx_pg_reader_get_uint32(reader, CWX_MQ_KEY_DELAY, delay, 0))
+    {
+        *delay = 0;
     }
     return CWX_MQ_ERR_SUCCESS;
 }

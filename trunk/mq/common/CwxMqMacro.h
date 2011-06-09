@@ -51,7 +51,7 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_MAX_TIMEOUT "max_timeout"
 #define CWX_MQ_UNCOMMIT "uncommit"
 #define CWX_MQ_ZIP     "zip"
-
+#define CWX_MQ_DELAY   "delay"
 ///错误代码定义
 #define CWX_MQ_ERR_SUCCESS          0  ///<成功
 #define CWX_MQ_ERR_NO_MSG           1   ///<没有数据
@@ -93,7 +93,7 @@ CWINUX_USING_NAMESPACE
 
 
 #define CWX_MQ_MIN_TIMEOUT_SECOND     1 ///<最小的超时秒数
-#define CWX_MQ_MAX_TIMEOUT_SECOND     300 ///<最大的超时秒数
+#define CWX_MQ_MAX_TIMEOUT_SECOND     1800 ///<最大的超时秒数
 #define CWX_MQ_DEF_TIMEOUT_SECOND     5  ///<缺省的超时秒数
 
 #define CWX_MQ_MAX_QUEUE_NAME_LEN        64 ///<最大队列名长度

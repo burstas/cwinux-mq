@@ -31,6 +31,7 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
                         char const* user,
                         char const* passwd,
                         char const* sign,
+                        bool        zip,
                         char* szErr2K
                         )
 {
@@ -95,11 +96,32 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
         return CWX_MQ_ERR_INNER_ERR;
     }
     CwxMsgHead head(0, 0, MSG_TYPE_RECV_DATA, uiTaskId, writer->getMsgSize());
-    msg = CwxMsgBlockAlloc::pack(head, writer->getMsg(), writer->getMsgSize());
+    msg = CwxMsgBlockAlloc::malloc(CwxMsgHead::MSG_HEAD_LEN + writer->getMsgSize() + CWX_MQ_ZIP_EXTRA_BUF);
     if (!msg)
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
         return CWX_MQ_ERR_INNER_ERR;
+    }
+    unsigned long ulDestLen = writer->getMsgSize() + CWX_MQ_ZIP_EXTRA_BUF;
+    if (zip)
+    {
+        if (!CwxZlib::zip((unsigned char*)msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN, ulDestLen, (unsigned char const*)writer->getMsg(), writer->getMsgSize()))
+        {
+            zip = false;
+        }
+    }
+    if (zip)
+    {
+        head.addAttr(CwxMsgHead::ATTR_COMPRESS);
+        head.setDataLen(ulDestLen);
+        memcpy(msg->wr_ptr(), head.toNet(), CwxMsgHead::MSG_HEAD_LEN);
+        msg->wr_ptr(CwxMsgHead::MSG_HEAD_LEN + ulDestLen);
+    }
+    else
+    {
+        memcpy(msg->wr_ptr(), head.toNet(), CwxMsgHead::MSG_HEAD_LEN);
+        memcpy(msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN, writer->getMsg(), writer->getMsgSize());
+        msg->wr_ptr(CwxMsgHead::MSG_HEAD_LEN + writer->getMsgSize());        
     }
     return CWX_MQ_ERR_SUCCESS;
 }
@@ -115,6 +137,30 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
                          char const*& user,
                          char const*& passwd,
                          char* szErr2K)
+{
+    return parseRecvData(reader,
+        msg->rd_ptr(),
+        msg->length(),
+        data,
+        group,
+        type,
+        attr,
+        user,
+        passwd,
+        szErr2K);
+}
+
+///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
+int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
+        char const* msg,
+        CWX_UINT32  msg_len,
+        CwxKeyValueItem const*& data,
+        CWX_UINT32& group,
+        CWX_UINT32& type,
+        CWX_UINT32& attr,
+        char const*& user,
+        char const*& passwd,
+        char* szErr2K)
 {
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
     {
@@ -213,6 +259,8 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
     }
     return CWX_MQ_ERR_SUCCESS;
 }
+
+
 
 
 
@@ -1320,10 +1368,16 @@ int CwxMqPoco::parseFetchMqReply(CwxPackageReader* reader,
 int CwxMqPoco::packFetchMqCommit(CwxPackageWriter* writer,
                              CwxMsgBlock*& msg,
                              bool bCommit,
+                             CWX_UINT32 uiDelay,
                              char* szErr2K)
 {
     writer->beginPack();
     if (!writer->addKeyValue(CWX_MQ_COMMIT, bCommit))
+    {
+        if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
+        return CWX_MQ_ERR_INNER_ERR;
+    }
+    if (!writer->addKeyValue(CWX_MQ_DELAY, uiDelay))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_ERR_INNER_ERR;
@@ -1347,6 +1401,7 @@ int CwxMqPoco::packFetchMqCommit(CwxPackageWriter* writer,
 int CwxMqPoco::parseFetchMqCommit(CwxPackageReader* reader,
                               CwxMsgBlock const* msg,
                               bool& bCommit,
+                              CWX_UINT32& uiDelay,
                               char* szErr2K)
 {
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
@@ -1358,6 +1413,11 @@ int CwxMqPoco::parseFetchMqCommit(CwxPackageReader* reader,
     if (!reader->getKey(CWX_MQ_COMMIT, bCommit, false))
     {
         bCommit = true;
+    }
+    //get delay
+    if (!reader->getKey(CWX_MQ_DELAY, uiDelay, false))
+    {
+        uiDelay = 0;
     }
     return CWX_MQ_ERR_SUCCESS;
 }

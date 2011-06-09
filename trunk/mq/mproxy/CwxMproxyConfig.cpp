@@ -155,6 +155,18 @@ int CwxMproxyConfig::loadConfig(string const & strConfFile)
             CWX_MQ_CRC32);
         return -1;
     }
+    //load mproxy:mq:mq:zip
+    if ((NULL == (pValue=parser.getElementAttr("mproxy:mq:mq", "zip"))) || !pValue[0])
+    {
+        m_bzip = false;
+    }
+    else
+    {
+        if (strcmp("yes", pValue) == 0)
+            m_bzip = true;
+        else
+            m_bzip = false;
+    }
     return 0;
 }
 

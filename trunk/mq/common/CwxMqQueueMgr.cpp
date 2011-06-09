@@ -166,7 +166,9 @@ int CwxMqQueue::getNextBinlog(CwxMqTss* pTss,
 
 ///用于commit类型的队列，提交commit消息。
 ///返回值：0：不存在，1：成功.
-int CwxMqQueue::commitBinlog(CWX_UINT64 ullSid, bool bCommit)
+int CwxMqQueue::commitBinlog(CWX_UINT64 ullSid,
+                             bool bCommit,
+                             CWX_UINT32 uiDeley)
 {
     if (!m_bCommit) return 0;
     map<CWX_UINT64, void*>::iterator iter=m_uncommitMap.find(ullSid);
@@ -672,6 +674,7 @@ int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss,
 int CwxMqQueueMgr::commitBinlog(string const& strQueue,
                  CWX_UINT64 ullSid,
                  bool bCommit,
+                 CWX_UINT32 uiDeley,
                  char* szErr2K)
 {
     if (m_mqLogFile)
@@ -679,7 +682,7 @@ int CwxMqQueueMgr::commitBinlog(string const& strQueue,
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
         map<string, CwxMqQueue*>::iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return -2;
-        int ret = iter->second->commitBinlog(ullSid, bCommit);
+        int ret = iter->second->commitBinlog(ullSid, bCommit, uiDeley>CWX_MQ_MAX_TIMEOUT_SECOND?CWX_MQ_MAX_TIMEOUT_SECOND:uuiDeley);
         if (0 == ret) return 0;
         if (1 == ret)
         {
