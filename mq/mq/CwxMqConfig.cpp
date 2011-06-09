@@ -210,7 +210,7 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
         }
         else
         {
-            if (strcmp("true", pValue) == 0)
+            if (strcmp("yes", pValue) == 0)
                 m_slave.m_bzip = true;
             else
                 m_slave.m_bzip = false;
