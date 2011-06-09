@@ -162,7 +162,7 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
         char const*& passwd,
         char* szErr2K)
 {
-    if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
+    if (!reader->unpack(msg, msg_len, false, true))
     {
         if (szErr2K) strcpy(szErr2K, reader->getErrMsg());
         return CWX_MQ_ERR_INVALID_MSG;
@@ -226,7 +226,7 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
     {
         CWX_UINT32 uiOrgCrc32 = 0;
         memcpy(&uiOrgCrc32, pItem->m_szData, sizeof(uiOrgCrc32));
-        CWX_UINT32 uiCrc32 = CwxCrc32::value(msg->rd_ptr(), pItem->m_szKey - msg->rd_ptr() - CwxPackage::getKeyOffset());
+        CWX_UINT32 uiCrc32 = CwxCrc32::value(msg, pItem->m_szKey - msg - CwxPackage::getKeyOffset());
         if (uiCrc32 != uiOrgCrc32)
         {
             if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "CRC32 signture error. recv signture:%x, local signture:%x", uiOrgCrc32, uiCrc32);
@@ -238,7 +238,7 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
     {
         unsigned char szMd5[16];
         CwxMd5 md5;
-        md5.update((unsigned char*)msg->rd_ptr(), pItem->m_szKey - msg->rd_ptr() - CwxPackage::getKeyOffset());
+        md5.update((unsigned char*)msg, pItem->m_szKey - msg - CwxPackage::getKeyOffset());
         md5.final(szMd5);
         if (memcmp(szMd5, pItem->m_szData, 16) != 0)
         {
