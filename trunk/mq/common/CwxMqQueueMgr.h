@@ -208,7 +208,8 @@ public:
         //如果存在历史未commit的数据，则从历史未commit的数据中获取最小的sid
         if (m_lastUncommitSid.size())
         {
-           ullSid =  *m_lastUncommitSid.begin() - 1;
+           ullSid =  *m_lastUncommitSid.begin();
+           if (ullSid) ullSid --;
            if (ullSid > m_ullLastCommitSid) ullSid = m_ullLastCommitSid;
            return ullSid;
         }
