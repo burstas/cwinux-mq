@@ -683,6 +683,7 @@ int CwxMqQueueMgr::commitBinlog(string const& strQueue,
         if (0 == ret) return 0;
         if (1 == ret)
         {
+            if (!bCommit) return 1; ///如果不是commit，直接返回1而不记录commit记录。
             int num = m_mqLogFile->log(iter->second->getName().c_str(), ullSid);
             if (-1 == num)
             {

@@ -675,7 +675,7 @@ void CwxMqBinFetchHandler::backMq(CwxMqTss* pTss)
                 pTss->m_szBuf2K);
         }
         else
-        {//此时一定不是非commit队列
+        {//此时一定是commit队列
             CWX_ASSERT(m_conn.m_bCommit);
             iRet = m_pApp->getQueueMgr()->commitBinlog(m_conn.m_strQueueName,
                  m_conn.m_ullSendSid,
@@ -754,12 +754,12 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss)
     }
     else if (1 == iState)
     {///获取了一个消息
+        m_conn.m_ullSendSid = pBlock->event().m_ullArg;
+        m_conn.m_bSent = false;
         if (0 != replyFetchMq(pTss, pBlock, true, false))
         {
             return -1;
         }
-        m_conn.m_ullSendSid = pBlock->event().m_ullArg;
-        m_conn.m_bSent = false;
         return 1;
     }
     else if (2 == iState)
