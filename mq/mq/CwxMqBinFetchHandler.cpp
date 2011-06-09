@@ -321,13 +321,14 @@ int CwxMqBinFetchHandler::fetchMqCommit(CwxMqTss* pTss)
             break;
         }
 
-        //清空m_ullSendSid
-        m_conn.m_ullSendSid = 0;
 
         iRet = m_pApp->getQueueMgr()->commitBinlog(m_conn.m_strQueueName,
             m_conn.m_ullSendSid,
             bCommit,
             pTss->m_szBuf2K);
+
+        //清空m_ullSendSid
+        m_conn.m_ullSendSid = 0;
         if (0 == iRet)
         {//消息不存在，此时消息已经超时
             iRet = CWX_MQ_ERR_TIMEOUT;
