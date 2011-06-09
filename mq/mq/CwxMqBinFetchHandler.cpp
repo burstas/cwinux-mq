@@ -238,6 +238,7 @@ int CwxMqBinFetchHandler::fetchMq(CwxMqTss* pTss)
             iRet = m_pApp->getQueueMgr()->commitBinlog(m_conn.m_strQueueName,
                 m_conn.m_ullSendSid,
                 true,
+                0,
                 pTss->m_szBuf2K);
             if (0 == iRet)
             {//消息不存在，此时消息已经超时
@@ -683,6 +684,7 @@ void CwxMqBinFetchHandler::backMq(CwxMqTss* pTss)
             iRet = m_pApp->getQueueMgr()->commitBinlog(m_conn.m_strQueueName,
                  m_conn.m_ullSendSid,
                  false,
+                 0,
                  pTss->m_szBuf2K);
         }
         if (1 != iRet)
