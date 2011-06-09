@@ -1,5 +1,6 @@
 #include "CwxMqBinRecvHandler.h"
 #include "CwxMqApp.h"
+#include "CwxZlib.h"
 
 ///连接建立后，需要维护连接上数据的分发
 int CwxMqBinRecvHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* )
