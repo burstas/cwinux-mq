@@ -740,7 +740,7 @@ int CwxMqQueueMgr::commitBinlog(string const& strQueue,
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
         map<string, CwxMqQueue*>::iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return -2;
-        int ret = iter->second->commitBinlog(ullSid, bCommit, uiDeley>CWX_MQ_MAX_TIMEOUT_SECOND?CWX_MQ_MAX_TIMEOUT_SECOND:uuiDeley);
+        int ret = iter->second->commitBinlog(ullSid, bCommit, uiDeley>CWX_MQ_MAX_TIMEOUT_SECOND?CWX_MQ_MAX_TIMEOUT_SECOND:uiDeley);
         if (0 == ret) return 0;
         if (1 == ret)
         {
