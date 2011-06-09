@@ -1,7 +1,7 @@
 #include "CwxMproxyRecvHandler.h"
 #include "CwxMproxyApp.h"
 #include "CwxMqPoco.h"
-
+#include "CwxZlib.h"
 ///echo请求的处理函数
 int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
