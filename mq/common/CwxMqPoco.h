@@ -172,6 +172,7 @@ public:
         char const* user=NULL,
         char const* passwd=NULL,
         char const* sign=NULL,
+        bool        zip=false,
         char* szErr2K=NULL
         );
 
@@ -186,6 +187,17 @@ public:
         char const*& passwd,
         char* szErr2K=NULL);
 
+    ///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
+    static int parseRecvData(CwxPackageReader* reader,
+        char const* msg,
+        CWX_UINT32  msg_len,
+        CwxKeyValueItem const*& data,
+        CWX_UINT32& group,
+        CWX_UINT32& type,
+        CWX_UINT32& attr,
+        char const*& user,
+        char const*& passwd,
+        char* szErr2K=NULL);
 
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int packRecvDataReply(CwxPackageWriter* writer,
@@ -393,11 +405,13 @@ public:
     static int packFetchMqCommit(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         bool bCommit,
+        CWX_UINT32 uiDelay,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseFetchMqCommit(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         bool& bCommit,
+        CWX_UINT32& uiDelay,
         char* szErr2K=NULL);
 
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败

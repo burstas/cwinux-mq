@@ -261,6 +261,7 @@ int main(int argc ,char** argv)
                 &writer,
                 block,
                 true,
+                0,
                 szErr2K))
             {
                 printf("failure to pack commit message package, err=%s\n", szErr2K);

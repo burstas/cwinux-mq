@@ -19,6 +19,6 @@
         </deny>
     </recv>
     <mq>
-        <mq keep_alive="no" ip="172.16.42.65" port="9901" user="recv" passwd="recv_passwd" sign=""/>
+        <mq keep_alive="no" ip="172.16.42.65" port="9901" user="recv" passwd="recv_passwd" sign="" zip="no"/>
     </mq>
 </mproxy>

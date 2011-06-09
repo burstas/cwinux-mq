@@ -20,10 +20,13 @@ public:
     ///构造函数
     CwxMproxyRecvHandler(CwxMproxyApp* pApp):m_pApp(pApp)
     {
+        m_unzipBuf = NULL;
+        m_uiBufLen = 0;
     }
     ///析构函数
     virtual ~CwxMproxyRecvHandler()
     {
+        if (m_unzipBuf) delete [] m_unzipBuf;
     }
 public:
     ///处理mq消息的函数
@@ -38,8 +41,12 @@ public:
 
 private:
     CWX_UINT32 isAuth(CwxMqTss* pTss, CWX_UINT32 uiGroup, char const* szUser, char const* szPasswd);
+    //获取unzip的buf
+    bool prepareUnzipBuf();
 private:
     CwxMproxyApp*     m_pApp;  ///<app对象
+    unsigned char*          m_unzipBuf; ///<解压的buffer
+    CWX_UINT32              m_uiBufLen; ///<解压buffer的大小，其为trunk的20倍，最小为20M。
 };
 
 #endif 

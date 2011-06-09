@@ -294,11 +294,13 @@ int CwxMqBinFetchHandler::fetchMqCommit(CwxMqTss* pTss)
 {
     int iRet = CWX_MQ_ERR_SUCCESS;
     bool bCommit = true;
+    CWX_UINT32 uiDelay = 0;
     do
     {
         iRet = CwxMqPoco::parseFetchMqCommit(pTss->m_pReader,
             m_recvMsgData,
             bCommit,
+            uiDelay,
             pTss->m_szBuf2K);
         ///如果解析失败，则进入错误消息处理
         if (CWX_MQ_ERR_SUCCESS != iRet) break;
@@ -325,6 +327,7 @@ int CwxMqBinFetchHandler::fetchMqCommit(CwxMqTss* pTss)
         iRet = m_pApp->getQueueMgr()->commitBinlog(m_conn.m_strQueueName,
             m_conn.m_ullSendSid,
             bCommit,
+            uiDelay,
             pTss->m_szBuf2K);
 
         //清空m_ullSendSid

@@ -50,6 +50,7 @@ public:
     map<CwxMqIdRange, string>    m_allowGroup; ///<允许的group，若不为空，则group必须在allow中存在，否则查deny
     map<CwxMqIdRange, string>    m_denyGroup; ///<禁止的group，若allow为空，则查deny。若在deny中存在，则禁止。
     CwxHostInfo          m_mq; ///<mq的服务器
+    bool                 m_bzip; ///<发送给mq的消息是否压缩
     string               m_mqSign; ///<mq的签名类型
     char                 m_szErrMsg[2048];///<错误消息buf
 };

@@ -47,8 +47,34 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 strcpy(pTss->m_szBuf2K, m_pApp->getBinLogMgr()->getInvalidMsg());
                 break;
             }
+
+            unsigned long ulUnzipLen = 0;
+            bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
+            //判断是否压缩数据
+            if (bZip)
+            {//压缩数据，需要解压
+                //首先准备解压的buf
+                if (!prepareUnzipBuf())
+                {
+                    iRet = CWX_MQ_ERR_INNER_ERR;
+                    CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Failure to prepare unzip buf, size:%u", m_uiBufLen);
+                    CWX_ERROR((pTss->m_szBuf2K));
+                    break;
+                }
+                ulUnzipLen = m_uiBufLen;
+                //解压
+                if (!CwxZlib::unzip(m_unzipBuf, ulUnzipLen, (const unsigned char*)msg->rd_ptr(), msg->length()))
+                {
+                    iRet = CWX_MQ_ERR_INNER_ERR;
+                    CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Failure to unzip recv msg, msg size:%u, buf size:%u", msg->length(), m_uiBufLen);
+                    CWX_ERROR((pTss->m_szBuf2K));
+                    break;
+                }
+            }
+
             if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseRecvData(pTss->m_pReader,
-                msg,
+                bZip?(char const*)m_unzipBuf:msg->rd_ptr(),
+                bZip?ulUnzipLen:msg->length(),
                 pData,
                 uiGroup,
                 uiType,
@@ -259,6 +285,16 @@ int CwxMqBinRecvHandler::checkSyncLog(bool bNew, char* szErr2K)
         return 1;
     }
     return 0;
+}
+bool CwxMqBinRecvHandler::prepareUnzipBuf()
+{
+    if (!m_unzipBuf)
+    {
+        m_uiBufLen = CWX_MQ_MAX_MSG_SIZE + 4096;
+        if (m_uiBufLen < 1024 * 1024) m_uiBufLen = 1024 * 1024;
+        m_unzipBuf = new unsigned char[m_uiBufLen];
+    }
+    return m_unzipBuf!=NULL;
 }
 
 

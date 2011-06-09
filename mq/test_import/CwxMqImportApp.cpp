@@ -201,6 +201,8 @@ void CwxMqImportApp::sendNextMsg(CWX_UINT32 uiSvrId, CWX_UINT32 uiHostId, CWX_UI
         0,
         m_config.m_strUser.c_str(),
         m_config.m_strPasswd.c_str(),
+        NULL,
+        false,
         pTss->m_szBuf2K))
     {
         CWX_ERROR(("Failure to pack send msg, err=%s", pTss->m_szBuf2K));
