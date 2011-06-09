@@ -311,7 +311,7 @@ int CwxMqQueueLogFile::load(map<string, CwxMqQueueInfo>& queues,
             }
             step = 1;
         }
-        else if (1 == step)
+        if (1 == step)
         {//uncommit:name=q1|sid=1
             if (strUncommitPrex == line.substr(0, strUncommitPrex.length()))
             {
@@ -341,7 +341,7 @@ int CwxMqQueueLogFile::load(map<string, CwxMqQueueInfo>& queues,
             }
             step = 2;
         }
-        else if (2 == step)
+        if (2 == step)
         {//commit:name=q2|sid=1
             if (strCommitPrex == line.substr(0, strCommitPrex.length()))
             {
