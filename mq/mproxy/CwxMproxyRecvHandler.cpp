@@ -64,7 +64,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             *bAuth = true;
             CwxMsgBlock* sndMsg = NULL;
             uiTaskId = m_pApp->getNextTaskId();
-            if (CWX_MQ_ERR_SUCCESS !(iRet = CwxMqPoco::packRecvData(pTss->m_pWriter,
+            if (CWX_MQ_ERR_SUCCESS !=(iRet = CwxMqPoco::packRecvData(pTss->m_pWriter,
                 sndMsg,
                 uiTaskId,
                 *pData,
