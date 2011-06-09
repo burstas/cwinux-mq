@@ -18,6 +18,7 @@ CwxMqQueue::CwxMqQueue(string strName,
     m_strSubScribe = strSubscribe;
     m_binLog = pBinlog;
     m_pUncommitMsg =NULL;
+    m_pDelayMsg = NULL;
     m_cursor = NULL;
 }
 
@@ -42,6 +43,15 @@ CwxMqQueue::~CwxMqQueue()
             delete item;
         }
         delete m_pUncommitMsg;
+    }
+    if (m_pDelayMsg)
+    {
+        CwxMqQueueHeapItem* item=NULL;
+        while((item = m_pDelayMsg->pop()))
+        {
+            delete item;
+        }
+        delete m_pDelayMsg;
     }
     if (!m_bCommit)
     {
@@ -84,6 +94,16 @@ int CwxMqQueue::init(CWX_UINT64 ullLastCommitSid,
         delete m_pUncommitMsg;
         m_pUncommitMsg = NULL;
     }
+    if (m_pDelayMsg)
+    {
+        CwxMqQueueHeapItem* item=NULL;
+        while((item = m_pDelayMsg->pop()))
+        {
+            delete item;
+        }
+        delete m_pDelayMsg;
+        m_pDelayMsg = NULL;
+    }
     if (!m_bCommit)
     {
         map<CWX_UINT64, void*>::iterator iter = m_uncommitMap.begin();
@@ -100,7 +120,13 @@ int CwxMqQueue::init(CWX_UINT64 ullLastCommitSid,
         m_pUncommitMsg = new CwxMinHeap<CwxMqQueueHeapItem>(2048);
         if (0 != m_pUncommitMsg->init())
         {
-            strErrMsg = "Failure to init min-heap for no memory.";
+            strErrMsg = "Failure to init uncommit min-heap for less memory.";
+            return -1;
+        }
+        m_pDelayMsg = new CwxMinHeap<CwxMqQueueHeapItem>(2048);
+        if (0 != m_pDelayMsg->init())
+        {
+            strErrMsg = "Failure to init delay min-heap for less memory.";
             return -1;
         }
     }
@@ -181,12 +207,22 @@ int CwxMqQueue::commitBinlog(CWX_UINT64 ullSid,
     //从uncommit map中删除元素
     m_uncommitMap.erase(iter);
     if (!bCommit)
-    {
-        m_memMsgMap[item->sid()] = item->msg();
-        item->msg(NULL);
+    {//如果不是提交，则
+        if (!uiDeley)
+        {
+            m_memMsgMap[item->sid()] = item->msg();
+            item->msg(NULL);
+        }
+        else
+        {
+            item->index(-1);
+            item->timestamp(((CWX_UINT32)time(NULL)) + uiDeley);
+            m_pDelayMsg->push(item);
+            item = NULL;
+        }
     }
     //删除元素自身，同时
-    delete item;
+    if (item) delete item;
     return 1;
 }
 
@@ -195,7 +231,7 @@ int CwxMqQueue::commitBinlog(CWX_UINT64 ullSid,
 int CwxMqQueue::endSendMsg(CWX_UINT64 ullSid, bool bSend)
 {
     map<CWX_UINT64, void*>::iterator iter=m_uncommitMap.find(ullSid);
-    if (iter == m_uncommitMap.end()) return 0;
+    if (iter == m_uncommitMap.end()) return 0; ///如果不在uncommit Map中存在，说明ullSid不存在或已经超时
     if (m_bCommit)
     {
         CwxMqQueueHeapItem* item = (CwxMqQueueHeapItem*)iter->second;
@@ -211,7 +247,7 @@ int CwxMqQueue::endSendMsg(CWX_UINT64 ullSid, bool bSend)
         }
         else if (!bSend)
         {///消息发送失败
-            ///从heap中删除消息
+            ///从uncommit heap中删除消息
             m_pUncommitMsg->erase(item);///<从未
             ///从未commit map中删除消息
             m_uncommitMap.erase(iter);
@@ -230,13 +266,14 @@ int CwxMqQueue::endSendMsg(CWX_UINT64 ullSid, bool bSend)
     {
         CwxMsgBlock* msg = (CwxMsgBlock*)iter->second;
         if (bSend)
-        {
+        {///发送成功
             CwxMsgBlockAlloc::free(msg);
         }
         else
-        {
+        {///发送失败，需要重新消费消息
             m_memMsgMap[ullSid] = msg;
         }
+        ///从未commit的map中删除
         m_uncommitMap.erase(iter);
     }
     return 1;
@@ -248,6 +285,7 @@ void CwxMqQueue::checkTimeout(CWX_UINT32 ttTimestamp)
     if (m_bCommit)
     {
         CwxMqQueueHeapItem * item = NULL;
+        ///检测超时消息
         while(m_pUncommitMsg->count())
         {
             if (m_pUncommitMsg->top()->timestamp() > ttTimestamp) break;
@@ -267,6 +305,18 @@ void CwxMqQueue::checkTimeout(CWX_UINT32 ttTimestamp)
                 item->index(-1);
             }
         }
+        ///检测超过delay时间间隔的消息
+        while(m_pDelayMsg->count())
+        {
+            if (m_pDelayMsg->top()->timestamp() > ttTimestamp) break;
+            ///消息超时
+            item = m_pDelayMsg->pop();
+            ///将消息放到未发送的内存map中
+            m_memMsgMap[item->sid()] = item->msg();
+            item->msg(NULL);
+            delete item;
+        }
+
     }
 }
 
@@ -478,7 +528,7 @@ CWX_UINT64 CwxMqQueue::getMqNum()
         }
         return 0;
     }
-    return m_binLog->leftLogNum(m_cursor) + m_memMsgMap.size();
+    return m_binLog->leftLogNum(m_cursor) + m_memMsgMap.size() + m_pDelayMsg?m_pDelayMsg->count():0;
 }
 
 void CwxMqQueue::getQueueDumpInfo(CWX_UINT64& ullLastCommitSid,
@@ -534,6 +584,14 @@ void CwxMqQueue::getQueueDumpInfo(CWX_UINT64& ullLastCommitSid,
                 uncommitSid.insert(iter->first);
                 iter++;
             }
+        }
+        //添加delay的消息
+        if(m_pDelayMsg)
+        {
+            for (CWX_UINT32 i=0; i<m_pDelayMsg->count(); i++)
+            {
+                uncommitSid.insert(m_pDelayMsg->at(i)->sid());
+            }            
         }
     }
     {///形成commit的记录
