@@ -248,6 +248,7 @@ int CwxMqQueueLogFile::fsync()
 {
     if (m_uiCurLogCount && m_fd)
     {
+        fflush(m_fd);
         if (0 != ::fsync(fileno(m_fd)))
         {
             CwxCommon::snprintf(m_szErr2K, 2047, "Failure to fsync file[%s], errno=%d",
