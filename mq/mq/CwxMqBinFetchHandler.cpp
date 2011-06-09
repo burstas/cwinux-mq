@@ -308,7 +308,7 @@ int CwxMqBinFetchHandler::fetchMqCommit(CwxMqTss* pTss)
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue is not commit type queue");
             break;
         }
-        if (m_conn.m_bSent)
+        if (!m_conn.m_bSent)
         {
             iRet = CWX_MQ_ERR_INVALID_COMMIT;
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "No message to commit.");
