@@ -17,13 +17,6 @@ AC_DEFUN([CWINUX_DIR],[
         ,
         [with_cwinux_c="no"]
     )
-    AC_ARG_WITH(
-        cwinux,
-        [  --with-cwinux[=DIR]     cwinux library directory],
-        ,
-        [with_cwinux="no"]
-    )
-
     AC_MSG_CHECKING(for cwinux c library directory)
 
     if test "$with_cwinux_c" = "no"; then
@@ -38,21 +31,6 @@ AC_DEFUN([CWINUX_DIR],[
         fi
     fi
 
-    if test "$with_cwinux" = "no"; then
-        AC_MSG_ERROR( You need to specify the cwinux directory using --with-cwinux)
-    else
-        # make sure that a well known include file exists
-        if test -e $with_cwinux/include/app/CwxAppFramework.h; then
-            libcwinux_dir=$with_cwinux
-            AC_MSG_RESULT(cwinux found!)
-        else
-            AC_MSG_ERROR( $with_cwinux not found.  Check the value you specified with --with-cwinux)
-        fi
-    fi
-
-
-    
-
 ])
 
 CWINUX_DIR
@@ -65,10 +43,8 @@ AC_DEFINE(_GNU_SOURC)
 
 
 # The AC_SUBST macro causes the variable to be saved in config.status
-AC_SUBST(libcwinux_dir)
 AC_SUBST(libcwinux_c_dir)
 
 # Write config.status and the Makefile
 AC_OUTPUT(Makefile)
 AC_OUTPUT(lib/Makefile)
-AC_OUTPUT(test/Makefile)

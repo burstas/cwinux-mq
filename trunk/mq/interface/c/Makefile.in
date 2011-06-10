@@ -156,7 +156,6 @@ includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
 libcwinux_c_dir = @libcwinux_c_dir@
-libcwinux_dir = @libcwinux_dir@
 libdir = @libdir@
 libexecdir = @libexecdir@
 localstatedir = @localstatedir@
@@ -169,7 +168,7 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-SUBDIRS = lib test
+SUBDIRS = lib
 all: all-recursive
 
 .SUFFIXES:
