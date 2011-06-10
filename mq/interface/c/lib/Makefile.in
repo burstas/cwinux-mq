@@ -162,7 +162,6 @@ includedir =
 infodir = @infodir@
 install_sh = @install_sh@
 libcwinux_c_dir = @libcwinux_c_dir@
-libcwinux_dir = @libcwinux_dir@
 libdir = @libdir@
 libexecdir = @libexecdir@
 localstatedir = @localstatedir@

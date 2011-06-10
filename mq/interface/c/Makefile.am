@@ -1,2 +1,2 @@
 
-SUBDIRS = lib test
+SUBDIRS = lib
