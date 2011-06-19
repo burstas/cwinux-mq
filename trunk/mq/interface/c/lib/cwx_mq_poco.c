@@ -239,7 +239,7 @@ int cwx_mq_parse_mq(struct CWX_PG_READER* reader,
                 CWX_UINT32 i=0;
                 for (i=0; i<16; i++)
                 {
-                    sprintf(szTmp1 + i*2, "%2.2x", pItem->m_szData[i]);
+                    sprintf(szTmp1 + i*2, "%2.2x", (unsigned char)pItem->m_szData[i]);
                     sprintf(szTmp2 + i*2, "%2.2x", szMd5[i]);
                 }
                 snprintf(szErr2K, 2047, "MD5 signture error. recv signture:%s, local signture:%s", szTmp1, szTmp2);
@@ -932,7 +932,7 @@ int cwx_mq_parse_sync_data(struct CWX_PG_READER* reader,
                 CWX_UINT32 i=0;
                 for (i=0; i<16; i++)
                 {
-                    sprintf(szTmp1 + i*2, "%2.2x", pItem->m_szData[i]);
+                    sprintf(szTmp1 + i*2, "%2.2x", (unsigned char)pItem->m_szData[i]);
                     sprintf(szTmp2 + i*2, "%2.2x", szMd5[i]);
                 }
                 snprintf(szErr2K, 2047, "MD5 signture error. recv signture:%s, local signture:%s", szTmp1, szTmp2);
