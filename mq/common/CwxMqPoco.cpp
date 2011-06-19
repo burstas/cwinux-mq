@@ -249,7 +249,7 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
                 CWX_UINT32 i=0;
                 for (i=0; i<16; i++)
                 {
-                    sprintf(szTmp1 + i*2, "%2.2x", pItem->m_szData[i]);
+                    sprintf(szTmp1 + i*2, "%2.2x", (unsigned char)pItem->m_szData[i]);
                     sprintf(szTmp2 + i*2, "%2.2x", szMd5[i]);
                 }
                 CwxCommon::snprintf(szErr2K, 2047, "MD5 signture error. recv signture:%s, local signture:%s", szTmp1, szTmp2);
@@ -1044,7 +1044,7 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
                 CWX_UINT32 i=0;
                 for (i=0; i<16; i++)
                 {
-                    sprintf(szTmp1 + i*2, "%2.2x", pItem->m_szData[i]);
+                    sprintf(szTmp1 + i*2, "%2.2x", (unsigned char)pItem->m_szData[i]);
                     sprintf(szTmp2 + i*2, "%2.2x", szMd5[i]);
                 }
                 CwxCommon::snprintf(szErr2K, 2047, "MD5 signture error. recv signture:%s, local signture:%s", szTmp1, szTmp2);
