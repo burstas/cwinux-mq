@@ -51,7 +51,7 @@ int parseArg(int argc, char**argv)
             return -1;
         }
     }
-    if (!g_strCrc32.length() || !g_strCrc32File.length())
+    if (!g_strCrc32.length() && !g_strCrc32File.length())
     {
         printf("must set crc32 contest by -c or -f\n");
         return -1;
