@@ -1,4 +1,6 @@
 #include "CwxMd5.h"
+#include "CwxGetOpt.h"
+#include "CwxStl.h"
 using namespace cwinux;
 string g_strMd5;
 string g_strMd5File;
