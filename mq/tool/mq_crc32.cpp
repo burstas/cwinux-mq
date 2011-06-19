@@ -78,7 +78,7 @@ int main(int argc ,char** argv)
             printf("failure to get file size,  file:%s, errno=%d\n", g_strCrc32File.c_str(), errno);
             return -1;
         }
-        unsigned char* buf=(unsigned char*)malloc(file_size);
+        char* buf=(char*)malloc(file_size);
         if (!buf)
         {
             printf("failure to malloc memory, size=%u\n", file_size);
