@@ -6,7 +6,7 @@ pkgconfigdir =
 BUILD_DATE=$(shell date +%F)
 
 
-bin_PROGRAMS =mq_statinfo mq_add mq_del mq_fetch mq_recv mq_send
+bin_PROGRAMS =mq_statinfo mq_add mq_del mq_fetch mq_recv mq_send mq_md5 mq_crc32
 mq_statinfo_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"
 mq_statinfo_SOURCES = stat_info.cpp 
 mq_statinfo_LDADD= 
@@ -36,6 +36,16 @@ mq_fetch_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"
 mq_fetch_SOURCES = mq_fetch.cpp ../common/CwxMqPoco.cpp
 mq_fetch_LDADD=
 mq_fetch_LDFLAGS = -L@cwinux_dir@/lib -W -Wall
+
+mq_md5_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"
+mq_md5_SOURCES = mq_md5.cpp
+mq_md5_LDADD=
+mq_md5_LDFLAGS = -L@cwinux_dir@/lib -W -Wall
+
+mq_crc32_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"
+mq_crc32_SOURCES = mq_crc32.cpp
+mq_crc32_LDADD=
+mq_crc32_LDFLAGS = -L@cwinux_dir@/lib -W -Wall
 
 LIBS=-lcwxnet -lcwxcmn -lcwxutil -lz
 INCLUDES=-I@cwinux_dir@/include/net -I@cwinux_dir@/include/cmn  -I@cwinux_dir@/include/util -I../common
