@@ -37,7 +37,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = mq_statinfo$(EXEEXT) mq_add$(EXEEXT) mq_del$(EXEEXT) \
-	mq_fetch$(EXEEXT) mq_recv$(EXEEXT) mq_send$(EXEEXT)
+	mq_fetch$(EXEEXT) mq_recv$(EXEEXT) mq_send$(EXEEXT) \
+	mq_md5$(EXEEXT) mq_crc32$(EXEEXT)
 subdir = tool
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -52,6 +53,9 @@ PROGRAMS = $(bin_PROGRAMS)
 am_mq_add_OBJECTS = mq_add-add_mq.$(OBJEXT) mq_add-CwxMqPoco.$(OBJEXT)
 mq_add_OBJECTS = $(am_mq_add_OBJECTS)
 mq_add_DEPENDENCIES =
+am_mq_crc32_OBJECTS = mq_crc32-mq_crc32.$(OBJEXT)
+mq_crc32_OBJECTS = $(am_mq_crc32_OBJECTS)
+mq_crc32_DEPENDENCIES =
 am_mq_del_OBJECTS = mq_del-remove_mq.$(OBJEXT) \
 	mq_del-CwxMqPoco.$(OBJEXT)
 mq_del_OBJECTS = $(am_mq_del_OBJECTS)
@@ -60,6 +64,9 @@ am_mq_fetch_OBJECTS = mq_fetch-mq_fetch.$(OBJEXT) \
 	mq_fetch-CwxMqPoco.$(OBJEXT)
 mq_fetch_OBJECTS = $(am_mq_fetch_OBJECTS)
 mq_fetch_DEPENDENCIES =
+am_mq_md5_OBJECTS = mq_md5-mq_md5.$(OBJEXT)
+mq_md5_OBJECTS = $(am_mq_md5_OBJECTS)
+mq_md5_DEPENDENCIES =
 am_mq_recv_OBJECTS = mq_recv-mq_recv.$(OBJEXT) \
 	mq_recv-CwxMqPoco.$(OBJEXT)
 mq_recv_OBJECTS = $(am_mq_recv_OBJECTS)
@@ -82,10 +89,12 @@ LTCXXCOMPILE = $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) \
 CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(mq_add_SOURCES) $(mq_del_SOURCES) $(mq_fetch_SOURCES) \
-	$(mq_recv_SOURCES) $(mq_send_SOURCES) $(mq_statinfo_SOURCES)
-DIST_SOURCES = $(mq_add_SOURCES) $(mq_del_SOURCES) $(mq_fetch_SOURCES) \
-	$(mq_recv_SOURCES) $(mq_send_SOURCES) $(mq_statinfo_SOURCES)
+SOURCES = $(mq_add_SOURCES) $(mq_crc32_SOURCES) $(mq_del_SOURCES) \
+	$(mq_fetch_SOURCES) $(mq_md5_SOURCES) $(mq_recv_SOURCES) \
+	$(mq_send_SOURCES) $(mq_statinfo_SOURCES)
+DIST_SOURCES = $(mq_add_SOURCES) $(mq_crc32_SOURCES) $(mq_del_SOURCES) \
+	$(mq_fetch_SOURCES) $(mq_md5_SOURCES) $(mq_recv_SOURCES) \
+	$(mq_send_SOURCES) $(mq_statinfo_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -214,6 +223,14 @@ mq_fetch_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"
 mq_fetch_SOURCES = mq_fetch.cpp ../common/CwxMqPoco.cpp
 mq_fetch_LDADD = 
 mq_fetch_LDFLAGS = -L@cwinux_dir@/lib -W -Wall
+mq_md5_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"
+mq_md5_SOURCES = mq_md5.cpp
+mq_md5_LDADD = 
+mq_md5_LDFLAGS = -L@cwinux_dir@/lib -W -Wall
+mq_crc32_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"
+mq_crc32_SOURCES = mq_crc32.cpp
+mq_crc32_LDADD = 
+mq_crc32_LDFLAGS = -L@cwinux_dir@/lib -W -Wall
 INCLUDES = -I@cwinux_dir@/include/net -I@cwinux_dir@/include/cmn  -I@cwinux_dir@/include/util -I../common
 all: all-am
 
@@ -279,12 +296,18 @@ clean-binPROGRAMS:
 mq_add$(EXEEXT): $(mq_add_OBJECTS) $(mq_add_DEPENDENCIES) 
 	@rm -f mq_add$(EXEEXT)
 	$(CXXLINK) $(mq_add_LDFLAGS) $(mq_add_OBJECTS) $(mq_add_LDADD) $(LIBS)
+mq_crc32$(EXEEXT): $(mq_crc32_OBJECTS) $(mq_crc32_DEPENDENCIES) 
+	@rm -f mq_crc32$(EXEEXT)
+	$(CXXLINK) $(mq_crc32_LDFLAGS) $(mq_crc32_OBJECTS) $(mq_crc32_LDADD) $(LIBS)
 mq_del$(EXEEXT): $(mq_del_OBJECTS) $(mq_del_DEPENDENCIES) 
 	@rm -f mq_del$(EXEEXT)
 	$(CXXLINK) $(mq_del_LDFLAGS) $(mq_del_OBJECTS) $(mq_del_LDADD) $(LIBS)
 mq_fetch$(EXEEXT): $(mq_fetch_OBJECTS) $(mq_fetch_DEPENDENCIES) 
 	@rm -f mq_fetch$(EXEEXT)
 	$(CXXLINK) $(mq_fetch_LDFLAGS) $(mq_fetch_OBJECTS) $(mq_fetch_LDADD) $(LIBS)
+mq_md5$(EXEEXT): $(mq_md5_OBJECTS) $(mq_md5_DEPENDENCIES) 
+	@rm -f mq_md5$(EXEEXT)
+	$(CXXLINK) $(mq_md5_LDFLAGS) $(mq_md5_OBJECTS) $(mq_md5_LDADD) $(LIBS)
 mq_recv$(EXEEXT): $(mq_recv_OBJECTS) $(mq_recv_DEPENDENCIES) 
 	@rm -f mq_recv$(EXEEXT)
 	$(CXXLINK) $(mq_recv_LDFLAGS) $(mq_recv_OBJECTS) $(mq_recv_LDADD) $(LIBS)
@@ -303,10 +326,12 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mq_add-CwxMqPoco.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mq_add-add_mq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mq_crc32-mq_crc32.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mq_del-CwxMqPoco.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mq_del-remove_mq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mq_fetch-CwxMqPoco.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mq_fetch-mq_fetch.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mq_md5-mq_md5.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mq_recv-CwxMqPoco.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mq_recv-mq_recv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mq_send-CwxMqPoco.Po@am__quote@
@@ -361,6 +386,20 @@ mq_add-CwxMqPoco.obj: ../common/CwxMqPoco.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqPoco.cpp' object='mq_add-CwxMqPoco.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mq_add_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mq_add-CwxMqPoco.obj `if test -f '../common/CwxMqPoco.cpp'; then $(CYGPATH_W) '../common/CwxMqPoco.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqPoco.cpp'; fi`
+
+mq_crc32-mq_crc32.o: mq_crc32.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mq_crc32_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mq_crc32-mq_crc32.o -MD -MP -MF "$(DEPDIR)/mq_crc32-mq_crc32.Tpo" -c -o mq_crc32-mq_crc32.o `test -f 'mq_crc32.cpp' || echo '$(srcdir)/'`mq_crc32.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/mq_crc32-mq_crc32.Tpo" "$(DEPDIR)/mq_crc32-mq_crc32.Po"; else rm -f "$(DEPDIR)/mq_crc32-mq_crc32.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mq_crc32.cpp' object='mq_crc32-mq_crc32.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mq_crc32_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mq_crc32-mq_crc32.o `test -f 'mq_crc32.cpp' || echo '$(srcdir)/'`mq_crc32.cpp
+
+mq_crc32-mq_crc32.obj: mq_crc32.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mq_crc32_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mq_crc32-mq_crc32.obj -MD -MP -MF "$(DEPDIR)/mq_crc32-mq_crc32.Tpo" -c -o mq_crc32-mq_crc32.obj `if test -f 'mq_crc32.cpp'; then $(CYGPATH_W) 'mq_crc32.cpp'; else $(CYGPATH_W) '$(srcdir)/mq_crc32.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/mq_crc32-mq_crc32.Tpo" "$(DEPDIR)/mq_crc32-mq_crc32.Po"; else rm -f "$(DEPDIR)/mq_crc32-mq_crc32.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mq_crc32.cpp' object='mq_crc32-mq_crc32.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mq_crc32_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mq_crc32-mq_crc32.obj `if test -f 'mq_crc32.cpp'; then $(CYGPATH_W) 'mq_crc32.cpp'; else $(CYGPATH_W) '$(srcdir)/mq_crc32.cpp'; fi`
 
 mq_del-remove_mq.o: remove_mq.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mq_del_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mq_del-remove_mq.o -MD -MP -MF "$(DEPDIR)/mq_del-remove_mq.Tpo" -c -o mq_del-remove_mq.o `test -f 'remove_mq.cpp' || echo '$(srcdir)/'`remove_mq.cpp; \
@@ -417,6 +456,20 @@ mq_fetch-CwxMqPoco.obj: ../common/CwxMqPoco.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqPoco.cpp' object='mq_fetch-CwxMqPoco.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mq_fetch_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mq_fetch-CwxMqPoco.obj `if test -f '../common/CwxMqPoco.cpp'; then $(CYGPATH_W) '../common/CwxMqPoco.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqPoco.cpp'; fi`
+
+mq_md5-mq_md5.o: mq_md5.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mq_md5_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mq_md5-mq_md5.o -MD -MP -MF "$(DEPDIR)/mq_md5-mq_md5.Tpo" -c -o mq_md5-mq_md5.o `test -f 'mq_md5.cpp' || echo '$(srcdir)/'`mq_md5.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/mq_md5-mq_md5.Tpo" "$(DEPDIR)/mq_md5-mq_md5.Po"; else rm -f "$(DEPDIR)/mq_md5-mq_md5.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mq_md5.cpp' object='mq_md5-mq_md5.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mq_md5_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mq_md5-mq_md5.o `test -f 'mq_md5.cpp' || echo '$(srcdir)/'`mq_md5.cpp
+
+mq_md5-mq_md5.obj: mq_md5.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mq_md5_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mq_md5-mq_md5.obj -MD -MP -MF "$(DEPDIR)/mq_md5-mq_md5.Tpo" -c -o mq_md5-mq_md5.obj `if test -f 'mq_md5.cpp'; then $(CYGPATH_W) 'mq_md5.cpp'; else $(CYGPATH_W) '$(srcdir)/mq_md5.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/mq_md5-mq_md5.Tpo" "$(DEPDIR)/mq_md5-mq_md5.Po"; else rm -f "$(DEPDIR)/mq_md5-mq_md5.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='mq_md5.cpp' object='mq_md5-mq_md5.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mq_md5_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mq_md5-mq_md5.obj `if test -f 'mq_md5.cpp'; then $(CYGPATH_W) 'mq_md5.cpp'; else $(CYGPATH_W) '$(srcdir)/mq_md5.cpp'; fi`
 
 mq_recv-mq_recv.o: mq_recv.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mq_recv_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mq_recv-mq_recv.o -MD -MP -MF "$(DEPDIR)/mq_recv-mq_recv.Tpo" -c -o mq_recv-mq_recv.o `test -f 'mq_recv.cpp' || echo '$(srcdir)/'`mq_recv.cpp; \
