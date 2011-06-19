@@ -51,7 +51,7 @@ int parseArg(int argc, char**argv)
             return -1;
         }
     }
-    if (!g_strMd5.length() || !g_strMd5File.length())
+    if (!g_strMd5.length() && !g_strMd5File.length())
     {
         printf("must set md5 contest by -c or -f\n");
         return -1;
