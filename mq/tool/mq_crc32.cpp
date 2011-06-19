@@ -1,4 +1,6 @@
 #include "CwxCrc32.h"
+#include "CwxGetOpt.h"
+#include "CwxStl.h"
 using namespace cwinux;
 string g_strCrc32;
 string g_strCrc32File;
