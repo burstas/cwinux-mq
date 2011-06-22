@@ -4,6 +4,8 @@
  * 对Key/Value的消息体进行打包解包处理
  * 
  * todo:同名Key如何处理
+ * todo:对签名没有进行校验其是否正确
+ * todo:对非array、非string的数据类型没有进行处理，整数类型直接转成字符串给打包了。
  */
 
 class CwxPackage
@@ -66,9 +68,26 @@ class CwxPackage
         			self::$error = '消息体错误，解包失败2';
         			return false;
                 }
-                $package = unpack("A{$keyLen}key/atemp1/A{$valueLen}value/atemp2",$msg);
-                $key = $package['key'];
-                $value = $package['value'];
+                
+                //$package = unpack("A{$keyLen}key/atemp1/A{$valueLen}value/atemp2",$msg);
+                //$key = $package['key'];
+                //$value = $package['value'];
+                
+                //$package = unpack("A{$keyLen}key/",$msg);
+                //$key = $package['key'];
+                //$value = $package['value'];
+                
+                //因为pack函数的效率比较低，因此这里进行尽量避开pack操作。
+                if($msg[$keyLen] != "\0" || $msg[$keyLen+$valueLen+1] !="\0"){
+                    self::$errno = -1;
+        			self::$error = '消息体错误，解包失败3';
+        			return false;
+                }                
+                $key    =   substr($msg,0,$keyLen);
+                $value  = substr($msg,$keyLen+1,$valueLen);
+                
+                flush();
+                //exit;
                 if($isLoop == true){
                 	$value = self::unPack($value);
                     if($value === false){
