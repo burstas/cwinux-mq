@@ -5,7 +5,7 @@
 			include_once($name.".class.php");
 		}
 		
-        $host	=	'123.125.104.62';
+        $host	=	'127.0.0.1';
 		$port	=	9906;
 		
 		$queue	=	'aa';

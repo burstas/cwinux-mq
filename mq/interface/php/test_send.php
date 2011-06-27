@@ -5,7 +5,7 @@
 			include_once($name.".class.php");
 		}
 
-		$host	=	'123.125.104.62';
+		$host	=	'127.0.0.1';
 		$port	=	9901;
 		
 		$group	=	'3';
@@ -46,7 +46,7 @@
 		flush();
 		sleep(1);
 		
-		$request = new CwxRequest('123.125.104.62',9901);
+		$request = new CwxRequest('127.0.0.1',9901);
 		$data = 'msg '.date('Y-m-d H:i:s ').rand();
         $pack = $poco->packRecvData(0,$data,'a','b',null,'recv','recv_passwd');
          
