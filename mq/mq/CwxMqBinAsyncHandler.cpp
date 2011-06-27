@@ -85,6 +85,13 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                 iRet = CWX_MQ_ERR_INVALID_MSG_TYPE;
                 break;
             }
+            if (!m_recvMsgData)
+            {
+                strcpy(pTss->m_szBuf2K, "No data.");
+                CWX_DEBUG((pTss->m_szBuf2K));
+                iRet = CWX_MQ_ERR_NO_MSG;
+                break;
+            }
             ///若是同步sid的报告消息,则获取报告的sid
             iRet = CwxMqPoco::parseSyncDataReply(pTss->m_pReader,
                 m_recvMsgData,
@@ -125,6 +132,13 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
         }
         else if (CwxMqPoco::MSG_TYPE_SYNC_REPORT == m_header.getMsgType())
         {
+            if (!m_recvMsgData)
+            {
+                strcpy(pTss->m_szBuf2K, "No data.");
+                CWX_DEBUG((pTss->m_szBuf2K));
+                iRet = CWX_MQ_ERR_NO_MSG;
+                break;
+            }
             ///禁止重复report sid。若cursor存在，表示已经报告过一次
             if (m_dispatch.m_pCursor)
             {
