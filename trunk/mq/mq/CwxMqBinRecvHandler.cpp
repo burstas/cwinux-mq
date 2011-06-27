@@ -48,6 +48,13 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 strcpy(pTss->m_szBuf2K, m_pApp->getBinLogMgr()->getInvalidMsg());
                 break;
             }
+            if (!msg)
+            {
+                strcpy(pTss->m_szBuf2K, "No data.");
+                CWX_DEBUG((pTss->m_szBuf2K));
+                iRet = CWX_MQ_ERR_NO_MSG;
+                break;
+            }
 
             unsigned long ulUnzipLen = 0;
             bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
@@ -141,17 +148,26 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         }
         else if(CwxMqPoco::MSG_TYPE_RECV_COMMIT == msg->event().getMsgHeader().getMsgType())
         {
-            if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseCommit(pTss->m_pReader,
-                msg,
-                user,
-                passwd,
-                pTss->m_szBuf2K))
+            if (!msg)
             {
-                //如果是无效数据，返回
-                CWX_DEBUG(("Failure to parse the commit msg, err=%s", pTss->m_szBuf2K));
-                iRet = CWX_MQ_ERR_INVALID_MSG;
-                break;
+                user = "";
+                passwd = "";
             }
+            else
+            {
+                if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseCommit(pTss->m_pReader,
+                    msg,
+                    user,
+                    passwd,
+                    pTss->m_szBuf2K))
+                {
+                    //如果是无效数据，返回
+                    CWX_DEBUG(("Failure to parse the commit msg, err=%s", pTss->m_szBuf2K));
+                    iRet = CWX_MQ_ERR_INVALID_MSG;
+                    break;
+                }
+            }
+
             if (m_pApp->getConfig().getMaster().m_recv.getUser().length())
             {
                 if ((m_pApp->getConfig().getMaster().m_recv.getUser() != user) ||

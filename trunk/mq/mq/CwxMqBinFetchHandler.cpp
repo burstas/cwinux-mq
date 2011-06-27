@@ -185,6 +185,14 @@ int CwxMqBinFetchHandler::fetchMq(CwxMqTss* pTss)
     CWX_UINT32  timeout = 0;
     do
     {
+        if (!m_recvMsgData)
+        {
+            strcpy(pTss->m_szBuf2K, "No data.");
+            CWX_DEBUG((pTss->m_szBuf2K));
+            iRet = CWX_MQ_ERR_NO_MSG;
+            break;
+        }
+
         iRet = CwxMqPoco::parseFetchMq(pTss->m_pReader,
             m_recvMsgData,
             bBlock,
@@ -298,11 +306,20 @@ int CwxMqBinFetchHandler::fetchMqCommit(CwxMqTss* pTss)
     CWX_UINT32 uiDelay = 0;
     do
     {
-        iRet = CwxMqPoco::parseFetchMqCommit(pTss->m_pReader,
-            m_recvMsgData,
-            bCommit,
-            uiDelay,
-            pTss->m_szBuf2K);
+        if (m_recvMsgData)
+        {
+            iRet = CwxMqPoco::parseFetchMqCommit(pTss->m_pReader,
+                m_recvMsgData,
+                bCommit,
+                uiDelay,
+                pTss->m_szBuf2K);
+
+        }
+        else
+        {
+            bCommit = true;
+            uiDelay = 0;
+        }
         ///如果解析失败，则进入错误消息处理
         if (CWX_MQ_ERR_SUCCESS != iRet) break;
         if (!m_conn.m_bCommit)
@@ -396,6 +413,13 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
 
     do
     {
+        if (!m_recvMsgData)
+        {
+            strcpy(pTss->m_szBuf2K, "No data.");
+            CWX_DEBUG((pTss->m_szBuf2K));
+            iRet = CWX_MQ_ERR_NO_MSG;
+            break;
+        }
         iRet = CwxMqPoco::parseCreateQueue(pTss->m_pReader,
             m_recvMsgData,
             queue_name,
@@ -530,6 +554,13 @@ int CwxMqBinFetchHandler::delQueue(CwxMqTss* pTss)
     char const* auth_passwd = NULL;
     do
     {
+        if (!m_recvMsgData)
+        {
+            strcpy(pTss->m_szBuf2K, "No data.");
+            CWX_DEBUG((pTss->m_szBuf2K));
+            iRet = CWX_MQ_ERR_NO_MSG;
+            break;
+        }
         iRet = CwxMqPoco::parseDelQueue(pTss->m_pReader,
             m_recvMsgData,
             queue_name,

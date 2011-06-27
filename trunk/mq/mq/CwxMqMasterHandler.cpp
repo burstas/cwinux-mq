@@ -67,6 +67,12 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         CWX_UINT64 ullSid = 0;
         char const* szMsg = NULL;
         int ret = 0;
+        if (!msg)
+        {
+            CWX_ERROR(("recieved report reply is empty."));
+            return 1;
+        }
+
         if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseReportDataReply(pTss->m_pReader,
             msg,
             ret,
@@ -86,6 +92,15 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         CWX_UINT64 ullSid;
         unsigned long ulUnzipLen = 0;
         bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
+
+        if (!msg)
+        {
+            CWX_ERROR(("recieved sync data is empty."));
+            m_pApp->noticeCloseConn(m_uiConnId);///此时关闭连接，放弃同步
+            m_uiConnId = 0;
+            return 1;
+        }
+
         //判断是否压缩数据
         if (bZip)
         {//压缩数据，需要解压
