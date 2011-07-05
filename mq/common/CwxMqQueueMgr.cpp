@@ -528,7 +528,7 @@ CWX_UINT64 CwxMqQueue::getMqNum()
         }
         return 0;
     }
-    return m_binLog->leftLogNum(m_cursor) + m_memMsgMap.size() + m_pDelayMsg?m_pDelayMsg->count():0;
+    return m_binLog->leftLogNum(m_cursor) + m_memMsgMap.size() + (m_pDelayMsg?m_pDelayMsg->count():0);
 }
 
 void CwxMqQueue::getQueueDumpInfo(CWX_UINT64& ullLastCommitSid,
