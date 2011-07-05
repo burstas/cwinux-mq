@@ -128,14 +128,12 @@ CWX_UINT32 CwxMqBinFetchHandler::onEndSendMsg(CwxMsgBlock*& msg)
 */
 void CwxMqBinFetchHandler::onFailSendMsg(CwxMsgBlock*& msg)
 {
-    if (m_conn.m_ullSendSid)
-    {
-        CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
-        backMq(tss);
-        m_conn.m_ullSendSid = 0;
-        //此msg由queue mgr负责管理，外层不能释放
-        msg = NULL;
-    }
+	CWX_ASSERT(m_conn.m_ullSendSid > 0);
+	CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
+	backMq(tss);
+	m_conn.m_ullSendSid = 0;
+	//此msg由queue mgr负责管理，外层不能释放
+	msg = NULL;
 }
 
 
