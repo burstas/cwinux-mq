@@ -168,7 +168,6 @@ public:
         CwxKeyValueItem const& data,
         CWX_UINT32 group,
         CWX_UINT32 type,
-        CWX_UINT32 attr,
         char const* user=NULL,
         char const* passwd=NULL,
         char const* sign=NULL,
@@ -182,7 +181,6 @@ public:
         CwxKeyValueItem const*& data,
         CWX_UINT32& group,
         CWX_UINT32& type,
-        CWX_UINT32& attr,
         char const*& user,
         char const*& passwd,
         char* szErr2K=NULL);
@@ -194,7 +192,6 @@ public:
         CwxKeyValueItem const*& data,
         CWX_UINT32& group,
         CWX_UINT32& type,
-        CWX_UINT32& attr,
         char const*& user,
         char const*& passwd,
         char* szErr2K=NULL);
@@ -301,7 +298,6 @@ public:
         CwxKeyValueItem const& data,
         CWX_UINT32 group,
         CWX_UINT32 type,
-        CWX_UINT32 attr,
         char const* sign=NULL,
         bool       zip = false,
         char* szErr2K=NULL);
@@ -312,7 +308,6 @@ public:
         CwxKeyValueItem const& data,
         CWX_UINT32 group,
         CWX_UINT32 type,
-        CWX_UINT32 attr,
         char const* sign=NULL,
         char* szErr2K=NULL);
     static int packMultiSyncData(
@@ -331,7 +326,6 @@ public:
         CwxKeyValueItem const*& data,
         CWX_UINT32& group,
         CWX_UINT32& type,
-        CWX_UINT32& attr,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseSyncData(CwxPackageReader* reader,
@@ -342,7 +336,6 @@ public:
         CwxKeyValueItem const*& data,
         CWX_UINT32& group,
         CWX_UINT32& type,
-        CWX_UINT32& attr,
         char* szErr2K=NULL);
 
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
@@ -385,7 +378,6 @@ public:
         CwxKeyValueItem const& data,
         CWX_UINT32 group,
         CWX_UINT32 type,
-        CWX_UINT32 attr,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseFetchMqReply(CwxPackageReader* reader,
@@ -397,7 +389,6 @@ public:
         CwxKeyValueItem const*& data,
         CWX_UINT32& group,
         CWX_UINT32& type,
-        CWX_UINT32& attr,
         char* szErr2K=NULL);
 
 

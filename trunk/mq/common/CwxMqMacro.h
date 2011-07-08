@@ -25,7 +25,6 @@ CWINUX_USING_NAMESPACE
 ///通信的key定义
 #define CWX_MQ_DATA "data"
 #define CWX_MQ_TYPE "type"
-#define CWX_MQ_ATTR "attr"
 #define CWX_MQ_RET  "ret"
 #define CWX_MQ_SID  "sid"
 #define CWX_MQ_ERR  "err"

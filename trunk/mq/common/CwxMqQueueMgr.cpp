@@ -464,7 +464,6 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
                         *pItem,
                         m_cursor->getHeader().getGroup(),
                         m_cursor->getHeader().getType(),
-                        m_cursor->getHeader().getAttr(),
                         pTss->m_szBuf2K))
                     {
                         ///形成数据包失败

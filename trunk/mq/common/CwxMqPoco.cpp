@@ -27,7 +27,6 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
                         CwxKeyValueItem const& data,
                         CWX_UINT32 group,
                         CWX_UINT32 type,
-                        CWX_UINT32 attr,
                         char const* user,
                         char const* passwd,
                         char const* sign,
@@ -47,11 +46,6 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
         return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_TYPE, type))
-    {
-        if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_ERR_INNER_ERR;
-    }
-    if (!writer->addKeyValue(CWX_MQ_ATTR, attr))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_ERR_INNER_ERR;
@@ -133,7 +127,6 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
                          CwxKeyValueItem const*& data,
                          CWX_UINT32& group,
                          CWX_UINT32& type,
-                         CWX_UINT32& attr,
                          char const*& user,
                          char const*& passwd,
                          char* szErr2K)
@@ -144,7 +137,6 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
         data,
         group,
         type,
-        attr,
         user,
         passwd,
         szErr2K);
@@ -157,7 +149,6 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
         CwxKeyValueItem const*& data,
         CWX_UINT32& group,
         CWX_UINT32& type,
-        CWX_UINT32& attr,
         char const*& user,
         char const*& passwd,
         char* szErr2K)
@@ -196,11 +187,6 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "mq's type can't be [%X], it's binlog sync type.", SYNC_GROUP_TYPE);
         return CWX_MQ_ERR_INVALID_BINLOG_TYPE;
-    }
-    //get attr
-    if (!reader->getKey(CWX_MQ_ATTR, attr))
-    {
-        attr = 0;
     }
     CwxKeyValueItem const* pItem = NULL;
     //get user
@@ -777,7 +763,6 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
                         CwxKeyValueItem const& data,
                         CWX_UINT32 group,
                         CWX_UINT32 type,
-                        CWX_UINT32 attr,
                         char const* sign,
                         bool       zip,
                         char* szErr2K)
@@ -789,7 +774,6 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
         data,
         group,
         type,
-        attr,
         sign,
         szErr2K);
     if (CWX_MQ_ERR_SUCCESS != ret) return ret;
@@ -837,7 +821,6 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
                             CwxKeyValueItem const& data,
                             CWX_UINT32 group,
                             CWX_UINT32 type,
-                            CWX_UINT32 attr,
                             char const* sign,
                             char* szErr2K)
 {
@@ -863,11 +846,6 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
         return CWX_MQ_ERR_INNER_ERR;
     }
     if (!writer->addKeyValue(CWX_MQ_TYPE, type))
-    {
-        if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_ERR_INNER_ERR;
-    }
-    if (!writer->addKeyValue(CWX_MQ_ATTR, attr))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_ERR_INNER_ERR;
@@ -950,7 +928,6 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
                          CwxKeyValueItem const*& data,
                          CWX_UINT32& group,
                          CWX_UINT32& type,
-                         CWX_UINT32& attr,
                          char* szErr2K)
 {
     return parseSyncData(reader,
@@ -961,7 +938,6 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
         data,
         group,
         type,
-        attr,
         szErr2K);
 }
 
@@ -974,7 +950,6 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
                          CwxKeyValueItem const*& data,
                          CWX_UINT32& group,
                          CWX_UINT32& type,
-                         CWX_UINT32& attr,
                          char* szErr2K)
 {
     if (!reader->unpack(szData, uiDataLen, false, true))
@@ -1007,11 +982,6 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
     }
     //get type
     if (!reader->getKey(CWX_MQ_TYPE, type))
-    {
-        type = 0;
-    }
-    //get attr
-    if (!reader->getKey(CWX_MQ_ATTR, attr))
     {
         type = 0;
     }
@@ -1224,7 +1194,6 @@ int CwxMqPoco::packFetchMqReply(CwxPackageWriter* writer,
                             CwxKeyValueItem const& data,
                             CWX_UINT32 group,
                             CWX_UINT32 type,
-                            CWX_UINT32 attr,
                             char* szErr2K)
 {
     writer->beginPack();
@@ -1267,11 +1236,6 @@ int CwxMqPoco::packFetchMqReply(CwxPackageWriter* writer,
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_ERR_INNER_ERR;
     }
-    if (!writer->addKeyValue(CWX_MQ_ATTR, attr))
-    {
-        if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_ERR_INNER_ERR;
-    }
     if (!writer->pack())
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
@@ -1298,7 +1262,6 @@ int CwxMqPoco::parseFetchMqReply(CwxPackageReader* reader,
                     CwxKeyValueItem const*& data,
                     CWX_UINT32& group,
                     CWX_UINT32& type,
-                    CWX_UINT32& attr,
                     char* szErr2K)
 {
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
@@ -1352,11 +1315,6 @@ int CwxMqPoco::parseFetchMqReply(CwxPackageReader* reader,
     }
     //get type
     if (!reader->getKey(CWX_MQ_TYPE, type))
-    {
-        type = 0;
-    }
-    //get attr
-    if (!reader->getKey(CWX_MQ_ATTR, attr))
     {
         type = 0;
     }

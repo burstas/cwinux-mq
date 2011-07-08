@@ -372,7 +372,6 @@ int CwxMqBinAsyncHandler::packOneBinLog(CwxPackageReader* reader,
                 *pItem,
                 m_dispatch.m_pCursor->getHeader().getGroup(),
                 m_dispatch.m_pCursor->getHeader().getType(),
-                m_dispatch.m_pCursor->getHeader().getAttr(),
                 m_dispatch.m_strSign.c_str(),
                 m_dispatch.m_bZip,
                 szErr2K))
@@ -421,7 +420,6 @@ int CwxMqBinAsyncHandler::packMultiBinLog(CwxPackageReader* reader,
                 *pItem,
                 m_dispatch.m_pCursor->getHeader().getGroup(),
                 m_dispatch.m_pCursor->getHeader().getType(),
-                m_dispatch.m_pCursor->getHeader().getAttr(),
                 szErr2K))
             {
                 ///形成数据包失败

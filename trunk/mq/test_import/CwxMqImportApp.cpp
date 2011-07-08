@@ -198,7 +198,6 @@ void CwxMqImportApp::sendNextMsg(CWX_UINT32 uiSvrId, CWX_UINT32 uiHostId, CWX_UI
         data,
         m_config.m_uiGroup,
         m_config.m_uiType,
-        0,
         m_config.m_strUser.c_str(),
         m_config.m_strPasswd.c_str(),
         NULL,

@@ -13,7 +13,6 @@ string g_user;
 string g_passwd;
 CWX_UINT32 g_group=0;
 CWX_UINT32 g_type=0;
-CWX_UINT32 g_attr=0;
 string     g_data;
 string     g_file;
 char*       g_szData = NULL;
@@ -23,7 +22,7 @@ bool       g_zip=false;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:g:t:a:d:f:S:zh");
+    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:g:t:d:f:S:zh");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
@@ -38,7 +37,6 @@ int parseArg(int argc, char**argv)
             printf("-p: mq server's recieve user password.\n");
             printf("-g: message's group.\n");
             printf("-t: message's type.\n");
-            printf("-a: message's attribute.\n");
             printf("-d: message's data.\n");
             printf("-S: signature type, %s or %s. no signature by default\n", CWX_MQ_MD5, CWX_MQ_CRC32);
             printf("-f: file name which contains message's data.\n");
@@ -92,14 +90,6 @@ int parseArg(int argc, char**argv)
                 return -1;
             }
             g_type = strtoul(cmd_option.opt_arg(),NULL,0);
-            break;
-        case 'a':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("-a requires an argument.\n");
-                return -1;
-            }
-            g_attr = strtoul(cmd_option.opt_arg(),NULL,0);
             break;
         case 'd':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -245,7 +235,6 @@ int main(int argc ,char** argv)
             item,
             g_group,
             g_type,
-            g_attr,
             g_user.c_str(),
             g_passwd.c_str(),
             g_sign.c_str(),
