@@ -50,6 +50,12 @@ int CwxMqMasterHandler::onConnClosed(CwxMsgBlock*& , CwxTss* )
 {
     CWX_ERROR(("Master is closed."));
     m_uiConnId = 0;
+	//刷新管理器保存数据
+	char szErr2K[2048];
+	if (0 != m_pApp->getBinLogMgr()->commit(true, szErr2K))
+	{
+		CWX_ERROR(("Failure to commit binlog data, err:%s", szErr2K));
+	}
     return 1;
 }
 
