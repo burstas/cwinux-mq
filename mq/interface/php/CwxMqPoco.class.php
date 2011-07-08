@@ -104,20 +104,18 @@ class CwxMqPoco
 s	 * @param string $data
 	 * @param integer $group
 	 * @param integer $type
-	 * @param int $attr
 	 * @param string $user
 	 * @param string $passwd
 	 * @param string $sign
 	 * @param boolean $zip
 	 * @return string
 	 */
-	function packRecvData($taskId,$data,$group = null,$type = null,$attr=null,$user=null,$passwd=null,$sign=null,$zip=null)
+	function packRecvData($taskId,$data,$group = null,$type = null,$user=null,$passwd=null,$sign=null,$zip=null)
 	{
 		$dataArr = array();
 		$dataArr[CWX_MQ_DATA] = $data;
 		$dataArr[CWX_MQ_GROUP] = $group;
 		$dataArr[CWX_MQ_TYPE] = $type;
-		$dataArr[CWX_MQ_ATTR] = $attr;
 		$dataArr[CWX_MQ_USER] = $user;
 		$dataArr[CWX_MQ_PASSWD] = $passwd;
 		
