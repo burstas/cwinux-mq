@@ -9,7 +9,7 @@
     <binlog >
     	<file path="/data1/mq_data/data/binlog"  prefix="binlog" max_mbyte="1024"/>
     	<manage max_day="1" del_out_file ="yes"/>
-        <flush  log_num="10000000" second="10000"/>
+      <flush  cache="yes" log_num="10000000" second="10000"/>
     </binlog>
     <master>
     	<recv keep_alive="yes" user="recv" passwd="recv_passwd" ip="*" port="9901"  unix="/usr/home/wenbo/cwinux_mq/svn/trunk/mq/mq/recv.sock"/>

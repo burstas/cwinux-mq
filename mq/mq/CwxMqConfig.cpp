@@ -150,6 +150,12 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
     }
     m_binlog.m_bDelOutdayLogFile = strcmp("yes", pValue)==0?true:false;
 
+	//load mq:binlog:flush:cache
+	if ((NULL == (pValue=parser.getElementAttr("mq:binlog:flush", "cache"))) || !pValue[0])
+	{
+		m_binlog.m_bCache = true;
+	}
+	m_binlog.m_bCache = strcmp("yes", pValue)==0?true:false;
     //load mq:binlog:flush:log_num
     if ((NULL == (pValue=parser.getElementAttr("mq:binlog:flush", "log_num"))) || !pValue[0])
     {

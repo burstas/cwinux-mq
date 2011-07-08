@@ -69,6 +69,7 @@ public:
         m_bDelOutdayLogFile = false;
         m_uiFlushNum = 100;
         m_uiFlushSecond = 30;
+		m_bCache = true;
     }
 public:
     string              m_strBinlogPath; ///<binlog的目录
@@ -78,6 +79,7 @@ public:
     bool                m_bDelOutdayLogFile; ///<是否删除不管理的消息文件
     CWX_UINT32          m_uiFlushNum; ///<接收多少条记录后，flush binlog文件
     CWX_UINT32          m_uiFlushSecond; ///<间隔多少秒，必须flush binlog文件
+	bool				m_bCache;        ///<是否对写入的数据进行cache
 };
 
 ///配置文件的master参数对象
