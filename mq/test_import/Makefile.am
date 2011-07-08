@@ -7,7 +7,7 @@ BUILD_DATE=$(shell date +%F)
 
 
 bin_PROGRAMS = cwx_mq_import
-cwx_mq_import_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)" -W -Wall
+cwx_mq_import_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)" -W -Wall  -Wno-deprecated
 cwx_mq_import_SOURCES = \
 	../common/CwxMqPoco.cpp  ../common/CwxMqTss.cpp\
 	CwxMqImportApp.cpp  CwxMqImportConfig.cpp  cwx_mq_import.cpp
