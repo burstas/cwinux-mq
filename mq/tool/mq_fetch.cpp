@@ -161,7 +161,6 @@ int main(int argc ,char** argv)
     CWX_UINT32 num = 0;
     CWX_UINT32 group = 0;
     CWX_UINT32 type = 0;
-    CWX_UINT32 attr = 0;
     CWX_UINT32 timestamp = 0;
     CwxKeyValueItem const* item = NULL;
 
@@ -214,7 +213,6 @@ int main(int argc ,char** argv)
                     item,
                     group,
                     type,
-                    attr,
                     szErr2K))
                 {
                     printf("failure to unpack recieve msg, err=%s\n", szErr2K);
@@ -227,12 +225,11 @@ int main(int argc ,char** argv)
                     iRet = 1;
                     break;
                 }
-                printf("%s|%u|%u|%u|%u|%s\n",
+                printf("%s|%u|%u|%u|%s\n",
                     CwxCommon::toString(ullSid, szErr2K, 10),
                     timestamp,
                     group,
                     type,
-                    attr,
                     item->m_szData);
                 if (g_num)
                 {

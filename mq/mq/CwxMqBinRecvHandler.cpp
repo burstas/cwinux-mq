@@ -39,7 +39,6 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         {
             CWX_UINT32 uiGroup;
             CWX_UINT32 uiType;
-            CWX_UINT32 uiAttr;
             CwxKeyValueItem const* pData;
             if (m_pApp->getBinLogMgr()->isInvalid())
             {
@@ -86,7 +85,6 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 pData,
                 uiGroup,
                 uiType,
-                uiAttr,
                 user,
                 passwd,
                 pTss->m_szBuf2K))
@@ -115,7 +113,6 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 time(NULL),
                 uiGroup,
                 uiType,
-                uiAttr,
                 pTss->m_pWriter->getMsg(),
                 pTss->m_pWriter->getMsgSize(),
                 pTss->m_szBuf2K))

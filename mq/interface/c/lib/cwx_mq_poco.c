@@ -35,7 +35,6 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
                    struct CWX_KEY_VALUE_ITEM_S const* data,
                    CWX_UINT32 group,
                    CWX_UINT32 type,
-                   CWX_UINT32 attr,
                    char const* user,
                    char const* passwd,
                    char const* sign,
@@ -55,11 +54,6 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
         return CWX_MQ_ERR_INNER_ERR;
     }
     if (0 != cwx_pg_writer_add_key_uint32(writer, CWX_MQ_KEY_TYPE, type))
-    {
-        if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
-    }
-    if (0 != cwx_pg_writer_add_key_uint32(writer, CWX_MQ_KEY_ATTR, attr))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
         return CWX_MQ_ERR_INNER_ERR;
@@ -146,7 +140,6 @@ int cwx_mq_parse_mq(struct CWX_PG_READER* reader,
                     struct CWX_KEY_VALUE_ITEM_S const** data,
                     CWX_UINT32* group,
                     CWX_UINT32* type,
-                    CWX_UINT32* attr,
                     char const** user,
                     char const** passwd,
                     char* szErr2K)
@@ -185,11 +178,6 @@ int cwx_mq_parse_mq(struct CWX_PG_READER* reader,
     if (0 == cwx_pg_reader_get_uint32(reader, CWX_MQ_KEY_TYPE, type, 0))
     {
         *type = 0;
-    }
-    //get attr
-    if (0 == cwx_pg_reader_get_uint32(reader, CWX_MQ_KEY_ATTR, attr, 0))
-    {
-        *attr = 0;
     }
     struct CWX_KEY_VALUE_ITEM_S const* pItem = 0;
     //get user
@@ -751,7 +739,6 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
                           struct CWX_KEY_VALUE_ITEM_S const* data,
                           CWX_UINT32 group,
                           CWX_UINT32 type,
-                          CWX_UINT32 attr,
                           char const* sign,
                           int       zip,
                           char* szErr2K)
@@ -778,11 +765,6 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
         return CWX_MQ_ERR_INNER_ERR;
     }
     if (0 != cwx_pg_writer_add_key_uint32(writer, CWX_MQ_KEY_TYPE, type))
-    {
-        if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
-    }
-    if (0 != cwx_pg_writer_add_key_uint32(writer, CWX_MQ_KEY_ATTR, attr))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
         return CWX_MQ_ERR_INNER_ERR;
@@ -860,7 +842,6 @@ int cwx_mq_parse_sync_data(struct CWX_PG_READER* reader,
                            struct CWX_KEY_VALUE_ITEM_S const** data,
                            CWX_UINT32* group,
                            CWX_UINT32* type,
-                           CWX_UINT32* attr,
                            char* szErr2K)
 {
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
@@ -896,11 +877,6 @@ int cwx_mq_parse_sync_data(struct CWX_PG_READER* reader,
     if (0 == cwx_pg_reader_get_uint32(reader, CWX_MQ_KEY_TYPE, type, 0))
     {
         *type = 0;
-    }
-    //get attr
-    if (0 == cwx_pg_reader_get_uint32(reader, CWX_MQ_KEY_ATTR, attr, 0))
-    {
-        *attr = 0;
     }
     struct CWX_KEY_VALUE_ITEM_S const* pItem = 0;
     //get crc32
@@ -1122,7 +1098,6 @@ int cwx_mq_pack_fetch_mq_reply(struct CWX_PG_WRITER * writer,
                                struct CWX_KEY_VALUE_ITEM_S const* data,
                                CWX_UINT32 group,
                                CWX_UINT32 type,
-                               CWX_UINT32 attr,
                                char* szErr2K)
 {
     cwx_pg_writer_begin_pack(writer);
@@ -1165,11 +1140,6 @@ int cwx_mq_pack_fetch_mq_reply(struct CWX_PG_WRITER * writer,
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
         return CWX_MQ_ERR_INNER_ERR;
     }
-    if (0 != cwx_pg_writer_add_key_uint32(writer, CWX_MQ_KEY_ATTR, attr))
-    {
-        if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
-    }
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
@@ -1200,7 +1170,6 @@ int cwx_mq_parse_fetch_mq_reply(struct CWX_PG_READER* reader,
                                 struct CWX_KEY_VALUE_ITEM_S const** data,
                                 CWX_UINT32* group,
                                 CWX_UINT32* type,
-                                CWX_UINT32* attr,
                                 char* szErr2K)
 {
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
@@ -1257,11 +1226,6 @@ int cwx_mq_parse_fetch_mq_reply(struct CWX_PG_READER* reader,
     if (0 == cwx_pg_reader_get_uint32(reader, CWX_MQ_KEY_TYPE, type, 0))
     {
         *type = 0;
-    }
-    //get attr
-    if (0 == cwx_pg_reader_get_uint32(reader, CWX_MQ_KEY_ATTR, attr, 0))
-    {
-        *attr = 0;
     }
     return CWX_MQ_ERR_SUCCESS;
 }

@@ -455,6 +455,7 @@ int CwxMqApp::startBinLogMgr()
     {
         CWX_UINT64 ullBinLogSize = m_config.getBinLog().m_uiBinLogMSize;
         ullBinLogSize *= 1024 * 1024;
+		if (ullBinLogSize > CwxBinLogMgr::MAX_BINLOG_FILE_SIZE) ullBinLogSize = CwxBinLogMgr::MAX_BINLOG_FILE_SIZE;
         m_pBinLogMgr = new CwxBinLogMgr(m_config.getBinLog().m_strBinlogPath.c_str(),
             m_config.getBinLog().m_strBinlogPrex.c_str(),
             ullBinLogSize,
