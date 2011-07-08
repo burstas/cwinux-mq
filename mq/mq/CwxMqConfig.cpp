@@ -382,7 +382,7 @@ void CwxMqConfig::outputConfig() const
     CWX_INFO(("*****************binlog*******************"));
     CWX_INFO(("file path=%s prefix=%s max-file-size(Mbyte)=%u", m_binlog.m_strBinlogPath.c_str(), m_binlog.m_strBinlogPrex.c_str(), m_binlog.m_uiBinLogMSize));
     CWX_INFO(("manager binlog file max_day=%u  del_outday_logfile=%s", m_binlog.m_uiMgrMaxDay, m_binlog.m_bDelOutdayLogFile?"yes":"no"));
-    CWX_INFO(("binlog flush log_num=%u second=%u", m_binlog.m_uiFlushNum, m_binlog.m_uiFlushSecond));
+	CWX_INFO(("binlog flush cache=%s log_num=%u second=%u", m_binlog.m_bCache?"yes":"no", m_binlog.m_uiFlushNum, m_binlog.m_uiFlushSecond));
     if (m_common.m_bMaster){
         CWX_INFO(("*****************master*******************"));
         if (m_master.m_recv.getHostName().length())
