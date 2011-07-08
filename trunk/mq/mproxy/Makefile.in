@@ -175,7 +175,7 @@ target_alias = @target_alias@
 xml_expat_dir = @xml_expat_dir@
 pkgconfigdir = 
 BUILD_DATE = $(shell date +%F)
-cwx_mproxy_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)" -W -Wall
+cwx_mproxy_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)" -W -Wall  -Wno-deprecated
 cwx_mproxy_SOURCES = \
         ../common/CwxMqTss.cpp\
         ../common/CwxMqPoco.cpp\

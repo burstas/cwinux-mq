@@ -7,7 +7,7 @@ BUILD_DATE=$(shell date +%F)
 
 
 bin_PROGRAMS = cwx_mproxy
-cwx_mproxy_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)" -W -Wall
+cwx_mproxy_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)" -W -Wall  -Wno-deprecated
 cwx_mproxy_SOURCES = \
         ../common/CwxMqTss.cpp\
         ../common/CwxMqPoco.cpp\
