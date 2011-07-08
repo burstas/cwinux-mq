@@ -167,6 +167,10 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
     {
         m_binlog.m_uiFlushNum = 1;
     }
+	if (m_binlog.m_uiFlushNum > CWX_MQ_MAX_BINLOG_FLUSH_COUNT)
+	{
+		m_binlog.m_uiFlushNum = CWX_MQ_MAX_BINLOG_FLUSH_COUNT;
+	}
     //load mq:binlog:flush:second
     if ((NULL == (pValue=parser.getElementAttr("mq:binlog:flush", "second"))) || !pValue[0])
     {

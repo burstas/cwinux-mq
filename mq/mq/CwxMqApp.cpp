@@ -470,18 +470,7 @@ int CwxMqApp::startBinLogMgr()
         m_ttLastCommitTime = time(NULL);
         m_uiUnCommitLogNum = 0;
         ///提取sid
-        if (m_config.getBinLog().m_uiFlushNum > MAX_SKIP_SID_COUNT)
-        {
-            m_uiCurSid = m_pBinLogMgr->getMaxSid() + MAX_SKIP_SID_COUNT;
-        }
-        else if (m_config.getBinLog().m_uiFlushNum < MIN_SKIP_SID_COUNT)
-        {
-            m_uiCurSid = m_pBinLogMgr->getMaxSid() + MIN_SKIP_SID_COUNT;
-        }
-        else
-        {
-            m_uiCurSid = m_pBinLogMgr->getMaxSid() + m_config.getBinLog().m_uiFlushNum;
-        }
+		m_uiCurSid = m_pBinLogMgr->getMaxSid() + CWX_MQ_MAX_BINLOG_FLUSH_COUNT + 1;
     }
     //初始化MQ
     if (m_config.getMq().m_mq.getHostName().length() ||
