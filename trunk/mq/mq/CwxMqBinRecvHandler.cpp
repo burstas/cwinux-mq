@@ -285,7 +285,6 @@ int CwxMqBinRecvHandler::checkSyncLog(bool bNew, char* szErr2K)
             time(NULL),
             CwxMqPoco::SYNC_GROUP_TYPE,
             0,
-            0,
             CwxMqPoco::getSyncRecordData(),
             CwxMqPoco::getSyncRecordDataLen(),
             szErr2K))
