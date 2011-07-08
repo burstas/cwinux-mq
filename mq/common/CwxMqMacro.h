@@ -107,6 +107,6 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_ZIP_EXTRA_BUF           128
 
 
-#define CWX_MQ_MAX_BINLOG_FLUSH_COUNT = 10000 ///<服务启动时，最大的skip sid数量
+#define CWX_MQ_MAX_BINLOG_FLUSH_COUNT  10000 ///<服务启动时，最大的skip sid数量
 
 #endif
