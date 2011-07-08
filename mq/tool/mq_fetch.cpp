@@ -25,7 +25,7 @@ int parseArg(int argc, char**argv)
         switch (option)
         {
         case 'h':
-            printf("fetch mq message from queue.\n", argv[0]);
+            printf("fetch mq message from queue.\n");
             printf("%s  -H host -P port\n", argv[0]);
             printf("-H: mq server's queue host\n");
             printf("-P: mq server's queue port\n");
@@ -184,7 +184,7 @@ int main(int argc ,char** argv)
                 iRet = 1;
                 break;
             }
-            if (block->length() != CwxSocket::write_n(stream.getHandle(),
+            if (block->length() != (CWX_UINT32)CwxSocket::write_n(stream.getHandle(),
                 block->rd_ptr(),
                 block->length()))
             {
@@ -268,7 +268,7 @@ int main(int argc ,char** argv)
                 iRet = 1;
                 break;
             }
-            if (block->length() != CwxSocket::write_n(stream.getHandle(),
+            if (block->length() != (CWX_UINT32)CwxSocket::write_n(stream.getHandle(),
                 block->rd_ptr(),
                 block->length()))
             {
