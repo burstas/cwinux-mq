@@ -270,7 +270,7 @@ int CwxMqBinRecvHandler::commit(char* szErr2K)
     if (m_pApp->getUnCommitLogNum())
     {
         m_pApp->clearFirstBinLog();
-        iRet = m_pApp->getBinLogMgr()->commit(szErr2K);
+        iRet = m_pApp->getBinLogMgr()->commit(false, szErr2K);
         m_pApp->zeroUnCommitLogNum();
         m_pApp->setLastCommitTime(time(NULL));
     }
