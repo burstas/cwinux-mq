@@ -40,11 +40,6 @@ public:
     };
     enum
     {
-        MIN_SKIP_SID_COUNT = 50, ///<服务启动时，最小的skip sid数量
-        MAX_SKIP_SID_COUNT = 10000 ///<服务启动时，最大的skip sid数量
-    };
-    enum
-    {
         MQ_NEW_MSG_EVENT=CwxEventInfo::SYS_EVENT_NUM + 1, ///<binlog有新数据的事件
         MQ_CONTINUE_SEND_EVENT= MQ_NEW_MSG_EVENT + 1 ///<未完成发送的连接，继续发送
     };
