@@ -220,7 +220,7 @@ int main(int argc ,char** argv)
             iRet = 1;
             break;
         }
-        if (block->length() != CwxSocket::write_n(stream.getHandle(),
+        if (block->length() != (CWX_UINT32)CwxSocket::write_n(stream.getHandle(),
             block->rd_ptr(),
             block->length()))
         {

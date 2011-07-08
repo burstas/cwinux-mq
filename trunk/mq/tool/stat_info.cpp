@@ -86,9 +86,9 @@ int main(int argc ,char** argv)
     }
     //Ð´statsÊý¾Ý
     char const* szStats = "stats\r\n";
-    if (strlen(szStats) !=CwxSocket::write_n(stream.getHandle(), szStats, strlen(szStats)))
+    if (strlen(szStats) != (CWX_UINT32)CwxSocket::write_n(stream.getHandle(), szStats, strlen(szStats)))
     {
-        printf("Failure to send stats command, errno=%s\n", errno);
+        printf("Failure to send stats command, errno=%d\n", errno);
         return 1;
     }
     string strReply;

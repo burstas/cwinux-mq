@@ -32,7 +32,7 @@ int parseArg(int argc, char**argv)
         switch (option)
         {
         case 'h':
-            printf("Recieve mq message from the dispatch port.\n", argv[0]);
+            printf("Recieve mq message from the dispatch port.\n");
             printf("%s  -H host -P port\n", argv[0]);
             printf("-H: mq server dispatch host\n");
             printf("-P: mq server dispatch port\n");
@@ -170,7 +170,6 @@ int parseArg(int argc, char**argv)
 
 static int output(CwxPackageReader& reader, char const* szMsg, CWX_UINT32 uiMsgLen, CWX_UINT64& ullSid)
 {
-    CWX_UINT32 num = 0;
     CWX_UINT32 group = 0;
     CWX_UINT32 type = 0;
     CWX_UINT32 attr = 0;
@@ -282,7 +281,7 @@ int main(int argc ,char** argv)
             iRet = 1;
             break;
         }
-        if (block->length() != CwxSocket::write_n(stream.getHandle(),
+        if (block->length() != (CWX_UINT32)CwxSocket::write_n(stream.getHandle(),
             block->rd_ptr(),
             block->length()))
         {
@@ -414,7 +413,7 @@ int main(int argc ,char** argv)
                     iRet = 1;
                     break;
                 }
-                if (block->length() != CwxSocket::write_n(stream.getHandle(),
+                if (block->length() != (CWX_UINT32)CwxSocket::write_n(stream.getHandle(),
                     block->rd_ptr(),
                     block->length()))
                 {
