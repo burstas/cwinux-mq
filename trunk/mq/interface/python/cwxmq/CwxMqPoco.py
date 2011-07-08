@@ -1,4 +1,4 @@
-#coding:utf-8
+﻿#coding:utf-8
 '''
 @file CwxMqPoco.py
 @brief MQ系列服务的接口协议定义
@@ -49,7 +49,6 @@ class CwxMqPoco:
     #协议的key定义
     KEY_DATA = "data"
     KEY_TYPE = "type"
-    KEY_ATTR = "attr"
     KEY_RET = "ret"
     KEY_SID = "sid"
     KEY_ERR = "err"
@@ -103,14 +102,13 @@ class CwxMqPoco:
             raise BadPackageError()
         self.header.__init__(msg_header[:CwxMsgHeader.HEAD_LEN])
 
-    def pack_mq(self, task_id, data, group, type, attr, user=None, passwd=None, sign=None, zip=False):
+    def pack_mq(self, task_id, data, group, type, user=None, passwd=None, sign=None, zip=False):
         '''
         @brief 形成mq的一个消息包
         @param [in] task_id task-id,回复的时候会返回。
         @param [in] data msg的data。
         @param [in] group msg的group。
         @param [in] type msg的type。
-        @param [in] attr msg的attr。
         @param [in] user 接收mq的user，若为空，则表示没有用户。
         @param [in] passwd 接收mq的passwd，若为空，则表示没有口令。
         @param [in] sign  接收的mq的签名类型，若为空，则表示不签名。
@@ -121,7 +119,6 @@ class CwxMqPoco:
         self.package.data[CwxMqPoco.KEY_DATA] = data
         self.package.data[CwxMqPoco.KEY_GROUP] = group
         self.package.data[CwxMqPoco.KEY_TYPE] = type
-        self.package.data[CwxMqPoco.KEY_ATTR] = attr
         if user:
             self.package.data[CwxMqPoco.KEY_USER] = user
         if passwd:
@@ -307,7 +304,7 @@ class CwxMqPoco:
         '''
         @brief parse  mq的fetch msg的reply消息包
         @param [in] msg 接收到的mq消息，不包括msg header。
-        @return OrderedDict({ret, err, sid, timestamp, data, group, type, attr})
+        @return OrderedDict({ret, err, sid, timestamp, data, group, type})
             ret 获取mq消息的状态码。
             err 状态不是CWX_MQ_ERR_SUCCESS的错误消息。
             sid 成功时，返回消息的sid。
@@ -315,7 +312,6 @@ class CwxMqPoco:
             data 成功时，返回消息的data。
             group 成功时，返回消息的group。
             type 成功时，返回消息的type。
-            attr 成功时，返回消息的attr。
         '''
         self.parse_package(msg)
         ret = self.package.get_key_int(CwxMqPoco.KEY_RET)
@@ -347,8 +343,7 @@ class CwxMqPoco:
 
         return OrderedDict((("ret",ret), ("err",err_msg), ("sid",sid), 
                 ("timestamp",time_stamp), ("data",data), ("group",group),
-                ("type",self.package.get_key_int(CwxMqPoco.KEY_TYPE)),
-                ("attr",self.package.get_key_int(CwxMqPoco.KEY_ATTR))))
+                ("type",self.package.get_key_int(CwxMqPoco.KEY_TYPE))))
 
     def pack_fetch_mq_commit(self, commit, delay):
         '''
@@ -451,14 +446,13 @@ class CwxMqPoco:
         '''
         @brief parse mq的sync msg的消息包
         @param [in] msg 接收到的mq消息，不包括msg header。
-        @return [OrderedDict({sid, timestamp, data, group, type, attr}),...]
+        @return [OrderedDict({sid, timestamp, data, group, type}),...]
             返回的list中按顺序包含每条消息。非chunk模式只包含一个消息。
             sid 消息的sid。
             timestamp 消息接收时的时间。
             data 消息的data。
             group 消息的group。
             type 消息的type。
-            attr 消息的attr。
         '''
         self.parse_package(msg)
         packages = []
@@ -496,8 +490,7 @@ class CwxMqPoco:
 
             res.append(OrderedDict((("sid",sid), ("timestamp",time_stamp), 
                     ("data",data), ("group",group),
-                    ("type",self.package.get_key_int(CwxMqPoco.KEY_TYPE)),
-                    ("attr",self.package.get_key_int(CwxMqPoco.KEY_ATTR)))))
+                    ("type",self.package.get_key_int(CwxMqPoco.KEY_TYPE)))))
         return res
 
     def pack_sync_data_reply(self, task_id, sid):
