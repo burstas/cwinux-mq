@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <svr_def>
   <workdir path="/usr/home/wenbo/cwinux-mq/trunk/test_fetch"/>
-  <listen ip="172.16.42.65" port="9907"/>
+  <listen ip="127.0.0.1" port="9907"/>
   <unix path="/usr/home/wenbo/cwinux-mq/mq/trunk/mq/async.sock"/>
   <auth user="u_q1" passwd="p_q1" />
   <queue name="q1" />
