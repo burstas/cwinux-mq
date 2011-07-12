@@ -126,20 +126,20 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
     {
         m_binlog.m_uiBinLogMSize = CwxMqConfigBinLog::MAX_BINLOG_MSIZE;
     }
-    //load mq:binlog:manage:max_day
-    if ((NULL == (pValue=parser.getElementAttr("mq:binlog:manage", "max_day"))) || !pValue[0])
+    //load mq:binlog:manage:max_hour
+    if ((NULL == (pValue=parser.getElementAttr("mq:binlog:manage", "max_hour"))) || !pValue[0])
     {
-        snprintf(m_szErrMsg, 2047, "Must set [mq:binlog:manage:max_day].");
+        snprintf(m_szErrMsg, 2047, "Must set [mq:binlog:manage:max_hour].");
         return -1;
     }
-    m_binlog.m_uiMgrMaxDay = strtoul(pValue, NULL, 0);
-    if (m_binlog.m_uiMgrMaxDay < CwxBinLogMgr::MIN_MANAGE_DAY)
+    m_binlog.m_uiMgrMaxHour = strtoul(pValue, NULL, 0);
+    if (m_binlog.m_uiMgrMaxHour < CwxBinLogMgr::MIN_MANAGE_HOUR)
     {
-        m_binlog.m_uiMgrMaxDay = CwxBinLogMgr::MIN_MANAGE_DAY;
+        m_binlog.m_uiMgrMaxHour = CwxBinLogMgr::MIN_MANAGE_HOUR;
     }
-    if (m_binlog.m_uiMgrMaxDay > CwxBinLogMgr::MAX_MANAGE_DAY)
+    if (m_binlog.m_uiMgrMaxHour > CwxBinLogMgr::MAX_MANAGE_HOUR)
     {
-        m_binlog.m_uiMgrMaxDay = CwxBinLogMgr::MAX_MANAGE_DAY;
+        m_binlog.m_uiMgrMaxHour = CwxBinLogMgr::MAX_MANAGE_HOUR;
     }
 
     //load mq:binlog:manage:del_out_file
@@ -385,7 +385,7 @@ void CwxMqConfig::outputConfig() const
     CWX_INFO(("window sock_buf_kbyte=%u  trunk_kbyte=%u", m_common.m_uiSockBufSize, m_common.m_uiChunkSize));
     CWX_INFO(("*****************binlog*******************"));
     CWX_INFO(("file path=%s prefix=%s max-file-size(Mbyte)=%u", m_binlog.m_strBinlogPath.c_str(), m_binlog.m_strBinlogPrex.c_str(), m_binlog.m_uiBinLogMSize));
-    CWX_INFO(("manager binlog file max_day=%u  del_outday_logfile=%s", m_binlog.m_uiMgrMaxDay, m_binlog.m_bDelOutdayLogFile?"yes":"no"));
+    CWX_INFO(("manager binlog file max_hour=%u  del_outday_logfile=%s", m_binlog.m_uiMgrMaxHour, m_binlog.m_bDelOutdayLogFile?"yes":"no"));
 	CWX_INFO(("binlog flush cache=%s log_num=%u second=%u", m_binlog.m_bCache?"yes":"no", m_binlog.m_uiFlushNum, m_binlog.m_uiFlushSecond));
     if (m_common.m_bMaster){
         CWX_INFO(("*****************master*******************"));

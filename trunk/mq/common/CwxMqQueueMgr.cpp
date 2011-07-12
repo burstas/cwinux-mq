@@ -139,6 +139,15 @@ int CwxMqQueue::init(CWX_UINT64 ullLastCommitSid,
     m_lastUncommitSid = uncommitSid; ///<m_ullLastCommitSid之前未commit的binlog
     m_lastCommitSid = commitSid;
 
+	//创建cursor
+	{
+		m_cursor = m_binLog->createCurser(getStartSid());
+		if (!m_cursor)
+		{
+			strErrMsg = "Failure to create cursor.";
+			return -1;
+		}
+	}
     return 0;
 }
 
