@@ -81,6 +81,7 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_ERR_SCRIBE_TOO_LONG   26 ///<队列订阅表达式太长
 #define CWX_MQ_ERR_NAME_EMPTY        27 ///<队列的名字为空
 #define CWX_MQ_ERR_QUEUE_EXIST       28 ///<队列存在
+#define CWX_MQ_ERR_LOST_SYNC         29 ///<失去了同步状态
 
 
 #define CWX_MQ_PROXY_NO_AUTH_GROUP    100 ///<消息的group没有被允许

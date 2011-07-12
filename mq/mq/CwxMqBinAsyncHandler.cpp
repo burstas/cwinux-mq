@@ -233,7 +233,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             ///回复iRet的值
             iRet = CWX_MQ_ERR_SUCCESS;
             ///创建binlog读取的cursor
-            CwxBinLogCursor* pCursor = m_pApp->getBinLogMgr()->createCurser();
+            CwxBinLogCursor* pCursor = m_pApp->getBinLogMgr()->createCurser(ullSid);
             if (!pCursor)
             {
                 iRet = CWX_MQ_ERR_INNER_ERR;
@@ -241,6 +241,16 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                 CWX_ERROR((pTss->m_szBuf2K));
                 break;
             }
+			if (ullSid && ullSid < m_pApp->getBinLogMgr()->getMinSid())
+			{
+				iRet = CWX_MQ_ERR_LOST_SYNC;
+				char szBuf1[64], szBuf2[64];
+				sprintf(pTss->m_szBuf2K, "Lost sync state, report sid:%s, min sid:%s",
+					CwxCommon::toString(ullSid, szBuf1),
+					CwxCommon::toString(m_pApp->getBinLogMgr()->getMinSid(), szBuf2));
+				CWX_ERROR((pTss->m_szBuf2K));
+				break;
+			}
             ///设置cursor
             m_dispatch.m_pCursor = pCursor;
             m_dispatch.m_ullStartSid = ullSid;
