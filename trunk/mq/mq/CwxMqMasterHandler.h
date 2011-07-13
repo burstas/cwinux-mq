@@ -29,6 +29,8 @@ public:
         m_uiConnId = 0;
         m_unzipBuf = NULL;
         m_uiBufLen = 0;
+		m_bSync = false;
+		m_strMasterErr = "No connnect"; ///<没有连接
     }
     ///析构函数
     virtual ~CwxMqMasterHandler()
@@ -47,6 +49,14 @@ public:
     {
         return m_uiConnId;
     }
+	string const& getMasterErr() const
+	{
+		return m_strMasterErr;
+	}
+	bool isSync() const
+	{
+		return m_bSync;
+	}
 private:
     //0：成功；-1：失败
     int saveBinlog(CwxMqTss* pTss,
@@ -65,6 +75,8 @@ private:
     CwxPackageReader        m_reader; ///<解包的reader
     unsigned char*          m_unzipBuf; ///<解压的buffer
     CWX_UINT32              m_uiBufLen; ///<解压buffer的大小，其为trunk的20倍，最小为20M。
+	bool					m_bSync; ///<是否在同步状态
+	string					m_strMasterErr; ///<master的错误信息
 };
 
 #endif 
