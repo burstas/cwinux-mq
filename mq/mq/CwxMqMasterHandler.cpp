@@ -96,7 +96,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             CWX_ERROR((m_strMasterErr.c_str()));
             return 1;
         }
-		CwxCommon::snprintf(pTss->m_szBuf2K, "Failure to sync message from master, ret=%d, err=%s", ret, szMsg);
+		CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Failure to sync message from master, ret=%d, err=%s", ret, szMsg);
 		m_strMasterErr = pTss->m_szBuf2K;
 		CWX_ERROR((pTss->m_szBuf2K));
         return 1;
