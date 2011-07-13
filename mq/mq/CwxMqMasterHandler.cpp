@@ -42,6 +42,7 @@ int CwxMqMasterHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             CwxMsgBlockAlloc::free(pBlock);
         }
     }
+	m_strMasterErr = "No report to master";
     return 1;
 }
 
@@ -56,6 +57,8 @@ int CwxMqMasterHandler::onConnClosed(CwxMsgBlock*& , CwxTss* )
 	{
 		CWX_ERROR(("Failure to commit binlog data, err:%s", szErr2K));
 	}
+	m_bSync = false;
+	m_strMasterErr = "No connnect"; ///<没有连接
     return 1;
 }
 
@@ -73,9 +76,11 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         CWX_UINT64 ullSid = 0;
         char const* szMsg = NULL;
         int ret = 0;
+		m_bSync = false;
         if (!msg)
         {
-            CWX_ERROR(("recieved report reply is empty."));
+			m_strMasterErr = "recieved report reply is empty."; ///<没有连接
+            CWX_ERROR((m_strMasterErr.c_str()));
             return 1;
         }
 
@@ -86,10 +91,14 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             szMsg,
             pTss->m_szBuf2K))
         {
-            CWX_ERROR(("Failure to parse report-reply msg from master, err=%s", pTss->m_szBuf2K));
+			m_strMasterErr = "Failure to parse report-reply msg from master, err=";
+			m_strMasterErr += pTss->m_szBuf2K;
+            CWX_ERROR((m_strMasterErr.c_str()));
             return 1;
         }
-        CWX_ERROR(("Failure to sync message from master, ret=%d, err=%s", ret, szMsg));
+		CwxCommon::snprintf(pTss->m_szBuf2K, "Failure to sync message from master, ret=%d, err=%s", ret, szMsg);
+		m_strMasterErr = pTss->m_szBuf2K;
+		CWX_ERROR((pTss->m_szBuf2K));
         return 1;
     }
     else if (CwxMqPoco::MSG_TYPE_SYNC_DATA == msg->event().getMsgHeader().getMsgType())
@@ -98,6 +107,12 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         CWX_UINT64 ullSid;
         unsigned long ulUnzipLen = 0;
         bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
+
+		if (!m_bSync)
+		{
+			m_bSync = true;
+			m_strMasterErr.erase();
+		}
 
         if (!msg)
         {

@@ -186,10 +186,10 @@ public:
             }
             else if (m_pMasterHandler)
             {
-                if (!m_pMasterHandler->getMasterConnId())
+                if (!m_pMasterHandler->isSync())
                 {
                     bValid = false;
-                    szReason = "Can't connect to master";
+                    szReason = m_pMasterHandler->getMasterErr().c_str();
                 }
             }
             else if (m_queueMgr)
