@@ -17,7 +17,7 @@ bool   g_commit = false;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:n:chb");
+	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:n:o:chb");
     int option;
     cmd_option.long_option("timeout", 'o', CwxGetOpt::ARG_REQUIRED);
     while( (option = cmd_option.next()) != -1)

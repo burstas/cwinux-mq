@@ -20,7 +20,7 @@ CWX_UINT32 g_max_timeout = 0;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:s:d:m:hc");
+	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:s:d:m:a:A:i:hc");
     int option;
     cmd_option.long_option("auth_u", 'a', CwxGetOpt::ARG_REQUIRED);
     cmd_option.long_option("auth_p", 'A', CwxGetOpt::ARG_REQUIRED);
