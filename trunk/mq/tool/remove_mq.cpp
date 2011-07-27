@@ -15,7 +15,7 @@ string g_auth_passwd;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:h");
+	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:a:A:h");
     int option;
     cmd_option.long_option("auth_u", 'a', CwxGetOpt::ARG_REQUIRED);
     cmd_option.long_option("auth_p", 'A', CwxGetOpt::ARG_REQUIRED);

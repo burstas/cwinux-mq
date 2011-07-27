@@ -23,7 +23,7 @@ unsigned long g_unzip_len = 0;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:s:w:n:S:zh");
+	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:s:w:n:S:i:C:zh");
     int option;
     cmd_option.long_option("sid", 'i', CwxGetOpt::ARG_REQUIRED);
     cmd_option.long_option("chunk", 'C', CwxGetOpt::ARG_REQUIRED);
