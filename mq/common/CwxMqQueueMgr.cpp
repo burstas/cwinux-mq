@@ -340,19 +340,22 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
 {
     int iRet = 0;
 
-    if (!m_cursor)
+	if (!m_cursor || (CwxBinLogMgr::CURSOR_STATE_READY != m_cursor->getSeekState()))
     {
         CWX_UINT64 ullStartSid = getStartSid();
         //
         if (ullStartSid < m_binLog->getMaxSid())
         {
-            m_cursor = m_binLog->createCurser();
-            if (!m_cursor)
-            {
-                err_num = CWX_MQ_ERR_INNER_ERR;
-                strcpy(szErr2K, "Failure to create cursor");
-                return -1;
-            }
+			if (!m_cursor)
+			{
+				m_cursor = m_binLog->createCurser();
+				if (!m_cursor)
+				{
+					err_num = CWX_MQ_ERR_INNER_ERR;
+					strcpy(szErr2K, "Failure to create cursor");
+					return -1;
+				}
+			}
             iRet = m_binLog->seek(m_cursor, ullStartSid);
             if (1 != iRet)
             {
@@ -516,16 +519,19 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
 
 CWX_UINT64 CwxMqQueue::getMqNum()
 {
-    if (!m_cursor)
+    if (!m_cursor || (CwxBinLogMgr::CURSOR_STATE_READY != m_cursor->getSeekState()))
     {
         CWX_UINT64 ullStartSid = getStartSid();
         if (ullStartSid < m_binLog->getMaxSid())
         {
-            m_cursor = m_binLog->createCurser();
-            if (!m_cursor)
-            {
-                return 0;
-            }
+			if (!m_cursor)
+			{
+				m_cursor = m_binLog->createCurser();
+				if (!m_cursor)
+				{
+					return 0;
+				}
+			}
             int iRet = m_binLog->seek(m_cursor, ullStartSid);
             if (1 != iRet)
             {
@@ -534,7 +540,10 @@ CWX_UINT64 CwxMqQueue::getMqNum()
                 return 0;
             }
         }
-        return 0;
+		else
+		{
+			return 0;
+		}
     }
     return m_binLog->leftLogNum(m_cursor) + m_memMsgMap.size() + (m_pDelayMsg?m_pDelayMsg->count():0);
 }

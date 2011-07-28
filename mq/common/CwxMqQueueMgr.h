@@ -168,7 +168,7 @@ public:
     }
     inline CWX_UINT64 getCurSid() const
     {
-        return m_cursor?m_cursor->getHeader().getSid():0;
+		return (m_cursor && (CwxBinLogMgr::CURSOR_STATE_READY == m_cursor->getSeekState()))?m_cursor->getHeader().getSid():0;
     }
     inline CWX_UINT32 getWaitCommitNum() const
     {
