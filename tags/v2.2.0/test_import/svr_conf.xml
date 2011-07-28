@@ -1,9 +1,0 @@
-<?xml version='1.0'?>
-<svr_def>
-  <workdir path="/usr/home/wenbo/cwinux_mq/svn/trunk/mq/test_import"/>
-  <listen ip="127.0.0.1" port="9901"/>
-  <unix path="/usr/home/wenbo/cwinux-mq/mq/trunk/test_import/recv.sock"/>
-  <conn  num="50" type="tcp" lasting="1"/>
-  <auth user="recv" passwd="recv_passwd" />
-  <data  group="10" type="20"  size="2048"/>
-</svr_def>
