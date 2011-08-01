@@ -702,7 +702,6 @@ int CwxMqApp::monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHandler4
                 msg = CwxMsgBlockAlloc::malloc(1024);
                 strcpy(msg->wr_ptr(), "ERROR\r\n");
                 msg->wr_ptr(strlen(msg->wr_ptr()));
-                return -1;
             }
             else
             {
