@@ -460,7 +460,7 @@ int CwxMqApp::startBinLogMgr()
             m_config.getBinLog().m_strBinlogPrex.c_str(),
             ullBinLogSize,
             m_config.getBinLog().m_bDelOutdayLogFile);
-        if (0 != m_pBinLogMgr->init(m_config.getBinLog().m_uiMgrMaxHour,
+        if (0 != m_pBinLogMgr->init(m_config.getBinLog().m_uiMgrFileNum,
 			m_config.getBinLog().m_bCache,
             CWX_TSS_2K_BUF))
         {///<如果失败，则返回-1

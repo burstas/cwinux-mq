@@ -65,7 +65,7 @@ public:
     CwxMqConfigBinLog()
     {
         m_uiBinLogMSize = DEF_BINLOG_MSIZE;
-        m_uiMgrMaxHour = CwxBinLogMgr::DEF_MANAGE_MAX_HOUR;
+        m_uiMgrFileNum = CwxBinLogMgr::DEF_MANAGE_FILE_NUM;
         m_bDelOutdayLogFile = false;
         m_uiFlushNum = 100;
         m_uiFlushSecond = 30;
@@ -75,7 +75,7 @@ public:
     string              m_strBinlogPath; ///<binlog的目录
     string              m_strBinlogPrex; ///<binlog的文件的前缀
     CWX_UINT32          m_uiBinLogMSize; ///<binlog文件的最大大小，单位为M
-    CWX_UINT32          m_uiMgrMaxHour; ///<管理的binglog的最大小时数
+    CWX_UINT32          m_uiMgrFileNum; ///<管理的binglog的最大文件数
     bool                m_bDelOutdayLogFile; ///<是否删除不管理的消息文件
     CWX_UINT32          m_uiFlushNum; ///<接收多少条记录后，flush binlog文件
     CWX_UINT32          m_uiFlushSecond; ///<间隔多少秒，必须flush binlog文件
