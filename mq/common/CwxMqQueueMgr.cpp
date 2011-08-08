@@ -824,11 +824,11 @@ int CwxMqQueueMgr::endSendMsg(string const& strQueue,
 			if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
 			return -1;
 		}
-        int ret = iter->second->endSendMsg(ullSid, bSend);
+        int ret = iter->second.first->endSendMsg(ullSid, bSend);
         if (0 == ret) return 0;
         if (1 == ret) 
         {
-            if (!iter->second->isCommit())
+            if (!iter->second.first->isCommit())
             {
                 int num = iter->second.second->log(ullSid);
                 if (-1 == num)
@@ -957,8 +957,8 @@ int CwxMqQueueMgr::addQueue(string const& strQueue,
             return -1;
         }
 		pair<CwxMqQueue*, CwxMqQueueLogFile*> item;
-		item->first = mq;
-		item->second = mqLogFile;
+		item.first = mq;
+		item.second = mqLogFile;
 		m_queues[strQueue] = item;
         return 1;
     }
@@ -1007,7 +1007,7 @@ void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues)
         info.m_ullLeftNum = iter->second.first->getMqNum();
         info.m_uiWaitCommitNum = iter->second.first->getWaitCommitNum();
         info.m_uiMemLogNum = iter->second.first->getMemMsgMap().size();
-        if (iter->second->getCursor())
+        if (iter->second.first->getCursor())
         {
             info.m_ucQueueState = iter->second.first->getCursor()->getSeekState();
             if (CwxBinLogMgr::CURSOR_STATE_ERROR == info.m_ucQueueState)
@@ -1024,7 +1024,7 @@ void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues)
             info.m_ucQueueState = CwxBinLogMgr::CURSOR_STATE_UNSEEK;
             info.m_strQueueErrMsg = "";
         }
-		info.m_bQueueLogFileValid = iter->second.second.isValid();
+		info.m_bQueueLogFileValid = iter->second.second->isValid();
 		if (!info.m_bQueueLogFileValid)
 		{
 			info.m_strQueueLogFileErrMsg = iter->second.second->getErrMsg();
