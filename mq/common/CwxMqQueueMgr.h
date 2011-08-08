@@ -349,7 +349,7 @@ public:
     {
         return m_strErrMsg;
     }
-	inline static bool isInvalidQueueName(char const* queue) const
+	inline static bool isInvalidQueueName(char const* queue)
 	{
 		if (!queue) return false;
 		CWX_UINT32 uiLen = strlen(queue);
