@@ -1060,7 +1060,7 @@ bool CwxMqQueueMgr::_save(CwxMqQueue* queue, CwxMqQueueLogFile* logFile)
 	return true;
 }
 
-bool CwxMqQueueMgr::_fetchLogFile(set<string/*queue name*/> >& queues)
+bool CwxMqQueueMgr::_fetchLogFile(set<string/*queue name*/> & queues)
 {
 	//如果binlog的目录不存在，则创建此目录
 	if (!CwxFile::isDir(m_strQueueLogFilePath.c_str()))
