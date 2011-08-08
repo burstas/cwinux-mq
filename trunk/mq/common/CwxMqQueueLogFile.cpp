@@ -158,15 +158,7 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
         return -1;
     }
 	//删除旧文件
-	if (CwxFile::isFile(m_strOldFileName.c_str()) &&
-		!CwxFile::rmFile(m_strOldFileName.c_str()))
-	{
-		CwxCommon::snprintf(m_szErr2K, 2047, "Failure to rm old sys file:%s, errno=%d",
-			m_strOldFileName.c_str(),
-			errno);
-		closeFile(true);
-		return -1;
-	}
+	CwxFile::rmFile(m_strOldFileName.c_str());
     //打开当前文件，接受写
     //open file
     m_fd = ::fopen(m_strFileName.c_str(), "a+");
@@ -516,6 +508,10 @@ int CwxMqQueueLogFile::prepare()
             errno);
         return -1;
     }
+	//删除旧文件
+	CwxFile::rmFile(m_strOldFileName.c_str());
+	//删除新文件
+	CwxFile::rmFile(m_strNewFileName.c_str());
     m_bLock = true;
     return 0;
 }
