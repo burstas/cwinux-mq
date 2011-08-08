@@ -12,6 +12,7 @@ CwxMqQueueLogFile::CwxMqQueueLogFile(CWX_UINT32 uiFsyncInternal,
     m_uiFsyncInternal = uiFsyncInternal; ///<flush硬盘的间隔
     m_uiCurLogCount = 0; ///<自上次fsync来，log记录的次数
     m_uiTotalLogCount = 0; ///<当前文件log的数量
+	m_uiLastSaveTime = 0;
     strcpy(m_szErr2K, "No init");
 }
 
@@ -21,9 +22,9 @@ CwxMqQueueLogFile::~CwxMqQueueLogFile()
 }
 
 ///初始化系统文件；0：成功；-1：失败
-int CwxMqQueueLogFile::init(map<string, CwxMqQueueInfo>& queues,
-         map<string, set<CWX_UINT64>*>& uncommitSets,
-         map<string, set<CWX_UINT64>*>& commitSets)
+int CwxMqQueueLogFile::init(CwxMqQueueInfo& queue,
+         set<CWX_UINT64>& uncommitSets,
+         set<CWX_UINT64>& commitSets)
 {
     if (0 != prepare())
     {
@@ -31,50 +32,26 @@ int CwxMqQueueLogFile::init(map<string, CwxMqQueueInfo>& queues,
         return -1;
     }
     //清空数据
-    queues.clear();
-    map<string, set<CWX_UINT64>*>::iterator iter = uncommitSets.begin();
-    while(iter != uncommitSets.end())
-    {
-        delete iter->second;
-        iter++;
-    }
-    uncommitSets.clear();
-    iter = commitSets.begin();
-    while(iter != commitSets.end())
-    {
-        delete iter->second;
-        iter++;
-    }
+	queue.m_strName.erase();
+	uncommitSets.clear();
     commitSets.clear();
     //加载数据
-    if (0 != load(queues, uncommitSets, commitSets))
+    if (0 != load(queue, uncommitSets, commitSets))
     {
         //若失败，清空数据
-        queues.clear();
-        map<string, set<CWX_UINT64>*>::iterator iter = uncommitSets.begin();
-        while(iter != uncommitSets.end())
-        {
-            delete iter->second;
-            iter++;
-        }
-        uncommitSets.clear();
-        iter = commitSets.begin();
-        while(iter != commitSets.end())
-        {
-            delete iter->second;
-            iter++;
-        }
-        commitSets.clear();
+		uncommitSets.clear();
+		commitSets.clear();
         closeFile(false);
         return -1;
     }
+	m_uiLastSaveTime = time(NULL);
     return 0;
 }
 
 ///保存队列信息；0：成功；-1：失败
-int CwxMqQueueLogFile::save(map<string, CwxMqQueueInfo> const& queues,
-                            map<string, set<CWX_UINT64>*> const& uncommitSets,
-                            map<string, set<CWX_UINT64>*> const& commitSets)
+int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
+                            set<CWX_UINT64>const& uncommitSets,
+                            set<CWX_UINT64>const& commitSets)
 {
     if (!m_fd) return -1;
     //写新文件
@@ -91,76 +68,62 @@ int CwxMqQueueLogFile::save(map<string, CwxMqQueueInfo> const& queues,
     char line[1024];
     char szSid[64];
     ssize_t len = 0;
-    map<string, CwxMqQueueInfo>::const_iterator iter_queue = queues.begin();
-    while(iter_queue != queues.end())
-    {//queue:name=q1|sid=12345|commit=true|def_timeout=5|max_timeout=300|user=u_q1|passwd=p_q1|subcribe=*
-        len = CwxCommon::snprintf(line, 
+    //queue:name=q1|sid=12345|commit=true|def_timeout=5|max_timeout=300|user=u_q1|passwd=p_q1|subcribe=*
+	len = CwxCommon::snprintf(line, 
             1023,
             "%s:name=%s|sid=%s|commit=%s|def_timeout=%u|max_timeout=%u|user=%s|passwd=%s|subscribe=%s\n",
             CWX_MQ_QUEUE,
-            iter_queue->second.m_strName.c_str(),
-            CwxCommon::toString(iter_queue->second.m_ullCursorSid, szSid, 10),
-            iter_queue->second.m_bCommit?"true":"false",
-            iter_queue->second.m_uiDefTimeout,
-            iter_queue->second.m_uiMaxTimeout,
-            iter_queue->second.m_strUser.c_str(),
-            iter_queue->second.m_strPasswd.c_str(),
-            iter_queue->second.m_strSubScribe.c_str());
-        if (len != write(fd, line, len))
-        {
-            CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write new sys file:%s, errno=%d",
-                m_strNewFileName.c_str(),
-                errno);
-            closeFile(true);
-            return -1;
-        }
-        iter_queue++;
-    }
+            queue.m_strName.c_str(),
+            CwxCommon::toString(queue.m_ullCursorSid, szSid, 10),
+            queue.m_bCommit?"true":"false",
+            queue.m_uiDefTimeout,
+            queue.m_uiMaxTimeout,
+            queue.m_strUser.c_str(),
+            queue.m_strPasswd.c_str(),
+            queue.m_strSubScribe.c_str());
+	if (len != write(fd, line, len))
+	{
+		CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write new sys file:%s, errno=%d",
+			m_strNewFileName.c_str(),
+			errno);
+		closeFile(true);
+		return -1;
+	}
     //写未提交的sid
-    map<string, set<CWX_UINT64>*>::const_iterator iter_sid = uncommitSets.begin();
+    set<CWX_UINT64>::const_iterator iter_sid = uncommitSets.begin();
     while(iter_sid != uncommitSets.end())
     {
-        set<CWX_UINT64>::const_iterator iter = iter_sid->second->begin();
-        while(iter != iter_sid->second->end())
-        {//uncommit:name=q1|sid=1
-            len = CwxCommon::snprintf(line, 1023, "%s:name=%s|sid=%s\n",
-                CWX_MQ_UNCOMMIT,
-                iter_sid->first.c_str(),
-                CwxCommon::toString(*iter, szSid, 10));
-            if (len != write(fd, line, len))
-            {
-                CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write new sys file:%s, errno=%d",
-                    m_strNewFileName.c_str(),
-                    errno);
-                closeFile(true);
-                return -1;
-            }
-            iter++;
-        }
-        iter_sid++;
+		//uncommit:sid=1
+		len = CwxCommon::snprintf(line, 1023, "%s:sid=%s\n",
+			CWX_MQ_UNCOMMIT,
+			CwxCommon::toString(*iter_sid, szSid, 10));
+		if (len != write(fd, line, len))
+		{
+			CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write new sys file:%s, errno=%d",
+				m_strNewFileName.c_str(),
+				errno);
+			closeFile(true);
+			return -1;
+		}
+		iter_sid++;
     }
     //写提交的sid
     iter_sid = commitSets.begin();
     while(iter_sid != commitSets.end())
     {
-        set<CWX_UINT64>::const_iterator iter = iter_sid->second->begin();
-        while(iter != iter_sid->second->end())
-        {//commit:name=q1|sid=1
-            len = CwxCommon::snprintf(line, 1023, "%s:name=%s|sid=%s\n",
-                CWX_MQ_COMMIT,
-                iter_sid->first.c_str(),
-                CwxCommon::toString(*iter, szSid, 10));
-            if (len != write(fd, line, len))
-            {
-                CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write new sys file:%s, errno=%d",
-                    m_strNewFileName.c_str(),
-                    errno);
-                closeFile(true);
-                return -1;
-            }
-            iter++;
-        }
-        iter_sid++;
+		//commit:sid=1
+		len = CwxCommon::snprintf(line, 1023, "%s:sid=%s\n",
+			CWX_MQ_COMMIT,
+			CwxCommon::toString(*iter_sid, szSid, 10));
+		if (len != write(fd, line, len))
+		{
+			CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write new sys file:%s, errno=%d",
+				m_strNewFileName.c_str(),
+				errno);
+			closeFile(true);
+			return -1;
+		}
+		iter_sid++;
     }
     ::fsync(fd);
     ::close(fd);
@@ -214,17 +177,18 @@ int CwxMqQueueLogFile::save(map<string, CwxMqQueueInfo> const& queues,
     m_bLock = true;
     m_uiTotalLogCount = 0;
     m_uiCurLogCount = 0;
+	m_uiLastSaveTime = time(NULL);
     return 0;
 }
 
 ///写commit记录；-1：失败；否则返回已经写入的log数量
-int CwxMqQueueLogFile::log(char const* queue, CWX_UINT64 sid)
+int CwxMqQueueLogFile::log(CWX_UINT64 sid)
 {
     if (m_fd)
     {
         char szBuf[1024];
         char szSid[64];
-        size_t len = CwxCommon::snprintf(szBuf, 1023, "%s:name=%s|sid=%s\n", CWX_MQ_COMMIT, queue, CwxCommon::toString(sid, szSid, 10));
+		size_t len = CwxCommon::snprintf(szBuf, 1023, "%s:sid=%s\n", CWX_MQ_COMMIT, CwxCommon::toString(sid, szSid, 10));
         if (len != fwrite(szBuf, 1, len, m_fd))
         {
             closeFile(false);
@@ -263,9 +227,9 @@ int CwxMqQueueLogFile::fsync()
 }
 
 
-int CwxMqQueueLogFile::load(map<string, CwxMqQueueInfo>& queues,
-                            map<string, set<CWX_UINT64>*>& uncommitSets,
-                            map<string, set<CWX_UINT64>*>& commitSets)
+int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue,
+                            set<CWX_UINT64>& uncommitSets,
+                            set<CWX_UINT64>& commitSets)
 {
 
     bool bRet = true;
@@ -281,10 +245,6 @@ int CwxMqQueueLogFile::load(map<string, CwxMqQueueInfo>& queues,
     //step
     int step = 0; //0:load queue, 1:load uncommit; 2:load commit
     m_uiLine = 0;
-    CwxMqQueueInfo queue;
-    set<CWX_UINT64>* pUncommitSet = NULL;
-    set<CWX_UINT64>* pCommitSet = NULL;
-    map<string, set<CWX_UINT64>*>::iterator map_iter;
     string strQueue;
     CWX_UINT64 ullSid;
     while((bRet = CwxFile::readTxtLine(m_fd, line)))
@@ -293,95 +253,42 @@ int CwxMqQueueLogFile::load(map<string, CwxMqQueueInfo>& queues,
         m_uiLine++;
         if (0 == step)
         {//queue:name=q1|sid=12345|commit=true|def_timeout=5|max_timeout=300|user=u_q1|passwd=p_q1|subcribe=*
-            if (strQueuePrex == line.substr(0, strQueuePrex.length()))
-            {
-                line = line.substr(strQueuePrex.length());
-                if (0 != parseQueue(line, queue))
-                {
-                    return -1;
-                }
-                if (queues.find(queue.m_strName) != queues.end())
-                {
-                    CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] exists, line:%u",
-                        queue.m_strName.c_str(), m_uiLine);
-                    return -1;
-                }
-                queues[queue.m_strName] = queue;
-                continue;
-            }
+			line = line.substr(strQueuePrex.length());
+			if (0 != parseQueue(line, queue))
+			{
+				return -1;
+			}
             step = 1;
+			continue; ///读取下一行
         }
         if (1 == step)
-        {//uncommit:name=q1|sid=1
+        {//uncommit:sid=1
             if (strUncommitPrex == line.substr(0, strUncommitPrex.length()))
             {
                 line = line.substr(strUncommitPrex.length());
-                if (0 != parseSid(line, strQueue, ullSid))
+                if (0 != parseSid(line, ullSid))
                 {
                     return -1;
                 }
-                if (queues.find(strQueue) == queues.end())
-                {
-                    CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] not exists, line:%u",
-                        strQueue.c_str(), m_uiLine);
-                    return -1;
-                }
-                map_iter = uncommitSets.find(strQueue);
-                if (map_iter != uncommitSets.end())
-                {
-                    map_iter->second->insert(ullSid);
-                }
-                else
-                {
-                    pUncommitSet = new set<CWX_UINT64>;
-                    pUncommitSet->insert(ullSid);
-                    uncommitSets[strQueue] = pUncommitSet;
-                }
+				uncommitSets.insert(ullSid);
                 continue;
             }
             step = 2;
         }
         if (2 == step)
-        {//commit:name=q2|sid=1
+        {//commit:sid=1
             if (strCommitPrex == line.substr(0, strCommitPrex.length()))
             {
                 line = line.substr(strCommitPrex.length());
-                if (0 != parseSid(line, strQueue, ullSid))
+                if (0 != parseSid(line, ullSid))
                 {
                     return -1;
                 }
-                if (queues.find(strQueue) == queues.end())
-                {
-                    CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] not exists, line:%u",
-                        strQueue.c_str(), m_uiLine);
-                    return -1;
-                }
-                map_iter = uncommitSets.find(strQueue);
-                if (map_iter != uncommitSets.end())
-                {
-                    pUncommitSet = map_iter->second;
-                }
-                else
-                {
-                    pUncommitSet = NULL;
-                }
-                map_iter = commitSets.find(strQueue);
-                if (map_iter == commitSets.end())
-                {
-                    pCommitSet = new set<CWX_UINT64>;
-                    commitSets[strQueue] = pCommitSet;
-                }
-                pCommitSet->insert(ullSid);
+                commitSets.insert(ullSid);
                 //如果sid在uncommit set中存在，则需要删除
-                if (pUncommitSet)
-                {
-                    if (pUncommitSet->find(ullSid) != pUncommitSet->end())
-                        pUncommitSet->erase(ullSid);
-                    if (!pUncommitSet->size())
-                    {
-                        uncommitSets.erase(strQueue);
-                        delete pUncommitSet;
-                    }
+				if (uncommitSets.find(ullSid) != uncommitSets.end())
+				{
+					uncommitSets.erase(ullSid);
                 }
                 m_uiTotalLogCount++;
                 continue;
@@ -391,9 +298,7 @@ int CwxMqQueueLogFile::load(map<string, CwxMqQueueInfo>& queues,
                 line.c_str(),
                 m_uiLine);
             return -1;
-
         }
-        
     }
     if (!bRet)
     {
@@ -509,28 +414,24 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
     return 0;
 }
 
-int CwxMqQueueLogFile::parseSid(string const& line, string& queue, CWX_UINT64& ullSid)
+int CwxMqQueueLogFile::parseSid(string const& line, CWX_UINT64& ullSid)
 {
-    list<pair<string, string> > items;
     pair<string, string> item;
-    CwxCommon::split(line, items, '|');
-    //get name
-    if (!CwxCommon::findKey(items, CWX_MQ_NAME, item))
-    {
-        CwxCommon::snprintf(m_szErr2K, 2047, "Not find [%s] key, line:%u", 
-            CWX_MQ_NAME,
-            m_uiLine);
-        return -1;
-    }
-    queue = item.second;
+    if (!CwxCommon::keyValue(line, item))
+	{
+		CwxCommon::snprintf(m_szErr2K, 2047, "Not find [%s] key, line:%u", 
+			CWX_MQ_SID,
+			m_uiLine);
+		return -1;
+	}
+	if (item.first != CWX_MQ_SID)
+	{
+		CwxCommon::snprintf(m_szErr2K, 2047, "Not find [%s] key, line:%u", 
+			CWX_MQ_SID,
+			m_uiLine);
+		return -1;
+	}
     //get sid
-    if (!CwxCommon::findKey(items, CWX_MQ_SID, item))
-    {
-        CwxCommon::snprintf(m_szErr2K, 2047, "Not find [%s] key, line:%u",
-            CWX_MQ_SID,
-            m_uiLine);
-        return -1;
-    }
     ullSid = strtoull(item.second.c_str(), NULL, 0);
     return 0;
 }

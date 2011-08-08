@@ -457,6 +457,12 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue name[%s] is too long, max:%u", queue_name, CWX_MQ_MAX_QUEUE_NAME_LEN);
             break;
         }
+		if (!CwxMqQueueMgr::isInvalidQueueName(queue_name))
+		{
+			iRet = CWX_MQ_ERR_INVALID_QUEUE_NAME;
+			CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue name[%s] is invalid, charactor must be in [a-z, A-Z, 0-9, -, _]", queue_name);
+			break;
+		}
         if (strlen(user) > CWX_MQ_MAX_QUEUE_USER_LEN)
         {
             iRet = CWX_MQ_ERR_USER_TO0_LONG;

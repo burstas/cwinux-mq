@@ -272,12 +272,12 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
     {
         if (!fetchHost(parser, "mq:mq:listen", m_mq.m_mq)) return -1;
         //load mq:mq:log:file
-        if ((NULL == (pValue=parser.getElementAttr("mq:mq:log", "file"))) || !pValue[0])
+        if ((NULL == (pValue=parser.getElementAttr("mq:mq:log", "path"))) || !pValue[0])
         {
-            snprintf(m_szErrMsg, 2047, "Must set [mq:mq:log:file].");
+            snprintf(m_szErrMsg, 2047, "Must set [mq:mq:log:path].");
             return -1;
         }
-        m_mq.m_strLogFile = pValue;
+        m_mq.m_strLogFilePath = pValue;
         //load mq:mq:log:fetch_num
         if ((NULL == (pValue=parser.getElementAttr("mq:mq:log", "fetch_num"))) || !pValue[0])
         {
@@ -441,7 +441,7 @@ void CwxMqConfig::outputConfig() const
             m_mq.m_mq.getHostName().c_str(),
             m_mq.m_mq.getPort(),
             m_mq.m_mq.getUnixDomain().c_str()));
-        CWX_INFO(("mq queue file:%s", m_mq.m_strLogFile.c_str()));
+        CWX_INFO(("mq queue path:%s", m_mq.m_strLogFilePath.c_str()));
         CWX_INFO(("mq flush log_num=%u second=%u", m_mq.m_uiFlushNum, m_mq.m_uiFlushSecond));
     }
     CWX_INFO(("*****************END   CONFIG *******************"));

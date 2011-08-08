@@ -480,7 +480,7 @@ int CwxMqApp::startBinLogMgr()
         m_ttMqLastCommitTime = time(NULL);
         //初始化队列管理器
         if (m_queueMgr) delete m_queueMgr;
-        m_queueMgr = new CwxMqQueueMgr(m_config.getMq().m_strLogFile,
+        m_queueMgr = new CwxMqQueueMgr(m_config.getMq().m_strLogFilePath,
             m_config.getMq().m_uiFlushNum);
         if (0 != m_queueMgr->init(m_pBinLogMgr))
         {

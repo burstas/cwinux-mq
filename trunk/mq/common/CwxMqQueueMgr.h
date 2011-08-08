@@ -261,7 +261,7 @@ public:
         MQ_MAX_SWITCH_LOG_INTERNAL = 600
     };
 public:
-    CwxMqQueueMgr(string const& strQueueLogFile,
+    CwxMqQueueMgr(string const& strQueueLogFilePath,
         CWX_UINT32 uiMaxFsyncNum);
     ~CwxMqQueueMgr();
 public:
@@ -343,26 +343,42 @@ public:
     }    
     inline bool isValid() const
     {
-        return m_mqLogFile != NULL;
+        return m_bValid;
     }
     inline string const& getErrMsg() const
     {
         return m_strErrMsg;
     }
+	inline static bool isInvalidQueueName(char const* queue) const
+	{
+		if (!queue) return false;
+		CWX_UINT32 uiLen = strlen(queue);
+		if (!uiLen) return false;
+		for (CWX_UINT32 i=0; i<uiLen; i++)
+		{
+			if (queue[i]>='a' && queue[i]<='z') continue;
+			if (queue[i]>='A' && queue[i]<='Z') continue;
+			if (queue[i]>='0' && queue[i]<='9') continue;
+			if (queue[i]=='-' || queue[i]=='_') continue;
+			return false;
+		}
+		return true;
+	}
 
 private:
     ///保存数据
-    bool _save();
-
+    bool _save(CwxMqQueue* queue, CwxMqQueueLogFile* logFile);
+	bool _fetchLogFile(set<string/*queue name*/> >& queues);
+	bool _isQueueLogFile(string const& file, string& queue);
+	string& _getQueueLogFile(string const& queue, string& strFile);
 private:
-    map<string, CwxMqQueue*>   m_queues;
-    CwxRwLock                  m_lock;
-    string                     m_strQueueLogFile;
-    CWX_UINT32                 m_uiMaxFsyncNum;
-    CwxMqQueueLogFile*         m_mqLogFile;
-    CwxBinLogMgr*              m_binLog;
-    CWX_UINT32                 m_uiLastSaveTime; ///<上一次log文件的保存时间
-    string                     m_strErrMsg;
+    map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >   m_queues; ///<队列
+    CwxRwLock                  m_lock; ///<读写所
+    string                     m_strQueueLogFilePath; ///<queue log文件的路径
+    CWX_UINT32                 m_uiMaxFsyncNum; ///<flush硬盘的次数间隔
+    CwxBinLogMgr*              m_binLog; ///<binlog driver
+    string                     m_strErrMsg; ///<无效时的错误消息
+	bool					   m_bValid; ///<是否有效
 };
 
 

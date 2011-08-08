@@ -121,7 +121,7 @@ public:
     }
 public:
     CwxHostInfo          m_mq; ///<mq的fetch的配置信息
-    string               m_strLogFile; ///<mq的log文件
+    string               m_strLogFilePath; ///<mq的log文件的目录
     CWX_UINT32          m_uiFlushNum; ///<fetch多少条日志，必须flush获取点
     CWX_UINT32          m_uiFlushSecond; ///<多少秒必须flush获取点
 
