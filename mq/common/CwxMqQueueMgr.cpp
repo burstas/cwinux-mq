@@ -1040,20 +1040,20 @@ void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues)
 
 bool CwxMqQueueMgr::_save(CwxMqQueue* queue, CwxMqQueueLogFile* logFile)
 {
-	CwxMqQueueInfo queue;
+	CwxMqQueueInfo queueInfo;
 	set<CWX_UINT64> uncommitSets;
 	set<CWX_UINT64> commitSets;
-	queue.m_strName = queue->getName();
-	queue.m_strUser = queue->getUserName();
-	queue.m_strPasswd = queue->getPasswd();
-	queue.m_bCommit = queue->isCommit();
-	queue.m_uiDefTimeout = queue->getDefTimeout();
-	queue.m_uiMaxTimeout = queue->getMaxTimeout();
-	queue.m_strSubScribe = queue->getSubscribeRule();
-	queue.m_ullCursorSid = queue->getCursorSid();
-	queue->getQueueDumpInfo(queue.m_ullCursorSid, uncommitSets, commitSets);
+	queueInfo.m_strName = queue->getName();
+	queueInfo.m_strUser = queue->getUserName();
+	queueInfo.m_strPasswd = queue->getPasswd();
+	queueInfo.m_bCommit = queue->isCommit();
+	queueInfo.m_uiDefTimeout = queue->getDefTimeout();
+	queueInfo.m_uiMaxTimeout = queue->getMaxTimeout();
+	queueInfo.m_strSubScribe = queue->getSubscribeRule();
+	queueInfo.m_ullCursorSid = queue->getCursorSid();
+	queue->getQueueDumpInfo(queueInfo.m_ullCursorSid, uncommitSets, commitSets);
 	//±£´æµ½logÖÐ
-	if (0 != logFile->save(queue, uncommitSets, commitSets))
+	if (0 != logFile->save(queueInfo, uncommitSets, commitSets))
 	{
 		return false;
 	}
