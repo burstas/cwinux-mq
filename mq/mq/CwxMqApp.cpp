@@ -837,13 +837,16 @@ CWX_UINT32 CwxMqApp::packMonitorInfo()
 
             CwxCommon::toString(iter->m_ullCursorSid, szSid1, 10);
             CwxCommon::toString(iter->m_ullLeftNum, szSid2, 10);
-            CwxCommon::snprintf(szLine, 4096, "STAT mq name(%s)|type(%s)|state(%s)|sid(%s)|mq_num(%s)|subscribe(%s)\r\n",
+            CwxCommon::snprintf(szLine, 4096, "STAT mq name(%s)|type(%s)|curor_state(%s)|mq_log_state(%s)|sid(%s)|mq_num(%s)|subscribe(%s)|cursor_err(%s)|mq_log_err(%s)\r\n",
                 iter->m_strName.c_str(),
                 iter->m_bCommit?"true":"false",
                 state,
+				iter->m_bQueueLogFileValid?"valid":"invalid",
                 szSid1,
                 szSid2,
-                iter->m_strSubScribe.c_str());
+                iter->m_strSubScribe.c_str(),
+				iter->m_ucQueueState==CwxBinLogMgr::CURSOR_STATE_ERROR?iter->m_strQueueErrMsg.c_str():"",
+				iter->m_bQueueLogFileValid?"":iter->m_strQueueLogFileErrMsg.c_str());
             MQ_MONITOR_APPEND();
             iter++;
         }

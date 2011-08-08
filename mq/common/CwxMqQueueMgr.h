@@ -328,11 +328,11 @@ public:
     inline int authQueue(string const& strQueue, string const& user, string const& passwd)
     {
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
-        map<string, CwxMqQueue*>::const_iterator iter = m_queues.find(strQueue);
+        map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::const_iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return 0;
-        if (iter->second->getUserName().length())
+        if (iter->second.first->getUserName().length())
         {
-            return ((user != iter->second->getUserName()) || (passwd != iter->second->getPasswd()))?-1:1;
+            return ((user != iter->second.first->getUserName()) || (passwd != iter->second.first->getPasswd()))?-1:1;
         }
         return 1;
     }
@@ -368,7 +368,7 @@ public:
 private:
     ///±£´æÊý¾Ý
     bool _save(CwxMqQueue* queue, CwxMqQueueLogFile* logFile);
-	bool _fetchLogFile(set<string/*queue name*/> >& queues);
+	bool _fetchLogFile(set<string/*queue name*/> & queues);
 	bool _isQueueLogFile(string const& file, string& queue);
 	string& _getQueueLogFile(string const& queue, string& strFile);
 private:
