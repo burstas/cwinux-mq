@@ -83,7 +83,7 @@ int main(int argc ,char** argv)
         unsigned char* buf=(unsigned char*)malloc(file_size);
         if (!buf)
         {
-            printf("failure to malloc memory, size=%d\n", file_size);
+            printf("failure to malloc memory, size=%d\n", (int)file_size);
             return -1;
         }
         FILE* fd = fopen(g_strMd5File.c_str(), "rb");

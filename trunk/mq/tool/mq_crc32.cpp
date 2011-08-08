@@ -81,7 +81,7 @@ int main(int argc ,char** argv)
         char* buf=(char*)malloc(file_size);
         if (!buf)
         {
-            printf("failure to malloc memory, size=%d\n", file_size);
+            printf("failure to malloc memory, size=%d\n", (int)file_size);
             return -1;
         }
         FILE* fd = fopen(g_strCrc32File.c_str(), "rb");
