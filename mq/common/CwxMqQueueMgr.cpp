@@ -617,105 +617,119 @@ void CwxMqQueue::getQueueDumpInfo(CWX_UINT64& ullLastCommitSid,
     }
 }
 
-CwxMqQueueMgr::CwxMqQueueMgr(string const& strQueueLogFile,
+CwxMqQueueMgr::CwxMqQueueMgr(string const& strQueueLogFilePath,
                              CWX_UINT32 uiMaxFsyncNum)
 {
-    m_strQueueLogFile = strQueueLogFile;
+    m_strQueueLogFilePath = strQueueLogFilePath;
+	if (m_strQueueLogFilePath[m_strQueueLogFilePath.length()-1] != '/')
+		m_strQueueLogFilePath += "/";
     m_uiMaxFsyncNum = uiMaxFsyncNum;
-    m_mqLogFile = NULL;
     m_binLog = NULL;
     m_strErrMsg = "Not init";
+	m_bValid = false;
 }
 
 CwxMqQueueMgr::~CwxMqQueueMgr()
 {
-    map<string, CwxMqQueue*>::iterator iter =  m_queues.begin();
+    map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter =  m_queues.begin();
     while(iter != m_queues.end())
     {
-        delete iter->second;
+        delete iter->second.first;
+		delete iter->second.second;
         iter++;
     }
-    if (m_mqLogFile) delete m_mqLogFile;
 }
 
 int CwxMqQueueMgr::init(CwxBinLogMgr* binLog)
 {
     CwxMqQueue* mq = NULL;
-    m_uiLastSaveTime = time(NULL);
-    if (m_mqLogFile) delete m_mqLogFile;
+	CwxMqQueueLogFile* mqLogFile = NULL;
+	string  strMqLogFile;
     m_binLog = binLog;
-    m_mqLogFile = new CwxMqQueueLogFile(m_uiMaxFsyncNum, m_strQueueLogFile);
-    map<string, CwxMqQueueInfo> queues;
-    map<string, set<CWX_UINT64>*> uncommitSets;
-    map<string, set<CWX_UINT64>*> commitSets;
-    
-    if (0 != m_mqLogFile->init(queues, uncommitSets, commitSets))
-    {
-        char szBuf[2048];
-        CwxCommon::snprintf(szBuf, 2047, "Failure to init mq queue log-file, err:%s", m_mqLogFile->getErrMsg());
-        m_strErrMsg = szBuf;
-        delete m_mqLogFile;
-        m_mqLogFile = NULL;
-        return -1;
-    }
-    set<CWX_UINT64> empty;
-    map<string, CwxMqQueueInfo>::iterator iter_queue = queues.begin();
-    set<CWX_UINT64>* pUncommitSet = NULL;
-    set<CWX_UINT64>* pCommitSet = NULL;
-    do 
-    {
-        while(iter_queue != queues.end())
-        {
-            mq = new CwxMqQueue(iter_queue->second.m_strName, 
-                iter_queue->second.m_strUser,
-                iter_queue->second.m_strPasswd,
-                iter_queue->second.m_bCommit,
-                iter_queue->second.m_strSubScribe,
-                iter_queue->second.m_uiDefTimeout,
-                iter_queue->second.m_uiMaxTimeout,
-                m_binLog);
-            if (uncommitSets.find(iter_queue->second.m_strName) != uncommitSets.end())
-            {
-                pUncommitSet = uncommitSets[iter_queue->second.m_strName];
-            }
-            else
-            {
-                pUncommitSet = &empty;
-            }
-            if (commitSets.find(iter_queue->second.m_strName) != commitSets.end())
-            {
-                pCommitSet = commitSets[iter_queue->second.m_strName];
-            }
-            else
-            {
-                pCommitSet = &empty;
-            }
-            if (0 != mq->init(iter_queue->second.m_ullCursorSid, *pUncommitSet, *pCommitSet, m_strErrMsg))
-            {
-                break;
-            }
-            m_queues[mq->getName()] = mq;
-            iter_queue ++;
-        }
-    } while(0);
-    map<string, set<CWX_UINT64>*>::iterator iter = uncommitSets.begin();
-    while(iter != uncommitSets.end())
-    {
-        delete iter->second;
-        iter++;
-    }
-    iter = commitSets.begin();
-    while(iter != commitSets.end())
-    {
-        delete iter->second;
-        iter++;
-    }
-    if (iter_queue != queues.end())
-    {
-        delete m_mqLogFile;
-        m_mqLogFile = NULL;
-    }
-    return iter_queue == queues.end()?0:-1;
+
+	//清空数据
+	{
+		map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter =  m_queues.begin();
+		while(iter != m_queues.end())
+		{
+			delete iter->second.first;
+			delete iter->second.second;
+			iter++;
+		}
+		m_queues.clear();
+	}
+
+	//初始化队列
+	{
+		pair<CwxMqQueue*, CwxMqQueueLogFile*> mq_pair;
+		CwxMqQueueInfo queue;
+		string strQueueFile;
+		string strQueuePathFile;
+		set<CWX_UINT64> uncommitSets;
+		set<CWX_UINT64> commitSets;
+		set<string/*queue name*/ > queues;
+		set<string/*queue name*/ >::iterator iter;
+		if (!_fetchLogFile(queues)) return -1;
+		iter  = queues.begin();
+		while(iter != queues.end())
+		{
+			strQueuePathFile = m_strQueueLogFilePath + _getQueueLogFile(*iter, strQueueFile);
+			mqLogFile = new CwxMqQueueLogFile(m_uiMaxFsyncNum, strQueuePathFile);
+			queue.m_strName.erase();
+			uncommitSets.clear();
+			commitSets.clear();
+			if (0 != mqLogFile->init(queue, uncommitSets, commitSets))
+			{
+				char szBuf[2048];
+				CwxCommon::snprintf(szBuf, 2047, "Failure to init mq queue log-file:%s, err:%s",
+					strQueuePathFile.c_str(),
+					mqLogFile->getErrMsg());
+				m_strErrMsg = szBuf;
+				m_bValid = false;
+				delete mqLogFile;
+				return -1;
+			}
+			if (queue.m_strName.empty())
+			{//空队列文件，删除
+				delete mqLogFile;
+				CwxMqQueueLogFile::removeFile(strQueuePathFile);
+				iter++;
+				continue;
+			}
+			if (iter->second != queue.m_strName)
+			{
+				char szBuf[2048];
+				CwxCommon::snprintf(szBuf, 2047, "queue log file[%s]'s queue name should be [%s], but it's [%s]",
+					strQueuePathFile.c_str(),
+					iter->c_str(),
+					queue.m_strName.c_str());
+				m_strErrMsg = szBuf;
+				m_bValid = false;
+				delete mqLogFile;
+				return -1;
+			}
+			mq = new CwxMqQueue(queue.m_strName, 
+				queue.m_strUser,
+				queue.m_strPasswd,
+				queue.m_bCommit,
+				queue.m_strSubScribe,
+				queue.m_uiDefTimeout,
+				queue.m_uiMaxTimeout,
+				m_binLog);
+			if (0 != mq->init(queue.m_ullCursorSid, uncommitSets, commitSets, m_strErrMsg))
+			{
+				delete mqLogFile;
+				delete mq;
+				m_bValid = false;
+				return -1;
+			}
+			mq_pair.first = mq;
+			mq_pair.second = mqLogFile;
+			m_queues[queue.m_strName] = mq_pair;
+		}
+	}
+
+	return 0;
 }
 
 
@@ -732,13 +746,18 @@ int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss,
                   bool& bCommitType, ///<是否为commit类型的队列
                   char* szErr2K)
 {
-    if (m_mqLogFile)
+    if (m_bValid)
     {
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
-        map<string, CwxMqQueue*>::iterator iter = m_queues.find(strQueue);
+        map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return -2;
+		if (!iter->second.second->isValid())
+		{
+			if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
+			return -1;
+		}
         bCommitType = iter->second->isCommit();
-        return iter->second->getNextBinlog(pTss, msg, uiTimeout, err_num, szErr2K);
+        return iter->second.first->getNextBinlog(pTss, msg, uiTimeout, err_num, szErr2K);
     }
     if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
     return -1;
@@ -752,32 +771,32 @@ int CwxMqQueueMgr::commitBinlog(string const& strQueue,
                  CWX_UINT32 uiDeley,
                  char* szErr2K)
 {
-    if (m_mqLogFile)
+    if (m_bValid)
     {
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
-        map<string, CwxMqQueue*>::iterator iter = m_queues.find(strQueue);
+        map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> > iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return -2;
-        int ret = iter->second->commitBinlog(ullSid, bCommit, uiDeley>CWX_MQ_MAX_TIMEOUT_SECOND?CWX_MQ_MAX_TIMEOUT_SECOND:uiDeley);
+		if (!iter->second.second->isValid())
+		{
+			if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
+			return -1;
+		}
+        int ret = iter->second.first->commitBinlog(ullSid, bCommit, uiDeley>CWX_MQ_MAX_TIMEOUT_SECOND?CWX_MQ_MAX_TIMEOUT_SECOND:uiDeley);
         if (0 == ret) return 0;
         if (1 == ret)
         {
             if (!bCommit) return 1; ///如果不是commit，直接返回1而不记录commit记录。
-            int num = m_mqLogFile->log(iter->second->getName().c_str(), ullSid);
+            int num = iter->second.second->log(ullSid);
             if (-1 == num)
             {
-                m_strErrMsg = m_mqLogFile->getErrMsg();
-                delete m_mqLogFile;
-                m_mqLogFile = NULL;
-                if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
+                if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
                 return -1;
             }
             if (num >= MQ_SWITCH_LOG_NUM)
             {
-                if (!_save())
+                if (!_save(iter->second.first, iter->second.second))
                 {
-                    delete m_mqLogFile;
-                    m_mqLogFile = NULL;
-                    if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
+                    if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
                     return -1;
                 }
             }
@@ -795,35 +814,35 @@ int CwxMqQueueMgr::endSendMsg(string const& strQueue,
                bool bSend,
                char* szErr2K)
 {
-    if (m_mqLogFile)
+    if (m_bValid)
     {
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
-        map<string, CwxMqQueue*>::iterator iter = m_queues.find(strQueue);
+        map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return -2;
+		if (!iter->second.second->isValid())
+		{
+			if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
+			return -1;
+		}
         int ret = iter->second->endSendMsg(ullSid, bSend);
         if (0 == ret) return 0;
         if (1 == ret) 
         {
             if (!iter->second->isCommit())
             {
-                int num = m_mqLogFile->log(iter->second->getName().c_str(), ullSid);
+                int num = iter->second.second->log(ullSid);
                 if (-1 == num)
                 {
-                    m_strErrMsg = m_mqLogFile->getErrMsg();
-                    delete m_mqLogFile;
-                    m_mqLogFile = NULL;
-                    if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
+                    if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
                     return -1;
                 }
                 if (num >= MQ_SWITCH_LOG_NUM)
                 {
-                    if (!_save())
-                    {
-                        delete m_mqLogFile;
-                        m_mqLogFile = NULL;
-                        if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
-                        return -1;
-                    }
+					if (!_save(iter->second.first, iter->second.second))
+					{
+						if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
+						return -1;
+					}
                 }
             }
             return 1;
@@ -837,27 +856,40 @@ int CwxMqQueueMgr::endSendMsg(string const& strQueue,
 ///强行flush mq的log文件
 void CwxMqQueueMgr::commit()
 {
-    if (m_mqLogFile) m_mqLogFile->fsync();
+	if (m_bValid)
+	{
+		map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter = m_queues.begin();
+		while(iter != m_queues.end())
+		{
+			iter->second.second->fsync();
+			iter++;
+		}
+	}
 }
 
 ///检测commit类型队列超时的消息
 void CwxMqQueueMgr::checkTimeout(CWX_UINT32 ttTimestamp)
 {
     CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
-    map<string, CwxMqQueue*>::iterator iter = m_queues.begin();
-    while(iter != m_queues.end())
-    {
-        if (iter->second->isCommit()) iter->second->checkTimeout(ttTimestamp);
-        iter++;
-    }
-    if (ttTimestamp > m_uiLastSaveTime  + MQ_MAX_SWITCH_LOG_INTERNAL)
-    {
-        if (!_save())
-        {
-            delete m_mqLogFile;
-            m_mqLogFile = NULL;
-        }
-    }
+	if (m_bValid)
+	{
+		map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter = m_queues.begin();
+		while(iter != m_queues.end())
+		{
+			if (iter->second.second->isValid())
+			{
+
+				if (iter->second.first->isCommit()) iter->second.first->checkTimeout(ttTimestamp);
+				if (ttTimestamp > iter->second.second->getLastSaveTime()  + MQ_MAX_SWITCH_LOG_INTERNAL)
+				{
+					if (!_save(iter->second.first, iter->second.second))
+					{
+					}
+				}
+			}
+			iter++;
+		}
+	}
 }
 
 ///1：成功
@@ -873,10 +905,10 @@ int CwxMqQueueMgr::addQueue(string const& strQueue,
                             CWX_UINT32 uiMaxTimeout,
                             char* szErr2K)
 {
-    if (m_mqLogFile)
+    if (m_bValid)
     {
         CwxWriteLockGuard<CwxRwLock>  lock(&m_lock);
-        map<string, CwxMqQueue*>::iterator iter = m_queues.find(strQueue);
+        map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter = m_queues.find(strQueue);
         if (iter != m_queues.end()) return 0;
         set<CWX_UINT64> empty;
         CwxMqQueue* mq = new CwxMqQueue(strQueue, 
@@ -891,16 +923,43 @@ int CwxMqQueueMgr::addQueue(string const& strQueue,
         if (0 != mq->init(ullSid, empty, empty, strErr))
         {
             delete mq;
+			if (szErr2K) strcpy(szErr2K, strErr.c_str());
             return -1;
         }
-        m_queues[strQueue] = mq;
-        if (!_save())
+		//create mq log file
+		string strQueueFile;
+		string strQueuePathFile;
+		CwxMqQueueInfo queue;
+		strQueuePathFile = m_strQueueLogFilePath + _getQueueLogFile(strQueue, strQueueFile);
+		CwxMqQueueLogFile::removeFile(strQueuePathFile);
+		CwxMqQueueLogFile* mqLogFile = new CwxMqQueueLogFile(m_uiMaxFsyncNum, strQueuePathFile);
+		queue.m_strName.erase();
+		if (0 != mqLogFile->init(queue, empty, empty))
+		{
+			char szBuf[2048];
+			CwxCommon::snprintf(szBuf, 2047, "Failure to init mq queue log-file:%s, err:%s",
+				strQueuePathFile.c_str(),
+				mqLogFile->getErrMsg());
+			delete mqLogFile;
+			delete mq;
+			if (szErr2K) strcpy(szErr2K, szBuf);
+			return -1;
+		}
+        if (!_save(mq, mqLogFile))
         {
-            delete m_mqLogFile;
-            m_mqLogFile = NULL;
-            if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
+			char szBuf[2048];
+			CwxCommon::snprintf(szBuf, 2047, "Failure to save mq queue log-file:%s, err:%s",
+				strQueuePathFile.c_str(),
+				mqLogFile->getErrMsg());
+			delete mqLogFile;
+			delete mq;
+			if (szErr2K) strcpy(szErr2K, szBuf);
             return -1;
         }
+		pair<CwxMqQueue*, CwxMqQueueLogFile*> item;
+		item->first = mq;
+		item->second = mqLogFile;
+		m_queues[strQueue] = item;
         return 1;
     }
     if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
@@ -912,20 +971,19 @@ int CwxMqQueueMgr::addQueue(string const& strQueue,
 int CwxMqQueueMgr::delQueue(string const& strQueue,
              char* szErr2K)
 {
-    if (m_mqLogFile)
+    if (m_bValid)
     {
         CwxWriteLockGuard<CwxRwLock>  lock(&m_lock);
-        map<string, CwxMqQueue*>::iterator iter = m_queues.find(strQueue);
+        map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return 0;
-        delete iter->second;
+        delete iter->second.first;
+		delete iter->second.second;
         m_queues.erase(iter);
-        if (!_save())
-        {
-            delete m_mqLogFile;
-            m_mqLogFile = NULL;
-            if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
-            return -1;
-        }
+		string strQueueFile;
+		string strQueuePathFile;
+		_getQueueLogFile(strQueue, strQueueFile);
+		strQueuePathFile = m_strQueueLogFilePath + strQueueFile;
+		CwxMqQueueLogFile::removeFile(strQueuePathFile);
         return 1;
     }
     if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
@@ -936,25 +994,25 @@ void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues)
 {
     CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
     CwxMqQueueInfo info;
-    map<string, CwxMqQueue*>::const_iterator iter = m_queues.begin();
+    map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::const_iterator iter = m_queues.begin();
     while(iter != m_queues.end())
     {
-        info.m_strName = iter->second->getName();
-        info.m_strUser = iter->second->getUserName();
-        info.m_bCommit = iter->second->isCommit();
-        info.m_uiDefTimeout = iter->second->getDefTimeout();
-        info.m_uiMaxTimeout = iter->second->getMaxTimeout();
-        info.m_strSubScribe = iter->second->getSubscribeRule();
-        info.m_ullCursorSid = iter->second->getCursorSid();
-        info.m_ullLeftNum = iter->second->getMqNum();
-        info.m_uiWaitCommitNum = iter->second->getWaitCommitNum();
-        info.m_uiMemLogNum = iter->second->getMemMsgMap().size();
+        info.m_strName = iter->second.first->getName();
+        info.m_strUser = iter->second.first->getUserName();
+        info.m_bCommit = iter->second.first->isCommit();
+        info.m_uiDefTimeout = iter->second.first->getDefTimeout();
+        info.m_uiMaxTimeout = iter->second.first->getMaxTimeout();
+        info.m_strSubScribe = iter->second.first->getSubscribeRule();
+        info.m_ullCursorSid = iter->second.first->getCursorSid();
+        info.m_ullLeftNum = iter->second.first->getMqNum();
+        info.m_uiWaitCommitNum = iter->second.first->getWaitCommitNum();
+        info.m_uiMemLogNum = iter->second.first->getMemMsgMap().size();
         if (iter->second->getCursor())
         {
-            info.m_ucQueueState = iter->second->getCursor()->getSeekState();
+            info.m_ucQueueState = iter->second.first->getCursor()->getSeekState();
             if (CwxBinLogMgr::CURSOR_STATE_ERROR == info.m_ucQueueState)
             {
-                info.m_strQueueErrMsg = iter->second->getCursor()->getErrMsg();
+                info.m_strQueueErrMsg = iter->second.first->getCursor()->getErrMsg();
             }
             else
             {
@@ -966,74 +1024,102 @@ void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues)
             info.m_ucQueueState = CwxBinLogMgr::CURSOR_STATE_UNSEEK;
             info.m_strQueueErrMsg = "";
         }
+		info.m_bQueueLogFileValid = iter->second.second.isValid();
+		if (!info.m_bQueueLogFileValid)
+		{
+			info.m_strQueueLogFileErrMsg = iter->second.second->getErrMsg();
+		}
+		else
+		{
+			info.m_strQueueLogFileErrMsg.erase();
+		}
         queues.push_back(info);
         iter++;
     }
 }
 
-bool CwxMqQueueMgr::_save()
+bool CwxMqQueueMgr::_save(CwxMqQueue* queue, CwxMqQueueLogFile* logFile)
 {
-    if (m_mqLogFile)
-    {
-        map<string, CwxMqQueueInfo> queues;
-        map<string, set<CWX_UINT64>*> uncommitSets;
-        map<string, set<CWX_UINT64>*> commitSets;
-        CwxMqQueueInfo queueInfo;
-        set<CWX_UINT64>* sidUncommitSet=NULL;
-        set<CWX_UINT64>* sidCommitSet =NULL;
-        map<string, CwxMqQueue*>::iterator iter = m_queues.begin();
-        while(iter != m_queues.end())
-        {
-            queueInfo.m_strName = iter->second->getName();
-            queueInfo.m_strUser = iter->second->getUserName();
-            queueInfo.m_strPasswd = iter->second->getPasswd();
-            queueInfo.m_bCommit = iter->second->isCommit();
-            queueInfo.m_uiDefTimeout = iter->second->getDefTimeout();
-            queueInfo.m_uiMaxTimeout = iter->second->getMaxTimeout();
-            queueInfo.m_strSubScribe = iter->second->getSubscribeRule();
-            queueInfo.m_ullCursorSid = iter->second->getCursorSid();
-            queues[queueInfo.m_strName] = queueInfo;
+	CwxMqQueueInfo queue;
+	set<CWX_UINT64> uncommitSets;
+	set<CWX_UINT64> commitSets;
+	queue.m_strName = queue->getName();
+	queue.m_strUser = queue->getUserName();
+	queue.m_strPasswd = queue->getPasswd();
+	queue.m_bCommit = queue->isCommit();
+	queue.m_uiDefTimeout = queue->getDefTimeout();
+	queue.m_uiMaxTimeout = queue->getMaxTimeout();
+	queue.m_strSubScribe = queue->getSubscribeRule();
+	queue.m_ullCursorSid = queue->getCursorSid();
+	queue->getQueueDumpInfo(queue.m_ullCursorSid, uncommitSets, commitSets);
+	//保存到log中
+	if (0 != logFile->save(queue, uncommitSets, commitSets))
+	{
+		return false;
+	}
+	return true;
+}
 
-            if (!sidUncommitSet) sidUncommitSet = new set<CWX_UINT64>;
-            if (!sidCommitSet) sidCommitSet = new set<CWX_UINT64>;
+bool CwxMqQueueMgr::_fetchLogFile(set<string/*queue name*/> >& queues)
+{
+	//如果binlog的目录不存在，则创建此目录
+	if (!CwxFile::isDir(m_strQueueLogFilePath.c_str()))
+	{
+		if (!CwxFile::createDir(m_strQueueLogFilePath.c_str()))
+		{
+			char szBuf[2048];
+			CwxCommon::snprintf(szBuf, 2047, "Failure to create mq log path:%s, errno=%d", m_strQueueLogFilePath.c_str(), errno);
+			m_strErrMsg = szBuf;
+			m_bValid = false;
+			return false;
+		}
+	}
+	//获取目录下的所有文件
+	list<string> pathfiles;
+	if (!CwxFile::getDirFile(m_strQueueLogFilePath, pathfiles))
+	{
+		char szBuf[2048];
+		CwxCommon::snprintf(szBuf, 2047, "Failure to fetch mq log, path:%s, errno=%d", m_strQueueLogFilePath.c_str(), errno);
+		m_strErrMsg = szBuf;
+		m_bValid = false;
+		return false;
+	}
+	//提取目录下的所有binlog文件，并放到map中，利用map的排序，逆序打开文件
+	string strQueue;
+	list<string>::iterator iter=pathfiles.begin();
+	queues.clear();
+	while(iter != pathfiles.end())
+	{
+		if (_isQueueLogFile(*iter, strQueue))
+		{
+			queues.insert(strQueue);
+		}
+		iter++;
+	}
+	return true;
+}
 
-            iter->second->getQueueDumpInfo(queueInfo.m_ullCursorSid, *sidUncommitSet, *sidCommitSet);
-            if (sidUncommitSet->size())
-            {
-                uncommitSets[queueInfo.m_strName] = sidUncommitSet;
-                sidUncommitSet = NULL;
-            }
-            if (sidCommitSet->size())
-            {
-                commitSets[queueInfo.m_strName] = sidCommitSet;
-                sidCommitSet = NULL;
-            }
-            iter++;
-        }
-        if (sidUncommitSet) delete  sidUncommitSet;
-        if (sidCommitSet) delete sidCommitSet;
+bool CwxMqQueueMgr::_isQueueLogFile(string const& file, string& queue)
+{
+	string strFile;
+	list<string> items;
+	list<string>::iterator iter;
+	CwxCommon::split(file, items, '.');
+	if ((3 != items.size())&&(4 != items.size())) return false;
+	iter = items.begin();
+	if (*iter != "queue_log") return false;
+	iter++;
+	queue = *iter;
+	if (!isInvalidQueueName(queue.c_str())) return false;
+	iter++;
+	if (*iter != "log") return false;
+	return true;
+}
 
-        //保存到log中
-        if (0 != m_mqLogFile->save(queues, uncommitSets, commitSets))
-        {
-            m_strErrMsg = m_mqLogFile->getErrMsg();
-            return false;
-        }
-        //清空map
-        map<string, set<CWX_UINT64>*>::iterator iter_sid = uncommitSets.begin();
-        while(iter_sid != uncommitSets.end())
-        {
-            delete iter_sid->second;
-            iter_sid ++;
-        }
-        iter_sid = commitSets.begin();
-        while(iter_sid != commitSets.end())
-        {
-            delete iter_sid->second;
-            iter_sid ++;
-        }
-        m_uiLastSaveTime = time(NULL);
-        return true;
-    }
-    return false;
+string& CwxMqQueueMgr::_getQueueLogFile(string const& queue, string& strFile)
+{
+	strFile = "queue_log.";
+	strFile += queue;
+	strFile += ".log";
+	return strFile;
 }

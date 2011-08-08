@@ -174,6 +174,8 @@ public:
         m_uiWaitCommitNum = 0;
         m_uiMemLogNum = 0;
         m_ucQueueState = CwxBinLogMgr::CURSOR_STATE_UNSEEK;
+		m_bQueueLogFileValid = true;
+
     }
 public:
     CwxMqQueueInfo(CwxMqQueueInfo const& item)
@@ -191,6 +193,9 @@ public:
         m_uiMemLogNum = item.m_uiMemLogNum;
         m_ucQueueState = item.m_ucQueueState;
         m_strQueueErrMsg = item.m_strQueueErrMsg;
+		m_bQueueLogFileValid = item.m_bQueueLogFileValid;///队列log file是否有效
+		m_strQueueLogFileErrMsg = item.m_strQueueLogFileErrMsg; ///<队列log file错误信息
+
     }
     CwxMqQueueInfo& operator=(CwxMqQueueInfo const& item)
     {
@@ -209,6 +214,8 @@ public:
             m_uiMemLogNum = item.m_uiMemLogNum;
             m_ucQueueState = item.m_ucQueueState;
             m_strQueueErrMsg = item.m_strQueueErrMsg;
+			m_bQueueLogFileValid = item.m_bQueueLogFileValid;///队列log file是否有效
+			m_strQueueLogFileErrMsg = item.m_strQueueLogFileErrMsg; ///<队列log file错误信息
         }
         return *this;
     }
@@ -226,6 +233,8 @@ public:
     CWX_UINT32                       m_uiMemLogNum; ///<内存中消息的数量
     CWX_UINT8                        m_ucQueueState; ///<队列状态
     string                           m_strQueueErrMsg; //<队列的错误信息
+	bool							 m_bQueueLogFileValid;///队列log file是否有效
+	string							 m_strQueueLogFileErrMsg; ///<队列log file错误信息
 };
 
 #endif

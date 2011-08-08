@@ -37,18 +37,31 @@ public:
     ~CwxMqQueueLogFile();
 public:
     ///初始化系统文件；0：成功；-1：失败
-    int init(map<string, CwxMqQueueInfo>& queues,
-        map<string, set<CWX_UINT64>*>& uncommitSets,
-        map<string, set<CWX_UINT64>*>& commitSets);
+    int init(CwxMqQueueInfo& queue,
+        set<CWX_UINT64>& uncommitSets,
+        set<CWX_UINT64>& commitSets);
     ///保存队列信息；0：成功；-1：失败
-    int save(map<string, CwxMqQueueInfo> const& queues,
-        map<string, set<CWX_UINT64>*> const& uncommitSets,
-        map<string, set<CWX_UINT64>*> const& commitSets);
+    int save(CwxMqQueueInfo const& queue,
+        set<CWX_UINT64> const& uncommitSets,
+        set<CWX_UINT64> const& commitSets);
     ///写commit记录；-1：失败；否则返回已经写入的log数量
-    int log(char const* queue, CWX_UINT64 sid);
+    int log(CWX_UINT64 sid);
     ///强行fsync日志文件；0：成功；-1：失败
     int fsync();
 public:
+	///删除队列文件
+	inline static void removeFile(string const& file)
+	{
+		string strFile = file;
+		CwxFile::rmFile(strFile.c_str());
+		//remove old file
+		strFile = file + ".old";
+		CwxFile::rmFile(strFile.c_str());
+		//remove new file
+		strFile = file + ".new";
+		CwxFile::rmFile(strFile.c_str());
+	}
+
     ///获取系统文件的名字
     inline string const& getFileName() const
     {
@@ -72,17 +85,21 @@ public:
     {
         return m_uiTotalLogCount;
     }
+	inline CWX_UINT32 getLastSaveTime() const
+	{
+		return m_uiLastSaveTime;
+	}
 private:
     ///0：成功；-1：失败
     int prepare();
     ///0：成功；-1：失败
-    int load(map<string, CwxMqQueueInfo>& queues,
-        map<string, set<CWX_UINT64>*>& uncommitSets,
-        map<string, set<CWX_UINT64>*>& commitSets);
+    int load( CwxMqQueueInfo& queues,
+        set<CWX_UINT64>& uncommitSets,
+        set<CWX_UINT64>& commitSets);
     ///0：成功；-1：失败
     int parseQueue(string const& line, CwxMqQueueInfo& queue);
     ///0：成功；-1：失败
-    int parseSid(string const& line, string& queue, CWX_UINT64& ullSid);
+    int parseSid(string const& line, CWX_UINT64& ullSid);
     ///关闭文件
     inline void closeFile(bool bSync=true)
     {
@@ -108,6 +125,7 @@ private:
     CWX_UINT32      m_uiCurLogCount; ///<自上次fsync来，log记录的次数
     CWX_UINT32      m_uiTotalLogCount; ///<当前文件log的数量
     CWX_UINT32      m_uiLine; ///<读取文件的当前行数
+	CWX_UINT32      m_uiLastSaveTime; ///<上一次log文件的保存时间
     char            m_szErr2K[2048]; ///<错误消息
 };
 
