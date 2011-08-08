@@ -696,7 +696,7 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog)
 				iter++;
 				continue;
 			}
-			if (iter->second != queue.m_strName)
+			if (*iter != queue.m_strName)
 			{
 				char szBuf[2048];
 				CwxCommon::snprintf(szBuf, 2047, "queue log file[%s]'s queue name should be [%s], but it's [%s]",
@@ -756,7 +756,7 @@ int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss,
 			if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
 			return -1;
 		}
-        bCommitType = iter->second->isCommit();
+        bCommitType = iter->second.first->isCommit();
         return iter->second.first->getNextBinlog(pTss, msg, uiTimeout, err_num, szErr2K);
     }
     if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
@@ -774,7 +774,7 @@ int CwxMqQueueMgr::commitBinlog(string const& strQueue,
     if (m_bValid)
     {
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
-        map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> > iter = m_queues.find(strQueue);
+		map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return -2;
 		if (!iter->second.second->isValid())
 		{
