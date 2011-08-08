@@ -727,6 +727,7 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog)
 			mq_pair.first = mq;
 			mq_pair.second = mqLogFile;
 			m_queues[queue.m_strName] = mq_pair;
+			iter++;
 		}
 	}
 	m_bValid = true;
