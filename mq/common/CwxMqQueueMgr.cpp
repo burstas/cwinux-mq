@@ -646,6 +646,7 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog)
 	CwxMqQueueLogFile* mqLogFile = NULL;
 	string  strMqLogFile;
     m_binLog = binLog;
+	m_bValid = false;
 
 	//Çå¿ÕÊý¾Ý
 	{
@@ -728,6 +729,7 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog)
 			m_queues[queue.m_strName] = mq_pair;
 		}
 	}
+	m_bValid = true;
 
 	return 0;
 }
