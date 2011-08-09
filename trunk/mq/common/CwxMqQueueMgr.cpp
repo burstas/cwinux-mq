@@ -1110,7 +1110,7 @@ bool CwxMqQueueMgr::_isQueueLogFile(string const& file, string& queue)
 	CwxCommon::split(file, items, '.');
 	if ((3 != items.size())&&(4 != items.size())) return false;
 	iter = items.begin();
-	if (*iter != "queue_log") return false;
+	if (*iter != "queue") return false;
 	iter++;
 	queue = *iter;
 	if (!isInvalidQueueName(queue.c_str())) return false;
@@ -1121,7 +1121,7 @@ bool CwxMqQueueMgr::_isQueueLogFile(string const& file, string& queue)
 
 string& CwxMqQueueMgr::_getQueueLogFile(string const& queue, string& strFile)
 {
-	strFile = "queue_log.";
+	strFile = "queue.";
 	strFile += queue;
 	strFile += ".log";
 	return strFile;
