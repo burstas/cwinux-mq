@@ -18,7 +18,9 @@
         
         $pack = $poco->packFetchMq($queue,null,$user,$passwd);
                  
-        $ret = $request->request($pack);        
+        $socket = $request->getSocket();
+        $ret = $request->sendMsg($socket,$pack);
+        $ret = $request->receiveMsg($socket);
        	if($ret === false){
        		echo $request->getLastError();
        		exit;

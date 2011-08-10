@@ -139,6 +139,95 @@ class CwxRequest
         }
     }
     
+    
+    public function getSocket()
+    {
+        $commonProtocol = getprotobyname("tcp");
+        $socket = socket_create(AF_INET,SOCK_STREAM,$commonProtocol);
+        
+        if(socket_connect($socket,$this->host,$this->port)==false){
+        	$this->errno = -1;
+        	$this->error = "建立连接失败[{$this->host}:{$this->port}]";
+        	return false;
+        }
+        return $socket;
+    }
+    /**
+     * 发送消息体
+     *
+     * @param unknown_type $package
+     * @return unknown
+     */
+    public function sendMsg($socket,$package)
+    {
+        if(strlen($package) == 0){
+            $this->errno = -1;
+            $this->error = '消息体不能为空串';
+            return false;
+        }
+        
+        $data = socket_write($socket,$package);
+        if($data === false){
+            $this->errno = -1;
+            $this->error = '发送消息失败，请检查连接是否正常';
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+    
+    /**
+     * 接收消息体
+     *
+     * @param unknown_type $package
+     * @return unknown
+     */
+    public function receiveMsg($socket)
+    {   
+        $rdata = socket_read($socket,14,PHP_BINARY_READ );       
+        $n = strlen($rdata);
+        if($n == 14){
+        	$header = new CwxMsgHead();
+        	$ret = $header->fromNet($rdata);        	
+        	if($ret == true){
+        		
+        		$dataLen = $header->getDataLen(); 
+        		
+        		$rdata = null;
+        		$n = 0;
+        		
+        		while( $n < $dataLen){
+        			$rt = socket_read($socket,512,PHP_BINARY_READ);
+        			$rdata .= $rt;
+        			$n = $n+strlen($rt); 
+        		}
+        		
+        		if($n == $dataLen){
+        			//处理压缩的消息，进行解压缩操作
+        			if( ($header->getAttr() & 2) == true){
+        				$rdata = gzuncompress($rdata);
+        			}
+        			return $rdata;
+        		}
+        		else{
+        			$this->errno = -1;
+        			$this->error = '获取消息体失败 返回数据长度错误';
+        			return false;	
+        		}
+        	}
+        	else{
+        		$this->errno = -1;
+        		$this->error = $header->getLastError();
+        		return false;	
+        	}
+        }
+        else{
+        	$this->errno = -1;
+        	$this->error = '获取消息头失败 返回数据长度错误';
+        	return false;
+        }
+    }
       /**
      * 获取最后的错误信息
      *
