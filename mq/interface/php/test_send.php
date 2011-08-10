@@ -17,8 +17,7 @@
 		$attr	=	null;
 		
 		//这个还没有测试通过
-		$sign	=	'crc32';
-		
+		$sign	=	'crc32';		
 		$zip	=	1;
 		
 		$poco = new CwxMqPoco();
@@ -28,8 +27,14 @@
                 
         $pack = $poco->packRecvData(0,$data,$group,$type,$attr,$user,$passwd,$sign,$zip);
          
-        $ret = $request->request($pack);        
-       	if($ret === false){
+        //$ret = $request->request($pack);        
+       	
+        $socket = $request->getSocket();
+        $ret = $request->sendMsg($socket,$pack);
+        $ret = $request->receiveMsg($socket);
+        
+        
+        if($ret === false){
        		echo $request->getLastError();
        		exit;
        	}

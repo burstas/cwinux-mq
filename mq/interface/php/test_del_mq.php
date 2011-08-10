@@ -20,8 +20,10 @@
         
         $pack = $poco->packDelQueue($queue,$user,$passwd,$auth_user,$auth_passwd);        
         
-        $ret = $request->request($pack);        
-       	if($ret === false){
+        $socket = $request->getSocket();
+        $ret = $request->sendMsg($socket,$pack);
+        $ret = $request->receiveMsg($socket);
+        if($ret === false){
        		echo $request->getLastError();
        		exit;
        	}
