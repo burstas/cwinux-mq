@@ -12,10 +12,6 @@
 		$type	=	'5';
 		$user	=	'recv';
 		$passwd =	'recv_passwd';
-		
-		//这个是怎么回事？
-		$attr	=	null;
-		
 		//这个还没有测试通过
 		$sign	=	'crc32';		
 		$zip	=	1;
@@ -25,7 +21,7 @@
         
         $data = 'msg '.date('Y-m-d H:i:s ').rand(100,999);
                 
-        $pack = $poco->packRecvData(0,$data,$group,$type,$attr,$user,$passwd,$sign,$zip);
+        $pack = $poco->packRecvData(0,$data,$group,$type,$user,$passwd,$sign,$zip);
          
         //$ret = $request->request($pack);        
        	
