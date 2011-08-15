@@ -63,7 +63,7 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_ERR_NO_ERR            8 ///<接收到的数据包中，没有【err】
 #define CWX_MQ_ERR_NO_TIMESTAMP      9 ///<接收到的数据中，没有【timestamp】
 #define CWX_MQ_ERR_FAIL_AUTH         10 ///<鉴权失败
-#define CWX_MQ_ERR_INVALID_BINLOG_TYPE 11 ///<binlog的type错误
+#define CWX_MQ_ERR_INVALID_BINLOG_TYPE 11 ///<binlog的group错误，不能为0xFFFFFFFF
 #define CWX_MQ_ERR_INVALID_MSG_TYPE   12 ///<接收到的消息类型无效
 #define CWX_MQ_ERR_INVALID_SID        13  ///<回复的sid无效
 #define CWX_MQ_ERR_FAIL_ADD_BINLOG    14 ///<往binglog mgr中添加binlog失败
