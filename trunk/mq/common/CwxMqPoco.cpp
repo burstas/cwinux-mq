@@ -183,9 +183,9 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
     {
         type = 0;
     }
-    if (SYNC_GROUP_TYPE == type)
+    if (SYNC_GROUP_TYPE == group)
     {
-        if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "mq's type can't be [%X], it's binlog sync type.", SYNC_GROUP_TYPE);
+        if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "mq's group can't be [%X], it's binlog sync group.", SYNC_GROUP_TYPE);
         return CWX_MQ_ERR_INVALID_BINLOG_TYPE;
     }
     CwxKeyValueItem const* pItem = NULL;
