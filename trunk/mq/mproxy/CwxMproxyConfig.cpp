@@ -141,12 +141,13 @@ int CwxMproxyConfig::loadConfig(string const & strConfFile)
         }
     }
     //mq server
-    if (!fetchHost(parser, "mproxy:mq:recv", m_mq)) return -1;
+    if (!fetchHost(parser, "mproxy:mq:mq", m_mq)) return -1;
     if ((NULL == (pValue=parser.getElementAttr("mproxy:mq:mq", "sign"))) || !pValue[0])
     {
         m_mqSign = "";
     }
-    m_mqSign = pValue;
+	else
+		m_mqSign = pValue;
     if ((m_mqSign  != CWX_MQ_MD5) || (m_mqSign != CWX_MQ_CRC32))
     {
         snprintf(m_szErrMsg, 2047, "Invalid mq sign[%s], it must be %s or %s",
