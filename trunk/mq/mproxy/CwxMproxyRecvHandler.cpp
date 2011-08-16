@@ -82,6 +82,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             pTask->setTaskId(uiTaskId);
             pTask->m_uiMsgTaskId = msg->event().getMsgHeader().getTaskId();
             pTask->m_uiReplyConnId = msg->event().getConnId();
+			pTask->m_bCommit = false;
             pTask->execute(pTss);
             return 1;
         }
@@ -121,6 +122,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             pTask->m_sndMsg = sndMsg;
             pTask->m_uiMsgTaskId = msg->event().getMsgHeader().getTaskId();
             pTask->m_uiReplyConnId = msg->event().getConnId();
+			pTask->m_bCommit = true;
             pTask->execute(pTss);
             return 1;
         }
