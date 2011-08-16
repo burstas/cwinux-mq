@@ -93,7 +93,7 @@ void CwxMproxyTask::reply(CwxTss* pThrEnv)
 		}
 		else
 		{
-			if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseCommitReply(pTss->m_pReader£¬
+			if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseCommitReply(pTss->m_pReader,
 				m_mqReply,
 				ret,
 				szErrMsg,
