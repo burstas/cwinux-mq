@@ -33,6 +33,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     map<CWX_UINT32, bool>::iterator conn_iter = m_clientMap.find(msg->event().getConnId());
     CWX_ASSERT(conn_iter != m_clientMap.end());
     bool bAuth = conn_iter->second;
+	CWX_UINT64 ullSid = 0;
     do{
         ///binlog数据接收消息
         if (CwxMqPoco::MSG_TYPE_RECV_DATA == msg->event().getMsgHeader().getMsgType())
@@ -109,7 +110,8 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             pTss->m_pWriter->beginPack();
             pTss->m_pWriter->addKeyValue(CWX_MQ_DATA, pData->m_szData, pData->m_uiDataLen, pData->m_bKeyValue);
             pTss->m_pWriter->pack();
-            if (0 != m_pApp->getBinLogMgr()->append(m_pApp->nextSid(),
+			ullSid = m_pApp->nextSid();
+            if (0 != m_pApp->getBinLogMgr()->append(ullSid,
                 time(NULL),
                 uiGroup,
                 uiType,
@@ -213,7 +215,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             pBlock,
             msg->event().getMsgHeader().getTaskId(),
             iRet,
-            m_pApp->getCurSid(),
+            ullSid,
             pTss->m_szBuf2K,
             pTss->m_szBuf2K))
         {
