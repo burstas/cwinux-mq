@@ -77,17 +77,33 @@ void CwxMproxyTask::reply(CwxTss* pThrEnv)
     char const* szErrMsg = NULL;
     if (m_mqReply)
     {
-        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseRecvDataReply(pTss->m_pReader,
-            m_mqReply,
-            ret,
-            ullSid,
-            szErrMsg,
-            pTss->m_szBuf2K))
-        {
-            CWX_ERROR(("Failure to parse mq's reply, err:%s", pTss->m_szBuf2K));
-            ret = CWX_MQ_ERR_INNER_ERR;
-            szErrMsg = "Failure to parse mq's rely";
-        }
+		if (!m_bCommit)
+		{
+			if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseRecvDataReply(pTss->m_pReader,
+				m_mqReply,
+				ret,
+				ullSid,
+				szErrMsg,
+				pTss->m_szBuf2K))
+			{
+				CWX_ERROR(("Failure to parse mq's reply, err:%s", pTss->m_szBuf2K));
+				ret = CWX_MQ_ERR_INNER_ERR;
+				szErrMsg = "Failure to parse mq's rely";
+			}
+		}
+		else
+		{
+			if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseCommitReply(pTss->m_pReader£¬
+				m_mqReply,
+				ret,
+				szErrMsg,
+				pTss->m_szBuf2K))
+			{
+				CWX_ERROR(("Failure to parse mq's reply, err:%s", pTss->m_szBuf2K));
+				ret = CWX_MQ_ERR_INNER_ERR;
+				szErrMsg = "Failure to parse mq's commit rely";
+			}
+		}
     }
     else if (m_bReplyTimeout)
     {
@@ -105,18 +121,35 @@ void CwxMproxyTask::reply(CwxTss* pThrEnv)
         ret = CWX_MQ_ERR_INNER_ERR;
         szErrMsg = "Unknown error";
     }
-    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packRecvDataReply(pTss->m_pWriter,
-        replyMsg,
-        m_uiMsgTaskId,
-        ret,
-        ullSid,
-        szErrMsg,
-        pTss->m_szBuf2K
-        ))
-    {
-        CWX_ERROR(("Failure to pack mq reply, err:%s", pTss->m_szBuf2K));
-        m_pApp->noticeCloseConn(m_uiReplyConnId);
-    }
+	if (!m_bCommit)
+	{
+		if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packRecvDataReply(pTss->m_pWriter,
+			replyMsg,
+			m_uiMsgTaskId,
+			ret,
+			ullSid,
+			szErrMsg,
+			pTss->m_szBuf2K
+			))
+		{
+			CWX_ERROR(("Failure to pack mq reply, err:%s", pTss->m_szBuf2K));
+			m_pApp->noticeCloseConn(m_uiReplyConnId);
+		}
+	}
+	else
+	{
+		if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packCommitReply(pTss->m_pWriter,
+			replyMsg,
+			m_uiMsgTaskId,
+			ret,
+			szErrMsg,
+			pTss->m_szBuf2K
+			))
+		{
+			CWX_ERROR(("Failure to pack mq commit reply, err:%s", pTss->m_szBuf2K));
+			m_pApp->noticeCloseConn(m_uiReplyConnId);
+		}
+	}
     CwxMproxyRecvHandler::reply(m_pApp, replyMsg, m_uiReplyConnId);
 }
 

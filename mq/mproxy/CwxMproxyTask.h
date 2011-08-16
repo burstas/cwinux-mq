@@ -39,6 +39,7 @@ public:
         m_bFailSend = false;
         m_uiSendConnId = 0;
         m_mqReply =NULL;
+		m_bCommit = false;
     }
     ///析构函数
     ~CwxMproxyTask()
@@ -108,6 +109,7 @@ public:
     CWX_UINT32     m_uiReplyConnId; ///<回复的连接ID
     CWX_UINT32     m_uiMsgTaskId; ///<接收到消息的TaskId
     CwxMsgBlock*   m_sndMsg; ///<发送的mq消息
+	bool		   m_bCommit; ///<是否commit消息类型
 private:
     bool           m_bReplyTimeout; ///<是否回复超时
     bool           m_bFailSend; ///<是否发送失败
