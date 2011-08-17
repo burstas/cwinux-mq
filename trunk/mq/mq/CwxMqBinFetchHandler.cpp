@@ -272,6 +272,7 @@ int CwxMqBinFetchHandler::fetchMq(CwxMqTss* pTss)
         {///等待消息
             m_conn.m_bWaiting = true;
             channel()->regRedoHander(this);
+			return 0;
         }
         else if (-1 == ret)
         {///发送失败，关闭连接。此属于内存不足、连接关闭等等严重的错误
