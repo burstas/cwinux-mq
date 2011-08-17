@@ -18,13 +18,24 @@
         
         $pack = $poco->packFetchMq($queue,null,$user,$passwd);
                  
-        $socket = $request->getSocket();
-        $ret = $request->sendMsg($socket,$pack);
-        $ret = $request->receiveMsg($socket);
+        $ret = $request->connect();    
+        if($ret === false){
+       		echo $request->getLastError();
+       		exit;
+       	}
+       	
+        $ret = $request->sendMsg($pack);
+        if($ret === false){
+       		echo $request->getLastError();
+       		exit;
+       	}
+       	
+        $ret = $request->receiveMsg();          
        	if($ret === false){
        		echo $request->getLastError();
        		exit;
        	}
+       	
         $r = $poco->parserReply($ret);
         if($r === false){
         	echo $poco->getLastError();
