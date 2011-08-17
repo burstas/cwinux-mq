@@ -80,7 +80,7 @@ class CwxMsgHead
     {
     	if($this->msgType == 0){
     		$this->error = "消息类型不能为0或空";
-    		$this->errno = -1;
+    		$this->errno = ERR_HEADER_BAD_MSG_TYPE;
     		return false;
     	}
     	//计算校验和
@@ -100,7 +100,7 @@ class CwxMsgHead
     public function fromNet($data)
     {
     	if(strlen($data) < 1+1+2+4+4+2 ){
-    		$this->errno = -1;
+    		$this->errno = ERR_HEADER_BAD_HEAD_LENGTH;
     		$this->error = "待解包的消息头长度错误";
     		return false;
     	}
@@ -109,7 +109,7 @@ class CwxMsgHead
         	
         	if( (($package['msgType'] + $package['dataLen'] + $package['taskId'] + $package['attribute'] + $package['version']) & 0xffff)
         	!= $package['checkSum'] ){
-        		$this->errno = -1;
+        		$this->errno = ERR_HEADER_BAD_CHECK_SUM;
         		$this->error = "校验码不匹配";
         		return false;
         	}
@@ -123,7 +123,7 @@ class CwxMsgHead
         	}
         }
         else{
-        	$this->errno = -1;
+        	$this->errno = ERR_HEADER_UNPACK_FAILED;
     		$this->error = "解包失败";
         	return false;
         }

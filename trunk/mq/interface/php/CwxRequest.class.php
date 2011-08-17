@@ -57,11 +57,11 @@ class CwxRequest
     private $errno;
 
     /**
-     * 建立socket链接
+     * 建立链接
      *
      * @return boolean
      */
-    private function connect()
+    public function connect()
     {
     	//应该用更合适的方法去判断连接是否已经建立
     	if($this->sock == true){
@@ -71,7 +71,7 @@ class CwxRequest
         $socket = socket_create(AF_INET,SOCK_STREAM,$commonProtocol);
         
         if(socket_connect($socket,$this->host,$this->port)==false){
-        	$this->errno = -1;
+        	$this->errno = ERR_REQUEST_CONNECT_FAILED;
         	$this->error = "建立连接失败[{$this->host}:{$this->port}]";
         	return false;
         }
@@ -80,95 +80,52 @@ class CwxRequest
     }
     
     /**
+     * 断开连接
+     *
+     */
+    public function close()
+    {
+        if($this->sock == true){
+    		socket_close($this->sock);
+    		$this->sock = null;
+    	}
+    }
+        
+    /**
      * 发送请求，并返回获得的消息体
      *
-     * @param unknown_type $package
-     * @return unknown
+     * @param package $package
+     * @return string or false 
      */
     public function request($package)
     {   
-        $ret =	$this->connect();
-        if($ret == false){
-        	return false;
-        }
-        
-        $socket = $this->sock;
-        $data = socket_write($socket,$package);
-
-        $rdata = socket_read($socket,14,PHP_BINARY_READ );       
-        $n = strlen($rdata);
-        if($n == 14){
-        	$header = new CwxMsgHead();
-        	$ret = $header->fromNet($rdata);        	
-        	if($ret == true){
-        		
-        		$dataLen = $header->getDataLen(); 
-        		
-        		$rdata = null;
-        		$n = 0;
-        		
-        		while( $n < $dataLen){
-        			$rt = socket_read($socket,512,PHP_BINARY_READ);
-        			$rdata .= $rt;
-        			$n = $n+strlen($rt); 
-        		}
-        		
-        		if($n == $dataLen){
-        			//处理压缩的消息，进行解压缩操作
-        			if( ($header->getAttr() & 2) == true){
-        				$rdata = gzuncompress($rdata);
-        			}
-        			return $rdata;
-        		}
-        		else{
-        			$this->errno = -1;
-        			$this->error = '获取消息体失败 返回数据长度错误';
-        			return false;	
-        		}
-        	}
-        	else{
-        		$this->errno = -1;
-        		$this->error = $header->getLastError();
-        		return false;	
-        	}
-        }
-        else{
-        	$this->errno = -1;
-        	$this->error = '获取消息头失败 返回数据长度错误';
-        	return false;
+        if($this->sendMsg($package) == true){
+            return $this->receiveMsg();
         }
     }
     
-    
-    public function getSocket()
-    {
-        $commonProtocol = getprotobyname("tcp");
-        $socket = socket_create(AF_INET,SOCK_STREAM,$commonProtocol);
-        
-        if(socket_connect($socket,$this->host,$this->port)==false){
-        	$this->errno = -1;
-        	$this->error = "建立连接失败[{$this->host}:{$this->port}]";
-        	return false;
-        }
-        return $socket;
-    }
     /**
      * 发送消息体
      *
-     * @param unknown_type $package
-     * @return unknown
+     * @param package $package
+     * @return boolean
      */
-    public function sendMsg($socket,$package)
+    public function sendMsg($package)
     {
         if(strlen($package) == 0){
-            $this->errno = -1;
+            $this->errno = ERR_REQUEST_NULL_PACKAGE;
             $this->error = '消息体不能为空串';
             return false;
         }
-        
+        $socket = $this->sock;
+        if($socket == null){
+            $this->errno = ERR_REQUEST_NULL_SOCKET;
+            $this->error = '连接不存在，请检查连接是否正常';
+            return false;
+        }
         $data = socket_write($socket,$package);
         if($data === false){
-            $this->errno = -1;
+            $this->errno = ERR_REQUEST_SEND_FAILED;
             $this->error = '发送消息失败，请检查连接是否正常';
             return false;
         }
@@ -180,11 +137,18 @@ class CwxRequest
     /**
      * 接收消息体
      *
-     * @param unknown_type $package
-     * @return unknown
+     * @param package $package
+     * @return string or boolean
      */
-    public function receiveMsg($socket)
+    public function receiveMsg()
     {   
+        $socket = $this->sock;
+        if($socket == null){
+            $this->errno = ERR_REQUEST_NULL_SOCKET;
+            $this->error = '连接不存在，请检查连接是否正常';
+            return false;
+        }
+        
         $rdata = socket_read($socket,14,PHP_BINARY_READ );       
         $n = strlen($rdata);
         if($n == 14){
@@ -198,7 +162,7 @@ class CwxRequest
         		$n = 0;
         		
         		while( $n < $dataLen){
-        			$rt = socket_read($socket,512,PHP_BINARY_READ);
+        			$rt = socket_read($socket,$dataLen-$n,PHP_BINARY_READ);
         			$rdata .= $rt;
         			$n = $n+strlen($rt); 
         		}
@@ -211,24 +175,25 @@ class CwxRequest
         			return $rdata;
         		}
         		else{
-        			$this->errno = -1;
+        			$this->errno = ERR_REQUEST_RECEIVE_BAD_MSG;
         			$this->error = '获取消息体失败 返回数据长度错误';
         			return false;	
         		}
         	}
         	else{
-        		$this->errno = -1;
+        		$this->errno = $header->getLastErrno();
         		$this->error = $header->getLastError();
         		return false;	
         	}
         }
         else{
-        	$this->errno = -1;
+        	$this->errno = ERR_REQUEST_RECEIVE_BAD_MSG_HEADR;
         	$this->error = '获取消息头失败 返回数据长度错误';
         	return false;
         }
     }
-      /**
+    
+     /**
      * 获取最后的错误信息
      *
      * @return string
@@ -245,30 +210,7 @@ class CwxRequest
     public function getLastErrno(){
     	return $this->errno;
     }
-    
-    /*
-    public function request2($package)
-    {   
-        $ret =	$this->connect();
-        
-        if($ret == false){
-        	return false;
-        }
-        
-        $socket = $this->sock;
-        $data = socket_write($socket,$package);
-
-        $n = socket_recv($socket,$rdata,512,PHP_BINARY_READ );
-        
-        var_dump($n);
-        if ( $n <= 0 )	{
-            $rt['errcode']=-3;
-            return $rt;
-        }
-        //socket_close($socket);        
-        return $rdata;
-    }*/
-
+   
 }
 
 

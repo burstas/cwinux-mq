@@ -36,7 +36,7 @@ class CwxPackage
         	return $result;
         }
         else if( is_string($msg) == false){
-        	self::$errno = -1;
+        	self::$errno = ERR_PACKAGE_UNPACK_BAD_PARAM_TYPE;
         	self::$error = '参数应该是NULL或字符串';
         	return false;
         }
@@ -44,7 +44,7 @@ class CwxPackage
         while( strlen($msg) > 0) {
         	
         	if( strlen($msg) < 3 ){
-        		self::$errno = -1;
+        		self::$errno = ERR_PACKAGE_UNPACK_FAILED_A;
         		self::$error = '消息体错误，解包失败';
         		return false;
         	}
@@ -64,7 +64,7 @@ class CwxPackage
                 $msg = substr($msg,6);
                 
                 if( strlen($msg) < $keyLen + $valueLen + 2 ){
-                	self::$errno = -1;
+                	self::$errno = ERR_PACKAGE_UNPACK_FAILED_B;
         			self::$error = '消息体错误，解包失败2';
         			return false;
                 }
@@ -79,7 +79,7 @@ class CwxPackage
                 
                 //因为pack函数的效率比较低，因此这里进行尽量避开pack操作。
                 if($msg[$keyLen] != "\0" || $msg[$keyLen+$valueLen+1] !="\0"){
-                    self::$errno = -1;
+                    self::$errno = ERR_PACKAGE_UNPACK_FAILED_C;
         			self::$error = '消息体错误，解包失败3';
         			return false;
                 }                
@@ -145,7 +145,7 @@ class CwxPackage
     		return $content;
     	}
     	else{
-    		self::$errno = -1;
+    		self::$errno = ERR_PACKAGE_PACK_BAD_PARAM_TYPE;
     		self::$error = '参数应该是null或数组';
     		return false;	
     	}
