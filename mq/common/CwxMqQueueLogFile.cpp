@@ -369,7 +369,7 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
             m_uiLine);
         return -1;
     }
-    queue.m_uiDefTimeout = strtoul(item.second.c_str(), NULL, 0);
+    queue.m_uiMaxTimeout = strtoul(item.second.c_str(), NULL, 0);
     if (queue.m_uiMaxTimeout < CWX_MQ_MIN_TIMEOUT_SECOND) queue.m_uiMaxTimeout = CWX_MQ_MIN_TIMEOUT_SECOND;
     if (queue.m_uiMaxTimeout > CWX_MQ_MAX_TIMEOUT_SECOND) queue.m_uiMaxTimeout = CWX_MQ_MAX_TIMEOUT_SECOND;
     //get user
