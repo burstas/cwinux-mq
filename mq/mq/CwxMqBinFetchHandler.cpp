@@ -364,7 +364,7 @@ int CwxMqBinFetchHandler::fetchMqCommit(CwxMqTss* pTss)
         else if (-2 == iRet)
         {//队列不存在
             iRet = CWX_MQ_ERR_NO_QUEUE;
-            strcpy(pTss->m_szBuf2K, "No queue");
+			CwxCommon::snprintf(pTss->m_szBuf2K, 2047,  "No queue:%s", m_conn.m_strQueueName.c_str());
             break;
         }
         ///成功提交消息
@@ -593,7 +593,7 @@ int CwxMqBinFetchHandler::delQueue(CwxMqTss* pTss)
         if (0 == iRet)
         {//队列不存在
             iRet = CWX_MQ_ERR_NO_QUEUE;
-            strcpy(pTss->m_szBuf2K, "Queue doesn't exists");
+			CwxCommon::snprintf(pTss->m_szBuf2K,  2047, "Queue[%s] doesn't exists", queue_name);
             break;
 
         }
@@ -811,7 +811,8 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss)
     //此时，iState为-2
     //no queue
     CWX_ERROR(("Not find queue:%s", m_conn.m_strQueueName.c_str()));
-    pBlock = packEmptyFetchMsg(pTss, CWX_MQ_ERR_NO_QUEUE, "No Qqueue");
+	string strErr = string("No queue:") + m_conn.m_strQueueName;
+    pBlock = packEmptyFetchMsg(pTss, CWX_MQ_ERR_NO_QUEUE, strErr.c_str());
     if (!pBlock)
     {
         CWX_ERROR(("No memory to malloc package"));
