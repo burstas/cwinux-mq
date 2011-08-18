@@ -837,9 +837,11 @@ CWX_UINT32 CwxMqApp::packMonitorInfo()
 
             CwxCommon::toString(iter->m_ullCursorSid, szSid1, 10);
             CwxCommon::toString(iter->m_ullLeftNum, szSid2, 10);
-            CwxCommon::snprintf(szLine, 4096, "STAT name(%s)|commit(%s)|cursor_state(%s)|log_state(%s)|sid(%s)|msg(%s)|subscribe(%s)|cursor_err(%s)|log_err(%s)\r\n",
+            CwxCommon::snprintf(szLine, 4096, "STAT name(%s)|commit(%s)|def_timeout(%u)|max_timeout(%u)|cursor_state(%s)|log_state(%s)|sid(%s)|msg(%s)|subscribe(%s)|cursor_err(%s)|log_err(%s)\r\n",
                 iter->m_strName.c_str(),
                 iter->m_bCommit?"yes":"no",
+				iter->m_uiDefTimeout,
+				iter->m_uiMaxTimeout,
                 state,
 				iter->m_bQueueLogFileValid?"yes":"no",
                 szSid1,
