@@ -394,7 +394,7 @@ void CwxMqConfig::outputConfig() const
     CWX_INFO(("*****************common*******************"));
     CWX_INFO(("workdir=%s", m_common.m_strWorkDir.c_str()));
     CWX_INFO(("server type=%s", m_common.m_bMaster?"master":"slave"));
-    CWX_INFO(("window sock_buf_kbyte=%u  trunk_kbyte=%u", m_common.m_uiSockBufSize, m_common.m_uiChunkSize));
+    CWX_INFO(("window sock_buf_kbyte=%u  chunk_kbyte=%u", m_common.m_uiSockBufSize, m_common.m_uiChunkSize));
 	CWX_INFO(("monitor host=%s  port=%u", m_common.m_monitor.getHostName().c_str(), m_common.m_monitor.getPort()));
     CWX_INFO(("*****************binlog*******************"));
     CWX_INFO(("file path=%s prefix=%s max-file-size(Mbyte)=%u", m_binlog.m_strBinlogPath.c_str(), m_binlog.m_strBinlogPrex.c_str(), m_binlog.m_uiBinLogMSize));
