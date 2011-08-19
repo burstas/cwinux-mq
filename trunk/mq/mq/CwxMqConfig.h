@@ -57,9 +57,9 @@ class CwxMqConfigBinLog
 public:
     enum
     {
-        DEF_BINLOG_MSIZE = 2048, ///<缺省的binlog大小
+        DEF_BINLOG_MSIZE = 1024, ///<缺省的binlog大小
         MIN_BINLOG_MSIZE = 64, ///<最小的binlog大小
-        MAX_BINLOG_MSIZE = 8192 ///<最大的binlog大小
+        MAX_BINLOG_MSIZE = 2048 ///<最大的binlog大小
     };
 public:
     CwxMqConfigBinLog()
