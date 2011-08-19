@@ -89,7 +89,7 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
     //load mq:common:monitor
     if (parser.getElementNode("mq:common:monitor"))
     {
-        if (!fetchHost(parser, "mq:common:monitor", m_common.m_monitor)) return -1;
+        if (!fetchHost(parser, "mq:common:monitor", m_common.m_monitor, true)) return -1;
     }
     else
     {
@@ -312,7 +312,8 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
 
 bool CwxMqConfig::fetchHost(CwxXmlFileConfigParser& parser, 
                             string const& path,
-                            CwxHostInfo& host)
+                            CwxHostInfo& host,
+							bool bIpOnly)
 {
     char const* pValue;
     host.reset();
@@ -365,11 +366,22 @@ bool CwxMqConfig::fetchHost(CwxXmlFileConfigParser& parser,
     {
         host.setUnixDomain(pValue);
     }
-    if (!host.getHostName().length() && !host.getUnixDomain().length())
-    {
-        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s]'s ip or unix-domain file.", path.c_str());
-        return false;
-    }
+	if (!bIpOnly)
+	{
+		if (!host.getHostName().length() && !host.getUnixDomain().length())
+		{
+			CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s]'s ip or unix-domain file.", path.c_str());
+			return false;
+		}
+	}
+	else
+	{
+		if (!host.getHostName().length())
+		{
+			CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s]'s ip.", path.c_str());
+			return false;
+		}
+	}
 
     return true;
 
@@ -383,6 +395,7 @@ void CwxMqConfig::outputConfig() const
     CWX_INFO(("workdir=%s", m_common.m_strWorkDir.c_str()));
     CWX_INFO(("server type=%s", m_common.m_bMaster?"master":"slave"));
     CWX_INFO(("window sock_buf_kbyte=%u  trunk_kbyte=%u", m_common.m_uiSockBufSize, m_common.m_uiChunkSize));
+	CWX_INFO(("monitor host=%s  port=%u", m_common.m_monitor.getHostName().c_str(), m_common.m_monitor.getPort()));
     CWX_INFO(("*****************binlog*******************"));
     CWX_INFO(("file path=%s prefix=%s max-file-size(Mbyte)=%u", m_binlog.m_strBinlogPath.c_str(), m_binlog.m_strBinlogPrex.c_str(), m_binlog.m_uiBinLogMSize));
     CWX_INFO(("manager binlog file max_fil_num=%u  del_outday_logfile=%s", m_binlog.m_uiMgrFileNum, m_binlog.m_bDelOutdayLogFile?"yes":"no"));

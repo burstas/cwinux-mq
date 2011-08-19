@@ -178,7 +178,8 @@ public:
 private:
     bool fetchHost(CwxXmlFileConfigParser& parser,
         string const& path,
-        CwxHostInfo& host);
+        CwxHostInfo& host,
+		bool bIpOnly=false);
 private:
     CwxMqConfigCmn      m_common; ///<common的配置信息
     CwxMqConfigBinLog   m_binlog; ///<binlog的配置信息
