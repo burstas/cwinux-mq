@@ -336,7 +336,7 @@ int CwxMqBinFetchHandler::fetchMqCommit(CwxMqTss* pTss)
         if (0 == m_conn.m_ullSendSid)
         {//超时
             iRet = CWX_MQ_ERR_TIMEOUT;
-            strcpy(pTss->m_szBuf2K, "Message is timeout or not exist");
+            strcpy(pTss->m_szBuf2K, "Message is timeout.");
             break;
         }
 
@@ -352,7 +352,7 @@ int CwxMqBinFetchHandler::fetchMqCommit(CwxMqTss* pTss)
         if (0 == iRet)
         {//消息不存在，此时消息已经超时
             iRet = CWX_MQ_ERR_TIMEOUT;
-            strcpy(pTss->m_szBuf2K, "Message is timeout or not exist");
+            strcpy(pTss->m_szBuf2K, "Message is timeout.");
             break;
         }
         else if (-1 == iRet)
