@@ -37,7 +37,8 @@ public:
 private:
     bool fetchHost(CwxXmlFileConfigParser& parser,
         string const& path,
-        CwxHostInfo& host);
+        CwxHostInfo& host,
+		bool bIpOnly=false);
     bool loadGroup(string const& path, CwxXmlTreeNode const* pGroup, CwxMqConfigQueue& group);
     bool parseIds(string const& group, list<pair<CWX_UINT32, CWX_UINT32> >& ids);
 
