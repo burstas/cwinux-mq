@@ -27,10 +27,10 @@ int CwxMproxyConfig::loadConfig(string const & strConfFile)
     }
     m_uiTimeout = strtoul(pValue, NULL, 0);
     //ªÒ»°º‡øÿµÿ÷∑
-    //load mproxy:common:monitor
-    if (parser.getElementNode("mproxy:common:monitor"))
+    //load mproxy:monitor
+    if (parser.getElementNode("mproxy:monitor"))
     {
-        if (!fetchHost(parser, "mproxy:common:monitor", m_monitor, true)) return -1;
+        if (!fetchHost(parser, "mproxy:monitor", m_monitor, true)) return -1;
     }
     else
     {
