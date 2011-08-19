@@ -398,7 +398,7 @@ void CwxMqConfig::outputConfig() const
 	CWX_INFO(("monitor host=%s  port=%u", m_common.m_monitor.getHostName().c_str(), m_common.m_monitor.getPort()));
     CWX_INFO(("*****************binlog*******************"));
     CWX_INFO(("file path=%s prefix=%s max_mbyte(Mbyte)=%u", m_binlog.m_strBinlogPath.c_str(), m_binlog.m_strBinlogPrex.c_str(), m_binlog.m_uiBinLogMSize));
-    CWX_INFO(("manager binlog file max_fil_num=%u  del_outday_logfile=%s", m_binlog.m_uiMgrFileNum, m_binlog.m_bDelOutdayLogFile?"yes":"no"));
+    CWX_INFO(("manager binlog file max_fil_num=%u  del_out_file=%s", m_binlog.m_uiMgrFileNum, m_binlog.m_bDelOutdayLogFile?"yes":"no"));
 	CWX_INFO(("binlog flush cache=%s log_num=%u second=%u", m_binlog.m_bCache?"yes":"no", m_binlog.m_uiFlushNum, m_binlog.m_uiFlushSecond));
     if (m_common.m_bMaster){
         CWX_INFO(("*****************master*******************"));
