@@ -68,7 +68,7 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
     char line[1024];
     char szSid[64];
     ssize_t len = 0;
-    //queue:name=q1|sid=12345|commit=true|def_timeout=5|max_timeout=300|user=u_q1|passwd=p_q1|subcribe=*
+    //queue:name=q1|sid=12345|commit=true|def_timeout=5|max_timeout=300|user=u_q1|passwd=p_q1|subscribe=*
 	len = CwxCommon::snprintf(line, 
             1023,
             "%s:name=%s|sid=%s|commit=%s|def_timeout=%u|max_timeout=%u|user=%s|passwd=%s|subscribe=%s\n",
@@ -254,7 +254,7 @@ int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue,
         if (line.empty()) break;
         m_uiLine++;
         if (0 == step)
-        {//queue:name=q1|sid=12345|commit=true|def_timeout=5|max_timeout=300|user=u_q1|passwd=p_q1|subcribe=*
+        {//queue:name=q1|sid=12345|commit=true|def_timeout=5|max_timeout=300|user=u_q1|passwd=p_q1|subscribe=*
 			line = line.substr(strQueuePrex.length());
 			if (0 != parseQueue(line, queue))
 			{
