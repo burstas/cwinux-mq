@@ -242,8 +242,8 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
             else
                 m_slave.m_strSign = "";
         }
-        //fetch mq:slave:master:subcribe
-        if ((NULL == (pValue=parser.getElementAttr("mq:slave:master", "subcribe"))) || !pValue[0])
+        //fetch mq:slave:master:subscribe
+        if ((NULL == (pValue=parser.getElementAttr("mq:slave:master", "subscribe"))) || !pValue[0])
         {
             m_slave.m_strSubScribe = "";
         }
@@ -254,7 +254,7 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
             {
                 snprintf(m_szErrMsg,
                     2047,
-                    "[mq:slave:master:subcribe]'s value [%s] is not valid subscribe, err:%s",
+                    "[mq:slave:master:subscribe]'s value [%s] is not valid subscribe, err:%s",
                     pValue,
                     strErrMsg.c_str());
                 return -1;
