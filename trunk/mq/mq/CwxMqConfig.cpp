@@ -332,6 +332,10 @@ bool CwxMqConfig::fetchHost(CwxXmlFileConfigParser& parser,
         }
         host.setPort(strtoul(pValue, NULL, 0));
     }
+	else
+	{
+		host.setHostName("");
+	}
     //load path:keep_alive
     pValue=parser.getElementAttr(path.c_str(), "keep_alive");
     if (pValue && pValue[0])
@@ -369,6 +373,10 @@ bool CwxMqConfig::fetchHost(CwxXmlFileConfigParser& parser,
     {
         host.setUnixDomain(pValue);
     }
+	else
+	{
+		host.setUnixDomain("");
+	}
 	if (!bIpOnly)
 	{
 		if (!host.getHostName().length() && !host.getUnixDomain().length())
@@ -405,26 +413,20 @@ void CwxMqConfig::outputConfig() const
 	CWX_INFO(("binlog flush cache=%s log_num=%u second=%u", m_binlog.m_bCache?"yes":"no", m_binlog.m_uiFlushNum, m_binlog.m_uiFlushSecond));
     if (m_common.m_bMaster){
         CWX_INFO(("*****************master*******************"));
-        if (m_master.m_recv.getHostName().length())
-        {
-            CWX_INFO(("recv keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
-                m_master.m_recv.isKeepAlive()?"yes":"no",
-                m_master.m_recv.getUser().c_str(),
-                m_master.m_recv.getPasswd().c_str(),
-                m_master.m_recv.getHostName().c_str(),
-                m_master.m_recv.getPort(),
-                m_master.m_recv.getUnixDomain().c_str()));
-        }
-        if (m_master.m_async.getHostName().length())
-        {
-            CWX_INFO(("async keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
-                m_master.m_async.isKeepAlive()?"yes":"no",
-                m_master.m_async.getUser().c_str(),
-                m_master.m_async.getPasswd().c_str(),
-                m_master.m_async.getHostName().c_str(),
-                m_master.m_async.getPort(),
-                m_master.m_async.getUnixDomain().c_str()));
-        }
+		CWX_INFO(("recv keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
+			m_master.m_recv.isKeepAlive()?"yes":"no",
+			m_master.m_recv.getUser().c_str(),
+			m_master.m_recv.getPasswd().c_str(),
+			m_master.m_recv.getHostName().c_str(),
+			m_master.m_recv.getPort(),
+			m_master.m_recv.getUnixDomain().c_str()));
+		CWX_INFO(("async keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
+			m_master.m_async.isKeepAlive()?"yes":"no",
+			m_master.m_async.getUser().c_str(),
+			m_master.m_async.getPasswd().c_str(),
+			m_master.m_async.getHostName().c_str(),
+			m_master.m_async.getPort(),
+			m_master.m_async.getUnixDomain().c_str()));
     }else{
         CWX_INFO(("*****************slave*******************"));
         CWX_INFO(("master zip=%s sign=%s, keep_alive=%s user=%s passwd=%s subscribe=%s ip=%s port=%u unix=%s",
@@ -437,16 +439,13 @@ void CwxMqConfig::outputConfig() const
             m_slave.m_master.getHostName().c_str(),
             m_slave.m_master.getPort(),
             m_slave.m_master.getUnixDomain().c_str()));
-        if (m_slave.m_async.getHostName().length())
-        {
-            CWX_INFO(("async keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
-                m_slave.m_async.isKeepAlive()?"yes":"no",
-                m_slave.m_async.getUser().c_str(),
-                m_slave.m_async.getPasswd().c_str(),
-                m_slave.m_async.getHostName().c_str(),
-                m_slave.m_async.getPort(),
-                m_master.m_async.getUnixDomain().c_str()));
-        }
+		CWX_INFO(("async keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
+			m_slave.m_async.isKeepAlive()?"yes":"no",
+			m_slave.m_async.getUser().c_str(),
+			m_slave.m_async.getPasswd().c_str(),
+			m_slave.m_async.getHostName().c_str(),
+			m_slave.m_async.getPort(),
+			m_master.m_async.getUnixDomain().c_str()));
     }
 
     if (m_mq.m_mq.getHostName().length())
