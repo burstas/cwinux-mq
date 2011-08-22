@@ -197,11 +197,11 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
         {
             m_master.m_recv.reset();
         }
-        if (!m_master.m_recv.getHostName().length())
+/*        if (!m_master.m_recv.getHostName().length())
         {
 			CWX_ERROR(("Must set [mq:master:recv:ip]"));
             return -1;
-        }
+        }*/
         //load mq:master:async
         if (parser.getElementNode("mq:master:async"))
         {
