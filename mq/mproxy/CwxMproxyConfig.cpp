@@ -394,7 +394,7 @@ bool CwxMproxyConfig::parseIds(string const& group, list<pair<CWX_UINT32, CWX_UI
 			{
 				snprintf(m_szErrMsg, 2047, "group[%s]'s end[%u] is less than being[%u]",
 					group.c_str(),
-					item.end,
+					item.second,
 					item.first);
 				return false;
 			}
