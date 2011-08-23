@@ -267,7 +267,7 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
         }
         else
         {
-            m_slave.m_master.reset();
+            m_slave.m_async.reset();
         }
     }
     //fetch mq:mq
