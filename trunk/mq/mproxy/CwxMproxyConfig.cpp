@@ -14,7 +14,7 @@ int CwxMproxyConfig::loadConfig(string const & strConfFile)
     //load workdir mproxy:workdir{path}
     if ((NULL == (pValue=parser.getElementAttr("mproxy:workdir", "path"))) || !pValue[0])
     {
-        snprintf(m_szErrMsg, 2047, "Must set [mproxy:workdir].");
+		snprintf(m_szErrMsg, 2047, "Must set [mproxy:workdir:path].");
         return -1;
     }
     m_strWorkDir = pValue;
@@ -257,6 +257,10 @@ bool CwxMproxyConfig::fetchHost(CwxXmlFileConfigParser& parser,
         }
         host.setPort(strtoul(pValue, NULL, 0));
     }
+	else
+	{
+		host.setHostName("");
+	}
     //load path:keep_alive
     pValue=parser.getElementAttr(path.c_str(), "keep_alive");
     if (pValue && pValue[0])
@@ -294,6 +298,10 @@ bool CwxMproxyConfig::fetchHost(CwxXmlFileConfigParser& parser,
     {
         host.setUnixDomain(pValue);
     }
+	else
+	{
+		host.setUnixDomain("");
+	}
 	if (!bIpOnly)
 	{
 		if (!host.getHostName().length() && !host.getUnixDomain().length())
