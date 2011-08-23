@@ -371,6 +371,7 @@ bool CwxMproxyConfig::parseIds(string const& group, list<pair<CWX_UINT32, CWX_UI
     list<string> ranges;
     list<string>::iterator iter;
     string strRange;
+	string strFirst;
     CwxCommon::split(group, ranges, ',');
     iter = ranges.begin();
     while (iter != ranges.end())
@@ -381,13 +382,22 @@ bool CwxMproxyConfig::parseIds(string const& group, list<pair<CWX_UINT32, CWX_UI
         {
             if (strRange.find('-') != string::npos)
             {//it's a range
-                item.first = strtoul(strRange.c_str(), NULL, 0);
+				strFirst = strRange.substr(0, strRange.find('-'));
+                item.first = strtoul(strFirst.c_str(), NULL, 0);
                 item.second = strtoul(strRange.c_str() + strRange.find('-') + 1, NULL, 0);
             }
             else
             {
                 item.first = item.second = strtoul(strRange.c_str(), NULL, 0);
             }
+			if (item.first > item.second)
+			{
+				snprintf(m_szErrMsg, 2047, "group[%s]'s end[%u] is less than being[%u]",
+					group.c_str(),
+					item.end,
+					item.first);
+				return false;
+			}
             ids.push_back(item);
         }
         iter++;
