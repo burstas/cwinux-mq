@@ -445,19 +445,19 @@ void CwxMqConfig::outputConfig() const
 			m_slave.m_async.getPasswd().c_str(),
 			m_slave.m_async.getHostName().c_str(),
 			m_slave.m_async.getPort(),
-			m_master.m_async.getUnixDomain().c_str()));
+			m_slave.m_async.getUnixDomain().c_str()));
     }
-
-    if (m_mq.m_mq.getHostName().length())
-    {
-        CWX_INFO(("*****************mq-fetch*******************"));
-        CWX_INFO(("listen keep_alive=%s  ip=%s port=%u unix=%s",
-            m_mq.m_mq.isKeepAlive()?"yes":"no",
-            m_mq.m_mq.getHostName().c_str(),
-            m_mq.m_mq.getPort(),
-            m_mq.m_mq.getUnixDomain().c_str()));
-        CWX_INFO(("mq queue path:%s", m_mq.m_strLogFilePath.c_str()));
-        CWX_INFO(("mq flush log_num=%u second=%u", m_mq.m_uiFlushNum, m_mq.m_uiFlushSecond));
-    }
+	{
+		CWX_INFO(("*****************mq-fetch*******************"));
+		CWX_INFO(("listen keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
+			m_mq.m_mq.isKeepAlive()?"yes":"no",
+			m_mq.m_mq.getUser().c_str(),
+			m_mq.m_mq.getPasswd().c_str(),
+			m_mq.m_mq.getHostName().c_str(),
+			m_mq.m_mq.getPort(),
+			m_mq.m_mq.getUnixDomain().c_str()));
+		CWX_INFO(("mq queue path:%s", m_mq.m_strLogFilePath.c_str()));
+		CWX_INFO(("mq flush log_num=%u second=%u", m_mq.m_uiFlushNum, m_mq.m_uiFlushSecond));
+	}
     CWX_INFO(("*****************END   CONFIG *******************"));
 }
