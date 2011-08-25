@@ -241,16 +241,19 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                 CWX_ERROR((pTss->m_szBuf2K));
                 break;
             }
-			if (ullSid && ullSid < m_pApp->getBinLogMgr()->getMinSid())
+			if (!bNewly)
 			{
-				m_pApp->getBinLogMgr()->destoryCurser(pCursor);
-				iRet = CWX_MQ_ERR_LOST_SYNC;
-				char szBuf1[64], szBuf2[64];
-				sprintf(pTss->m_szBuf2K, "Lost sync state, report sid:%s, min sid:%s",
-					CwxCommon::toString(ullSid, szBuf1),
-					CwxCommon::toString(m_pApp->getBinLogMgr()->getMinSid(), szBuf2));
-				CWX_ERROR((pTss->m_szBuf2K));
-				break;
+				if (ullSid && ullSid < m_pApp->getBinLogMgr()->getMinSid())
+				{
+					m_pApp->getBinLogMgr()->destoryCurser(pCursor);
+					iRet = CWX_MQ_ERR_LOST_SYNC;
+					char szBuf1[64], szBuf2[64];
+					sprintf(pTss->m_szBuf2K, "Lost sync state, report sid:%s, min sid:%s",
+						CwxCommon::toString(ullSid, szBuf1),
+						CwxCommon::toString(m_pApp->getBinLogMgr()->getMinSid(), szBuf2));
+					CWX_ERROR((pTss->m_szBuf2K));
+					break;
+				}
 			}
             ///…Ë÷√cursor
             m_dispatch.m_pCursor = pCursor;
