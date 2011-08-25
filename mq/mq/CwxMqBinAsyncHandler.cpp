@@ -243,6 +243,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             }
 			if (ullSid && ullSid < m_pApp->getBinLogMgr()->getMinSid())
 			{
+				m_pApp->getBinLogMgr()->destoryCurser(pCursor);
 				iRet = CWX_MQ_ERR_LOST_SYNC;
 				char szBuf1[64], szBuf2[64];
 				sprintf(pTss->m_szBuf2K, "Lost sync state, report sid:%s, min sid:%s",
