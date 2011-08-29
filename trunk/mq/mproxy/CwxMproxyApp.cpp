@@ -527,7 +527,7 @@ CWX_UINT32 CwxMproxyApp::packMonitorInfo()
         CwxCommon::snprintf(szLine, 4096, "STAT start %s\r\n", m_strStartTime.c_str());
         MQ_MONITOR_APPEND();
         //state
-        CwxCommon::snprintf(szLine, 4096, "STAT mq %s\r\n", CWX_INVALID_HANDLE==(int)m_uiMqConnId?"connected":"closed");
+		CwxCommon::snprintf(szLine, 4096, "STAT mq %s\r\n", CWX_INVALID_HANDLE==(int)m_uiMqConnId?"closed":"connected");
         MQ_MONITOR_APPEND();
     }
     while(0);
