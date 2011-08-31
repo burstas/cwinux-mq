@@ -149,7 +149,7 @@ int CwxMproxyConfig::loadConfig(string const & strConfFile)
 	else
 	{
 		m_mqSign = pValue;
-		if ((m_mqSign  != CWX_MQ_MD5) || (m_mqSign != CWX_MQ_CRC32))
+		if ((m_mqSign  != CWX_MQ_MD5) && (m_mqSign != CWX_MQ_CRC32))
 		{
 			snprintf(m_szErrMsg, 2047, "Invalid mq sign[%s], it must be %s or %s",
 				m_mqSign.c_str(),
