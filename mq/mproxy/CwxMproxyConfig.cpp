@@ -227,14 +227,15 @@ void CwxMproxyConfig::outputConfig()
         }
     }
 	CWX_INFO(("*************************MQ Server*************************"));
-    CWX_INFO(("Mq server:  keep-alive=%s ip=%s  port=%u  user=%s  passwd=%s unix=%s sign=%s",
+    CWX_INFO(("Mq server:  keep-alive=%s ip=%s  port=%u  user=%s  passwd=%s unix=%s sign=%s zip=%s ",
         m_mq.isKeepAlive()?"true":"false",
         m_mq.getHostName().c_str(),
         m_mq.getPort(),
         m_mq.getUser().c_str(),
         m_mq.getPasswd().c_str(),
         m_mq.getUnixDomain().c_str(),
-        m_mqSign.c_str()));
+        m_mqSign.c_str(),
+		m_bzip?"yes":"no"));
     CWX_INFO(("\n*****************END   CONFIG *******************\n"));   
 }
 
