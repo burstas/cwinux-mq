@@ -1,0 +1,7 @@
+queue:name=q1|sid=12345|commit=true|def_timeout=5|max_timeout=300|user=u_q1|passwd=p_q1|subcribe=*
+queue:name=q2|sid=2344|commit=false|user=u_q2|passwd=p_q2|subcribe=1:*
+
+queue:name=q3|sid=0|commit=false|user=u_q3|passwd=p_q3|subcribe=*:1,5,8
+uncommit:name=q1|sid=1
+uncommit:name=q1|sid=2
+commit:name=q2|sid=1
