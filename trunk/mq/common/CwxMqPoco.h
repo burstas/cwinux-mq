@@ -151,9 +151,6 @@ public:
     };
     enum
     {
-        SYNC_GROUP_TYPE=0XFFFFFFFF,
-        SYNC_SECOND_INTERNAL=60,
-        SYNC_RECORD_INTERNAL=10000,
         MAX_CONTINUE_SEEK_NUM = 8192
     };
 public:
@@ -495,17 +492,6 @@ public:
         char const* szErrMsg,
         char* szErr2K=NULL);
 
-
-    ///true：需要产品sync记录；false：不需要产生sync记录
-    inline static bool isNeedSyncRecord(CWX_UINT32 uiRecordNum, time_t ttLastSyncTime)
-    {
-        return (uiRecordNum>SYNC_RECORD_INTERNAL) || ((CWX_UINT32)(time(NULL) - ttLastSyncTime) > SYNC_SECOND_INTERNAL);
-    }
-    ///true：是sync记录；false：不是sync记录
-    inline static bool isSyncRecord(CWX_UINT32 uiGroup)
-    {
-        return uiGroup == SYNC_GROUP_TYPE;
-    }
     ///返回sync记录。
     inline static char const* getSyncRecordData()
     {
@@ -537,12 +523,8 @@ public:
     */
     static bool parseSubsribe(string const& strSubscribe, CwxMqSubscribe& subscribe, string& strErrMsg);
     ///消息是否订阅
-    inline static bool isSubscribe(CwxMqSubscribe const& subscribe, bool bSync, CWX_UINT32 uiGroup, CWX_UINT32 uiType)
+    inline static bool isSubscribe(CwxMqSubscribe const& subscribe, CWX_UINT32 uiGroup, CWX_UINT32 uiType)
     {
-        if (uiGroup == SYNC_GROUP_TYPE)
-        {
-            return bSync;
-        }
         return subscribe.isSubscribe(uiGroup, uiType);
     }
 private:

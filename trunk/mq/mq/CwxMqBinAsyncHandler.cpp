@@ -464,7 +464,7 @@ int CwxMqBinAsyncHandler::packMultiBinLog(CwxPackageReader* reader,
 }
 
 //1：发现记录；0：没有发现；-1：错误
-int CwxMqBinAsyncHandler::seekToLog(CWX_UINT32& uiSkipNum, bool bSync)
+int CwxMqBinAsyncHandler::seekToLog(CWX_UINT32& uiSkipNum)
 {
     int iRet = 0;
     if (m_dispatch.m_bNext)
@@ -480,7 +480,6 @@ int CwxMqBinAsyncHandler::seekToLog(CWX_UINT32& uiSkipNum, bool bSync)
     uiSkipNum++;
     m_dispatch.m_bNext = false;
     while (!CwxMqPoco::isSubscribe(m_dispatch.m_subscribe,
-        bSync,
         m_dispatch.m_pCursor->getHeader().getGroup(),
         m_dispatch.m_pCursor->getHeader().getType()))
     {
@@ -564,7 +563,7 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqTss* pTss)
     }
     while(1)
     {
-        if ( 1 != (iRet = seekToLog(uiSkipNum, true))) break;
+        if ( 1 != (iRet = seekToLog(uiSkipNum))) break;
         //设置移到下一个记录位置
         m_dispatch.m_bNext = true;
         uiDataLen = m_dispatch.m_pCursor->getHeader().getLogLen();
