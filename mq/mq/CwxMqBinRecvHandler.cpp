@@ -138,12 +138,6 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                     break;
                 }
             }
-            if (-1 == this->checkSyncLog(true, pTss->m_szBuf2K))
-            {
-                CWX_ERROR(("Failure to check sync log,err=%s", pTss->m_szBuf2K));
-                iRet = CWX_MQ_ERR_BINLOG_INVALID;
-                break;
-            }
         }
         else if(CwxMqPoco::MSG_TYPE_RECV_COMMIT == msg->event().getMsgHeader().getMsgType())
         {
@@ -253,11 +247,6 @@ int CwxMqBinRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* pThrEnv)
             }
         }
     }
-    int iRet = this->checkSyncLog(false, pTss->m_szBuf2K);
-    if (-1 == iRet)
-    {
-        CWX_ERROR(("Failure to check sync log,err=%s", pTss->m_szBuf2K));
-    }
     return 1;
 }
 
@@ -277,30 +266,6 @@ int CwxMqBinRecvHandler::commit(char* szErr2K)
     return iRet;
 }
 
-///-1:Ê§°Ü£»0£º³É¹¦
-int CwxMqBinRecvHandler::checkSyncLog(bool bNew, char* szErr2K)
-{
-    if (bNew) m_uiUnSyncLogNum ++;
-    if (CwxMqPoco::isNeedSyncRecord(m_uiUnSyncLogNum, m_ttLastSyncTime))
-    {
-        if (0 != m_pApp->getBinLogMgr()->append(m_pApp->nextSid(),
-            time(NULL),
-            CwxMqPoco::SYNC_GROUP_TYPE,
-            0,
-            CwxMqPoco::getSyncRecordData(),
-            CwxMqPoco::getSyncRecordDataLen(),
-            szErr2K))
-        {
-            CWX_ERROR(("Failure append sync binlog to binlog, err=%s", szErr2K));
-            return -1;
-        }
-        m_ttLastSyncTime = time(NULL);
-        m_uiUnSyncLogNum = 0;
-        m_pApp->incUnCommitLogNum();
-        return 1;
-    }
-    return 0;
-}
 bool CwxMqBinRecvHandler::prepareUnzipBuf()
 {
     if (!m_unzipBuf)

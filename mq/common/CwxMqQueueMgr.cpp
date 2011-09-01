@@ -405,7 +405,6 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
     do 
     {
         while(!CwxMqPoco::isSubscribe(m_subscribe,
-            false,
             m_cursor->getHeader().getGroup(),
             m_cursor->getHeader().getType()))
         {

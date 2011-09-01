@@ -72,7 +72,7 @@ public:
         CWX_UINT32&  uiLen,
         char* szErr2K);
     //1：发现记录；0：没有发现；-1：错误
-    int seekToLog(CWX_UINT32& uiSkipNum, bool bSync=true);
+    int seekToLog(CWX_UINT32& uiSkipNum);
     //1：成功；0：太大；-1：错误
     int seekToReportSid();
 

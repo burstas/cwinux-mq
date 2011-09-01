@@ -18,8 +18,6 @@ public:
     ///构造函数
     CwxMqBinRecvHandler(CwxMqApp* pApp):m_pApp(pApp)
     {
-        m_uiUnSyncLogNum = 0; ///<上次形成sync记录以来的新记录数
-        m_ttLastSyncTime = 0; ///<上一次形成sync记录的时间
         m_unzipBuf = NULL;
         m_uiBufLen = 0;
     }
@@ -40,13 +38,9 @@ public:
 private:
     ///-1:失败；0：成功
     int commit(char* szErr2K);
-    ///-1:失败；0：无需形成log；1：形成一个log
-    int checkSyncLog(bool bNew, char* szErr2K);
     //获取unzip的buf
     bool prepareUnzipBuf();
 private:
-    CWX_UINT32      m_uiUnSyncLogNum; ///<上次形成sync记录以来的新记录数
-    time_t          m_ttLastSyncTime; ///<上一次形成sync记录的时间
     map<CWX_UINT32, bool>   m_clientMap; ///<连接认证的map
     CwxMqApp*       m_pApp;  ///<app对象
     unsigned char*          m_unzipBuf; ///<解压的buffer
