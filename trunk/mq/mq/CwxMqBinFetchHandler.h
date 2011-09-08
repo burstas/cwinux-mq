@@ -99,7 +99,7 @@ private:
     CwxMqApp*              m_pApp;  ///<app对象
     CwxMqFetchConn         m_conn; ///<mq fetch的连接
     CwxMsgHead             m_header; ///<消息头
-    char                   m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN]; ///<消息头的buf
+    char                   m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN + 1]; ///<消息头的buf
     CWX_UINT32             m_uiRecvHeadLen; ///<recieved msg header's byte number.
     CWX_UINT32             m_uiRecvDataLen; ///<recieved data's byte number.
     CwxMsgBlock*           m_recvMsgData; ///<the recieved msg data

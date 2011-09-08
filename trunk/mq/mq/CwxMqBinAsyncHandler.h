@@ -83,7 +83,7 @@ private:
     CwxMqApp*              m_pApp;  ///<app对象
     CwxMqDispatchConn      m_dispatch; ///<连接分发信息
     CwxMsgHead             m_header;
-    char                   m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN];
+    char                   m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN + 1];
     CWX_UINT32             m_uiRecvHeadLen; ///<recieved msg header's byte number.
     CWX_UINT32             m_uiRecvDataLen; ///<recieved data's byte number.
     CwxMsgBlock*           m_recvMsgData; ///<the recieved msg data
