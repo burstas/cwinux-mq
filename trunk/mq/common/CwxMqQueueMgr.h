@@ -45,6 +45,10 @@ public:
     {
         return m_ttTimestamp < item.m_ttTimestamp;
     }
+	bool operator >(CwxMqQueueHeapItem const& item) const
+	{
+		return m_ttTimestamp > item.m_ttTimestamp;
+	}
 
     CWX_INT32 index() const
     {
