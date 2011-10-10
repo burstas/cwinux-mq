@@ -13,13 +13,14 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
+
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
-top_builddir = .
+top_builddir = ..
 am__cd = CDPATH="$${ZSH_VERSION+.}$(PATH_SEPARATOR)" && cd
 INSTALL = @INSTALL@
 install_sh_DATA = $(install_sh) -c -m 644
@@ -35,41 +36,45 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(top_srcdir)/configure AUTHORS COPYING \
-	ChangeLog INSTALL NEWS config.guess config.sub depcomp \
-	install-sh ltmain.sh missing
-subdir = .
+bin_PROGRAMS = cwx_mq$(EXEEXT)
+subdir = mq
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
-am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
- configure.lineno configure.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
-SOURCES =
-DIST_SOURCES =
-RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
-	html-recursive info-recursive install-data-recursive \
-	install-exec-recursive install-info-recursive \
-	install-recursive installcheck-recursive installdirs-recursive \
-	pdf-recursive ps-recursive uninstall-info-recursive \
-	uninstall-recursive
+am__installdirs = "$(DESTDIR)$(bindir)"
+binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
+PROGRAMS = $(bin_PROGRAMS)
+am_cwx_mq_OBJECTS = cwx_mq-CwxMqApp.$(OBJEXT) \
+	cwx_mq-CwxMqBinFetchHandler.$(OBJEXT) \
+	cwx_mq-CwxMqConfig.$(OBJEXT) \
+	cwx_mq-CwxMqMasterHandler.$(OBJEXT) \
+	cwx_mq-CwxMqBinAsyncHandler.$(OBJEXT) \
+	cwx_mq-CwxMqBinRecvHandler.$(OBJEXT) cwx_mq-cwx_mq.$(OBJEXT) \
+	cwx_mq-CwxMqDef.$(OBJEXT) cwx_mq-CwxMqPoco.$(OBJEXT) \
+	cwx_mq-CwxMqQueueMgr.$(OBJEXT) \
+	cwx_mq-CwxMqQueueLogFile.$(OBJEXT) cwx_mq-CwxMqTss.$(OBJEXT)
+cwx_mq_OBJECTS = $(am_cwx_mq_OBJECTS)
+cwx_mq_DEPENDENCIES =
+DEFAULT_INCLUDES = -I. -I$(srcdir)
+depcomp = $(SHELL) $(top_srcdir)/depcomp
+am__depfiles_maybe = depfiles
+CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+LTCXXCOMPILE = $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CXXFLAGS) $(CXXFLAGS)
+CXXLD = $(CXX)
+CXXLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+SOURCES = $(cwx_mq_SOURCES)
+DIST_SOURCES = $(cwx_mq_SOURCES)
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = $(SUBDIRS)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-distdir = $(PACKAGE)-$(VERSION)
-top_distdir = $(distdir)
-am__remove_distdir = \
-  { test ! -d $(distdir) \
-    || { find $(distdir) -type d ! -perm -200 -exec chmod u+w {} ';' \
-         && rm -fr $(distdir); }; }
-DIST_ARCHIVES = $(distdir).tar.gz
-GZIP_ENV = --best
-distuninstallcheck_listfiles = find . -type f -print
-distcleancheck_listfiles = find . -type f -print
 ACLOCAL = @ACLOCAL@
 AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
@@ -105,7 +110,7 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
-LIBS = @LIBS@
+LIBS = -lcwxapp -lcwxutil -lcwxnet -lcwxparse -lcwxstore -lcwxcmn -lexpat -lpthread -ldl -lrt -lz
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -153,7 +158,7 @@ host_alias = @host_alias@
 host_cpu = @host_cpu@
 host_os = @host_os@
 host_vendor = @host_vendor@
-includedir = @includedir@
+includedir = 
 infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
@@ -169,43 +174,297 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 xml_expat_dir = @xml_expat_dir@
-SUBDIRS = mq mproxy test_fetch test_import tool
-all: all-recursive
+pkgconfigdir = 
+BUILD_DATE = $(shell date +%F)
+cwx_mq_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)" -W -Wall  -Wno-deprecated
+cwx_mq_SOURCES = CwxMqApp.cpp\
+		CwxMqBinFetchHandler.cpp\
+		CwxMqConfig.cpp\
+		CwxMqMasterHandler.cpp\
+		CwxMqBinAsyncHandler.cpp\
+		CwxMqBinRecvHandler.cpp\
+		cwx_mq.cpp\
+		../common/CwxMqDef.cpp\
+                ../common/CwxMqPoco.cpp\
+		../common/CwxMqQueueMgr.cpp\
+		../common/CwxMqQueueLogFile.cpp\
+		../common/CwxMqTss.cpp
+
+cwx_mq_LDADD = 
+cwx_mq_LDFLAGS = -L@xml_expat_dir@/lib -L@cwinux_dir@/lib
+INCLUDES = -I@cwinux_dir@/include/app -I@cwinux_dir@/include/util -I@cwinux_dir@/include/cmn -I@cwinux_dir@/include/net -I@cwinux_dir@/include/parse -I@cwinux_dir@/include/store -I@xml_expat_dir@/include  -I../common
+all: all-am
 
 .SUFFIXES:
-am--refresh:
-	@:
+.SUFFIXES: .cpp .lo .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
-	      echo ' cd $(srcdir) && $(AUTOMAKE) --gnu '; \
-	      cd $(srcdir) && $(AUTOMAKE) --gnu  \
+	      cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh \
 		&& exit 0; \
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  mq/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  Makefile
+	  $(AUTOMAKE) --gnu  mq/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
-	    echo ' $(SHELL) ./config.status'; \
-	    $(SHELL) ./config.status;; \
+	    cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh;; \
 	  *) \
-	    echo ' cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe)'; \
-	    cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe);; \
+	    echo ' cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)'; \
+	    cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe);; \
 	esac;
 
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
-	$(SHELL) ./config.status --recheck
+	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 
 $(top_srcdir)/configure:  $(am__configure_deps)
-	cd $(srcdir) && $(AUTOCONF)
+	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
-	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
+	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
+install-binPROGRAMS: $(bin_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	test -z "$(bindir)" || $(mkdir_p) "$(DESTDIR)$(bindir)"
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
+	  if test -f $$p \
+	     || test -f $$p1 \
+	  ; then \
+	    f=`echo "$$p1" | sed 's,^.*/,,;$(transform);s/$$/$(EXEEXT)/'`; \
+	   echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) --mode=install $(binPROGRAMS_INSTALL) '$$p' '$(DESTDIR)$(bindir)/$$f'"; \
+	   $(INSTALL_PROGRAM_ENV) $(LIBTOOL) --mode=install $(binPROGRAMS_INSTALL) "$$p" "$(DESTDIR)$(bindir)/$$f" || exit 1; \
+	  else :; fi; \
+	done
+
+uninstall-binPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  f=`echo "$$p" | sed 's,^.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
+	  echo " rm -f '$(DESTDIR)$(bindir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(bindir)/$$f"; \
+	done
+
+clean-binPROGRAMS:
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  f=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
+	  echo " rm -f $$p $$f"; \
+	  rm -f $$p $$f ; \
+	done
+cwx_mq$(EXEEXT): $(cwx_mq_OBJECTS) $(cwx_mq_DEPENDENCIES) 
+	@rm -f cwx_mq$(EXEEXT)
+	$(CXXLINK) $(cwx_mq_LDFLAGS) $(cwx_mq_OBJECTS) $(cwx_mq_LDADD) $(LIBS)
+
+mostlyclean-compile:
+	-rm -f *.$(OBJEXT)
+
+distclean-compile:
+	-rm -f *.tab.c
+
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqApp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqBinAsyncHandler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqBinFetchHandler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqBinRecvHandler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqConfig.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqDef.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqMasterHandler.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqPoco.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqQueueMgr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqTss.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-cwx_mq.Po@am__quote@
+
+.cpp.o:
+@am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
+
+.cpp.obj:
+@am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ `$(CYGPATH_W) '$<'`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.cpp.lo:
+@am__fastdepCXX_TRUE@	if $(LTCXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Plo"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
+
+cwx_mq-CwxMqApp.o: CwxMqApp.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqApp.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqApp.Tpo" -c -o cwx_mq-CwxMqApp.o `test -f 'CwxMqApp.cpp' || echo '$(srcdir)/'`CwxMqApp.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqApp.Tpo" "$(DEPDIR)/cwx_mq-CwxMqApp.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqApp.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CwxMqApp.cpp' object='cwx_mq-CwxMqApp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqApp.o `test -f 'CwxMqApp.cpp' || echo '$(srcdir)/'`CwxMqApp.cpp
+
+cwx_mq-CwxMqApp.obj: CwxMqApp.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqApp.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqApp.Tpo" -c -o cwx_mq-CwxMqApp.obj `if test -f 'CwxMqApp.cpp'; then $(CYGPATH_W) 'CwxMqApp.cpp'; else $(CYGPATH_W) '$(srcdir)/CwxMqApp.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqApp.Tpo" "$(DEPDIR)/cwx_mq-CwxMqApp.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqApp.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CwxMqApp.cpp' object='cwx_mq-CwxMqApp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqApp.obj `if test -f 'CwxMqApp.cpp'; then $(CYGPATH_W) 'CwxMqApp.cpp'; else $(CYGPATH_W) '$(srcdir)/CwxMqApp.cpp'; fi`
+
+cwx_mq-CwxMqBinFetchHandler.o: CwxMqBinFetchHandler.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqBinFetchHandler.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqBinFetchHandler.Tpo" -c -o cwx_mq-CwxMqBinFetchHandler.o `test -f 'CwxMqBinFetchHandler.cpp' || echo '$(srcdir)/'`CwxMqBinFetchHandler.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqBinFetchHandler.Tpo" "$(DEPDIR)/cwx_mq-CwxMqBinFetchHandler.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqBinFetchHandler.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CwxMqBinFetchHandler.cpp' object='cwx_mq-CwxMqBinFetchHandler.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqBinFetchHandler.o `test -f 'CwxMqBinFetchHandler.cpp' || echo '$(srcdir)/'`CwxMqBinFetchHandler.cpp
+
+cwx_mq-CwxMqBinFetchHandler.obj: CwxMqBinFetchHandler.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqBinFetchHandler.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqBinFetchHandler.Tpo" -c -o cwx_mq-CwxMqBinFetchHandler.obj `if test -f 'CwxMqBinFetchHandler.cpp'; then $(CYGPATH_W) 'CwxMqBinFetchHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/CwxMqBinFetchHandler.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqBinFetchHandler.Tpo" "$(DEPDIR)/cwx_mq-CwxMqBinFetchHandler.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqBinFetchHandler.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CwxMqBinFetchHandler.cpp' object='cwx_mq-CwxMqBinFetchHandler.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqBinFetchHandler.obj `if test -f 'CwxMqBinFetchHandler.cpp'; then $(CYGPATH_W) 'CwxMqBinFetchHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/CwxMqBinFetchHandler.cpp'; fi`
+
+cwx_mq-CwxMqConfig.o: CwxMqConfig.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqConfig.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqConfig.Tpo" -c -o cwx_mq-CwxMqConfig.o `test -f 'CwxMqConfig.cpp' || echo '$(srcdir)/'`CwxMqConfig.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqConfig.Tpo" "$(DEPDIR)/cwx_mq-CwxMqConfig.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqConfig.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CwxMqConfig.cpp' object='cwx_mq-CwxMqConfig.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqConfig.o `test -f 'CwxMqConfig.cpp' || echo '$(srcdir)/'`CwxMqConfig.cpp
+
+cwx_mq-CwxMqConfig.obj: CwxMqConfig.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqConfig.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqConfig.Tpo" -c -o cwx_mq-CwxMqConfig.obj `if test -f 'CwxMqConfig.cpp'; then $(CYGPATH_W) 'CwxMqConfig.cpp'; else $(CYGPATH_W) '$(srcdir)/CwxMqConfig.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqConfig.Tpo" "$(DEPDIR)/cwx_mq-CwxMqConfig.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqConfig.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CwxMqConfig.cpp' object='cwx_mq-CwxMqConfig.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqConfig.obj `if test -f 'CwxMqConfig.cpp'; then $(CYGPATH_W) 'CwxMqConfig.cpp'; else $(CYGPATH_W) '$(srcdir)/CwxMqConfig.cpp'; fi`
+
+cwx_mq-CwxMqMasterHandler.o: CwxMqMasterHandler.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqMasterHandler.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqMasterHandler.Tpo" -c -o cwx_mq-CwxMqMasterHandler.o `test -f 'CwxMqMasterHandler.cpp' || echo '$(srcdir)/'`CwxMqMasterHandler.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqMasterHandler.Tpo" "$(DEPDIR)/cwx_mq-CwxMqMasterHandler.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqMasterHandler.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CwxMqMasterHandler.cpp' object='cwx_mq-CwxMqMasterHandler.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqMasterHandler.o `test -f 'CwxMqMasterHandler.cpp' || echo '$(srcdir)/'`CwxMqMasterHandler.cpp
+
+cwx_mq-CwxMqMasterHandler.obj: CwxMqMasterHandler.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqMasterHandler.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqMasterHandler.Tpo" -c -o cwx_mq-CwxMqMasterHandler.obj `if test -f 'CwxMqMasterHandler.cpp'; then $(CYGPATH_W) 'CwxMqMasterHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/CwxMqMasterHandler.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqMasterHandler.Tpo" "$(DEPDIR)/cwx_mq-CwxMqMasterHandler.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqMasterHandler.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CwxMqMasterHandler.cpp' object='cwx_mq-CwxMqMasterHandler.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqMasterHandler.obj `if test -f 'CwxMqMasterHandler.cpp'; then $(CYGPATH_W) 'CwxMqMasterHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/CwxMqMasterHandler.cpp'; fi`
+
+cwx_mq-CwxMqBinAsyncHandler.o: CwxMqBinAsyncHandler.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqBinAsyncHandler.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqBinAsyncHandler.Tpo" -c -o cwx_mq-CwxMqBinAsyncHandler.o `test -f 'CwxMqBinAsyncHandler.cpp' || echo '$(srcdir)/'`CwxMqBinAsyncHandler.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqBinAsyncHandler.Tpo" "$(DEPDIR)/cwx_mq-CwxMqBinAsyncHandler.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqBinAsyncHandler.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CwxMqBinAsyncHandler.cpp' object='cwx_mq-CwxMqBinAsyncHandler.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqBinAsyncHandler.o `test -f 'CwxMqBinAsyncHandler.cpp' || echo '$(srcdir)/'`CwxMqBinAsyncHandler.cpp
+
+cwx_mq-CwxMqBinAsyncHandler.obj: CwxMqBinAsyncHandler.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqBinAsyncHandler.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqBinAsyncHandler.Tpo" -c -o cwx_mq-CwxMqBinAsyncHandler.obj `if test -f 'CwxMqBinAsyncHandler.cpp'; then $(CYGPATH_W) 'CwxMqBinAsyncHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/CwxMqBinAsyncHandler.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqBinAsyncHandler.Tpo" "$(DEPDIR)/cwx_mq-CwxMqBinAsyncHandler.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqBinAsyncHandler.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CwxMqBinAsyncHandler.cpp' object='cwx_mq-CwxMqBinAsyncHandler.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqBinAsyncHandler.obj `if test -f 'CwxMqBinAsyncHandler.cpp'; then $(CYGPATH_W) 'CwxMqBinAsyncHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/CwxMqBinAsyncHandler.cpp'; fi`
+
+cwx_mq-CwxMqBinRecvHandler.o: CwxMqBinRecvHandler.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqBinRecvHandler.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqBinRecvHandler.Tpo" -c -o cwx_mq-CwxMqBinRecvHandler.o `test -f 'CwxMqBinRecvHandler.cpp' || echo '$(srcdir)/'`CwxMqBinRecvHandler.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqBinRecvHandler.Tpo" "$(DEPDIR)/cwx_mq-CwxMqBinRecvHandler.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqBinRecvHandler.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CwxMqBinRecvHandler.cpp' object='cwx_mq-CwxMqBinRecvHandler.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqBinRecvHandler.o `test -f 'CwxMqBinRecvHandler.cpp' || echo '$(srcdir)/'`CwxMqBinRecvHandler.cpp
+
+cwx_mq-CwxMqBinRecvHandler.obj: CwxMqBinRecvHandler.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqBinRecvHandler.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqBinRecvHandler.Tpo" -c -o cwx_mq-CwxMqBinRecvHandler.obj `if test -f 'CwxMqBinRecvHandler.cpp'; then $(CYGPATH_W) 'CwxMqBinRecvHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/CwxMqBinRecvHandler.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqBinRecvHandler.Tpo" "$(DEPDIR)/cwx_mq-CwxMqBinRecvHandler.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqBinRecvHandler.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='CwxMqBinRecvHandler.cpp' object='cwx_mq-CwxMqBinRecvHandler.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqBinRecvHandler.obj `if test -f 'CwxMqBinRecvHandler.cpp'; then $(CYGPATH_W) 'CwxMqBinRecvHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/CwxMqBinRecvHandler.cpp'; fi`
+
+cwx_mq-cwx_mq.o: cwx_mq.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-cwx_mq.o -MD -MP -MF "$(DEPDIR)/cwx_mq-cwx_mq.Tpo" -c -o cwx_mq-cwx_mq.o `test -f 'cwx_mq.cpp' || echo '$(srcdir)/'`cwx_mq.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-cwx_mq.Tpo" "$(DEPDIR)/cwx_mq-cwx_mq.Po"; else rm -f "$(DEPDIR)/cwx_mq-cwx_mq.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='cwx_mq.cpp' object='cwx_mq-cwx_mq.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-cwx_mq.o `test -f 'cwx_mq.cpp' || echo '$(srcdir)/'`cwx_mq.cpp
+
+cwx_mq-cwx_mq.obj: cwx_mq.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-cwx_mq.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-cwx_mq.Tpo" -c -o cwx_mq-cwx_mq.obj `if test -f 'cwx_mq.cpp'; then $(CYGPATH_W) 'cwx_mq.cpp'; else $(CYGPATH_W) '$(srcdir)/cwx_mq.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-cwx_mq.Tpo" "$(DEPDIR)/cwx_mq-cwx_mq.Po"; else rm -f "$(DEPDIR)/cwx_mq-cwx_mq.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='cwx_mq.cpp' object='cwx_mq-cwx_mq.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-cwx_mq.obj `if test -f 'cwx_mq.cpp'; then $(CYGPATH_W) 'cwx_mq.cpp'; else $(CYGPATH_W) '$(srcdir)/cwx_mq.cpp'; fi`
+
+cwx_mq-CwxMqDef.o: ../common/CwxMqDef.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqDef.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqDef.Tpo" -c -o cwx_mq-CwxMqDef.o `test -f '../common/CwxMqDef.cpp' || echo '$(srcdir)/'`../common/CwxMqDef.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqDef.Tpo" "$(DEPDIR)/cwx_mq-CwxMqDef.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqDef.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqDef.cpp' object='cwx_mq-CwxMqDef.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqDef.o `test -f '../common/CwxMqDef.cpp' || echo '$(srcdir)/'`../common/CwxMqDef.cpp
+
+cwx_mq-CwxMqDef.obj: ../common/CwxMqDef.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqDef.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqDef.Tpo" -c -o cwx_mq-CwxMqDef.obj `if test -f '../common/CwxMqDef.cpp'; then $(CYGPATH_W) '../common/CwxMqDef.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqDef.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqDef.Tpo" "$(DEPDIR)/cwx_mq-CwxMqDef.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqDef.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqDef.cpp' object='cwx_mq-CwxMqDef.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqDef.obj `if test -f '../common/CwxMqDef.cpp'; then $(CYGPATH_W) '../common/CwxMqDef.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqDef.cpp'; fi`
+
+cwx_mq-CwxMqPoco.o: ../common/CwxMqPoco.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqPoco.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqPoco.Tpo" -c -o cwx_mq-CwxMqPoco.o `test -f '../common/CwxMqPoco.cpp' || echo '$(srcdir)/'`../common/CwxMqPoco.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqPoco.Tpo" "$(DEPDIR)/cwx_mq-CwxMqPoco.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqPoco.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqPoco.cpp' object='cwx_mq-CwxMqPoco.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqPoco.o `test -f '../common/CwxMqPoco.cpp' || echo '$(srcdir)/'`../common/CwxMqPoco.cpp
+
+cwx_mq-CwxMqPoco.obj: ../common/CwxMqPoco.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqPoco.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqPoco.Tpo" -c -o cwx_mq-CwxMqPoco.obj `if test -f '../common/CwxMqPoco.cpp'; then $(CYGPATH_W) '../common/CwxMqPoco.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqPoco.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqPoco.Tpo" "$(DEPDIR)/cwx_mq-CwxMqPoco.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqPoco.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqPoco.cpp' object='cwx_mq-CwxMqPoco.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqPoco.obj `if test -f '../common/CwxMqPoco.cpp'; then $(CYGPATH_W) '../common/CwxMqPoco.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqPoco.cpp'; fi`
+
+cwx_mq-CwxMqQueueMgr.o: ../common/CwxMqQueueMgr.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqQueueMgr.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqQueueMgr.Tpo" -c -o cwx_mq-CwxMqQueueMgr.o `test -f '../common/CwxMqQueueMgr.cpp' || echo '$(srcdir)/'`../common/CwxMqQueueMgr.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqQueueMgr.Tpo" "$(DEPDIR)/cwx_mq-CwxMqQueueMgr.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqQueueMgr.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqQueueMgr.cpp' object='cwx_mq-CwxMqQueueMgr.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqQueueMgr.o `test -f '../common/CwxMqQueueMgr.cpp' || echo '$(srcdir)/'`../common/CwxMqQueueMgr.cpp
+
+cwx_mq-CwxMqQueueMgr.obj: ../common/CwxMqQueueMgr.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqQueueMgr.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqQueueMgr.Tpo" -c -o cwx_mq-CwxMqQueueMgr.obj `if test -f '../common/CwxMqQueueMgr.cpp'; then $(CYGPATH_W) '../common/CwxMqQueueMgr.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqQueueMgr.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqQueueMgr.Tpo" "$(DEPDIR)/cwx_mq-CwxMqQueueMgr.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqQueueMgr.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqQueueMgr.cpp' object='cwx_mq-CwxMqQueueMgr.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqQueueMgr.obj `if test -f '../common/CwxMqQueueMgr.cpp'; then $(CYGPATH_W) '../common/CwxMqQueueMgr.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqQueueMgr.cpp'; fi`
+
+cwx_mq-CwxMqQueueLogFile.o: ../common/CwxMqQueueLogFile.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqQueueLogFile.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Tpo" -c -o cwx_mq-CwxMqQueueLogFile.o `test -f '../common/CwxMqQueueLogFile.cpp' || echo '$(srcdir)/'`../common/CwxMqQueueLogFile.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Tpo" "$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqQueueLogFile.cpp' object='cwx_mq-CwxMqQueueLogFile.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqQueueLogFile.o `test -f '../common/CwxMqQueueLogFile.cpp' || echo '$(srcdir)/'`../common/CwxMqQueueLogFile.cpp
+
+cwx_mq-CwxMqQueueLogFile.obj: ../common/CwxMqQueueLogFile.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqQueueLogFile.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Tpo" -c -o cwx_mq-CwxMqQueueLogFile.obj `if test -f '../common/CwxMqQueueLogFile.cpp'; then $(CYGPATH_W) '../common/CwxMqQueueLogFile.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqQueueLogFile.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Tpo" "$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqQueueLogFile.cpp' object='cwx_mq-CwxMqQueueLogFile.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqQueueLogFile.obj `if test -f '../common/CwxMqQueueLogFile.cpp'; then $(CYGPATH_W) '../common/CwxMqQueueLogFile.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqQueueLogFile.cpp'; fi`
+
+cwx_mq-CwxMqTss.o: ../common/CwxMqTss.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqTss.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqTss.Tpo" -c -o cwx_mq-CwxMqTss.o `test -f '../common/CwxMqTss.cpp' || echo '$(srcdir)/'`../common/CwxMqTss.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqTss.Tpo" "$(DEPDIR)/cwx_mq-CwxMqTss.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqTss.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqTss.cpp' object='cwx_mq-CwxMqTss.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqTss.o `test -f '../common/CwxMqTss.cpp' || echo '$(srcdir)/'`../common/CwxMqTss.cpp
+
+cwx_mq-CwxMqTss.obj: ../common/CwxMqTss.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxMqTss.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxMqTss.Tpo" -c -o cwx_mq-CwxMqTss.obj `if test -f '../common/CwxMqTss.cpp'; then $(CYGPATH_W) '../common/CwxMqTss.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqTss.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxMqTss.Tpo" "$(DEPDIR)/cwx_mq-CwxMqTss.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxMqTss.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqTss.cpp' object='cwx_mq-CwxMqTss.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqTss.obj `if test -f '../common/CwxMqTss.cpp'; then $(CYGPATH_W) '../common/CwxMqTss.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqTss.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -217,77 +476,6 @@ distclean-libtool:
 	-rm -f libtool
 uninstall-info-am:
 
-# This directory's subdirectories are mostly independent; you can cd
-# into them and run `make' without going through this Makefile.
-# To change the values of `make' variables: instead of editing Makefiles,
-# (1) if the variable is set in `config.status', edit `config.status'
-#     (which will cause the Makefiles to be regenerated when you run `make');
-# (2) otherwise, pass the desired values on the `make' command line.
-$(RECURSIVE_TARGETS):
-	@failcom='exit 1'; \
-	for f in x $$MAKEFLAGS; do \
-	  case $$f in \
-	    *=* | --[!k]*);; \
-	    *k*) failcom='fail=yes';; \
-	  esac; \
-	done; \
-	dot_seen=no; \
-	target=`echo $@ | sed s/-recursive//`; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    dot_seen=yes; \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	  || eval $$failcom; \
-	done; \
-	if test "$$dot_seen" = "no"; then \
-	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
-	fi; test -z "$$fail"
-
-mostlyclean-recursive clean-recursive distclean-recursive \
-maintainer-clean-recursive:
-	@failcom='exit 1'; \
-	for f in x $$MAKEFLAGS; do \
-	  case $$f in \
-	    *=* | --[!k]*);; \
-	    *k*) failcom='fail=yes';; \
-	  esac; \
-	done; \
-	dot_seen=no; \
-	case "$@" in \
-	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
-	  *) list='$(SUBDIRS)' ;; \
-	esac; \
-	rev=''; for subdir in $$list; do \
-	  if test "$$subdir" = "."; then :; else \
-	    rev="$$subdir $$rev"; \
-	  fi; \
-	done; \
-	rev="$$rev ."; \
-	target=`echo $@ | sed s/-recursive//`; \
-	for subdir in $$rev; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	  || eval $$failcom; \
-	done && test -z "$$fail"
-tags-recursive:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
-	done
-ctags-recursive:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) ctags); \
-	done
-
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
@@ -298,23 +486,10 @@ ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	mkid -fID $$unique
 tags: TAGS
 
-TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
-	if ($(ETAGS) --etags-include --version) >/dev/null 2>&1; then \
-	  include_option=--etags-include; \
-	  empty_fix=.; \
-	else \
-	  include_option=--include; \
-	  empty_fix=; \
-	fi; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test ! -f $$subdir/TAGS || \
-	      tags="$$tags $$include_option=$$here/$$subdir/TAGS"; \
-	  fi; \
-	done; \
 	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
@@ -327,7 +502,7 @@ TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
 	    $$tags $$unique; \
 	fi
 ctags: CTAGS
-CTAGS: ctags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+CTAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
@@ -350,8 +525,6 @@ distclean-tags:
 	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
 
 distdir: $(DISTFILES)
-	$(am__remove_distdir)
-	mkdir $(distdir)
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -378,132 +551,22 @@ distdir: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
-	list='$(DIST_SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test -d "$(distdir)/$$subdir" \
-	    || $(mkdir_p) "$(distdir)/$$subdir" \
-	    || exit 1; \
-	    distdir=`$(am__cd) $(distdir) && pwd`; \
-	    top_distdir=`$(am__cd) $(top_distdir) && pwd`; \
-	    (cd $$subdir && \
-	      $(MAKE) $(AM_MAKEFLAGS) \
-	        top_distdir="$$top_distdir" \
-	        distdir="$$distdir/$$subdir" \
-	        distdir) \
-	      || exit 1; \
-	  fi; \
-	done
-	-find $(distdir) -type d ! -perm -777 -exec chmod a+rwx {} \; -o \
-	  ! -type d ! -perm -444 -links 1 -exec chmod a+r {} \; -o \
-	  ! -type d ! -perm -400 -exec chmod a+r {} \; -o \
-	  ! -type d ! -perm -444 -exec $(SHELL) $(install_sh) -c -m a+r {} {} \; \
-	|| chmod -R a+r $(distdir)
-dist-gzip: distdir
-	tardir=$(distdir) && $(am__tar) | GZIP=$(GZIP_ENV) gzip -c >$(distdir).tar.gz
-	$(am__remove_distdir)
-
-dist-bzip2: distdir
-	tardir=$(distdir) && $(am__tar) | bzip2 -9 -c >$(distdir).tar.bz2
-	$(am__remove_distdir)
-
-dist-tarZ: distdir
-	tardir=$(distdir) && $(am__tar) | compress -c >$(distdir).tar.Z
-	$(am__remove_distdir)
-
-dist-shar: distdir
-	shar $(distdir) | GZIP=$(GZIP_ENV) gzip -c >$(distdir).shar.gz
-	$(am__remove_distdir)
-
-dist-zip: distdir
-	-rm -f $(distdir).zip
-	zip -rq $(distdir).zip $(distdir)
-	$(am__remove_distdir)
-
-dist dist-all: distdir
-	tardir=$(distdir) && $(am__tar) | GZIP=$(GZIP_ENV) gzip -c >$(distdir).tar.gz
-	$(am__remove_distdir)
-
-# This target untars the dist file and tries a VPATH configuration.  Then
-# it guarantees that the distribution is self-contained by making another
-# tarfile.
-distcheck: dist
-	case '$(DIST_ARCHIVES)' in \
-	*.tar.gz*) \
-	  GZIP=$(GZIP_ENV) gunzip -c $(distdir).tar.gz | $(am__untar) ;;\
-	*.tar.bz2*) \
-	  bunzip2 -c $(distdir).tar.bz2 | $(am__untar) ;;\
-	*.tar.Z*) \
-	  uncompress -c $(distdir).tar.Z | $(am__untar) ;;\
-	*.shar.gz*) \
-	  GZIP=$(GZIP_ENV) gunzip -c $(distdir).shar.gz | unshar ;;\
-	*.zip*) \
-	  unzip $(distdir).zip ;;\
-	esac
-	chmod -R a-w $(distdir); chmod a+w $(distdir)
-	mkdir $(distdir)/_build
-	mkdir $(distdir)/_inst
-	chmod a-w $(distdir)
-	dc_install_base=`$(am__cd) $(distdir)/_inst && pwd | sed -e 's,^[^:\\/]:[\\/],/,'` \
-	  && dc_destdir="$${TMPDIR-/tmp}/am-dc-$$$$/" \
-	  && cd $(distdir)/_build \
-	  && ../configure --srcdir=.. --prefix="$$dc_install_base" \
-	    $(DISTCHECK_CONFIGURE_FLAGS) \
-	  && $(MAKE) $(AM_MAKEFLAGS) \
-	  && $(MAKE) $(AM_MAKEFLAGS) dvi \
-	  && $(MAKE) $(AM_MAKEFLAGS) check \
-	  && $(MAKE) $(AM_MAKEFLAGS) install \
-	  && $(MAKE) $(AM_MAKEFLAGS) installcheck \
-	  && $(MAKE) $(AM_MAKEFLAGS) uninstall \
-	  && $(MAKE) $(AM_MAKEFLAGS) distuninstallcheck_dir="$$dc_install_base" \
-	        distuninstallcheck \
-	  && chmod -R a-w "$$dc_install_base" \
-	  && ({ \
-	       (cd ../.. && umask 077 && mkdir "$$dc_destdir") \
-	       && $(MAKE) $(AM_MAKEFLAGS) DESTDIR="$$dc_destdir" install \
-	       && $(MAKE) $(AM_MAKEFLAGS) DESTDIR="$$dc_destdir" uninstall \
-	       && $(MAKE) $(AM_MAKEFLAGS) DESTDIR="$$dc_destdir" \
-	            distuninstallcheck_dir="$$dc_destdir" distuninstallcheck; \
-	      } || { rm -rf "$$dc_destdir"; exit 1; }) \
-	  && rm -rf "$$dc_destdir" \
-	  && $(MAKE) $(AM_MAKEFLAGS) dist \
-	  && rm -rf $(DIST_ARCHIVES) \
-	  && $(MAKE) $(AM_MAKEFLAGS) distcleancheck
-	$(am__remove_distdir)
-	@(echo "$(distdir) archives ready for distribution: "; \
-	  list='$(DIST_ARCHIVES)'; for i in $$list; do echo $$i; done) | \
-	  sed -e '1{h;s/./=/g;p;x;}' -e '$${p;x;}'
-distuninstallcheck:
-	@cd $(distuninstallcheck_dir) \
-	&& test `$(distuninstallcheck_listfiles) | wc -l` -le 1 \
-	   || { echo "ERROR: files left after uninstall:" ; \
-	        if test -n "$(DESTDIR)"; then \
-	          echo "  (check DESTDIR support)"; \
-	        fi ; \
-	        $(distuninstallcheck_listfiles) ; \
-	        exit 1; } >&2
-distcleancheck: distclean
-	@if test '$(srcdir)' = . ; then \
-	  echo "ERROR: distcleancheck can only run from a VPATH build" ; \
-	  exit 1 ; \
-	fi
-	@test `$(distcleancheck_listfiles) | wc -l` -eq 0 \
-	  || { echo "ERROR: files left in build directory after distclean:" ; \
-	       $(distcleancheck_listfiles) ; \
-	       exit 1; } >&2
 check-am: all-am
-check: check-recursive
-all-am: Makefile
-installdirs: installdirs-recursive
-installdirs-am:
-install: install-recursive
-install-exec: install-exec-recursive
-install-data: install-data-recursive
-uninstall: uninstall-recursive
+check: check-am
+all-am: Makefile $(PROGRAMS)
+installdirs:
+	for dir in "$(DESTDIR)$(bindir)"; do \
+	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
+	done
+install: install-am
+install-exec: install-exec-am
+install-data: install-data-am
+uninstall: uninstall-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 
-installcheck: installcheck-recursive
+installcheck: installcheck-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
 	  install_sh_PROGRAM="$(INSTALL_STRIP_PROGRAM)" INSTALL_STRIP_FLAG=-s \
@@ -519,73 +582,73 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-clean: clean-recursive
+clean: clean-am
 
-clean-am: clean-generic clean-libtool mostlyclean-am
+clean-am: clean-binPROGRAMS clean-generic clean-libtool clean-local \
+	mostlyclean-am
 
-distclean: distclean-recursive
-	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
+distclean: distclean-am
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
-distclean-am: clean-am distclean-generic distclean-libtool \
-	distclean-tags
+distclean-am: clean-am distclean-compile distclean-generic \
+	distclean-libtool distclean-tags
 
-dvi: dvi-recursive
+dvi: dvi-am
 
 dvi-am:
 
-html: html-recursive
+html: html-am
 
-info: info-recursive
+info: info-am
 
 info-am:
 
 install-data-am:
 
-install-exec-am:
+install-exec-am: install-binPROGRAMS
 
-install-info: install-info-recursive
+install-info: install-info-am
 
 install-man:
 
 installcheck-am:
 
-maintainer-clean: maintainer-clean-recursive
-	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-	-rm -rf $(top_srcdir)/autom4te.cache
+maintainer-clean: maintainer-clean-am
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
-mostlyclean: mostlyclean-recursive
+mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-generic mostlyclean-libtool
+mostlyclean-am: mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool
 
-pdf: pdf-recursive
+pdf: pdf-am
 
 pdf-am:
 
-ps: ps-recursive
+ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-info-am
+uninstall-am: uninstall-binPROGRAMS uninstall-info-am
 
-uninstall-info: uninstall-info-recursive
+.PHONY: CTAGS GTAGS all all-am check check-am clean clean-binPROGRAMS \
+	clean-generic clean-libtool clean-local ctags distclean \
+	distclean-compile distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-binPROGRAMS install-data \
+	install-data-am install-exec install-exec-am install-info \
+	install-info-am install-man install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags uninstall uninstall-am uninstall-binPROGRAMS \
+	uninstall-info-am
 
-.PHONY: $(RECURSIVE_TARGETS) CTAGS GTAGS all all-am am--refresh check \
-	check-am clean clean-generic clean-libtool clean-recursive \
-	ctags ctags-recursive dist dist-all dist-bzip2 dist-gzip \
-	dist-shar dist-tarZ dist-zip distcheck distclean \
-	distclean-generic distclean-libtool distclean-recursive \
-	distclean-tags distcleancheck distdir distuninstallcheck dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-exec install-exec-am \
-	install-info install-info-am install-man install-strip \
-	installcheck installcheck-am installdirs installdirs-am \
-	maintainer-clean maintainer-clean-generic \
-	maintainer-clean-recursive mostlyclean mostlyclean-generic \
-	mostlyclean-libtool mostlyclean-recursive pdf pdf-am ps ps-am \
-	tags tags-recursive uninstall uninstall-am uninstall-info-am
 
+clean-local:
+	-rm -f *~ *.bak *.rpo *.sym lib*.*_pure_* core core.*
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
