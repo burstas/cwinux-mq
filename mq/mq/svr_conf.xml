@@ -2,9 +2,9 @@
 <mq>
     <common>
         <workdir path="/usr/home/wenbo/cwinux_mq/svn/trunk/mq/mq"/>
-        <server type="master"/>
-        <window sock_buf_kbyte="8192"  max_chunk_kbyte="1024" window="256"/>
-        <monitor ip="127.0.0.1"  port="9900"/>
+        <server type="slave"/>
+        <window sock_buf_kbyte="17000"  max_chunk_kbyte="256" window="128"/>
+        <monitor ip="172.16.42.63"  port="9900"/>
     </common>
     <binlog >
     	<file path="/data1/mq_data/data/binlog"  prefix="binlog" max_mbyte="1024"/>
@@ -16,7 +16,7 @@
         <async keep_alive="yes" user="async" passwd="async_passwd" ip="*" port="9903" unix="/usr/home/wenbo/cwinux_mq/svn/trunk/mq/mq/async.sock"/>
     </master>
     <slave>
-        <master keep_alive="yes" user="async" passwd="async_passwd" subscribe="*" ip="127.0.0.1" port="9903" zip="yes" sign="crc32"/>
+        <master keep_alive="yes" user="async" passwd="async_passwd" subscribe="*" ip="172.16.42.62" port="9903" zip="no" sign=""/>
         <async keep_alive="yes" user="async" passwd="async_passwd" ip="*" port="9905" unix="/usr/home/wenbo/cwinux_mq/svn/trunk/mq/mq/async.sock"/>
     </slave>
     <mq>

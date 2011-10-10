@@ -47,7 +47,7 @@ mq_crc32_SOURCES = mq_crc32.cpp
 mq_crc32_LDADD=
 mq_crc32_LDFLAGS = -L@cwinux_dir@/lib
 
-LIBS=-lcwxnet -lcwxcmn -lcwxutil -lz
+LIBS=-lcwxnet -lcwxcmn -lcwxutil -lz -lpthread
 INCLUDES=-I@cwinux_dir@/include/net -I@cwinux_dir@/include/cmn  -I@cwinux_dir@/include/util -I../common
 
 
