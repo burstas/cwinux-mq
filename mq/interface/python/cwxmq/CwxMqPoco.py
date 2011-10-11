@@ -487,10 +487,11 @@ class CwxMqPoco:
                     "No key[%s] in recv page." % CwxMqPoco.KEY_DATA)
             
             group = p.get_key_int(CwxMqPoco.KEY_GROUP) or 0
+	    type  = p.get_key_int(CwxMqPoco.KEY_TYPE) or 0
 
             res.append(OrderedDict((("sid",sid), ("timestamp",time_stamp), 
                     ("data",data), ("group",group),
-                    ("type",self.package.get_key_int(CwxMqPoco.KEY_TYPE)))))
+                    ("type", type))))
         return res
 
     def pack_sync_data_reply(self, task_id, sid):
