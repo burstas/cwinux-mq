@@ -1,6 +1,5 @@
-
-#ifndef __ZK_ADAPTER_H__
-#define __ZK_ADAPTER_H__
+#ifndef __ZK_ADAPTOR_H__
+#define __ZK_ADAPTOR_H__
 
 #include "CwxGlobalMacro.h"
 #include "CwxType.h"
@@ -15,7 +14,7 @@ extern "C" {
 #include "zookeeper.h"
 }
 
-class ZkAdapter
+class ZkAdaptor
 {
 public:
 	enum{
@@ -23,10 +22,10 @@ public:
 	};
 public:
 	///构造函数
-	ZkAdapter(string const& strHost,
+	ZkAdaptor(string const& strHost,
 		CWX_UINT32 uiRecvTimeout=ZK_DEF_RECV_TIMEOUT_MILISECOND);
 	///析构函数
-	virtual ~ZkAdapter(); 
+	virtual ~ZkAdaptor(); 
 	///init, 0:成功；-1：失败
 	int init(ZooLogLevel level=ZOO_LOG_LEVEL_WARN);
 

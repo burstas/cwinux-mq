@@ -5,7 +5,7 @@
 #include <algorithm>
 
 
-ZkAdapter::ZkAdapter(string const& strHost, CWX_UINT32 uiRecvTimeout)
+ZkAdaptor::ZkAdaptor(string const& strHost, CWX_UINT32 uiRecvTimeout)
 {
 	m_strHost = strHost;
 	m_uiRecvTimeout = uiRecvTimeout;
@@ -14,18 +14,18 @@ ZkAdapter::ZkAdapter(string const& strHost, CWX_UINT32 uiRecvTimeout)
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
 }
 
-ZkAdapter::~ZkAdapter()
+ZkAdaptor::~ZkAdaptor()
 {
 	disconnect();
 }
 
-int ZkAdapter::init(ZooLogLevel level)
+int ZkAdaptor::init(ZooLogLevel level)
 {
 	zoo_set_debug_level(level);
 	return 0;
 }
 
-const char* ZkAdapter::state2String(int state)
+const char* ZkAdaptor::state2String(int state)
 {
 	if (state == 0)
 		return "CLOSED_STATE";
@@ -44,10 +44,10 @@ const char* ZkAdapter::state2String(int state)
 }
 
 
-void ZkAdapter::watcher(zhandle_t *, int type, int state, const char *path,
+void ZkAdaptor::watcher(zhandle_t *, int type, int state, const char *path,
 			 void* context)
 {
-	ZkAdapter* adapter=(ZkAdapter*)context;
+	ZkAdaptor* adapter=(ZkAdaptor*)context;
 
 	if (type == ZOO_SESSION_EVENT) {
 		if (state == ZOO_CONNECTED_STATE){
@@ -61,7 +61,7 @@ void ZkAdapter::watcher(zhandle_t *, int type, int state, const char *path,
 	adapter->onOtherEvent(type, state, path);
 }
 
-int ZkAdapter::connect(const clientid_t *clientid, int flags)
+int ZkAdaptor::connect(const clientid_t *clientid, int flags)
 {
 	// Clear the connection state
 	disconnect();
@@ -71,7 +71,7 @@ int ZkAdapter::connect(const clientid_t *clientid, int flags)
 
 	// Establish a new connection to ZooKeeper
 	m_zkHandle = zookeeper_init(m_strHost.c_str(), 
-		ZkAdapter::watcher, 
+		ZkAdaptor::watcher, 
 		m_uiRecvTimeout,
 		clientid,
 		this,
@@ -85,7 +85,7 @@ int ZkAdapter::connect(const clientid_t *clientid, int flags)
 	return 0;
 }
 
-void ZkAdapter::disconnect()
+void ZkAdaptor::disconnect()
 {
 	if (m_zkHandle != NULL)
 	{
@@ -94,13 +94,13 @@ void ZkAdapter::disconnect()
 	}
 }
 
-void ZkAdapter::onOtherEvent(int , int , const char *)
+void ZkAdaptor::onOtherEvent(int , int , const char *)
 {
 
 }
 
 
-bool ZkAdapter::createNode(const string &path, 
+bool ZkAdaptor::createNode(const string &path, 
 								  char const* buf,
 								  CWX_UINT32 uiBufLen,
 								  int flags)
@@ -149,7 +149,7 @@ bool ZkAdapter::createNode(const string &path,
 	return true;
 }
 
-bool ZkAdapter::deleteNode(const string &path,
+bool ZkAdaptor::deleteNode(const string &path,
 								  int version)
 {
 	m_iErrCode = 0;
@@ -185,7 +185,7 @@ bool ZkAdapter::deleteNode(const string &path,
 	return true;
 }
 
-bool ZkAdapter::getNodeChildren( const string &path, list<string>& childs)
+bool ZkAdaptor::getNodeChildren( const string &path, list<string>& childs)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
@@ -217,7 +217,7 @@ bool ZkAdapter::getNodeChildren( const string &path, list<string>& childs)
 	return true;
 }
 
-int ZkAdapter::nodeExists(const string &path)
+int ZkAdaptor::nodeExists(const string &path)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
@@ -247,7 +247,7 @@ int ZkAdapter::nodeExists(const string &path)
 	return 1;
 }
 
-int ZkAdapter::getNodeData(const string &path, char* buf, CWX_UINT32& uiBufLen, struct Stat& stat)
+int ZkAdaptor::getNodeData(const string &path, char* buf, CWX_UINT32& uiBufLen, struct Stat& stat)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
@@ -280,7 +280,7 @@ int ZkAdapter::getNodeData(const string &path, char* buf, CWX_UINT32& uiBufLen, 
 }
 
 
-int ZkAdapter::setNodeData(const string &path, char const* buf, CWX_UINT32 uiBufLen, int version)
+int ZkAdaptor::setNodeData(const string &path, char const* buf, CWX_UINT32 uiBufLen, int version)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
@@ -308,7 +308,7 @@ int ZkAdapter::setNodeData(const string &path, char const* buf, CWX_UINT32 uiBuf
 	return 1;
 }
 
-bool ZkAdapter::validatePath(const string &path)
+bool ZkAdaptor::validatePath(const string &path)
 {
 	m_iErrCode = 0;
 	if (path.find ("/") != 0)
