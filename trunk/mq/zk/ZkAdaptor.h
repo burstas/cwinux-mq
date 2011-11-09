@@ -20,6 +20,11 @@ public:
 	enum{
 		ZK_DEF_RECV_TIMEOUT_MILISECOND = 5000  ///<5秒
 	};
+	enum{
+		AUTH_STATE_WAITING = 0,
+		AUTH_STATE_FAIL = 1,
+		AUTH_STATE_SUCCESS = 2
+	};
 public:
 	///构造函数
 	ZkAdaptor(string const& strHost,
@@ -71,6 +76,8 @@ public:
 	}
 	///连接赋权
 	bool addAuth(const char* scheme, const char* cert, int certLen);
+	///获取赋权状态
+	int getAuthState() const { return m_iAuthState;}
 
 	/**
 	* \brief Creates a new node identified by the given path. 
@@ -166,13 +173,15 @@ public:
 private:
 	static void watcher(zhandle_t *zzh, int type, int state, const char *path,
 		void* context);
-
+	static void authCompletion(int rc, const void *data);
 private:
 
 private:
 	///The host addresses of ZK nodes.
 	string       m_strHost;
 	CWX_UINT32   m_uiRecvTimeout;
+	///完成auth
+	int  		 m_iAuthState;
 	///The current ZK session.
 	zhandle_t*   m_zkHandle;
 	///Err code

@@ -112,7 +112,18 @@ int main(int argc ,char** argv)
 				return 1;
 			}
 		}
-		sleep(3);
+		do{
+			if (ZkAdaptor::AUTH_STATE_WAITING == zk.getAuthState())
+			{
+				select(1);
+				continue;
+			}
+			if (ZkAdaptor::AUTH_STATE_FAIL == zk.getAuthState()){
+				printf("Failure to auth, err=%s\n", zk.getErrMsg());
+				return 1;
+			}
+			break;
+		}while(1);
 		int ret = zk.getNodeData(g_strNode, szBuf, uiBufLen, stat);
 		if (0 == ret){
 			printf("Not exist\n");
