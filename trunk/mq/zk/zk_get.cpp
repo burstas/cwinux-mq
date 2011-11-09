@@ -9,7 +9,7 @@ string g_strAuth;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:n:h:a");
+	CwxGetOpt cmd_option(argc, argv, "H:n:h:a:");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
