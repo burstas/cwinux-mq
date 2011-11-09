@@ -113,7 +113,7 @@ int main(int argc ,char** argv)
 			ZkAdaptor::sleep(1);
 			continue;
 		}
-		if (!zk.createNode(g_strNode, g_strValue.c_str(), g_strValue.length(), 0x1f, g_strAuth?"digest":"", g_strAuth))
+		if (!zk.createNode(g_strNode, g_strValue.c_str(), g_strValue.length(), 0x1f, g_strAuth.length()?"digest":"", g_strAuth))
 		{
 			printf("Failure to create node, err=%s\n", zk.getErrMsg());
 			return 1;
