@@ -6,10 +6,11 @@ using namespace cwinux;
 string g_strHost;
 string g_strNode;
 string g_strValue;
+string g_strAuth;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:n:d:h");
+	CwxGetOpt cmd_option(argc, argv, "H:n:d:a:h");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
@@ -17,10 +18,11 @@ int parseArg(int argc, char**argv)
         {
         case 'h':
             printf("create zookeeper node.\n");
-			printf("%s  -H host:port -n node -d data\n", argv[0]);
+			printf("%s  -H host:port -n node -d data -a usr:passwd\n", argv[0]);
 			printf("-H: zookeeper's host:port\n");
             printf("-n: node name to create, it's full path.\n");
 			printf("-d: value for node.\n");
+			printf("-a: user:passwd.\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -46,6 +48,14 @@ int parseArg(int argc, char**argv)
 				return -1;
 			}
 			g_strValue = cmd_option.opt_arg();
+			break;
+		case 'a':
+			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
+			{
+				printf("-a requires an argument.\n");
+				return -1;
+			}
+			g_strAuth = cmd_option.opt_arg();
 			break;
         case ':':
             printf("%c requires an argument.\n", cmd_option.opt_opt ());
@@ -103,7 +113,7 @@ int main(int argc ,char** argv)
 			ZkAdaptor::sleep(1);
 			continue;
 		}
-		if (!zk.createNode(g_strNode, g_strValue.c_str(), g_strValue.length()))
+		if (!zk.createNode(g_strNode, g_strValue.c_str(), g_strValue.length(), 0x1f, g_strAuth?"digest":"", g_strAuth))
 		{
 			printf("Failure to create node, err=%s\n", zk.getErrMsg());
 			return 1;

@@ -108,7 +108,7 @@ int main(int argc ,char** argv)
 		for (int i=0; i<10000; i++){
 			sprintf(szNum, "%d", i);
 			strValue = g_strNode + szNum;
-			if (!zk.createNode(strValue, g_strValue.c_str(), g_strValue.length()))
+			if (!zk.createNode(strValue, g_strValue.c_str(), g_strValue.length(), 0x1f,"", ""))
 			{
 				printf("Failure to create node, err=%s\n", zk.getErrMsg());
 				return 1;
