@@ -64,7 +64,8 @@ public:
 	* @return true if the node has been successfully created; false otherwise
 	*/ 
 	bool createNode(const string &path, 
-		const string &value = "", 
+		char const* buf,
+		CWX_UINT32 uiBufLen, 
 		int flags = 0);
 
 	/**

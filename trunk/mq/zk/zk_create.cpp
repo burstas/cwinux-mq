@@ -1,14 +1,16 @@
 #include "ZkAdaptor.h"
 #include "CwxGetOpt.h"
+#include "CwxTimeValue.h"
 using namespace cwinux;
 
 string g_strHost;
 string g_strPath;
 string g_strNode;
+string g_strValue;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:p:n:h");
+	CwxGetOpt cmd_option(argc, argv, "H:p:n:v:h");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
@@ -20,6 +22,7 @@ int parseArg(int argc, char**argv)
 			printf("-H: zookeeper's host:port\n");
             printf("-p: path for node\n");
             printf("-n: node name to create.\n");
+			printf("-v: value for node.\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -46,6 +49,14 @@ int parseArg(int argc, char**argv)
             }
             g_strNode = cmd_option.opt_arg();
             break;
+		case 'v':
+			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
+			{
+				printf("-v requires an argument.\n");
+				return -1;
+			}
+			g_strValue = cmd_option.opt_arg();
+			break;
         case ':':
             printf("%c requires an argument.\n", cmd_option.opt_opt ());
             return -1;
@@ -100,6 +111,21 @@ int main(int argc ,char** argv)
 		return -1;
 	}
 	
-	
-    return iRet;
+	int timeout = 5;
+	while(timeout > 0){
+		if (!zk.isConnected()){
+			timeout --;
+			sleep(1);
+			continue;
+		}
+		if (zk.createNode(g_strPath, g_strValue.c_str(), g_strValue.length()))
+		{
+			printf("Failure to create node, err=%s\n", zk.getErrMsg());
+			return 1;
+		}
+		printf("Success to create node for %s in path:%s\n", g_strNode.c_str(), g_strPath.c_str());
+		return 0;
+	}
+	printf("Timeout for connect zk:%s\n", g_strHost.c_str());
+    return 1;
 }
