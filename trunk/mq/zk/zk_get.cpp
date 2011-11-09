@@ -105,8 +105,8 @@ int main(int argc ,char** argv)
 		time_t timestamp;
 		printf("Success to get node for %s\n", g_strNode.c_str());
 		printf("data:%s\n", szBuf);
-		printf("czxid:%s\n", CwxCommon::toString(stat.czxid, szTmp, 10));
-		printf("mzxid:%s\n", CwxCommon::toString(stat.mzxid, szTmp, 10));
+		printf("czxid:%s\n", CwxCommon::toString(stat.czxid, szTmp, 16));
+		printf("mzxid:%s\n", CwxCommon::toString(stat.mzxid, szTmp, 16));
 		timestamp = stat.ctime/1000;
 		printf("ctime:%d %s", (int)stat.ctime%1000, ctime_r(&timestamp, szTmp));
 		timestamp = stat.mtime/1000;
@@ -116,7 +116,7 @@ int main(int argc ,char** argv)
 		printf("aversion:%d\n", stat.aversion);
 		printf("dataLength:%d\n", stat.dataLength);
 		printf("numChildren:%d\n", stat.numChildren);
-		printf("pzxid:%s\n", CwxCommon::toString(stat.pzxid, szTmp, 10));
+		printf("pzxid:%s\n", CwxCommon::toString(stat.pzxid, szTmp, 16));
 		return 0;
 	}
 	printf("Timeout for connect zk:%s\n", g_strHost.c_str());
