@@ -5,7 +5,7 @@
 #include <algorithm>
 
 
-ZooKeeperAdapter::ZooKeeperAdapter(string const& strHost, CWX_UINT32 uiRecvTimeout):
+ZooKeeperAdapter::ZooKeeperAdapter(string const& strHost, CWX_UINT32 uiRecvTimeout)
 {
 	m_strHost = strHost;
 	m_uiRecvTimeout = uiRecvTimeout;
@@ -44,7 +44,7 @@ const char* ZooKeeperAdapter::state2String(int state)
 }
 
 
-void ZooKeeperAdapter::watcher(zhandle_t *zzh, int type, int state, const char *path,
+void ZooKeeperAdapter::watcher(zhandle_t *, int type, int state, const char *path,
 			 void* context)
 {
 	ZooKeeperAdapter* adapter=(ZooKeeperAdapter*)context;
@@ -58,7 +58,7 @@ void ZooKeeperAdapter::watcher(zhandle_t *zzh, int type, int state, const char *
 			adapter->onExpired();
 		}
 	}
-	onOtherEvent(type, state, path);
+	adapter->onOtherEvent(type, state, path);
 }
 
 int ZooKeeperAdapter::connect(CWX_UINT32 uiConnTimeout, const clientid_t *clientid, int flags)
