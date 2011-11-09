@@ -118,7 +118,7 @@ int main(int argc ,char** argv)
 			sleep(1);
 			continue;
 		}
-		if (zk.createNode(g_strPath, g_strValue.c_str(), g_strValue.length()))
+		if (!zk.createNode(g_strPath, g_strValue.c_str(), g_strValue.length()))
 		{
 			printf("Failure to create node, err=%s\n", zk.getErrMsg());
 			return 1;
