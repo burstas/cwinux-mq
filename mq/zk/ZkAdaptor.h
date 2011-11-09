@@ -90,7 +90,10 @@ public:
 	*/ 
 	bool createNode(const string &path, 
 		char const* buf,
-		CWX_UINT32 uiBufLen, 
+		CWX_UINT32 uiBufLen,
+		CWX_UINT32 perms,
+		string     schema,
+		string	   id,
 		int flags = 0);
 
 	/**

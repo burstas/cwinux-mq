@@ -152,6 +152,9 @@ bool ZkAdaptor::addAuth(const char* scheme, const char* cert, int certLen)
 bool ZkAdaptor::createNode(const string &path, 
 								  char const* buf,
 								  CWX_UINT32 uiBufLen,
+								  CWX_UINT32 perms,
+								  string     schema,
+								  string	   id,
 								  int flags)
 {
 	const int MAX_PATH_LENGTH = 2048;
@@ -167,11 +170,15 @@ bool ZkAdaptor::createNode(const string &path,
 		strcpy(m_szErr2K, "No connect");
 		return false;
 	}
+	ACL_vector aclv;
+	struct ACL acl={perms, {schema.c_str(), id.c_str()}};
+	aclv.count = 1;
+	aclv.data = &acl;
 	rc = zoo_create( m_zkHandle, 
 		path.c_str(), 
 		buf,
 		uiBufLen,
-		&ZOO_OPEN_ACL_UNSAFE,
+		schema.length()?&aclv:&ZOO_OPEN_ACL_UNSAFE,
 		flags,
 		realPath,
 		MAX_PATH_LENGTH);
