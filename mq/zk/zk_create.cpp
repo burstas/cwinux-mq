@@ -108,7 +108,7 @@ int main(int argc ,char** argv)
 			printf("Failure to create node, err=%s\n", zk.getErrMsg());
 			return 1;
 		}
-		printf("Success to create node for %s in path:%s\n", g_strNode.c_str(), g_strPath.c_str());
+		printf("Success to create node for %s\n", g_strNode.c_str());
 		return 0;
 	}
 	printf("Timeout for connect zk:%s\n", g_strHost.c_str());
