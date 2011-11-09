@@ -40,9 +40,9 @@ void ZkAdaptor::watcher(zhandle_t *, int type, int state, const char *path,
 			return adapter->onFailAuth();
 		} else if (state == ZOO_EXPIRED_SESSION_STATE) {
 			return adapter->onExpired();
-		} else if (state = ZOO_CONNECTING_STATE){
+		} else if (state == ZOO_CONNECTING_STATE){
 			return adapter->onConnecting();
-		} else if (state = ZOO_ASSOCIATING_STATE){
+		} else if (state == ZOO_ASSOCIATING_STATE){
 			return adapter->onAssociating();
 		}
 	}else if (type == ZOO_CREATED_EVENT){
