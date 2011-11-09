@@ -5,7 +5,7 @@
 #include <algorithm>
 
 
-ZooKeeperAdapter::ZooKeeperAdapter(string const& strHost, CWX_UINT32 uiRecvTimeout)
+ZkAdapter::ZkAdapter(string const& strHost, CWX_UINT32 uiRecvTimeout)
 {
 	m_strHost = strHost;
 	m_uiRecvTimeout = uiRecvTimeout;
@@ -14,18 +14,18 @@ ZooKeeperAdapter::ZooKeeperAdapter(string const& strHost, CWX_UINT32 uiRecvTimeo
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
 }
 
-ZooKeeperAdapter::~ZooKeeperAdapter()
+ZkAdapter::~ZkAdapter()
 {
 	disconnect();
 }
 
-int ZooKeeperAdapter::init(ZooLogLevel level)
+int ZkAdapter::init(ZooLogLevel level)
 {
 	zoo_set_debug_level(level);
 	return 0;
 }
 
-const char* ZooKeeperAdapter::state2String(int state)
+const char* ZkAdapter::state2String(int state)
 {
 	if (state == 0)
 		return "CLOSED_STATE";
@@ -44,10 +44,10 @@ const char* ZooKeeperAdapter::state2String(int state)
 }
 
 
-void ZooKeeperAdapter::watcher(zhandle_t *, int type, int state, const char *path,
+void ZkAdapter::watcher(zhandle_t *, int type, int state, const char *path,
 			 void* context)
 {
-	ZooKeeperAdapter* adapter=(ZooKeeperAdapter*)context;
+	ZkAdapter* adapter=(ZkAdapter*)context;
 
 	if (type == ZOO_SESSION_EVENT) {
 		if (state == ZOO_CONNECTED_STATE){
@@ -61,7 +61,7 @@ void ZooKeeperAdapter::watcher(zhandle_t *, int type, int state, const char *pat
 	adapter->onOtherEvent(type, state, path);
 }
 
-int ZooKeeperAdapter::connect(const clientid_t *clientid, int flags)
+int ZkAdapter::connect(const clientid_t *clientid, int flags)
 {
 	// Clear the connection state
 	disconnect();
@@ -71,7 +71,7 @@ int ZooKeeperAdapter::connect(const clientid_t *clientid, int flags)
 
 	// Establish a new connection to ZooKeeper
 	m_zkHandle = zookeeper_init(m_strHost.c_str(), 
-		ZooKeeperAdapter::watcher, 
+		ZkAdapter::watcher, 
 		m_uiRecvTimeout,
 		clientid,
 		this,
@@ -85,7 +85,7 @@ int ZooKeeperAdapter::connect(const clientid_t *clientid, int flags)
 	return 0;
 }
 
-void ZooKeeperAdapter::disconnect()
+void ZkAdapter::disconnect()
 {
 	if (m_zkHandle != NULL)
 	{
@@ -94,7 +94,7 @@ void ZooKeeperAdapter::disconnect()
 	}
 }
 
-bool ZooKeeperAdapter::createNode(const string &path, 
+bool ZkAdapter::createNode(const string &path, 
 								  char const* buf,
 								  CWX_UINT32 uiBufLen,
 								  int flags)
@@ -143,7 +143,7 @@ bool ZooKeeperAdapter::createNode(const string &path,
 	return true;
 }
 
-bool ZooKeeperAdapter::deleteNode(const string &path,
+bool ZkAdapter::deleteNode(const string &path,
 								  int version)
 {
 	m_iErrCode = 0;
@@ -179,7 +179,7 @@ bool ZooKeeperAdapter::deleteNode(const string &path,
 	return true;
 }
 
-bool ZooKeeperAdapter::getNodeChildren( const string &path, list<string>& childs)
+bool ZkAdapter::getNodeChildren( const string &path, list<string>& childs)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
@@ -211,7 +211,7 @@ bool ZooKeeperAdapter::getNodeChildren( const string &path, list<string>& childs
 	return true;
 }
 
-int ZooKeeperAdapter::nodeExists(const string &path)
+int ZkAdapter::nodeExists(const string &path)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
@@ -241,7 +241,7 @@ int ZooKeeperAdapter::nodeExists(const string &path)
 	return 1;
 }
 
-int ZooKeeperAdapter::getNodeData(const string &path, char* buf, CWX_UINT32& uiBufLen)
+int ZkAdapter::getNodeData(const string &path, char* buf, CWX_UINT32& uiBufLen)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
@@ -276,7 +276,7 @@ int ZooKeeperAdapter::getNodeData(const string &path, char* buf, CWX_UINT32& uiB
 }
 
 
-int ZooKeeperAdapter::setNodeData(const string &path, char const* buf, CWX_UINT32 uiBufLen, int version)
+int ZkAdapter::setNodeData(const string &path, char const* buf, CWX_UINT32 uiBufLen, int version)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
@@ -304,7 +304,7 @@ int ZooKeeperAdapter::setNodeData(const string &path, char const* buf, CWX_UINT3
 	return 1;
 }
 
-bool ZooKeeperAdapter::validatePath(const string &path)
+bool ZkAdapter::validatePath(const string &path)
 {
 	m_iErrCode = 0;
 	if (path.find ("/") != 0)

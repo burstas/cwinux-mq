@@ -15,17 +15,17 @@ extern "C" {
 #include "zookeeper.h"
 }
 
-class ZooKeeperAdapter
+class ZkAdapter
 {
 	enum{
 		ZK_DEF_RECV_TIMEOUT_MILISECOND = 5000  ///<5秒
 	};
 public:
 	///构造函数
-	ZooKeeperAdapter(string const& strHost,
+	ZkAdapter(string const& strHost,
 		CWX_UINT32 uiRecvTimeout=ZK_DEF_RECV_TIMEOUT_MILISECOND);
 	///析构函数
-	virtual ~ZooKeeperAdapter(); 
+	virtual ~ZkAdapter(); 
 	///init, 0:成功；-1：失败
 	int init(ZooLogLevel level=ZOO_LOG_LEVEL_WARN);
 
