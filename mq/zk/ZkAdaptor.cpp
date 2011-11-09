@@ -95,7 +95,8 @@ void ZooKeeperAdapter::disconnect()
 }
 
 bool ZooKeeperAdapter::createNode(const string &path, 
-								  const string &value, 
+								  char const* buf,
+								  CWX_UINT32 uiBufLen,, 
 								  int flags)
 {
 	const int MAX_PATH_LENGTH = 2048;
@@ -113,8 +114,8 @@ bool ZooKeeperAdapter::createNode(const string &path,
 	}
 	rc = zoo_create( m_zkHandle, 
 		path.c_str(), 
-		value.c_str(),
-		value.length(),
+		buf,
+		uiBufLen,
 		&ZOO_OPEN_ACL_UNSAFE,
 		flags,
 		realPath,
