@@ -48,7 +48,7 @@ public:
 	///连接是否建立
 	bool isConnected(){
 		if (m_zkHandle){
-			state = zoo_state (m_zkHandle);
+			int state = zoo_state (m_zkHandle);
 			if (state == ZOO_CONNECTED_STATE) return true;
 		} 
 		return false;
@@ -132,9 +132,9 @@ public:
 	///get handle
 	zhandle_t* getZkHandle() { return m_zkHandle;}
 	///get client id
-	const clientid_t * getClientId() { return  verifyConnection()?zoo_client_id(m_zkHandle):NULL;}
+	const clientid_t * getClientId() { return  isConnected()?zoo_client_id(m_zkHandle):NULL;}
 	///get context
-	const void * getContext() { return verifyConnection()?zoo_get_context(m_zkHandle):NULL;}
+	const void * getContext() { return isConnected()?zoo_get_context(m_zkHandle):NULL;}
 	/// get error code
 	int  getErrCode() const { return m_iErrCode;}
 	/// get error msg
