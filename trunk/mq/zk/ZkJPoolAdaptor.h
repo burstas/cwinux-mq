@@ -14,19 +14,19 @@ public:
 	virtual ~ZkJPoolAdapter(); 
 	///连接建立
 	virtual void onConnect(){
-		printf("Success to connect %s\n", m_strHost.c_str());
+		printf("Success to connect %s\n", getHost().c_str());
 	}
 	///鉴权失败
 	virtual void onFailAuth(){
-		printf("Failure auth to %s\n", m_strHost.c_str());
+		printf("Failure auth to %s\n", getHost().c_str());
 	}
 	///Session失效
 	virtual void onExpired(){
-		printf("Session expired for %s\n", m_strHost.c_str());
+		printf("Session expired for %s\n", getHost().c_str());
 	}
 	///其他消息
 	virtual void onOtherEvent(int type, int state, const char *path){
-		printf("Recv event for %s, type=%d  state=%d  path=%s\n", m_strHost.c_str(), type, state, path);
+		printf("Recv event for %s, type=%d  state=%d  path=%s\n", getHost().c_str(), type, state, path);
 	}
 };
 

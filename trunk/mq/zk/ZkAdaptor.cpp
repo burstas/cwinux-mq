@@ -94,6 +94,9 @@ void ZkAdapter::disconnect()
 	}
 }
 
+void ZkAdapter::onOtherEvent(int type, int state, const char *path);
+
+
 bool ZkAdapter::createNode(const string &path, 
 								  char const* buf,
 								  CWX_UINT32 uiBufLen,
