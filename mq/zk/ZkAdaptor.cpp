@@ -94,7 +94,10 @@ void ZkAdapter::disconnect()
 	}
 }
 
-void ZkAdapter::onOtherEvent(int type, int state, const char *path);
+void ZkAdapter::onOtherEvent(int , int , const char *)
+{
+
+}
 
 
 bool ZkAdapter::createNode(const string &path, 
