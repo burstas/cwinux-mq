@@ -96,8 +96,12 @@ int main(int argc ,char** argv)
 			sleep(1);
 			continue;
 		}
-		if (!zk.getNodeData(g_strNode, szBuf, uiBufLen, stat))
-		{
+		int ret = zk.getNodeData(g_strNode, szBuf, uiBufLen, stat);
+		if (0 == ret){
+			printf("Not exist\n");
+			return 0;
+		}
+		if (-1 == ret){
 			printf("Failure to get node, err=%s\n", zk.getErrMsg());
 			return 1;
 		}

@@ -25,23 +25,7 @@ int ZkAdaptor::init(ZooLogLevel level)
 	return 0;
 }
 
-const char* ZkAdaptor::state2String(int state)
-{
-	if (state == 0)
-		return "CLOSED_STATE";
-	if (state == ZOO_CONNECTING_STATE)
-		return "CONNECTING_STATE";
-	if (state == ZOO_ASSOCIATING_STATE)
-		return "ASSOCIATING_STATE";
-	if (state == ZOO_CONNECTED_STATE)
-		return "CONNECTED_STATE";
-	if (state == ZOO_EXPIRED_SESSION_STATE)
-		return "EXPIRED_SESSION_STATE";
-	if (state == ZOO_AUTH_FAILED_STATE)
-		return "AUTH_FAILED_STATE";
 
-	return "INVALID_STATE";
-}
 
 
 void ZkAdaptor::watcher(zhandle_t *, int type, int state, const char *path,
@@ -51,12 +35,26 @@ void ZkAdaptor::watcher(zhandle_t *, int type, int state, const char *path,
 
 	if (type == ZOO_SESSION_EVENT) {
 		if (state == ZOO_CONNECTED_STATE){
-			adapter->onConnect();
+			return adapter->onConnect();
 		} else if (state == ZOO_AUTH_FAILED_STATE) {
-			adapter->onFailAuth();
+			return adapter->onFailAuth();
 		} else if (state == ZOO_EXPIRED_SESSION_STATE) {
-			adapter->onExpired();
+			return adapter->onExpired();
+		} else if (state = ZOO_CONNECTING_STATE){
+			return adapter->onConnecting();
+		} else if (state = ZOO_ASSOCIATING_STATE){
+			return adapter->onAssociating();
 		}
+	}else if (type == ZOO_CREATED_EVENT){
+		return adapter->onNodeCreated(state, path);
+	}else if (type == ZOO_DELETED_EVENT){
+		return adapter->onNodeDeleted(state, path);
+	}else if (type == ZOO_CHANGED_EVENT){
+		return adapter->onNodeChanged(state, path);
+	}else if (type == ZOO_CHILD_EVENT){
+		return adapter->onNodeChildChanged(state, path);
+	}else if (type == ZOO_NOTWATCHING_EVENT){
+		return adapter->onNoWatching(state, path);
 	}
 	adapter->onOtherEvent(type, state, path);
 }
@@ -96,6 +94,28 @@ void ZkAdaptor::disconnect()
 
 void ZkAdaptor::onOtherEvent(int , int , const char *)
 {
+
+}
+
+bool ZkAdaptor::addAuth(const char* scheme, const char* cert, int certLen)
+{
+	int rc;
+	m_iErrCode = 0;
+	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
+	if (!isConnected())
+	{
+		strcpy(m_szErr2K, "No connect");
+		return false;
+	}
+
+	rc = zoo_add_auth(m_zkHandle, scheme, cert, cert?strlen(cert):0, NULL, NULL);
+	if (rc != ZOK) // check return status
+	{
+		m_iErrCode = rc;
+		CwxCommon::snprintf(m_szErr2K, 2047, "Error in auth , err-code:%d.", rc);
+		return false;
+	}
+	return true;
 
 }
 

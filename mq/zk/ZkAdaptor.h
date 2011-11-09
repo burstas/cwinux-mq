@@ -36,12 +36,35 @@ public:
 	///连接建立
 	virtual void onConnect(){
 	}
+	///正在建立联系
+	virtual void onAssociating(){
+	}
+	///正在建立连接
+	virtual void onConnecting(){
+
+	}
 	///鉴权失败
 	virtual void onFailAuth(){
 	}
 	///Session失效
 	virtual void onExpired(){
 	}
+	///node创建事件
+	virtual void onNodeCreated(int state, char const* path){
+	}
+	///node删除事件
+	virtual void onNodeDeleted(int state, char const* path){
+	}
+	///node修改事件
+	virtual void onNodeChanged(int state, char const* path){
+	}
+	///node child修改事件
+	virtual void onNodeChildChanged(int state, char const* path){
+	}
+	///node 不再watch事件
+	virtual void onNoWatching(int state, char const* path){
+
+	}	
 	///其他消息
 	virtual void onOtherEvent(int type, int state, const char *path);
 	///连接是否建立
@@ -52,6 +75,8 @@ public:
 		} 
 		return false;
 	}
+	///连接赋权
+	bool addAuth(const char* scheme, const char* cert, int certLen);
 
 	/**
 	* \brief Creates a new node identified by the given path. 
@@ -146,7 +171,7 @@ public:
 private:
 	static void watcher(zhandle_t *zzh, int type, int state, const char *path,
 		void* context);
-	static const char* state2String(int state);
+
 private:
 
 private:

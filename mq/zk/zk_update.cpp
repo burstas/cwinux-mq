@@ -103,8 +103,12 @@ int main(int argc ,char** argv)
 			sleep(1);
 			continue;
 		}
-		if (!zk.setNodeData(g_strNode, g_strValue.c_str(), g_strValue.length()))
-		{
+		int ret = zk.setNodeData(g_strNode, g_strValue.c_str(), g_strValue.length());
+		if (0 == ret){
+			printf("Not exist\n");
+			return 0;
+		}
+		if (-1 == ret){
 			printf("Failure to set node, err=%s\n", zk.getErrMsg());
 			return 1;
 		}
