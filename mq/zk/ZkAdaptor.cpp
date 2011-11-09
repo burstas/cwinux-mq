@@ -241,7 +241,7 @@ int ZkAdapter::nodeExists(const string &path)
 	return 1;
 }
 
-int ZkAdapter::getNodeData(const string &path, char* buf, CWX_UINT32& uiBufLen)
+int ZkAdapter::getNodeData(const string &path, char* buf, CWX_UINT32& uiBufLen, struct Stat& stat)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
@@ -253,16 +253,14 @@ int ZkAdapter::getNodeData(const string &path, char* buf, CWX_UINT32& uiBufLen)
 		return -1;
 	}
 
-	struct Stat tmpStat;
-	struct Stat* stat = &tmpStat;
-	memset( stat, 0, sizeof(Stat) );
+	memset(&stat, 0, sizeof(stat) );
 
 	int rc = 0;
 	int len = uiBufLen;
 	rc = zoo_get( m_zkHandle,
 		path.c_str(),
 		0,
-		buf, &len, stat );
+		buf, &len, &stat);
 	if (rc != ZOK) // checl return code
 	{
 		m_iErrCode = rc;

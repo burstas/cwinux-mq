@@ -1,4 +1,4 @@
-#include "ZkJPoolAdaptor.h"
+#include "ZkJPoolAdapter.h"
 #include "CwxGetOpt.h"
 #include "CwxTimeValue.h"
 using namespace cwinux;
@@ -17,7 +17,7 @@ int parseArg(int argc, char**argv)
         {
         case 'h':
             printf("create zookeeper node.\n");
-			printf("%s  -H host:port -n node -d data\n", argv[0]);
+			printf("%s  -H host:port -n node -d value\n", argv[0]);
 			printf("-H: zookeeper's host:port\n");
             printf("-n: node name to create, it's full path.\n");
 			printf("-d: value for node.\n");
@@ -103,12 +103,12 @@ int main(int argc ,char** argv)
 			sleep(1);
 			continue;
 		}
-		if (!zk.createNode(g_strNode, g_strValue.c_str(), g_strValue.length()))
+		if (!zk.setNodeData(g_strNode, g_strValue.c_str(), g_strValue.length()))
 		{
-			printf("Failure to create node, err=%s\n", zk.getErrMsg());
+			printf("Failure to set node, err=%s\n", zk.getErrMsg());
 			return 1;
 		}
-		printf("Success to create node for %s\n", g_strNode.c_str());
+		printf("Success to set node for %s\n", g_strNode.c_str());
 		return 0;
 	}
 	printf("Timeout for connect zk:%s\n", g_strHost.c_str());

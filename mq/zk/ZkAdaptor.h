@@ -104,7 +104,7 @@ public:
 	* 
 	* @return 1:exist; 0:not exist; -1:failure
 	*/
-	int getNodeData(const string &path, char* buf, CWX_UINT32& uiBufLen);
+	int getNodeData(const string &path, char* buf, CWX_UINT32& uiBufLen, struct Stat& stat);
 
 	/**
 	* \brief Sets the given node's data.
