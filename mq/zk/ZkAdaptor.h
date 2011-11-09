@@ -17,6 +17,7 @@ extern "C" {
 
 class ZkAdapter
 {
+public:
 	enum{
 		ZK_DEF_RECV_TIMEOUT_MILISECOND = 5000  ///<5Ãë
 	};
