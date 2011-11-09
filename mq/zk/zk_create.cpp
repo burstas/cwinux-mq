@@ -85,7 +85,7 @@ int main(int argc ,char** argv)
     if (0 == iRet) return 0;
     if (-1 == iRet) return 1;
 
-	ZooKeeperAdapter zk(g_strHost);
+	ZkAdapter zk(g_strHost);
 	if (0 != zk.init()){
 		printf("Failure to init zk, err=%s\n", zk.getErrMsg());
 		return -1;
