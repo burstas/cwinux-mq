@@ -115,7 +115,7 @@ int main(int argc ,char** argv)
 		do{
 			if (ZkAdaptor::AUTH_STATE_WAITING == zk.getAuthState())
 			{
-				select(1);
+				sleep(1);
 				continue;
 			}
 			if (ZkAdaptor::AUTH_STATE_FAIL == zk.getAuthState()){
