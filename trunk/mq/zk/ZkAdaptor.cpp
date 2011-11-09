@@ -61,7 +61,7 @@ void ZooKeeperAdapter::watcher(zhandle_t *, int type, int state, const char *pat
 	adapter->onOtherEvent(type, state, path);
 }
 
-int ZooKeeperAdapter::connect(CWX_UINT32 uiConnTimeout, const clientid_t *clientid, int flags)
+int ZooKeeperAdapter::connect(const clientid_t *clientid, int flags)
 {
 	// Clear the connection state
 	disconnect();
@@ -96,7 +96,7 @@ void ZooKeeperAdapter::disconnect()
 
 bool ZooKeeperAdapter::createNode(const string &path, 
 								  char const* buf,
-								  CWX_UINT32 uiBufLen,, 
+								  CWX_UINT32 uiBufLen,
 								  int flags)
 {
 	const int MAX_PATH_LENGTH = 2048;
