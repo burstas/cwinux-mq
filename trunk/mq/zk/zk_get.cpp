@@ -107,10 +107,10 @@ int main(int argc ,char** argv)
 		printf("data:%s\n", szBuf);
 		printf("czxid:%s\n", CwxCommon::toString(stat.czxid, szTmp, 10));
 		printf("mzxid:%s\n", CwxCommon::toString(stat.mzxid, szTmp, 10));
-		timestamp = stat.ctime;
-		printf("ctime:%d %s", (int)stat.ctime%1000000, ctime(&timestamp));
-		timestamp = stat.mtime;
-		printf("mtime:%d %s", (int)stat.mtime%1000000, ctime(&timestamp));
+		timestamp = stat.ctime/1000;
+		printf("ctime:%d %s", (int)stat.ctime%1000, ctime(&timestamp));
+		timestamp = stat.mtime/1000;
+		printf("mtime:%d %s", (int)stat.mtime%1000, ctime(&timestamp));
 		printf("version:%d\n", stat.version);
 		printf("cversion:%d\n", stat.cversion);
 		printf("aversion:%d\n", stat.aversion);
