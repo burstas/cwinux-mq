@@ -187,7 +187,7 @@ bool ZkAdaptor::deleteNode(const string &path,
 					if (!deleteNode(strPath, true)) return false;
 					iter++;
 				}
-				return true;
+				return deleteNode(path);
 			}
 			CwxCommon::snprintf(m_szErr2K, 2047, "ZK Node [%s] not empty", path.c_str());
 		}
