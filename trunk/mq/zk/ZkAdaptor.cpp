@@ -3,7 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
-
+#include <sys/select.h>
 
 ZkAdaptor::ZkAdaptor(string const& strHost, CWX_UINT32 uiRecvTimeout)
 {
@@ -126,7 +126,7 @@ bool ZkAdaptor::addAuth(const char* scheme, const char* cert, int certLen)
 		return false;
 	}
 
-	rc = zoo_add_auth(m_zkHandle, scheme, cert, cert?strlen(cert):0, NULL, NULL);
+	rc = zoo_add_auth(m_zkHandle, scheme, cert, certLen, NULL, NULL);
 	if (rc != ZOK) // check return status
 	{
 		m_iErrCode = rc;
@@ -383,6 +383,14 @@ bool ZkAdaptor::validatePath(const string &path)
 		}
 	}
 	return true;
+}
+
+void ZkAdaptor::sleep(CWX_UINT32 uiMiliSecond)
+{
+	struct timeval tv;
+	tv.tv_sec = uiMiliSecond/1000;
+	tv.tv_usec = (uiMiliSecond%1000)*1000;
+	select(1, NULL, NULL, NULL, &tv);
 }
 
 

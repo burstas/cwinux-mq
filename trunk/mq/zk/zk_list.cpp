@@ -86,12 +86,12 @@ int main(int argc ,char** argv)
 		return -1;
 	}
 	
-	int timeout = 5;
+	int timeout = 5000;
 	list<string> childs;
 	while(timeout > 0){
 		if (!zk.isConnected()){
 			timeout --;
-			sleep(1);
+			ZkAdaptor::sleep(1);
 			continue;
 		}
 		if (!zk.getNodeChildren(g_strNode, childs))

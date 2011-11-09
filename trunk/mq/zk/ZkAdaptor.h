@@ -160,7 +160,8 @@ public:
 	int  getErrCode() const { return m_iErrCode;}
 	/// get error msg
 	char const* getErrMsg() const { return m_szErr2K;}
-
+public:
+	static void sleep(CWX_UINT32 uiMiliSecond);
 
 private:
 	static void watcher(zhandle_t *zzh, int type, int state, const char *path,

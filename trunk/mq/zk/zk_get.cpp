@@ -96,14 +96,14 @@ int main(int argc ,char** argv)
 		return -1;
 	}
 	
-	int timeout = 5;
+	int timeout = 5000;
 	CWX_UINT32 uiBufLen = 1024 * 1024;
 	char szBuf[uiBufLen + 1];
 	struct Stat stat;
 	while(timeout > 0){
 		if (!zk.isConnected()){
 			timeout --;
-			sleep(1);
+			ZkAdaptor::sleep(1);
 			continue;
 		}
 		if (g_strAuth.length()){
@@ -112,6 +112,7 @@ int main(int argc ,char** argv)
 				return 1;
 			}
 		}
+		sleep(3);
 		int ret = zk.getNodeData(g_strNode, szBuf, uiBufLen, stat);
 		if (0 == ret){
 			printf("Not exist\n");
