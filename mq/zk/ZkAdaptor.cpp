@@ -5,6 +5,16 @@
 #include <algorithm>
 #include <sys/select.h>
 
+void ZkAdaptor::authCompletion(int rc, const void *data)
+{
+	ZkAdaptor* zk=(ZkAdaptor*)data;
+	if (ZOK == rc){
+		zk->m_iAuthState = AUTH_STATE_SUCCESS;
+	}else{
+		zk->m_iAuthState = AUTH_STATE_FAIL;
+	}
+}
+
 ZkAdaptor::ZkAdaptor(string const& strHost, CWX_UINT32 uiRecvTimeout)
 {
 	m_strHost = strHost;
@@ -126,7 +136,8 @@ bool ZkAdaptor::addAuth(const char* scheme, const char* cert, int certLen)
 		return false;
 	}
 
-	rc = zoo_add_auth(m_zkHandle, scheme, cert, certLen, NULL, NULL);
+	m_iAuthState = AUTH_STATE_WAITING;
+	rc = zoo_add_auth(m_zkHandle, scheme, cert, certLen, ZkAdaptor::authCompletion, this);
 	if (rc != ZOK) // check return status
 	{
 		m_iErrCode = rc;
