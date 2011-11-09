@@ -5,10 +5,11 @@ using namespace cwinux;
 
 string g_strHost;
 string g_strNode;
+bool   g_recursive=false;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:n:h");
+	CwxGetOpt cmd_option(argc, argv, "H:n:hr");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
@@ -19,6 +20,7 @@ int parseArg(int argc, char**argv)
 			printf("%s  -H host:port -n node \n", argv[0]);
 			printf("-H: zookeeper's host:port\n");
             printf("-n: node name to create, it's full path.\n");
+			printf("-r: recursive to delete child.\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -37,6 +39,9 @@ int parseArg(int argc, char**argv)
             }
             g_strNode = cmd_option.opt_arg();
             break;
+		case 'r':
+			g_recursive = true;
+			break;
         case ':':
             printf("%c requires an argument.\n", cmd_option.opt_opt ());
             return -1;
@@ -70,6 +75,7 @@ int parseArg(int argc, char**argv)
 
 int main(int argc ,char** argv)
 {
+	g_recursive = false;
     int iRet = parseArg(argc, argv);
 
     if (0 == iRet) return 0;
@@ -93,7 +99,7 @@ int main(int argc ,char** argv)
 			sleep(1);
 			continue;
 		}
-		if (!zk.deleteNode(g_strNode))
+		if (!zk.deleteNode(g_strNode, g_recursive))
 		{
 			printf("Failure to delete node, err=%s\n", zk.getErrMsg());
 			return 1;

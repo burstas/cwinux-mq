@@ -150,7 +150,8 @@ bool ZkAdaptor::createNode(const string &path,
 }
 
 bool ZkAdaptor::deleteNode(const string &path,
-								  int version)
+						   bool recursive,
+						   int version)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
@@ -174,6 +175,20 @@ bool ZkAdaptor::deleteNode(const string &path,
 		}
 		else if (rc == ZNOTEMPTY)
 		{
+			if (recursive)
+			{
+				list<string> childs;
+				if (!getNodeChildren(path, childs)) return false;
+				string strPath;
+				list<string>::iterator iter=childs.begin();
+				while(iter != childs.end())
+				{
+					strPath = path + "/" + *iter;
+					if (!deleteNode(strPath, true)) return false;
+					iter++;
+				}
+				return true;
+			}
 			CwxCommon::snprintf(m_szErr2K, 2047, "ZK Node [%s] not empty", path.c_str());
 		}
 		else

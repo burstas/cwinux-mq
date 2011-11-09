@@ -78,6 +78,7 @@ public:
 	* @return true if the node has been deleted; false otherwise
 	*/
 	bool deleteNode(const string &path,
+		bool recursive = false,
 		int version = -1);
 
 	/**
