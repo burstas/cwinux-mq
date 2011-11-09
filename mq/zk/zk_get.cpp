@@ -1,4 +1,4 @@
-#include "ZkJPoolAdapter.h"
+#include "ZkJPoolAdaptor.h"
 #include "CwxGetOpt.h"
 #include "CwxTimeValue.h"
 using namespace cwinux;
@@ -75,7 +75,7 @@ int main(int argc ,char** argv)
     if (0 == iRet) return 0;
     if (-1 == iRet) return 1;
 
-	ZkJPoolAdapter zk(g_strHost);
+	ZkJPoolAdaptor zk(g_strHost);
 	if (0 != zk.init()){
 		printf("Failure to init zk, err=%s\n", zk.getErrMsg());
 		return -1;

@@ -1,17 +1,16 @@
-
-#ifndef __ZK_JPOOL_ADAPTER_H__
-#define __ZK_JPOOL_ADAPTER_H__
+#ifndef __ZK_JPOOL_ADAPTOR_H__
+#define __ZK_JPOOL_ADAPTOR_H__
 
 #include "ZkAdaptor.h"
 
-class ZkJPoolAdapter:public ZkAdapter
+class ZkJPoolAdaptor:public ZkAdaptor
 {
 public:
 	///构造函数
-	ZkJPoolAdapter(string const& strHost,
+	ZkJPoolAdaptor(string const& strHost,
 		CWX_UINT32 uiRecvTimeout=ZK_DEF_RECV_TIMEOUT_MILISECOND);
 	///析构函数
-	virtual ~ZkJPoolAdapter(); 
+	virtual ~ZkJPoolAdaptor(); 
 	///连接建立
 	virtual void onConnect(){
 		printf("Success to connect %s\n", getHost().c_str());
