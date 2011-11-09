@@ -50,21 +50,15 @@ public:
 	virtual void onExpired(){
 	}
 	///node创建事件
-	virtual void onNodeCreated(int state, char const* path){
-	}
+	virtual void onNodeCreated(int state, char const* path);
 	///node删除事件
-	virtual void onNodeDeleted(int state, char const* path){
-	}
+	virtual void onNodeDeleted(int state, char const* path);
 	///node修改事件
-	virtual void onNodeChanged(int state, char const* path){
-	}
+	virtual void onNodeChanged(int state, char const* path);
 	///node child修改事件
-	virtual void onNodeChildChanged(int state, char const* path){
-	}
+	virtual void onNodeChildChanged(int state, char const* path);
 	///node 不再watch事件
-	virtual void onNoWatching(int state, char const* path){
-
-	}	
+	virtual void onNoWatching(int state, char const* path);
 	///其他消息
 	virtual void onOtherEvent(int type, int state, const char *path);
 	///连接是否建立

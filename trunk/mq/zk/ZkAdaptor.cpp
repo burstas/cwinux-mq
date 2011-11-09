@@ -92,6 +92,24 @@ void ZkAdaptor::disconnect()
 	}
 }
 
+///node创建事件
+void ZkAdaptor::onNodeCreated(int , char const* ){
+}
+///node删除事件
+void ZkAdaptor::onNodeDeleted(int , char const* ){
+}
+///node修改事件
+void ZkAdaptor::onNodeChanged(int , char const* ){
+}
+///node child修改事件
+void ZkAdaptor::onNodeChildChanged(int , char const* ){
+}
+///node 不再watch事件
+void ZkAdaptor::onNoWatching(int , char const* ){
+
+}	
+
+
 void ZkAdaptor::onOtherEvent(int , int , const char *)
 {
 
