@@ -43,8 +43,7 @@ public:
 	virtual void onExpired(){
 	}
 	///其他消息
-	virtual void onOtherEvent(int type, int state, const char *path){
-	}
+	virtual void onOtherEvent(int type, int state, const char *path);
 	///连接是否建立
 	bool isConnected(){
 		if (m_zkHandle){
@@ -129,6 +128,8 @@ public:
 	*/
 	bool validatePath(const string &path);
 
+	///get host
+	string const& getHost() const { return m_strHost;}
 	///get handle
 	zhandle_t* getZkHandle() { return m_zkHandle;}
 	///get client id
