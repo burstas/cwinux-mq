@@ -9,7 +9,7 @@ string g_strValue;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:n:v:h");
+	CwxGetOpt cmd_option(argc, argv, "H:n:d:h");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
@@ -20,7 +20,7 @@ int parseArg(int argc, char**argv)
 			printf("%s  -H host:port -n node \n", argv[0]);
 			printf("-H: zookeeper's host:port\n");
             printf("-n: node name to create, it's full path.\n");
-			printf("-v: value for node.\n");
+			printf("-d: value for node.\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -39,10 +39,10 @@ int parseArg(int argc, char**argv)
             }
             g_strNode = cmd_option.opt_arg();
             break;
-		case 'v':
+		case 'd':
 			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
 			{
-				printf("-v requires an argument.\n");
+				printf("-d requires an argument.\n");
 				return -1;
 			}
 			g_strValue = cmd_option.opt_arg();
