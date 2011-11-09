@@ -171,7 +171,7 @@ bool ZkAdaptor::createNode(const string &path,
 		return false;
 	}
 	ACL_vector aclv;
-	struct ACL acl={perms, {schema.c_str(), id.c_str()}};
+	struct ACL acl={perms, {(char*)schema.c_str(), (char*)id.c_str()}};
 	aclv.count = 1;
 	aclv.data = &acl;
 	rc = zoo_create( m_zkHandle, 
