@@ -499,3 +499,60 @@ char* ZkAdaptor::digest(char* input, int length)
 	return base64(output, 20);
 }
 
+///输出权限信息，每行一个权限
+void ZkAdaptor::dumpAcl(ACL_vector const& acl, list<string>& info)
+{
+	char line[1024];
+	info.clear();
+	for (int i=0; i<acl.count; i++)
+	{
+		CwxCommon::snprintf(line, 1024, "%s:%s:%s%s%s%s%s",
+			acl.data[i].id.scheme?acl.data[i].id.scheme:"",
+			acl.data[i].id.id?acl.data[i].id.id:"",
+			(acl.data[i].perms&ZOO_PERM_READ)==ZOO_PERM_READ?"r":"",
+			(acl.data[i].perms&ZOO_PERM_WRITE)==ZOO_PERM_WRITE?"w":"",
+			(acl.data[i].perms&ZOO_PERM_CREATE)==ZOO_PERM_CREATE?"c":"",
+			(acl.data[i].perms&ZOO_PERM_DELETE)==ZOO_PERM_DELETE?"d":"",
+			(acl.data[i].perms&ZOO_PERM_ADMIN)==ZOO_PERM_READ?"a":"");
+		info.push_back(string(line));
+	}
+}
+
+///输出节点的信息,一行一个信息项
+void ZkAdaptor::dumpStat(struct Stat const& stat, string& info)
+{
+	char szTmp[64];
+	char line[1024];
+	time_t timestamp;
+	CwxCommon::snprintf(line, 1024, "czxid:%s\n", CwxCommon::toString(stat.czxid, szTmp, 16));
+	info = line;
+	
+	CwxCommon::snprintf(line, 1024, "mzxid:%s\n", CwxCommon::toString(stat.mzxid, szTmp, 16));
+	info += line;
+	
+	timestamp = stat.ctime/1000;
+	CwxCommon::snprintf(line, 1024, "ctime:%d %s", (int)(stat.ctime%1000), ctime_r(&timestamp, szTmp));
+	info += line;
+	
+	timestamp = stat.mtime/1000;
+	CwxCommon::snprintf(line, 1024, "mtime:%d %s", (int)(stat.mtime%1000), ctime_r(&timestamp, szTmp));
+	info += line;
+
+	CwxCommon::snprintf(line, 1024, "version:%d\n", stat.version);
+	info += line;
+
+	CwxCommon::snprintf(line, 1024, "cversion:%d\n", stat.cversion);
+	info += line;
+
+	CwxCommon::snprintf(line, 1024, "aversion:%d\n", stat.aversion);
+	info += line;
+
+	CwxCommon::snprintf(line, 1024, "dataLength:%d\n", stat.dataLength);
+	info += line;
+
+	CwxCommon::snprintf(line, 1024, "numChildren:%d\n", stat.numChildren);
+	info += line;
+
+	CwxCommon::snprintf(line, 1024, "pzxid:%s\n", CwxCommon::toString(stat.pzxid, szTmp, 16));
+	info += line;
+}
