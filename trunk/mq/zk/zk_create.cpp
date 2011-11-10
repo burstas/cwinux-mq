@@ -6,7 +6,8 @@ using namespace cwinux;
 string g_strHost;
 string g_strNode;
 string g_strValue;
-string g_strAuth;
+list<string> g_auth;
+list<string>  g_priv;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
@@ -18,11 +19,17 @@ int parseArg(int argc, char**argv)
         {
         case 'h':
             printf("create zookeeper node.\n");
-			printf("%s  -H host:port -n node -d data -a usr:passwd\n", argv[0]);
+			printf("%s  -H host:port -n node -d data -a usr:passwd -l privilege\n", argv[0]);
 			printf("-H: zookeeper's host:port\n");
             printf("-n: node name to create, it's full path.\n");
 			printf("-d: value for node.\n");
-			printf("-a: user:passwd.\n");
+			printf("-a: auth user's user:passwd. it can be multi.\n");
+			printf("-l: node's acl. it can be multi. it's value can be:\n");
+			printf("    all               :  any privilege for any user;\n");
+            printf("    self              : any privilege for creator; \n");
+			printf("    read              : read for any user;\n");
+			printf("    user:passwd:acrwd : digest auth for [user] with [passwd], \n");
+			printf("          admin(a), create(c), read(r), write(w), delete(d)\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -55,7 +62,15 @@ int parseArg(int argc, char**argv)
 				printf("-a requires an argument.\n");
 				return -1;
 			}
-			g_strAuth = cmd_option.opt_arg();
+			g_auth.push_back(cmd_option.opt_arg());
+			break;
+		case 'l':
+			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
+			{
+				printf("-l requires an argument.\n");
+				return -1;
+			}
+			g_priv.push_back(cmd_option.opt_arg());
 			break;
         case ':':
             printf("%c requires an argument.\n", cmd_option.opt_opt ());
@@ -96,6 +111,7 @@ int main(int argc ,char** argv)
     if (-1 == iRet) return 1;
 
 	ZkJPoolAdaptor zk(g_strHost);
+
 	if (0 != zk.init()){
 		printf("Failure to init zk, err=%s\n", zk.getErrMsg());
 		return -1;
