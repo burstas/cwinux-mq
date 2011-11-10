@@ -283,6 +283,15 @@ public:
 	*/
 	static char* digest(char* input, int length);
 
+	/**
+	*@brief  根据priv形成acl。priv可以为all,self,read或者user:passwd:acrwd
+	*@param [in] priv 要签名的字符串,可以为all,self,read或者user:passwd:acrwd
+	*@param [in] acl  权限
+	*@return false:失败；true:成功
+	*/
+	static bool fillAcl(char const* priv, struct ACL& acl);
+
+
 	///输出权限信息，一个权限一个list的元素
 	static void dumpAcl(ACL_vector const& acl, list<string>& info);
 

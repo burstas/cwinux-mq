@@ -499,6 +499,63 @@ char* ZkAdaptor::digest(char* input, int length)
 	return base64(output, 20);
 }
 
+//可以为all,self,read或者user:passwd:acrwd
+bool ZkAdaptor::fillAcl(char const* priv, struct ACL& acl)
+{
+	if (!priv) return false;
+	if (strcmp("all", priv) == 0){
+		memcpy(&acl, &_OPEN_ACL_UNSAFE_ACL[0], sizeof(acl));
+		return true;
+	}else if (strcmp("self", priv) == 0){
+		memcpy(&acl, &_CREATOR_ALL_ACL_ACL[0], sizeof(acl));
+		return true;
+	}else if (strcmp("read", priv) == 0){
+		memcpy(&acl, &_READ_ACL_UNSAFE_ACL[0], sizeof(acl));
+		return true;
+	}
+	list<string> items;
+	string user;
+	string passwd;
+	string perms;
+	int i=0;
+	CwxCommon::split(string(priv), items, ':');
+	if (3 != items.size()) return false;
+	list<string>::iterator iter = items.begin();
+	user = *iter; iter++;
+	passwd = *iter; iter++;
+	perms = *iter;
+	acl.perms = 0;
+	while(perms[i])
+	{
+		switch(perms[i])
+		{
+		case 'a':
+			acl.perms|=ZOO_PERM_ADMIN;
+			break;
+		case 'r':
+			acl.perms|=ZOO_PERM_READ;
+			break;
+		case 'w':
+			acl.perms|=ZOO_PERM_WRITE;
+			break;
+		case 'c':
+			acl.perms|=ZOO_PERM_CREATE;
+			break;
+		case 'd':
+			acl.perms|=ZOO_PERM_DELETE;
+			break;
+		default:
+			return false;
+		}
+	}
+	acl.id.scheme = "digest";
+	char* id = digest(priv, user.length() + passwd.length() + 1);
+	user = user + ":" + id;
+	acl.id.id = strdup(user.c_str());
+	free(id);
+	return true;
+}
+
 ///输出权限信息，每行一个权限
 void ZkAdaptor::dumpAcl(ACL_vector const& acl, list<string>& info)
 {
@@ -506,14 +563,14 @@ void ZkAdaptor::dumpAcl(ACL_vector const& acl, list<string>& info)
 	info.clear();
 	for (int i=0; i<acl.count; i++)
 	{
-		CwxCommon::snprintf(line, 1024, "%s:%s:%s%s%s%s%s",
-			acl.data[i].id.scheme?acl.data[i].id.scheme:"",
-			acl.data[i].id.id?acl.data[i].id.id:"",
+		CwxCommon::snprintf(line, 1024, "%s%s%s%s%s:%s:%s",
 			(acl.data[i].perms&ZOO_PERM_READ)==ZOO_PERM_READ?"r":"",
 			(acl.data[i].perms&ZOO_PERM_WRITE)==ZOO_PERM_WRITE?"w":"",
 			(acl.data[i].perms&ZOO_PERM_CREATE)==ZOO_PERM_CREATE?"c":"",
 			(acl.data[i].perms&ZOO_PERM_DELETE)==ZOO_PERM_DELETE?"d":"",
-			(acl.data[i].perms&ZOO_PERM_ADMIN)==ZOO_PERM_READ?"a":"");
+			(acl.data[i].perms&ZOO_PERM_ADMIN)==ZOO_PERM_READ?"a":"",
+			acl.data[i].id.scheme?acl.data[i].id.scheme:"",
+			acl.data[i].id.id?acl.data[i].id.id:"");
 		info.push_back(string(line));
 	}
 }
