@@ -7,6 +7,9 @@
 #include "CwxStlFunc.h"
 #include "CwxCommon.h"
 #include "CwxTimeValue.h"
+#include <openssl/evp.h>
+#include <openssl/bio.h>
+#include <openssl/buffer.h>
 
 CWINUX_USING_NAMESPACE
 
@@ -172,6 +175,9 @@ public:
 	char const* getErrMsg() const { return m_szErr2K;}
 public:
 	static void sleep(CWX_UINT32 uiMiliSecond);
+	static char* base64(const unsigned char *input, int length);
+	static void sha1(char* input, int length, unsigned char *output);
+	static char* digest(char* input, int length);
 
 private:
 	static void watcher(zhandle_t *zzh, int type, int state, const char *path,
