@@ -283,6 +283,12 @@ public:
 	*/
 	static char* digest(char* input, int length);
 
+	///输出权限信息，一个权限一个list的元素
+	static void dumpAcl(ACL_vector const& acl, list<string>& info);
+
+	///输出节点的信息,一行一个信息项
+	static void dumpStat(struct Stat const& stat, string& info);
+
 private:
 	///内部的wacher function
 	static void watcher(zhandle_t *zzh, int type, int state, const char *path,
