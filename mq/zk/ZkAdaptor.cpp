@@ -4,6 +4,9 @@
 #include <iostream>
 #include <algorithm>
 #include <sys/select.h>
+#include <openssl/evp.h>
+#include <openssl/bio.h>
+#include <openssl/buffer.h>
 
 void ZkAdaptor::authCompletion(int rc, const void *data)
 {
@@ -15,27 +18,29 @@ void ZkAdaptor::authCompletion(int rc, const void *data)
 	}
 }
 
+
 ZkAdaptor::ZkAdaptor(string const& strHost, CWX_UINT32 uiRecvTimeout)
 {
 	m_strHost = strHost;
 	m_uiRecvTimeout = uiRecvTimeout;
+	m_iAuthState = AUTH_STATE_SUCCESS;
 	m_zkHandle = NULL;
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
 }
+
 
 ZkAdaptor::~ZkAdaptor()
 {
 	disconnect();
 }
 
+
 int ZkAdaptor::init(ZooLogLevel level)
 {
 	zoo_set_debug_level(level);
 	return 0;
 }
-
-
 
 
 void ZkAdaptor::watcher(zhandle_t *, int type, int state, const char *path,
@@ -69,11 +74,13 @@ void ZkAdaptor::watcher(zhandle_t *, int type, int state, const char *path,
 	adapter->onOtherEvent(type, state, path);
 }
 
+
 int ZkAdaptor::connect(const clientid_t *clientid, int flags)
 {
 	// Clear the connection state
 	disconnect();
 
+	m_iAuthState = AUTH_STATE_SUCCESS;
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
 
@@ -93,6 +100,7 @@ int ZkAdaptor::connect(const clientid_t *clientid, int flags)
 	return 0;
 }
 
+
 void ZkAdaptor::disconnect()
 {
 	if (m_zkHandle != NULL)
@@ -103,29 +111,36 @@ void ZkAdaptor::disconnect()
 }
 
 ///node创建事件
-void ZkAdaptor::onNodeCreated(int , char const* ){
+void ZkAdaptor::onNodeCreated(int , char const* )
+{
 }
+
 ///node删除事件
-void ZkAdaptor::onNodeDeleted(int , char const* ){
+void ZkAdaptor::onNodeDeleted(int , char const* )
+{
 }
+
 ///node修改事件
-void ZkAdaptor::onNodeChanged(int , char const* ){
+void ZkAdaptor::onNodeChanged(int , char const* )
+{
 }
+
 ///node child修改事件
-void ZkAdaptor::onNodeChildChanged(int , char const* ){
+void ZkAdaptor::onNodeChildChanged(int , char const* )
+{
 }
+
 ///node 不再watch事件
-void ZkAdaptor::onNoWatching(int , char const* ){
-
+void ZkAdaptor::onNoWatching(int , char const* )
+{
 }	
-
 
 void ZkAdaptor::onOtherEvent(int , int , const char *)
 {
-
 }
 
-bool ZkAdaptor::addAuth(const char* scheme, const char* cert, int certLen)
+
+bool ZkAdaptor::addAuth(const char* scheme, const char* cert, int certLen, CWX_UINT32 timeout)
 {
 	int rc;
 	m_iErrCode = 0;
@@ -141,21 +156,42 @@ bool ZkAdaptor::addAuth(const char* scheme, const char* cert, int certLen)
 	if (rc != ZOK) // check return status
 	{
 		m_iErrCode = rc;
-		CwxCommon::snprintf(m_szErr2K, 2047, "Error in auth , err-code:%d.", rc);
+		m_iAuthState = AUTH_STATE_FAIL;
+		CwxCommon::snprintf(m_szErr2K, 2047, "Error in auth , err:%s, err-code:%d.", zerror(rc), rc);
 		return false;
 	}
-	return true;
-
+	int delay=5;
+	while (timeout)
+	{
+		if (timeout < 5)
+		{
+			delay = timeout;
+		}
+		ZkAdaptor::sleep(delay);
+		timeout -= delay;
+		if (AUTH_STATE_WAITING == getAuthState())
+		{
+			continue;
+		}
+		else if (AUTH_STATE_FAIL == getAuthState())
+		{
+			strcpy(m_szErr2K, "failure to auth.");
+			return false;
+		}
+		return true;
+	}
+	strcpy(m_szErr2K, "add auth timeout.");
+	return false;
 }
 
 
-bool ZkAdaptor::createNode(const string &path, 
-								  char const* buf,
-								  CWX_UINT32 uiBufLen,
-								  CWX_UINT32 perms,
-								  string     schema,
-								  string	   id,
-								  int flags)
+int ZkAdaptor::createNode(const string &path, 
+						   char const* data,
+						   CWX_UINT32 dataLen,
+						   const struct ACL_vector *acl,
+						   int flags,
+						   char* pathBuf,
+						   CWX_UINT32 pathBufLen)
 {
 	const int MAX_PATH_LENGTH = 2048;
 	char realPath[MAX_PATH_LENGTH];
@@ -163,22 +199,23 @@ bool ZkAdaptor::createNode(const string &path,
 	int rc;
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
-	if (!validatePath(path)) return false;
 
 	if (!isConnected())
 	{
 		strcpy(m_szErr2K, "No connect");
-		return false;
+		return -1;
 	}
-	ACL_vector aclv;
-	struct ACL acl={perms, {(char*)schema.c_str(), (char*)id.c_str()}};
-	aclv.count = 1;
-	aclv.data = &acl;
+
+	if (!pathBuf)
+	{
+		pathBuf = realPath;
+		pathBufLen = MAX_PATH_LENGTH;
+	}
 	rc = zoo_create( m_zkHandle, 
 		path.c_str(), 
-		buf,
-		uiBufLen,
-		schema.length()?&aclv:&ZOO_OPEN_ACL_UNSAFE,
+		data,
+		dataLen,
+		acl?acl:&ZOO_OPEN_ACL_UNSAFE,
 		flags,
 		realPath,
 		MAX_PATH_LENGTH);
@@ -186,37 +223,25 @@ bool ZkAdaptor::createNode(const string &path,
 	if (rc != ZOK) // check return status
 	{
 		m_iErrCode = rc;
-		if (rc == ZNODEEXISTS)
-		{
-			//the node already exists
-			CwxCommon::snprintf(m_szErr2K, 2047, "ZK node [%s] already exists.", path.c_str());
-		}
-		else if (rc == ZNONODE)
-		{
-			//the node not exists
-			CwxCommon::snprintf(m_szErr2K, 2047, "ZK node [%s] doesn't exist.", path.c_str());
-		}
-		else
-		{
-			CwxCommon::snprintf(m_szErr2K, 2047, "Error in creating ZK node [%s], err-code:%d.", path.c_str(), rc);
-		}
-		return false;
+		if (ZNODEEXISTS == rc) return 0;
+		CwxCommon::snprintf(m_szErr2K, 2047, "Error in creating ZK node [%s], err:%s err-code:%d.", path.c_str(), zerror(rc), rc);
+		return -1;
 	}
-	return true;
+	return 1;
 }
 
-bool ZkAdaptor::deleteNode(const string &path,
+
+int ZkAdaptor::deleteNode(const string &path,
 						   bool recursive,
 						   int version)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
-	// Validate the zk path
-	if (!validatePath(path)) return false;
+	
 	if (!isConnected())
 	{
 		strcpy(m_szErr2K, "No connect");
-		return false;
+		return -1;
 	}
 
 	int rc;
@@ -225,59 +250,52 @@ bool ZkAdaptor::deleteNode(const string &path,
 	if (rc != ZOK) //check return status
 	{
 		m_iErrCode = rc;
-		if (rc == ZNONODE)
+		if (ZNONODE == rc) return 0;
+		if ((rc == ZNOTEMPTY) && recursive)
 		{
-			CwxCommon::snprintf(m_szErr2K, 2047, "ZK Node [%s] doesn't exist.", path.c_str());
-		}
-		else if (rc == ZNOTEMPTY)
-		{
-			if (recursive)
+			list<string> childs;
+			if (!getNodeChildren(path, childs)) return false;
+			string strPath;
+			list<string>::iterator iter=childs.begin();
+			while(iter != childs.end())
 			{
-				list<string> childs;
-				if (!getNodeChildren(path, childs)) return false;
-				string strPath;
-				list<string>::iterator iter=childs.begin();
-				while(iter != childs.end())
-				{
-					strPath = path + "/" + *iter;
-					if (!deleteNode(strPath, true)) return false;
-					iter++;
-				}
-				return deleteNode(path);
+				strPath = path + "/" + *iter;
+				if (!deleteNode(strPath, true)) return false;
+				iter++;
 			}
-			CwxCommon::snprintf(m_szErr2K, 2047, "ZK Node [%s] not empty", path.c_str());
+			return deleteNode(path);
 		}
-		else
-		{
-			CwxCommon::snprintf(m_szErr2K, 2047, "Unable to delete zk node [%s], err-code=%d", path.c_str(), rc);
-		}
-		return false;
+		CwxCommon::snprintf(m_szErr2K, 2047, "Unable to delete zk node [%s], err:%s  err-code=%d", path.c_str(), zerror(rc), rc);
+		return -1;
 	}
-	return true;
+	return 1;
 }
 
-bool ZkAdaptor::getNodeChildren( const string &path, list<string>& childs)
+
+int ZkAdaptor::getNodeChildren( const string &path, list<string>& childs, , int watch)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
-	// Validate the zk path
-	if (!validatePath(path)) return false;
+
 	if (!isConnected())
 	{
 		strcpy(m_szErr2K, "No connect");
-		return false;
+		return -1;
 	}
+
 	String_vector children;
 	memset( &children, 0, sizeof(children) );
 	int rc;
 	rc = zoo_get_children( m_zkHandle,
 		path.c_str(), 
-		0,
+		watch,
 		&children );
+
 	if (rc != ZOK) // check return code
 	{
 		m_iErrCode = rc;
-		CwxCommon::snprintf(m_szErr2K, 2047, "Failure to get node [%s] child, err-code=%d", path.c_str(), rc);
+		if (rc == ZNONODE) return 0;
+		CwxCommon::snprintf(m_szErr2K, 2047, "Failure to get node [%s] child, err:%s err-code:%d", path.c_str(), zerror(rc), rc);
 		return false;
 	}
 	childs.clear();
@@ -288,42 +306,38 @@ bool ZkAdaptor::getNodeChildren( const string &path, list<string>& childs)
 	return true;
 }
 
-int ZkAdaptor::nodeExists(const string &path)
+int ZkAdaptor::nodeExists(const string &path, struct Stat& stat, int watch)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
-	// Validate the zk path
-	if (!validatePath(path)) return -1;
+
 	if (!isConnected())
 	{
 		strcpy(m_szErr2K, "No connect");
 		return -1;
 	}
 
-	struct Stat tmpStat;
-	struct Stat* stat = &tmpStat;
-	memset( stat, 0, sizeof(Stat) );
+	memset(&stat, 0, sizeof(stat) );
 	int rc;
 	rc = zoo_exists( m_zkHandle,
 		path.c_str(),
-		0,
-		stat);
+		watch,
+		&stat);
 	if (rc != ZOK)
 	{
 		if (rc == ZNONODE) return 0;
 		m_iErrCode = rc;
-		CwxCommon::snprintf(m_szErr2K, 2047, "Error in checking existance of [%s], err-code=%d", path.c_str(), rc);
+		CwxCommon::snprintf(m_szErr2K, 2047, "Error in checking existance of [%s], err:%s err-code:%d", path.c_str(), zerror(rc), rc);
 		return -1;
 	}
 	return 1;
 }
 
-int ZkAdaptor::getNodeData(const string &path, char* buf, CWX_UINT32& uiBufLen, struct Stat& stat)
+int ZkAdaptor::getNodeData(const string &path, char* data, CWX_UINT32& dataLen, struct Stat& stat, int watch)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
-	// Validate the zk path
-	if (!validatePath(path)) return -1;
+
 	if (!isConnected())
 	{
 		strcpy(m_szErr2K, "No connect");
@@ -333,81 +347,121 @@ int ZkAdaptor::getNodeData(const string &path, char* buf, CWX_UINT32& uiBufLen, 
 	memset(&stat, 0, sizeof(stat) );
 
 	int rc = 0;
-	int len = uiBufLen;
+	int len = dataLen;
 	rc = zoo_get( m_zkHandle,
 		path.c_str(),
-		0,
-		buf, &len, &stat);
+		watch,
+		data,
+		&len,
+		&stat);
 	if (rc != ZOK) // checl return code
 	{
 		m_iErrCode = rc;
 		if (rc == ZNONODE) return 0;
-		CwxCommon::snprintf(m_szErr2K, 2047, "Error in fetching value of [%s], err-code=%d", path.c_str(), rc);
+		CwxCommon::snprintf(m_szErr2K, 2047, "Error in fetching value of [%s], err:%s err-code:%d", path.c_str(), zerror(rc), rc);
 		return -1;
 	}
-	uiBufLen = len;
-	buf[len] = 0x00;
+	dataLen = len;
+	data[len] = 0x00;
 	return 1;
 }
 
 
-int ZkAdaptor::setNodeData(const string &path, char const* buf, CWX_UINT32 uiBufLen, int version)
+int ZkAdaptor::setNodeData(const string &path, char const* data, CWX_UINT32 dataLen, int version)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
-	// Validate the zk path
-	if (!validatePath(path)) return -1;
+
 	if (!isConnected())
 	{
 		strcpy(m_szErr2K, "No connect");
 		return -1;
 	}
+
 	int rc;
 	rc = zoo_set( m_zkHandle,
 		path.c_str(),
-		buf,
-		uiBufLen,
+		data,
+		dataLen,
 		version);
+
 	if (rc != ZOK) // check return code
 	{
 		m_iErrCode = rc;
 		if (rc == ZNONODE) return 0;
-		CwxCommon::snprintf(m_szErr2K, 2047, "Error in set value of [%s], err-code=%d", path.c_str(), rc);
+		
+		CwxCommon::snprintf(m_szErr2K, 2047, "Error in set value of [%s], err:%s err-code:%d", path.c_str(), zerror(rc), rc);
 		return -1;
 	}
 	// success
 	return 1;
 }
 
-bool ZkAdaptor::validatePath(const string &path)
+int ZkAdaptor::getAcl(const char *path, struct ACL_vector& acl, struct Stat& stat)
 {
 	m_iErrCode = 0;
-	if (path.find ("/") != 0)
+	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
+
+	if (!isConnected())
 	{
-		CwxCommon::snprintf(m_szErr2K, 2047, "Node path must start with '/' but it was '%s'", path.c_str());
-		return false;
+		strcpy(m_szErr2K, "No connect");
+		return -1;
 	}
-	if (path.length() > 1)
+
+	int rc;
+	memset(&stat, 0x00, sizeof(stat));
+	rc = zoo_get_acl( m_zkHandle,
+		path.c_str(),
+		&acl,
+		&stat);
+
+	if (rc != ZOK) // check return code
 	{
-		if (path.rfind ("/") == path.length() - 1)
-		{
-			CwxCommon::snprintf(m_szErr2K, 2047, "Node path must not end with '/' but it was '%s'", path.c_str());
-			return false;
-		}
-		if (path.find( "//" ) != string::npos)
-		{
-			CwxCommon::snprintf(m_szErr2K, 2047, "Node path must not contain '//',  but it was '%s'", path.c_str());
-			return false;
-		}
+		m_iErrCode = rc;
+		if (rc == ZNONODE) return 0;
+
+		CwxCommon::snprintf(m_szErr2K, 2047, "Error in get acl for [%s], err:%s err-code:%d", path.c_str(), zerror(rc), rc);
+		return -1;
 	}
-	return true;
+	// success
+	return 1;
 }
 
-void ZkAdaptor::sleep(CWX_UINT32 uiMiliSecond)
+int ZkAdaptor::setAcl(const char *path, const struct ACL_vector *acl, int version)
+{
+	m_iErrCode = 0;
+	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
+
+	if (!isConnected())
+	{
+		strcpy(m_szErr2K, "No connect");
+		return -1;
+	}
+
+	int rc;
+	rc = zoo_set_acl( m_zkHandle,
+		path.c_str(),
+		version,
+		acl?acl:&ZOO_OPEN_ACL_UNSAFE);
+
+	if (rc != ZOK) // check return code
+	{
+		m_iErrCode = rc;
+		if (rc == ZNONODE) return 0;
+
+		CwxCommon::snprintf(m_szErr2K, 2047, "Error in set acl for [%s], err:%s err-code:%d", path.c_str(), zerror(rc), rc);
+		return -1;
+	}
+	// success
+	return 1;
+}
+
+
+void ZkAdaptor::sleep(CWX_UINT32 miliSecond)
 {
 	struct timeval tv;
-	tv.tv_sec = uiMiliSecond/1000;
-	tv.tv_usec = (uiMiliSecond%1000)*1000;
+	tv.tv_sec = miliSecond/1000;
+	tv.tv_usec = (miliSecond%1000)*1000;
 	select(1, NULL, NULL, NULL, &tv);
 }
 
