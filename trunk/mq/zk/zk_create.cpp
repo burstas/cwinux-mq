@@ -244,9 +244,14 @@ int main(int argc ,char** argv)
 		if (g_sequence) flags |= ZOO_SEQUENCE;
 		if (g_ephemeral) flags |= ZOO_EPHEMERAL;
 		char path[2048];
-		if (!zk.createNode(g_strNode, g_strValue.c_str(), g_strValue.length(), pacl, flags, path, 2048))
-		{
+		int ret = zk.createNode(g_strNode, g_strValue.c_str(), g_strValue.length(), pacl, flags, path, 2048);
+		if (-1 == ret){
 			output(outFd, 2, "msg:  Failure to create node, err=%s\n", zk.getErrMsg());
+			if (outFd) fclose(outFd);
+			return 2;
+		}
+		if (0 == ret){
+			output(outFd, 2, NULL, "msg:  node exists\n");
 			if (outFd) fclose(outFd);
 			return 2;
 		}

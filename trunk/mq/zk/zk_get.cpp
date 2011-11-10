@@ -6,10 +6,13 @@ using namespace cwinux;
 string g_strHost;
 string g_strNode;
 string g_strAuth;
+list<string> g_auth;
+string g_strOut;
+
 ///-1：失败；0：help；1：成功
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:n:a:h");
+	CwxGetOpt cmd_option(argc, argv, "H:n:a:o:f:h");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
@@ -20,7 +23,8 @@ int parseArg(int argc, char**argv)
 			printf("%s  -H host:port -n node -a usr:passwd \n", argv[0]);
 			printf("-H: zookeeper's host:port\n");
             printf("-n: node name to create, it's full path.\n");
-			printf("-a: user:passwd.\n");
+			printf("-a: auth user's user:passwd. it can be multi.\n");
+			printf("-o: output file, default is stdout\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -45,7 +49,15 @@ int parseArg(int argc, char**argv)
 				printf("-a requires an argument.\n");
 				return -1;
 			}
-			g_strAuth = cmd_option.opt_arg();
+			g_auth.push_back(cmd_option.opt_arg());
+			break;
+		case 'o':
+			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
+			{
+				printf("-o requires an argument.\n");
+				return -1;
+			}
+			g_strOut = cmd_option.opt_arg();
 			break;
         case ':':
             printf("%c requires an argument.\n", cmd_option.opt_opt ());
@@ -78,26 +90,62 @@ int parseArg(int argc, char**argv)
     return 1;
 }
 
+void output(FILE* fd, int result, char* format, char* msg)
+{
+	if (fd)
+	{
+		fprintf(fd, "ret:  %d\n", result);
+		if (format)
+			fprintf(fd, format, msg);
+		else
+			fprintf(fd, msg);
+	}
+	else
+	{
+		printf("ret:  %d\n", result);
+		if (format)
+			printf(format, msg);
+		else
+			printf(msg);
+	}
+}
+
+
+//0:success
+//1:参数错误
+//2:执行结果错误
 int main(int argc ,char** argv)
 {
+	FILE * outFd = NULL;
     int iRet = parseArg(argc, argv);
 
     if (0 == iRet) return 0;
     if (-1 == iRet) return 1;
 
+	if (g_strOut.length())
+	{
+		outFd = fopen(g_strOut.c_str(), "w+b");
+		if (!outFd){
+			printf("Failure to open output file:%s, errno=%d\n", g_strOut.c_str(), errno);
+			return 1;
+		}
+	}
+
 	ZkJPoolAdaptor zk(g_strHost);
 	if (0 != zk.init()){
-		printf("Failure to init zk, err=%s\n", zk.getErrMsg());
-		return -1;
+		output(outFd, 2, "msg:  Failure to init zk, err=%s\n", zk.getErrMsg());
+		if (outFd) fclose(outFd);
+		return 2;
 	}
 	if (0 != zk.connect())
 	{
-		printf("Failure to connect zk, err=%s\n", zk.getErrMsg());
-		return -1;
+		output(outFd, 2, "msg:  Failure to connect zk, err=%s\n", zk.getErrMsg());
+		if (outFd) fclose(outFd);
+		return 2;
 	}
 	
 	int timeout = 5000;
-	CWX_UINT32 uiBufLen = 1024 * 1024;
+	CWX_UINT32 uiBufLen = 4 * 1024 * 1024;
 	char szBuf[uiBufLen + 1];
 	struct Stat stat;
 	while(timeout > 0){
@@ -106,51 +154,53 @@ int main(int argc ,char** argv)
 			ZkAdaptor::sleep(1);
 			continue;
 		}
-		if (g_strAuth.length()){
-			if (!zk.addAuth("digest", g_strAuth.c_str(), g_strAuth.length())){
-				printf("Failure to auth, err=%s\n", zk.getErrMsg());
-				return 1;
+
+		//add auth
+		if (g_auth.size())
+		{
+			list<string>::iterator iter = g_auth.begin();
+			while(iter != g_auth.end())
+			{
+				if (!zk.addAuth("digest", *iter, iter->length(), 3000))
+				{
+					output(outFd, 2, "msg:  Failure to auth, err=%s\n", zk.getErrMsg());
+					if (outFd) fclose(outFd);
+					return 2;
+				}
+				iter++;
 			}
 		}
-		do{
-			if (ZkAdaptor::AUTH_STATE_WAITING == zk.getAuthState())
-			{
-				sleep(1);
-				continue;
-			}
-			if (ZkAdaptor::AUTH_STATE_FAIL == zk.getAuthState()){
-				printf("Failure to auth, err=%s\n", zk.getErrMsg());
-				return 1;
-			}
-			break;
-		}while(1);
+
+		struct Stat stat;
 		int ret = zk.getNodeData(g_strNode, szBuf, uiBufLen, stat);
 		if (0 == ret){
-			printf("Not exist\n");
-			return 0;
+			output(outFd, 2, NULL, "msg:  node doesnt' exist\n");
+			if (outFd) fclose(outFd);
+			return 2;
 		}
 		if (-1 == ret){
-			printf("Failure to get node, err=%s\n", zk.getErrMsg());
-			return 1;
+			output(outFd, 2, NULL, "msg:  Failure to get node, err=%s\n", zk.getErrMsg());
+			if (outFd) fclose(outFd);
+			return 2;
 		}
-		char szTmp[64];
-		time_t timestamp;
-		printf("Success to get node for %s\n", g_strNode.c_str());
-		printf("data:%s\n", szBuf);
-		printf("czxid:%s\n", CwxCommon::toString(stat.czxid, szTmp, 16));
-		printf("mzxid:%s\n", CwxCommon::toString(stat.mzxid, szTmp, 16));
-		timestamp = stat.ctime/1000;
-		printf("ctime:%d %s", (int)stat.ctime%1000, ctime_r(&timestamp, szTmp));
-		timestamp = stat.mtime/1000;
-		printf("mtime:%d %s", (int)stat.mtime%1000, ctime_r(&timestamp, szTmp));
-		printf("version:%d\n", stat.version);
-		printf("cversion:%d\n", stat.cversion);
-		printf("aversion:%d\n", stat.aversion);
-		printf("dataLength:%d\n", stat.dataLength);
-		printf("numChildren:%d\n", stat.numChildren);
-		printf("pzxid:%s\n", CwxCommon::toString(stat.pzxid, szTmp, 16));
+		output(outFd, 0, "node:  %s\nmsg:  success\n", g_strNode.c_str());
+		string info;
+		ZkAdaptor::dumpStat(stat, info);
+		if (outFd){
+			fprintf(outFd, "stat:\n");
+			fwrite(info.c_str(), 1, info.length(), outFd);
+			fprintf(outFd, "data:\n");
+			fwrite(szBuf, 1, uiBufLen, outFd);
+			fclose(outFd);
+		}else{
+			printf("stat:\n");
+			printf(info.c_str());
+			printf("data:\n");
+			printf(szBuf);
+		}
 		return 0;
 	}
-	printf("Timeout for connect zk:%s\n", g_strHost.c_str());
-    return 1;
+	output(outFd, 2, NULL, "msg:  Timeout to connect zk\n");
+	if (outFd) fclose(outFd);
+	return 2;
 }
