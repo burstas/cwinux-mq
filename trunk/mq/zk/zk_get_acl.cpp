@@ -161,7 +161,7 @@ int main(int argc ,char** argv)
 		list<string> acls;
 		string strStat;
 		ZkAdaptor::dumpStat(stat, strStat);
-		ZkAdaptor::dumpAcl(acl, acls)
+		ZkAdaptor::dumpAcl(acl, acls);
 		if (outFd){
 			fprintf(outFd, "stat:\n");
 			fwrite(info.c_str(), 1, info.length(), outFd);
