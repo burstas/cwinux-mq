@@ -164,7 +164,7 @@ int main(int argc ,char** argv)
 		ZkAdaptor::dumpAcl(acl, acls);
 		if (outFd){
 			fprintf(outFd, "stat:\n");
-			fwrite(info.c_str(), 1, info.length(), outFd);
+			fwrite(strStat.c_str(), 1, strStat.length(), outFd);
 			fprintf(outFd, "acl:\n");
 			list<string>::iterator iter = acls.begin();
 			while(iter != acls.end())
@@ -175,7 +175,7 @@ int main(int argc ,char** argv)
 			fclose(outFd);
 		}else{
 			printf("stat:\n");
-			printf(info.c_str());
+			printf(strStat.c_str());
 			printf("acl:\n");
 			list<string>::iterator iter = acls.begin();
 			while(iter != acls.end())
