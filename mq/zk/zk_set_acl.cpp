@@ -5,29 +5,24 @@ using namespace cwinux;
 
 string g_strHost;
 string g_strNode;
-string g_strValue;
 string g_strOut;
-string g_strFile;
-bool   g_ephemeral = false;
-bool   g_sequence = false;
 list<string> g_auth;
 list<string>  g_priv;
+int g_verion = -1;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:n:d:f:a:o:l:esh");
+	CwxGetOpt cmd_option(argc, argv, "H:n:a:o:l:h");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
         switch (option)
         {
         case 'h':
-            printf("create zookeeper node.\n");
-			printf("%s  -H host:port -n node [-d data] [-f data file] [-o output file] [-a usr:passwd] [-l privilege]\n", argv[0]);
+            printf("set zookeeper node's acl.\n");
+			printf("%s  -H host:port -n node [-o output file] [-a usr:passwd] [-l privilege] [-v version]\n", argv[0]);
 			printf("-H: zookeeper's host:port\n");
             printf("-n: node name to create, it's full path.\n");
-			printf("-d: value for node.\n");
-			printf("-f: data's file. -d is used if it exists\n");
 			printf("-a: auth user's user:passwd. it can be multi.\n");
 			printf("-l: node's acl. it can be multi. it's value can be:\n");
 			printf("    all               :  any privilege for any user;\n");
@@ -36,8 +31,7 @@ int parseArg(int argc, char**argv)
 			printf("    user:passwd:acrwd : digest auth for [user] with [passwd], \n");
 			printf("          admin(a), create(c), read(r), write(w), delete(d)\n");
 			printf("-o: output file, default is stdout\n");
-			printf("-e: node is EPHEMERAL node\n");
-			printf("-s: node is SEQUENCE node\n");
+			printf("-v: node's version\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -56,22 +50,6 @@ int parseArg(int argc, char**argv)
             }
             g_strNode = cmd_option.opt_arg();
             break;
-		case 'd':
-			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-			{
-				printf("-d requires an argument.\n");
-				return -1;
-			}
-			g_strValue = cmd_option.opt_arg();
-			break;
-		case 'f':
-			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-			{
-				printf("-f requires an argument.\n");
-				return -1;
-			}
-			g_strFile = cmd_option.opt_arg();
-			break;
 		case 'a':
 			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
 			{
@@ -96,11 +74,13 @@ int parseArg(int argc, char**argv)
 			}
 			g_strOut = cmd_option.opt_arg();
 			break;
-		case 'e':
-			g_ephemeral = true;
-			break;
-		case 's':
-			g_sequence = true;
+		case 'v':
+			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
+			{
+				printf("-v requires an argument.\n");
+				return -1;
+			}
+			g_verion = atoi(cmd_option.opt_arg());
 			break;
         case ':':
             printf("%c requires an argument.\n", cmd_option.opt_opt ());
@@ -129,16 +109,6 @@ int parseArg(int argc, char**argv)
 	{
 		printf("No node, set by -n\n");
 		return -1;
-	}
-	if (!g_strValue.length())
-	{
-		if (g_strFile.length())
-		{
-			if (!CwxFile::readTxtFile(g_strFile, g_strValue)){
-				printf("Failure to read file:%s, errno=%d\n", g_strFile.c_str(), errno);
-				return -1;
-			}
-		}
 	}
     return 1;
 }
@@ -242,22 +212,18 @@ int main(int argc ,char** argv)
 			}
 			pacl = &acl;
 		}
-		int flags = 0;
-		if (g_sequence) flags |= ZOO_SEQUENCE;
-		if (g_ephemeral) flags |= ZOO_EPHEMERAL;
-		char path[2048];
-		int ret = zk.createNode(g_strNode, g_strValue.c_str(), g_strValue.length(), pacl, flags, path, 2048);
+		int ret = zk.setAcl(g_strNode, pacl, g_verion);
 		if (-1 == ret){
-			output(outFd, 2, zk.getErrCode(), "msg:  Failure to create node, err=%s\n", zk.getErrMsg());
+			output(outFd, 2, zk.getErrCode(), "msg:  Failure to set node acl, err=%s\n", zk.getErrMsg());
 			if (outFd) fclose(outFd);
 			return 2;
 		}
 		if (0 == ret){
-			output(outFd, 2, zk.getErrCode(), NULL, "msg:  node exists\n");
+			output(outFd, 2, zk.getErrCode(), NULL, "msg: node doesn't exist\n");
 			if (outFd) fclose(outFd);
 			return 2;
 		}
-		output(outFd, 0, 0, "node:  %s\nmsg:  success\n", !g_sequence?g_strNode.c_str():path);
+		output(outFd, 0, 0, "node:  %s\nmsg:  success\n", g_strNode.c_str());
 		if (outFd) fclose(outFd);
 		return 0;
 	}

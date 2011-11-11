@@ -17,7 +17,7 @@ int parseArg(int argc, char**argv)
         switch (option)
         {
         case 'h':
-            printf("create zookeeper node.\n");
+            printf("get zookeeper node's child.\n");
 			printf("%s  -H host:port -n node [-a usr:passwd] [-o output file]\n", argv[0]);
 			printf("-H: zookeeper's host:port\n");
             printf("-n: node name to create, it's full path.\n");
