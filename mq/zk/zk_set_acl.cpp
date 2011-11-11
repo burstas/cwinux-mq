@@ -189,7 +189,7 @@ int main(int argc ,char** argv)
 			}
 			pacl = &acl;
 		}
-		int ret = zk.setAcl(g_strNode, pacl, g_verion);
+		int ret = zk.setAcl(g_strNode.c_str(), pacl, g_verion);
 		if (-1 == ret){
 			output(outFd, 2, zk.getErrCode(), "msg:  Failure to set node acl, err=%s\n", zk.getErrMsg());
 			if (outFd) fclose(outFd);
