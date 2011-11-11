@@ -256,7 +256,7 @@ int main(int argc ,char** argv)
 					if (outFd) fclose(outFd);
 					return 2;
 				}
-				output(outFd, 0, 0, "msg:  success\n");
+				output(outFd, 0, 0, NULL, "msg:  success\n");
 			}
 			if (outFd){
 				fprintf(outFd, "%s:%s\n", !g_sequence?g_strNode.c_str():path, (0==ret)?"exist":(1==ret)?"success":"failure");
