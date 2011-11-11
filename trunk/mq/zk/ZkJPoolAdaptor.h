@@ -8,7 +8,7 @@ class ZkJPoolAdaptor:public ZkAdaptor
 public:
 	///构造函数
 	ZkJPoolAdaptor(string const& strHost,
-		CWX_UINT32 uiRecvTimeout=ZK_DEF_RECV_TIMEOUT_MILISECOND);
+		uint32_t uiRecvTimeout=ZK_DEF_RECV_TIMEOUT_MILISECOND);
 	///析构函数
 	virtual ~ZkJPoolAdaptor(); 
 	///连接建立的回调函数，有底层的zk线程调用

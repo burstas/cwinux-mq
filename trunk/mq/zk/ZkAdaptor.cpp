@@ -21,7 +21,7 @@ void ZkAdaptor::authCompletion(int rc, const void *data)
 }
 
 
-ZkAdaptor::ZkAdaptor(string const& strHost, CWX_UINT32 uiRecvTimeout)
+ZkAdaptor::ZkAdaptor(string const& strHost, uint32_t uiRecvTimeout)
 {
 	m_strHost = strHost;
 	m_uiRecvTimeout = uiRecvTimeout;
@@ -96,7 +96,7 @@ int ZkAdaptor::connect(const clientid_t *clientid, int flags)
 
 	if (m_zkHandle == NULL)
 	{
-		CwxCommon::snprintf(m_szErr2K, 2047, "Unable to connect to ZK running at '%s'", m_strHost.c_str());
+		snprintf(m_szErr2K, 2047, "Unable to connect to ZK running at '%s'", m_strHost.c_str());
 		return -1;
 	}
 	return 0;
@@ -142,7 +142,7 @@ void ZkAdaptor::onOtherEvent(int , int , const char *)
 }
 
 
-bool ZkAdaptor::addAuth(const char* scheme, const char* cert, int certLen, CWX_UINT32 timeout)
+bool ZkAdaptor::addAuth(const char* scheme, const char* cert, int certLen, uint32_t timeout)
 {
 	int rc;
 	m_iErrCode = 0;
@@ -159,7 +159,7 @@ bool ZkAdaptor::addAuth(const char* scheme, const char* cert, int certLen, CWX_U
 	{
 		m_iErrCode = rc;
 		m_iAuthState = AUTH_STATE_FAIL;
-		CwxCommon::snprintf(m_szErr2K, 2047, "Error in auth , err:%s, err-code:%d.", zerror(rc), rc);
+		snprintf(m_szErr2K, 2047, "Error in auth , err:%s, err-code:%d.", zerror(rc), rc);
 		return false;
 	}
 	int delay=5;
@@ -189,11 +189,11 @@ bool ZkAdaptor::addAuth(const char* scheme, const char* cert, int certLen, CWX_U
 
 int ZkAdaptor::createNode(const string &path, 
 						   char const* data,
-						   CWX_UINT32 dataLen,
+						   uint32_t dataLen,
 						   const struct ACL_vector *acl,
 						   int flags,
 						   char* pathBuf,
-						   CWX_UINT32 pathBufLen)
+						   uint32_t pathBufLen)
 {
 	const int MAX_PATH_LENGTH = 2048;
 	char realPath[MAX_PATH_LENGTH];
@@ -226,7 +226,7 @@ int ZkAdaptor::createNode(const string &path,
 	{
 		m_iErrCode = rc;
 		if (ZNODEEXISTS == rc) return 0;
-		CwxCommon::snprintf(m_szErr2K, 2047, "Error in creating ZK node [%s], err:%s err-code:%d.", path.c_str(), zerror(rc), rc);
+		snprintf(m_szErr2K, 2047, "Error in creating ZK node [%s], err:%s err-code:%d.", path.c_str(), zerror(rc), rc);
 		return -1;
 	}
 	return 1;
@@ -267,7 +267,7 @@ int ZkAdaptor::deleteNode(const string &path,
 			}
 			return deleteNode(path);
 		}
-		CwxCommon::snprintf(m_szErr2K, 2047, "Unable to delete zk node [%s], err:%s  err-code=%d", path.c_str(), zerror(rc), rc);
+		snprintf(m_szErr2K, 2047, "Unable to delete zk node [%s], err:%s  err-code=%d", path.c_str(), zerror(rc), rc);
 		return -1;
 	}
 	return 1;
@@ -297,7 +297,7 @@ int ZkAdaptor::getNodeChildren( const string &path, list<string>& childs, int wa
 	{
 		m_iErrCode = rc;
 		if (rc == ZNONODE) return 0;
-		CwxCommon::snprintf(m_szErr2K, 2047, "Failure to get node [%s] child, err:%s err-code:%d", path.c_str(), zerror(rc), rc);
+		snprintf(m_szErr2K, 2047, "Failure to get node [%s] child, err:%s err-code:%d", path.c_str(), zerror(rc), rc);
 		return -1;
 	}
 	childs.clear();
@@ -329,13 +329,13 @@ int ZkAdaptor::nodeExists(const string &path, struct Stat& stat, int watch)
 	{
 		if (rc == ZNONODE) return 0;
 		m_iErrCode = rc;
-		CwxCommon::snprintf(m_szErr2K, 2047, "Error in checking existance of [%s], err:%s err-code:%d", path.c_str(), zerror(rc), rc);
+		snprintf(m_szErr2K, 2047, "Error in checking existance of [%s], err:%s err-code:%d", path.c_str(), zerror(rc), rc);
 		return -1;
 	}
 	return 1;
 }
 
-int ZkAdaptor::getNodeData(const string &path, char* data, CWX_UINT32& dataLen, struct Stat& stat, int watch)
+int ZkAdaptor::getNodeData(const string &path, char* data, uint32_t& dataLen, struct Stat& stat, int watch)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
@@ -360,7 +360,7 @@ int ZkAdaptor::getNodeData(const string &path, char* data, CWX_UINT32& dataLen, 
 	{
 		m_iErrCode = rc;
 		if (rc == ZNONODE) return 0;
-		CwxCommon::snprintf(m_szErr2K, 2047, "Error in fetching value of [%s], err:%s err-code:%d", path.c_str(), zerror(rc), rc);
+		snprintf(m_szErr2K, 2047, "Error in fetching value of [%s], err:%s err-code:%d", path.c_str(), zerror(rc), rc);
 		return -1;
 	}
 	dataLen = len;
@@ -369,7 +369,7 @@ int ZkAdaptor::getNodeData(const string &path, char* data, CWX_UINT32& dataLen, 
 }
 
 
-int ZkAdaptor::setNodeData(const string &path, char const* data, CWX_UINT32 dataLen, int version)
+int ZkAdaptor::setNodeData(const string &path, char const* data, uint32_t dataLen, int version)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
@@ -392,7 +392,7 @@ int ZkAdaptor::setNodeData(const string &path, char const* data, CWX_UINT32 data
 		m_iErrCode = rc;
 		if (rc == ZNONODE) return 0;
 		
-		CwxCommon::snprintf(m_szErr2K, 2047, "Error in set value of [%s], err:%s err-code:%d", path.c_str(), zerror(rc), rc);
+		snprintf(m_szErr2K, 2047, "Error in set value of [%s], err:%s err-code:%d", path.c_str(), zerror(rc), rc);
 		return -1;
 	}
 	// success
@@ -422,7 +422,7 @@ int ZkAdaptor::getAcl(const char *path, struct ACL_vector& acl, struct Stat& sta
 		m_iErrCode = rc;
 		if (rc == ZNONODE) return 0;
 
-		CwxCommon::snprintf(m_szErr2K, 2047, "Error in get acl for [%s], err:%s err-code:%d", path, zerror(rc), rc);
+		snprintf(m_szErr2K, 2047, "Error in get acl for [%s], err:%s err-code:%d", path, zerror(rc), rc);
 		return -1;
 	}
 	// success
@@ -451,7 +451,7 @@ int ZkAdaptor::setAcl(const char *path, const struct ACL_vector *acl, int versio
 		m_iErrCode = rc;
 		if (rc == ZNONODE) return 0;
 
-		CwxCommon::snprintf(m_szErr2K, 2047, "Error in set acl for [%s], err:%s err-code:%d", path, zerror(rc), rc);
+		snprintf(m_szErr2K, 2047, "Error in set acl for [%s], err:%s err-code:%d", path, zerror(rc), rc);
 		return -1;
 	}
 	// success
@@ -459,7 +459,7 @@ int ZkAdaptor::setAcl(const char *path, const struct ACL_vector *acl, int versio
 }
 
 
-void ZkAdaptor::sleep(CWX_UINT32 miliSecond)
+void ZkAdaptor::sleep(uint32_t miliSecond)
 {
 	struct timeval tv;
 	tv.tv_sec = miliSecond/1000;
@@ -501,6 +501,23 @@ char* ZkAdaptor::digest(char const* input, int length)
 	return base64(output, 20);
 }
 
+static int split(string const& src, list<string>& value, char ch)
+{
+	string::size_type begin = 0;
+	string::size_type end = src.find(ch);
+	int num=1;
+	value.clear();
+	while(string::npos != end)
+	{
+		value.push_back(src.substr(begin, end - begin));
+		begin = end + 1;
+		end = src.find(ch, begin);
+		num++;
+	}	
+	value.push_back(src.substr(begin));	
+	return num;
+}
+
 //可以为all,self,read或者user:passwd:acrwd
 bool ZkAdaptor::fillAcl(char const* priv, struct ACL& acl)
 {
@@ -524,7 +541,7 @@ bool ZkAdaptor::fillAcl(char const* priv, struct ACL& acl)
 	string passwd;
 	string perms;
 	int i=0;
-	CwxCommon::split(string(priv), items, ':');
+	split(string(priv), items, ':');
 	if (3 != items.size()) return false;
 	list<string>::iterator iter = items.begin();
 	user = *iter; iter++;
@@ -569,7 +586,7 @@ void ZkAdaptor::dumpAcl(ACL_vector const& acl, list<string>& info)
 	info.clear();
 	for (int i=0; i<acl.count; i++)
 	{
-		CwxCommon::snprintf(line, 1024, "%s%s%s%s%s:%s:%s",
+		snprintf(line, 1024, "%s%s%s%s%s:%s:%s",
 			(acl.data[i].perms&ZOO_PERM_READ)==ZOO_PERM_READ?"r":"",
 			(acl.data[i].perms&ZOO_PERM_WRITE)==ZOO_PERM_WRITE?"w":"",
 			(acl.data[i].perms&ZOO_PERM_CREATE)==ZOO_PERM_CREATE?"c":"",
@@ -581,41 +598,48 @@ void ZkAdaptor::dumpAcl(ACL_vector const& acl, list<string>& info)
 	}
 }
 
+static char const* toString(int64_t llNum, char* szBuf, int base)
+{
+	char const* szFormat=(16==base)?"%"PRIx64:"%"PRId64;
+	sprintf(szBuf, szFormat, llNum);
+	return szBuf;
+}
+
 ///输出节点的信息,一行一个信息项
 void ZkAdaptor::dumpStat(struct Stat const& stat, string& info)
 {
 	char szTmp[64];
 	char line[1024];
 	time_t timestamp;
-	CwxCommon::snprintf(line, 1024, "czxid:%s\n", CwxCommon::toString(stat.czxid, szTmp, 16));
+	snprintf(line, 1024, "czxid:%s\n", toString(stat.czxid, szTmp, 16));
 	info = line;
 	
-	CwxCommon::snprintf(line, 1024, "mzxid:%s\n", CwxCommon::toString(stat.mzxid, szTmp, 16));
+	snprintf(line, 1024, "mzxid:%s\n", toString(stat.mzxid, szTmp, 16));
 	info += line;
 	
 	timestamp = stat.ctime/1000;
-	CwxCommon::snprintf(line, 1024, "ctime:%d %s", (int)(stat.ctime%1000), ctime_r(&timestamp, szTmp));
+	snprintf(line, 1024, "ctime:%d %s", (int)(stat.ctime%1000), ctime_r(&timestamp, szTmp));
 	info += line;
 	
 	timestamp = stat.mtime/1000;
-	CwxCommon::snprintf(line, 1024, "mtime:%d %s", (int)(stat.mtime%1000), ctime_r(&timestamp, szTmp));
+	snprintf(line, 1024, "mtime:%d %s", (int)(stat.mtime%1000), ctime_r(&timestamp, szTmp));
 	info += line;
 
-	CwxCommon::snprintf(line, 1024, "version:%d\n", stat.version);
+	snprintf(line, 1024, "version:%d\n", stat.version);
 	info += line;
 
-	CwxCommon::snprintf(line, 1024, "cversion:%d\n", stat.cversion);
+	snprintf(line, 1024, "cversion:%d\n", stat.cversion);
 	info += line;
 
-	CwxCommon::snprintf(line, 1024, "aversion:%d\n", stat.aversion);
+	snprintf(line, 1024, "aversion:%d\n", stat.aversion);
 	info += line;
 
-	CwxCommon::snprintf(line, 1024, "dataLength:%d\n", stat.dataLength);
+	snprintf(line, 1024, "dataLength:%d\n", stat.dataLength);
 	info += line;
 
-	CwxCommon::snprintf(line, 1024, "numChildren:%d\n", stat.numChildren);
+	snprintf(line, 1024, "numChildren:%d\n", stat.numChildren);
 	info += line;
 
-	CwxCommon::snprintf(line, 1024, "pzxid:%s\n", CwxCommon::toString(stat.pzxid, szTmp, 16));
+	snprintf(line, 1024, "pzxid:%s\n", toString(stat.pzxid, szTmp, 16));
 	info += line;
 }

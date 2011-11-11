@@ -1,7 +1,7 @@
 #include "ZkJPoolAdaptor.h"
 
 ///¹¹Ôìº¯Êý
-ZkJPoolAdaptor::ZkJPoolAdaptor(string const& strHost, CWX_UINT32 uiRecvTimeout):ZkAdaptor(strHost, uiRecvTimeout)
+ZkJPoolAdaptor::ZkJPoolAdaptor(string const& strHost, uint32_t uiRecvTimeout):ZkAdaptor(strHost, uiRecvTimeout)
 {
 
 }

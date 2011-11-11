@@ -9,7 +9,7 @@ bool   g_recursive=false;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:n:a:o:v:hr");
+	ZkGetOpt cmd_option(argc, argv, "H:n:a:o:v:hr");
     int option;
     while( (option = cmd_option.next()) != -1)
     {

@@ -14,7 +14,7 @@ int    g_num;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:n:d:f:a:o:l:N:esh");
+	ZkGetOpt cmd_option(argc, argv, "H:n:d:f:a:o:l:N:esh");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
@@ -142,7 +142,7 @@ int parseArg(int argc, char**argv)
 	{
 		if (g_strFile.length())
 		{
-			if (!CwxFile::readTxtFile(g_strFile, g_strValue)){
+			if (!readFile(g_strFile, g_strValue)){
 				printf("Failure to read file:%s, errno=%d\n", g_strFile.c_str(), errno);
 				return -1;
 			}

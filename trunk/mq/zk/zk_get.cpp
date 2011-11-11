@@ -10,7 +10,7 @@ string g_strOut;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:n:a:o:h");
+	ZkGetOpt cmd_option(argc, argv, "H:n:a:o:h");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
@@ -124,7 +124,7 @@ int main(int argc ,char** argv)
 	}
 	
 	int timeout = 5000;
-	CWX_UINT32 uiBufLen = 4 * 1024 * 1024;
+	uint32_t uiBufLen = 4 * 1024 * 1024;
 	char szBuf[uiBufLen + 1];
 	struct Stat stat;
 	while(timeout > 0){
