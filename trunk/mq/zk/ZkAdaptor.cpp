@@ -7,6 +7,8 @@
 #include <openssl/evp.h>
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
+#include <openssl/sha.h>
+#include <openssl/hmac.h>
 
 void ZkAdaptor::authCompletion(int rc, const void *data)
 {
@@ -272,7 +274,7 @@ int ZkAdaptor::deleteNode(const string &path,
 }
 
 
-int ZkAdaptor::getNodeChildren( const string &path, list<string>& childs, , int watch)
+int ZkAdaptor::getNodeChildren( const string &path, list<string>& childs, int watch)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
@@ -411,7 +413,7 @@ int ZkAdaptor::getAcl(const char *path, struct ACL_vector& acl, struct Stat& sta
 	int rc;
 	memset(&stat, 0x00, sizeof(stat));
 	rc = zoo_get_acl( m_zkHandle,
-		path.c_str(),
+		path,
 		&acl,
 		&stat);
 
@@ -420,7 +422,7 @@ int ZkAdaptor::getAcl(const char *path, struct ACL_vector& acl, struct Stat& sta
 		m_iErrCode = rc;
 		if (rc == ZNONODE) return 0;
 
-		CwxCommon::snprintf(m_szErr2K, 2047, "Error in get acl for [%s], err:%s err-code:%d", path.c_str(), zerror(rc), rc);
+		CwxCommon::snprintf(m_szErr2K, 2047, "Error in get acl for [%s], err:%s err-code:%d", path, zerror(rc), rc);
 		return -1;
 	}
 	// success
@@ -440,7 +442,7 @@ int ZkAdaptor::setAcl(const char *path, const struct ACL_vector *acl, int versio
 
 	int rc;
 	rc = zoo_set_acl( m_zkHandle,
-		path.c_str(),
+		path,
 		version,
 		acl?acl:&ZOO_OPEN_ACL_UNSAFE);
 
@@ -449,7 +451,7 @@ int ZkAdaptor::setAcl(const char *path, const struct ACL_vector *acl, int versio
 		m_iErrCode = rc;
 		if (rc == ZNONODE) return 0;
 
-		CwxCommon::snprintf(m_szErr2K, 2047, "Error in set acl for [%s], err:%s err-code:%d", path.c_str(), zerror(rc), rc);
+		CwxCommon::snprintf(m_szErr2K, 2047, "Error in set acl for [%s], err:%s err-code:%d", path, zerror(rc), rc);
 		return -1;
 	}
 	// success
