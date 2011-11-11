@@ -298,14 +298,14 @@ int ZkAdaptor::getNodeChildren( const string &path, list<string>& childs, int wa
 		m_iErrCode = rc;
 		if (rc == ZNONODE) return 0;
 		CwxCommon::snprintf(m_szErr2K, 2047, "Failure to get node [%s] child, err:%s err-code:%d", path.c_str(), zerror(rc), rc);
-		return false;
+		return -1;
 	}
 	childs.clear();
 	for (int i = 0; i < children.count; ++i)
 	{
 		childs.push_back(string(children.data[i]));
 	}
-	return true;
+	return 1;
 }
 
 int ZkAdaptor::nodeExists(const string &path, struct Stat& stat, int watch)
