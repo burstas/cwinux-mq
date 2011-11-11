@@ -89,7 +89,7 @@ int parseArg(int argc, char**argv)
     return 1;
 }
 
-void output(FILE* fd, int result, int zkstate, char* format, char* msg)
+void output(FILE* fd, int result, int zkstate, char const* format, char const* msg)
 {
 	if (fd)
 	{
