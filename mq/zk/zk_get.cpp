@@ -148,9 +148,9 @@ int main(int argc ,char** argv)
 				}
 				iter++;
 			}
-		}
 
 		struct Stat stat;
+                }
 		int ret = zk.getNodeData(g_strNode, szBuf, uiBufLen, stat);
 		if (0 == ret){
 			output(outFd, 2, zk.getErrCode(), NULL, "msg:  node doesnt' exist\n");
