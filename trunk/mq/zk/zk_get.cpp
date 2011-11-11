@@ -158,7 +158,7 @@ int main(int argc ,char** argv)
 			return 2;
 		}
 		if (-1 == ret){
-			output(outFd, 2, zk.getErrCode(), NULL, "msg:  Failure to get node, err=%s\n", zk.getErrMsg());
+			output(outFd, 2,zk.getErrCode(), "msg:  Failure to get node, err=%s\n", zk.getErrMsg());
 			if (outFd) fclose(outFd);
 			return 2;
 		}
