@@ -9,6 +9,7 @@
 #include <openssl/buffer.h>
 #include <openssl/sha.h>
 #include <openssl/hmac.h>
+#include <inttypes.h>
 
 void ZkAdaptor::authCompletion(int rc, const void *data)
 {
