@@ -259,9 +259,9 @@ int main(int argc ,char** argv)
 				output(outFd, 0, 0, NULL, "msg:  success\n");
 			}
 			if (outFd){
-				fprintf(outFd, "%s:%s\n", !g_sequence?g_strNode.c_str():path, (0==ret)?"exist":(1==ret)?"success":"failure");
+				fprintf(outFd, "%s:%s\n", !g_sequence?strValue.c_str():path, (0==ret)?"exist":(1==ret)?"success":"failure");
 			}else{
-				printf("%s:%s\n", !g_sequence?g_strNode.c_str():path, (0==ret)?"exist":(1==ret)?"success":"failure");
+				printf("%s:%s\n", !g_sequence?strValue.c_str():path, (0==ret)?"exist":(1==ret)?"success":"failure");
 			}
 			if (1 != ret){
 				if (outFd) fclose(outFd);
