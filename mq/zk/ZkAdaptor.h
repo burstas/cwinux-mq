@@ -11,15 +11,12 @@
 *@bug   
 */
 
-#include "CwxGlobalMacro.h"
-#include "CwxType.h"
-#include "CwxStl.h"
-#include "CwxStlFunc.h"
-#include "CwxCommon.h"
-#include "CwxTimeValue.h"
+#include <string>
+#include <vector>
+#include <list>
+#include <inttypes.h>
 
-
-CWINUX_USING_NAMESPACE
+using namespace std;
 
 extern "C" {
 #include "zookeeper.h"
@@ -40,7 +37,7 @@ public:
 
 	///构造函数
 	ZkAdaptor(string const& strHost, ///<zookeeper连接，为host:port结构
-		CWX_UINT32 uiRecvTimeout=ZK_DEF_RECV_TIMEOUT_MILISECOND);
+		uint32_t uiRecvTimeout=ZK_DEF_RECV_TIMEOUT_MILISECOND);
 
 	///析构函数
 	virtual ~ZkAdaptor(); 
@@ -147,7 +144,7 @@ public:
 	*@param [in] timeout 授权超时的时间，单位为ms。若为0则不等待，需要主动调用getAuthState()获取授权的结果。
 	*@return true:授权成功；false：授权失败.
 	*/
-	bool addAuth(const char* scheme, const char* cert, int certLen, CWX_UINT32 timeout=0);
+	bool addAuth(const char* scheme, const char* cert, int certLen, uint32_t timeout=0);
 
 	///获取赋权状态，为AUTH_STATE_WAITING，AUTH_STATE_FAIL，AUTH_STATE_SUCCESS之一
 	int getAuthState() const { return m_iAuthState;}
@@ -165,11 +162,11 @@ public:
 	*/
 	int createNode(const string &path, 
 		char const* data,
-		CWX_UINT32 dataLen,
+		uint32_t dataLen,
 		const struct ACL_vector *acl=&ZOO_OPEN_ACL_UNSAFE,
 		int flags=0,
 		char* pathBuf=NULL,
-		CWX_UINT32 pathBufLen=0);
+		uint32_t pathBufLen=0);
 
 	/**
 	*@brief  删除节点及其child节点。
@@ -209,7 +206,7 @@ public:
 	*@param [in] watch 是否watch节点的变化。
 	*@return 1:成功；0：节点不存在；-1：失败.
 	*/
-	int getNodeData(const string &path, char* data, CWX_UINT32& dataLen, struct Stat& stat, int watch=0);
+	int getNodeData(const string &path, char* data, uint32_t& dataLen, struct Stat& stat, int watch=0);
 
 	/**
 	*@brief  获取一个节点的数据及信息。
@@ -219,7 +216,7 @@ public:
 	*@param [in] version 数据版本，若为-1表示不限定。
 	*@return 1:成功；0：节点不存在；-1：失败.
 	*/
-	int setNodeData(const string &path, char const* data, CWX_UINT32 dataLen, int version = -1);
+	int setNodeData(const string &path, char const* data, uint32_t dataLen, int version = -1);
 
 	/**
 	*@brief  获取一个节点的ACL信息。
@@ -256,7 +253,7 @@ public:
 public:
 	
 	///sleep miliSecond毫秒
-	static void sleep(CWX_UINT32 miliSecond);
+	static void sleep(uint32_t miliSecond);
 
 	/**
 	*@brief  对input的字符串进行base64的签名，用户需要释放返回的字符空间。
@@ -307,7 +304,7 @@ private:
 	static void authCompletion(int rc, const void *data);
 private:
 	string       m_strHost; ///<The host addresses of ZK nodes.
-	CWX_UINT32   m_uiRecvTimeout; ///<消息接收超时
+	uint32_t   m_uiRecvTimeout; ///<消息接收超时
 	int  		 m_iAuthState; ///<add auth的完成状态
 	zhandle_t*   m_zkHandle; 	///<The current ZK session.
 	int           m_iErrCode;  	///<Err code
