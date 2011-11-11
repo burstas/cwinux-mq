@@ -273,7 +273,7 @@ public:
 	*@param [out] output 20byte的sha1签名值。
 	*@return void
 	*/
-	static void sha1(char* input, int length, unsigned char *output);
+	static void sha1(char const* input, int length, unsigned char *output);
 
 	/**
 	*@brief  对input的字符串进行sha1签名后，再进行base64变换。用户需要释放返回的空间
@@ -281,7 +281,7 @@ public:
 	*@param [in] length input的长度。
 	*@return NULL:失败；否则为input的base64签名
 	*/
-	static char* digest(char* input, int length);
+	static char* digest(char const* input, int length);
 
 	/**
 	*@brief  根据priv形成acl。priv可以为all,self,read或者user:passwd:acrwd
