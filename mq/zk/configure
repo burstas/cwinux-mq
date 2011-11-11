@@ -18685,6 +18685,10 @@ cat >>confdefs.h <<\_ACEOF
 #define _GNU_SOURC 1
 _ACEOF
 
+cat >>confdefs.h <<\_ACEOF
+#define __STDC_FORMAT_MACROS 1
+_ACEOF
+
 
 
 # The AC_SUBST macro causes the variable to be saved in config.status
