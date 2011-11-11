@@ -5,39 +5,24 @@ using namespace cwinux;
 
 string g_strHost;
 string g_strNode;
-string g_strValue;
 string g_strOut;
-string g_strFile;
-bool   g_ephemeral = false;
-bool   g_sequence = false;
 list<string> g_auth;
-list<string>  g_priv;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:n:d:f:a:o:l:esh");
+	CwxGetOpt cmd_option(argc, argv, "H:n:a:o:h");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
         switch (option)
         {
         case 'h':
-            printf("create zookeeper node.\n");
-			printf("%s  -H host:port -n node [-d data] [-f data file] [-o output file] [-a usr:passwd] [-l privilege]\n", argv[0]);
+            printf("get zookeeper node's ACL.\n");
+			printf("%s  -H host:port -n node [-o output file] [-a usr:passwd]\n", argv[0]);
 			printf("-H: zookeeper's host:port\n");
             printf("-n: node name to create, it's full path.\n");
-			printf("-d: value for node.\n");
-			printf("-f: data's file. -d is used if it exists\n");
 			printf("-a: auth user's user:passwd. it can be multi.\n");
-			printf("-l: node's acl. it can be multi. it's value can be:\n");
-			printf("    all               :  any privilege for any user;\n");
-            printf("    self              : any privilege for creator; \n");
-			printf("    read              : read for any user;\n");
-			printf("    user:passwd:acrwd : digest auth for [user] with [passwd], \n");
-			printf("          admin(a), create(c), read(r), write(w), delete(d)\n");
 			printf("-o: output file, default is stdout\n");
-			printf("-e: node is EPHEMERAL node\n");
-			printf("-s: node is SEQUENCE node\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -56,22 +41,6 @@ int parseArg(int argc, char**argv)
             }
             g_strNode = cmd_option.opt_arg();
             break;
-		case 'd':
-			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-			{
-				printf("-d requires an argument.\n");
-				return -1;
-			}
-			g_strValue = cmd_option.opt_arg();
-			break;
-		case 'f':
-			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-			{
-				printf("-f requires an argument.\n");
-				return -1;
-			}
-			g_strFile = cmd_option.opt_arg();
-			break;
 		case 'a':
 			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
 			{
@@ -80,14 +49,6 @@ int parseArg(int argc, char**argv)
 			}
 			g_auth.push_back(cmd_option.opt_arg());
 			break;
-		case 'l':
-			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-			{
-				printf("-l requires an argument.\n");
-				return -1;
-			}
-			g_priv.push_back(cmd_option.opt_arg());
-			break;
 		case 'o':
 			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
 			{
@@ -95,12 +56,6 @@ int parseArg(int argc, char**argv)
 				return -1;
 			}
 			g_strOut = cmd_option.opt_arg();
-			break;
-		case 'e':
-			g_ephemeral = true;
-			break;
-		case 's':
-			g_sequence = true;
 			break;
         case ':':
             printf("%c requires an argument.\n", cmd_option.opt_opt ());
@@ -129,16 +84,6 @@ int parseArg(int argc, char**argv)
 	{
 		printf("No node, set by -n\n");
 		return -1;
-	}
-	if (!g_strValue.length())
-	{
-		if (g_strFile.length())
-		{
-			if (!CwxFile::readTxtFile(g_strFile, g_strValue)){
-				printf("Failure to read file:%s, errno=%d\n", g_strFile.c_str(), errno);
-				return -1;
-			}
-		}
 	}
     return 1;
 }
@@ -223,45 +168,47 @@ int main(int argc ,char** argv)
 			}
 		}
 		struct ACL_vector acl;
-		struct ACL_vector *pacl=&ZOO_OPEN_ACL_UNSAFE;
-		if (g_priv.size())
-		{
-			acl.count = g_priv.size();
-			acl.data = new struct ACL[acl.count];
-			int index=0;
-			list<string>::iterator iter = g_priv.begin();
-			while(iter != g_priv.end())
-			{
-				if (!ZkAdaptor::fillAcl(iter->c_str(), acl.data[index++]))
-				{
-					output(outFd, 2, 0,"msg:  invalid auth %s\n", iter->c_str());
-					if (outFd) fclose(outFd);
-					return 2;
-				}
-				iter++;
-			}
-			pacl = &acl;
-		}
-		int flags = 0;
-		if (g_sequence) flags |= ZOO_SEQUENCE;
-		if (g_ephemeral) flags |= ZOO_EPHEMERAL;
-		char path[2048];
-		int ret = zk.createNode(g_strNode, g_strValue.c_str(), g_strValue.length(), pacl, flags, path, 2048);
+		struct Stat stat;
+		int ret = zk.getAcl(g_strNode.c_str(), acl, stat);
 		if (-1 == ret){
-			output(outFd, 2, zk.getErrCode(), "msg:  Failure to create node, err=%s\n", zk.getErrMsg());
+			output(outFd, 2, zk.getErrCode(), "msg:  Failure to get node's acl, err=%s\n", zk.getErrMsg());
 			if (outFd) fclose(outFd);
 			return 2;
 		}
 		if (0 == ret){
-			output(outFd, 2, zk.getErrCode(), NULL, "msg:  node exists\n");
+			output(outFd, 2, zk.getErrCode(), NULL, "msg:  node doesn't exist\n");
 			if (outFd) fclose(outFd);
 			return 2;
 		}
-		output(outFd, 0, 0, "node:  %s\nmsg:  success\n", !g_sequence?g_strNode.c_str():path);
-		if (outFd) fclose(outFd);
+		output(outFd, 0, 0, "node:  %s\nmsg:  success\n", g_strNode.c_str());
+		list<string> acls;
+		string strStat;
+		ZkAdaptor::dumpStat(stat, strStat);
+		ZkAdaptor::dumpAcl(acl, acls)
+		if (outFd){
+			fprintf(outFd, "stat:\n");
+			fwrite(info.c_str(), 1, info.length(), outFd);
+			fprintf(outFd, "acl:\n");
+			list<string>::iterator iter = acls.begin();
+			while(iter != acls.end())
+			{
+				fprintf(outFd, "%s\n", iter->c_str());
+				iter++;
+			}
+			fclose(outFd);
+		}else{
+			printf("stat:\n");
+			printf(info.c_str());
+			printf("acl:\n");
+			list<string>::iterator iter = acls.begin();
+			while(iter != acls.end())
+			{
+				printf( "%s\n", iter->c_str());
+				iter++;
+			}
+		}
 		return 0;
 	}
-
 	output(outFd, 2, 0, NULL, "msg:  Timeout to connect zk\n");
 	if (outFd) fclose(outFd);
 	return 2;
