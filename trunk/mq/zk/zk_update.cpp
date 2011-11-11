@@ -1,8 +1,5 @@
-#include "ZkJPoolAdaptor.h"
-#include "CwxGetOpt.h"
-#include "CwxTimeValue.h"
-#include "CwxFile.h"
-using namespace cwinux;
+#include "zk_common.h"
+
 
 string g_strHost;
 string g_strNode;
@@ -129,27 +126,6 @@ int parseArg(int argc, char**argv)
     return 1;
 }
 
-void output(FILE* fd, int result, int zkstate, char const* format, char const* msg)
-{
-	if (fd)
-	{
-		fprintf(fd, "ret:  %d\n", result);
-		fprintf(fd, "zkstate:  %s\n", zkstate);
-		if (format)
-			fprintf(fd, format, msg);
-		else
-			fprintf(fd, msg);
-	}
-	else
-	{
-		printf("ret:  %d\n", result);
-		printf("zkstate:  %s\n", zkstate);
-		if (format)
-			printf(format, msg);
-		else
-			printf(msg);
-	}
-}
 //0:success
 //1:参数错误
 //2:执行结果错误
@@ -197,7 +173,7 @@ int main(int argc ,char** argv)
 			list<string>::iterator iter = g_auth.begin();
 			while(iter != g_auth.end())
 			{
-				if (!zk.addAuth("digest", *iter, iter->length(), 3000))
+				if (!zk.addAuth("digest", iter->c_str(), iter->length(), 3000))
 				{
 					output(outFd, 2, 0,"msg:  Failure to auth, err=%s\n", zk.getErrMsg());
 					if (outFd) fclose(outFd);
