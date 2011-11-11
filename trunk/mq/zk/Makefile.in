@@ -165,7 +165,7 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
-LIBS = -lcwxcmn -lpthread -lzookeeper_mt -lssl
+LIBS = -lpthread -lzookeeper_mt -lssl
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -205,7 +205,6 @@ build_alias = @build_alias@
 build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
-cwinux_dir = @cwinux_dir@
 datadir = @datadir@
 exec_prefix = @exec_prefix@
 host = @host@
@@ -229,43 +228,42 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-xml_expat_dir = @xml_expat_dir@
 zk_dir = @zk_dir@
 pkgconfigdir = 
 BUILD_DATE = $(shell date +%F)
 zk_create_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"  -W -Wall -Wno-deprecated
 zk_create_SOURCES = ZkAdaptor.cpp ZkJPoolAdaptor.cpp  zk_create.cpp zk_common.cpp
 zk_create_LDADD = 
-zk_create_LDFLAGS = -L@cwinux_dir@/lib  -L@zk_dir@/lib
+zk_create_LDFLAGS = -L@zk_dir@/lib
 zk_loopcreate_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"  -W -Wall -Wno-deprecated
 zk_loopcreate_SOURCES = ZkAdaptor.cpp ZkJPoolAdaptor.cpp  zk_loopcreate.cpp  zk_common.cpp
 zk_loopcreate_LDADD = 
-zk_loopcreate_LDFLAGS = -L@cwinux_dir@/lib  -L@zk_dir@/lib
+zk_loopcreate_LDFLAGS = -L@zk_dir@/lib
 zk_get_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"  -W -Wall -Wno-deprecated 
 zk_get_SOURCES = ZkAdaptor.cpp ZkJPoolAdaptor.cpp  zk_get.cpp  zk_common.cpp
 zk_get_LDADD = 
-zk_get_LDFLAGS = -L@cwinux_dir@/lib  -L@zk_dir@/lib
+zk_get_LDFLAGS = -L@zk_dir@/lib
 zk_delete_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"  -W -Wall -Wno-deprecated
 zk_delete_SOURCES = ZkAdaptor.cpp ZkJPoolAdaptor.cpp  zk_delete.cpp  zk_common.cpp
 zk_delete_LDADD = 
-zk_delete_LDFLAGS = -L@cwinux_dir@/lib  -L@zk_dir@/lib
+zk_delete_LDFLAGS = -L@zk_dir@/lib
 zk_update_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"  -W -Wall -Wno-deprecated
 zk_update_SOURCES = ZkAdaptor.cpp ZkJPoolAdaptor.cpp  zk_update.cpp  zk_common.cpp
 zk_update_LDADD = 
-zk_update_LDFLAGS = -L@cwinux_dir@/lib  -L@zk_dir@/lib
+zk_update_LDFLAGS = -L@zk_dir@/lib
 zk_list_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"  -W -Wall -Wno-deprecated
 zk_list_SOURCES = ZkAdaptor.cpp ZkJPoolAdaptor.cpp  zk_list.cpp  zk_common.cpp
 zk_list_LDADD = 
-zk_list_LDFLAGS = -L@cwinux_dir@/lib  -L@zk_dir@/lib
+zk_list_LDFLAGS = -L@zk_dir@/lib
 zk_get_acl_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"  -W -Wall -Wno-deprecated
 zk_get_acl_SOURCES = ZkAdaptor.cpp ZkJPoolAdaptor.cpp  zk_get_acl.cpp  zk_common.cpp
 zk_get_acl_LDADD = 
-zk_get_acl_LDFLAGS = -L@cwinux_dir@/lib  -L@zk_dir@/lib
+zk_get_acl_LDFLAGS = -L@zk_dir@/lib
 zk_set_acl_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"  -W -Wall -Wno-deprecated
 zk_set_acl_SOURCES = ZkAdaptor.cpp ZkJPoolAdaptor.cpp  zk_set_acl.cpp  zk_common.cpp
 zk_set_acl_LDADD = 
-zk_set_acl_LDFLAGS = -L@cwinux_dir@/lib  -L@zk_dir@/lib -L@openssl_dir@/lib
-INCLUDES = -I@cwinux_dir@/include/cmn  -I@zk_dir@/include -I@openssl_dir@/include
+zk_set_acl_LDFLAGS = -L@zk_dir@/lib -L@openssl_dir@/lib
+INCLUDES = -I@zk_dir@/include -I@openssl_dir@/include
 all: all-am
 
 .SUFFIXES:
