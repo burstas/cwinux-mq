@@ -504,6 +504,10 @@ char* ZkAdaptor::digest(char* input, int length)
 //可以为all,self,read或者user:passwd:acrwd
 bool ZkAdaptor::fillAcl(char const* priv, struct ACL& acl)
 {
+	struct ACL _OPEN_ACL_UNSAFE_ACL[] = {{0x1f, {"world", "anyone"}}};
+	struct ACL _READ_ACL_UNSAFE_ACL[] = {{0x01, {"world", "anyone"}}};
+	struct ACL _CREATOR_ALL_ACL_ACL[] = {{0x1f, {"auth", ""}}};
+
 	if (!priv) return false;
 	if (strcmp("all", priv) == 0){
 		memcpy(&acl, &_OPEN_ACL_UNSAFE_ACL[0], sizeof(acl));
