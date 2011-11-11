@@ -176,7 +176,7 @@ int main(int argc ,char** argv)
 			printf("stat:\n");
 			printf(info.c_str());
 			printf("data:\n");
-			printf(szBuf);
+			fwrite(szBuf, 1, uiBufLen, stdout);
 			printf("\n");
 		}
 		return 0;
