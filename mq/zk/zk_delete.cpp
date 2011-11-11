@@ -20,7 +20,7 @@ int parseArg(int argc, char**argv)
         {
         case 'h':
             printf("delete zookeeper node.\n");
-			printf("%s  -H host:port -n node \n", argv[0]);
+			printf("%s  -H host:port -n node [-a usr:passwd] [-v verion] [-o output file] [-r]\n", argv[0]);
 			printf("-H: zookeeper's host:port\n");
             printf("-n: node name to create, it's full path.\n");
 			printf("-a: auth user's user:passwd. it can be multi.\n");

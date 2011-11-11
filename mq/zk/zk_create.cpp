@@ -23,7 +23,7 @@ int parseArg(int argc, char**argv)
         {
         case 'h':
             printf("create zookeeper node.\n");
-			printf("%s  -H host:port -n node [-d data] [-f file] [-o output file] [-a usr:passwd] [-l privilege]\n", argv[0]);
+			printf("%s  -H host:port -n node [-d data] [-f data file] [-o output file] [-a usr:passwd] [-l privilege]\n", argv[0]);
 			printf("-H: zookeeper's host:port\n");
             printf("-n: node name to create, it's full path.\n");
 			printf("-d: value for node.\n");
@@ -99,7 +99,7 @@ int parseArg(int argc, char**argv)
 		case 'e':
 			g_ephemeral = true;
 			break;
-		case 'e':
+		case 's':
 			g_sequence = true;
 			break;
         case ':':
@@ -257,7 +257,7 @@ int main(int argc ,char** argv)
 			if (outFd) fclose(outFd);
 			return 2;
 		}
-		output(outFd, 0, 0, "node:  %s\nmsg:  success\n", g_sequence?g_strNode.c_str():path);
+		output(outFd, 0, 0, "node:  %s\nmsg:  success\n", !g_sequence?g_strNode.c_str():path);
 		if (outFd) fclose(outFd);
 		return 0;
 	}

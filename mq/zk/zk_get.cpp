@@ -12,7 +12,7 @@ string g_strOut;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:n:a:o:f:h");
+	CwxGetOpt cmd_option(argc, argv, "H:n:a:o:h");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
@@ -20,7 +20,7 @@ int parseArg(int argc, char**argv)
         {
         case 'h':
             printf("get zookeeper node data.\n");
-			printf("%s  -H host:port -n node -a usr:passwd \n", argv[0]);
+			printf("%s  -H host:port -n node [-a usr:passwd] [-o output file] \n", argv[0]);
 			printf("-H: zookeeper's host:port\n");
             printf("-n: node name to create, it's full path.\n");
 			printf("-a: auth user's user:passwd. it can be multi.\n");
@@ -193,12 +193,14 @@ int main(int argc ,char** argv)
 			fwrite(info.c_str(), 1, info.length(), outFd);
 			fprintf(outFd, "data:\n");
 			fwrite(szBuf, 1, uiBufLen, outFd);
+			fprintf(outFd, "\n");
 			fclose(outFd);
 		}else{
 			printf("stat:\n");
 			printf(info.c_str());
 			printf("data:\n");
 			printf(szBuf);
+			printf("\n");
 		}
 		return 0;
 	}
