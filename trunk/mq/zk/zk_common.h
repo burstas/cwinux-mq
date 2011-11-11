@@ -3,6 +3,7 @@
 
 #include "ZkJPoolAdaptor.h"
 #include <getopt.h>
+#include <errno.h>
 
 void output(FILE* fd, int result, int zkstate, char const* format, char const* msg);
 
