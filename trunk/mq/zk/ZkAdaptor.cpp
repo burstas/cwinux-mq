@@ -486,7 +486,7 @@ char* ZkAdaptor::base64(const unsigned char *input, int length)
 	return buff;
 }
 
-void ZkAdaptor::sha1(char* input, int length, unsigned char *output)
+void ZkAdaptor::sha1(char const* input, int length, unsigned char *output)
 {
 	SHA_CTX   c;
 	SHA1_Init(&c);
@@ -494,7 +494,7 @@ void ZkAdaptor::sha1(char* input, int length, unsigned char *output)
 	SHA1_Final(output, &c);
 }
 
-char* ZkAdaptor::digest(char* input, int length)
+char* ZkAdaptor::digest(char const* input, int length)
 {
 	unsigned char output[20];
 	sha1(input, length, output);
