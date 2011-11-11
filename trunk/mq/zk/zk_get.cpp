@@ -1,6 +1,7 @@
 #include "ZkJPoolAdaptor.h"
 #include "CwxGetOpt.h"
 #include "CwxTimeValue.h"
+#include "CwxFile.h"
 using namespace cwinux;
 
 string g_strHost;
