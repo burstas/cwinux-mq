@@ -145,7 +145,7 @@ int main(int argc ,char** argv)
 			}
 		}
 
-		int ret = !zk.getNodeChildren(g_strNode, childs);
+		int ret = zk.getNodeChildren(g_strNode, childs);
 		if (0 == ret){
 			output(outFd, 2, zk.getErrCode(), NULL, "msg:  node doesnt' exist\n");
 			if (outFd) fclose(outFd);
