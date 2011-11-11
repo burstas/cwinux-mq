@@ -1,7 +1,7 @@
 #ifndef __ZK_COMMON_H__
 #define __ZK_COMMON_H__
 
-#include "ZkJPoolAdaptor.h"
+#include "ZkToolAdaptor.h"
 #include <getopt.h>
 #include <errno.h>
 #include <dirent.h>
