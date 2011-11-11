@@ -103,11 +103,12 @@ int parseArg(int argc, char**argv)
     return 1;
 }
 
-void output(FILE* fd, int result, char* format, char* msg)
+void output(FILE* fd, int result, int zkstate, char* format, char* msg)
 {
 	if (fd)
 	{
 		fprintf(fd, "ret:  %d\n", result);
+		fprintf(fd, "zkstate:  %s\n", zkstate);
 		if (format)
 			fprintf(fd, format, msg);
 		else
@@ -116,6 +117,7 @@ void output(FILE* fd, int result, char* format, char* msg)
 	else
 	{
 		printf("ret:  %d\n", result);
+		printf("zkstate:  %s\n", zkstate);
 		if (format)
 			printf(format, msg);
 		else
@@ -148,13 +150,13 @@ int main(int argc ,char** argv)
 
 	ZkJPoolAdaptor zk(g_strHost);
 	if (0 != zk.init()){
-		output(outFd, 2, "msg:  Failure to init zk, err=%s\n", zk.getErrMsg());
+		output(outFd, 2, zk.getErrCode(), "msg:  Failure to init zk, err=%s\n", zk.getErrMsg());
 		if (outFd) fclose(outFd);
 		return 2;
 	}
 	if (0 != zk.connect())
 	{
-		output(outFd, 2, "msg:  Failure to connect zk, err=%s\n", zk.getErrMsg());
+		output(outFd, 2, zk.getErrCode(), "msg:  Failure to connect zk, err=%s\n", zk.getErrMsg());
 		if (outFd) fclose(outFd);
 		return 2;
 	}
@@ -176,7 +178,7 @@ int main(int argc ,char** argv)
 			{
 				if (!zk.addAuth("digest", *iter, iter->length(), 3000))
 				{
-					output(outFd, 2, "msg:  Failure to auth, err=%s\n", zk.getErrMsg());
+					output(outFd, 2, 0, "msg:  Failure to auth, err=%s\n", zk.getErrMsg());
 					if (outFd) fclose(outFd);
 					return 2;
 				}
@@ -187,21 +189,21 @@ int main(int argc ,char** argv)
 		int ret = zk.deleteNode(g_strNode, g_recursive, g_version);
 		if (-1 == ret)
 		{
-			output(outFd, 2, "msg:  Failure to delete node, err=%s\n", zk.getErrMsg());
+			output(outFd, 2, zk.getErrCode(), "msg:  Failure to delete node, err=%s\n", zk.getErrMsg());
 			if (outFd) fclose(outFd);
 			return 2;
 		}
 		if (0 == ret)
 		{
-			output(outFd, 2, NULL, "msg:  node doesn't exist\n");
+			output(outFd, 2, zk.getErrCode(), NULL, "msg:  node doesn't exist\n");
 			if (outFd) fclose(outFd);
 			return 2;
 		}
-		output(outFd, 0, "node:  %s\nmsg:  success\n", g_strNode.c_str());
+		output(outFd, 0, 0, "node:  %s\nmsg:  success\n", g_strNode.c_str());
 		if (outFd) fclose(outFd);
 		return 0;
 	}
-	output(outFd, 2, NULL, "msg:  Timeout to connect zk\n");
+	output(outFd, 2, 0, NULL, "msg:  Timeout to connect zk\n");
 	if (outFd) fclose(outFd);
 	return 2;
 }
