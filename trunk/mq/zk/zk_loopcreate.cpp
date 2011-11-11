@@ -174,7 +174,7 @@ int main(int argc ,char** argv)
 		}
 	}
 
-	ZkJPoolAdaptor zk(g_strHost);
+	ZkToolAdaptor zk(g_strHost);
 	if (0 != zk.init()){
 		output(outFd, 2, zk.getErrCode(), "msg:  Failure to init zk, err=%s\n", zk.getErrMsg());
 		if (outFd) fclose(outFd);

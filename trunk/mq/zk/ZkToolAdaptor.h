@@ -1,16 +1,16 @@
-#ifndef __ZK_JPOOL_ADAPTOR_H__
-#define __ZK_JPOOL_ADAPTOR_H__
+#ifndef __ZK_TOOL_ADAPTOR_H__
+#define __ZK_TOOL_ADAPTOR_H__
 
 #include "ZkAdaptor.h"
 
-class ZkJPoolAdaptor:public ZkAdaptor
+class ZkToolAdaptor:public ZkAdaptor
 {
 public:
 	///构造函数
-	ZkJPoolAdaptor(string const& strHost,
+	ZkToolAdaptor(string const& strHost,
 		uint32_t uiRecvTimeout=ZK_DEF_RECV_TIMEOUT_MILISECOND);
 	///析构函数
-	virtual ~ZkJPoolAdaptor(); 
+	virtual ~ZkToolAdaptor(); 
 	///连接建立的回调函数，有底层的zk线程调用
 	virtual void onConnect()
 	{
