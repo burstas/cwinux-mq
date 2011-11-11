@@ -29,8 +29,14 @@ AC_DEFUN([LIBEVENT_DIR],[
         ,
         [with_zk="no"]
     )
+    AC_ARG_WITH(
+        openssl,
+        [  --with-openssl[=DIR]        openssl lib directory],
+        ,
+        [with_openssl="no"]
+    )
 
-    AC_MSG_CHECKING(for libevent directory)
+    AC_MSG_CHECKING(for check expat directory)
 
     if test "$with_xml_expat" = "no"; then
         AC_MSG_ERROR( You need to specify the expat for xml directory using --with-xml-expat)
@@ -68,6 +74,18 @@ AC_DEFUN([LIBEVENT_DIR],[
         fi
     fi
 
+    if test "$with_openssl" = "no"; then
+        AC_MSG_ERROR( You need to specify the openssl directory using --with-openssl)
+    else
+        # make sure that a well known include file exists
+        if test -e $with_openssl/include/openssl/ssl.h; then
+            zk_dir=$with_openssl
+            AC_MSG_RESULT(openssl found!)
+        else
+            AC_MSG_ERROR( $with_openssl not found.  Check the value you specified with --with-openssl)
+        fi
+    fi
+
 ])
 
 LIBEVENT_DIR
@@ -83,6 +101,7 @@ AC_DEFINE(_GNU_SOURC)
 AC_SUBST(xml_expat_dir)
 AC_SUBST(cwinux_dir)
 AC_SUBST(zk_dir)
+AC_SUBST(openssl_dir)
 
 # Write config.status and the Makefile
 AC_OUTPUT(Makefile)
