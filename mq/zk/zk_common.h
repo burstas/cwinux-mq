@@ -4,6 +4,11 @@
 #include "ZkJPoolAdaptor.h"
 #include <getopt.h>
 #include <errno.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/wait.h>
+#include <fcntl.h>
 
 void output(FILE* fd, int result, int zkstate, char const* format, char const* msg);
 
