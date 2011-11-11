@@ -571,6 +571,7 @@ bool ZkAdaptor::fillAcl(char const* priv, struct ACL& acl)
 		default:
 			return false;
 		}
+		i++;
 	}
 	acl.id.scheme = "digest";
 	char* id = digest(priv, user.length() + passwd.length() + 1);
