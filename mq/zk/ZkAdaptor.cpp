@@ -219,8 +219,8 @@ int ZkAdaptor::createNode(const string &path,
 		dataLen,
 		acl?acl:&ZOO_OPEN_ACL_UNSAFE,
 		flags,
-		realPath,
-		MAX_PATH_LENGTH);
+		pathBuf,
+		pathBufLen);
 
 	if (rc != ZOK) // check return status
 	{
