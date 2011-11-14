@@ -289,17 +289,23 @@ int main(int argc ,char** argv)
 				}
 				iter++;
 			}
-			acls.count = acl_set.size();
-			acls.data = new struct ACL[acls.count];
-			set<AclItem>::iterator set_iter = acl_set.begin();
-			index = 0;
-			while(set_iter != acl_set.end())
-			{
-				acls.data[index].perms = set_iter->m_perms;
-				acls.data[index].id.scheme = set_iter->m_scheme;
-				acls.data[index].id.id = set_iter->m_id;
-				index++;
-				set_iter++;
+			if (0 == acl_set.size()){
+				acls.count = 1;
+				acls.data = new struct ACL[acls.count];
+				ZkAdaptor::fillAcl("all", acls.data[0]);
+			}else{
+				acls.count = acl_set.size();
+				acls.data = new struct ACL[acls.count];
+				set<AclItem>::iterator set_iter = acl_set.begin();
+				index = 0;
+				while(set_iter != acl_set.end())
+				{
+					acls.data[index].perms = set_iter->m_perms;
+					acls.data[index].id.scheme = set_iter->m_scheme;
+					acls.data[index].id.id = set_iter->m_id;
+					index++;
+					set_iter++;
+				}
 			}
 			pacls = &acls;
 		}
