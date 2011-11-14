@@ -7,10 +7,13 @@ string g_strOut;
 list<string> g_auth;
 list<string>  g_priv;
 int g_verion = -1;
+bool   g_append = true;
+bool   g_remove = false;
+bool   g_set = false;
 ///-1：失败；0：help；1：成功
 int parseArg(int argc, char**argv)
 {
-	ZkGetOpt cmd_option(argc, argv, "H:n:a:o:l:h");
+	ZkGetOpt cmd_option(argc, argv, "H:n:a:o:l:a:e:h");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
@@ -26,8 +29,10 @@ int parseArg(int argc, char**argv)
 			printf("    all               :  any privilege for any user;\n");
             printf("    self              : any privilege for creator; \n");
 			printf("    read              : read for any user;\n");
-			printf("    user:passwd:acrwd : digest auth for [user] with [passwd], \n");
+			printf("    digest:user:passwd:acrwd : digest auth for [user] with [passwd], \n");
 			printf("          admin(a), create(c), read(r), write(w), delete(d)\n");
+			printf("    ip:ip_addr[/bits]:acrwd : ip auth for ip or ip subnet\n"); 
+			printf("-m: set Acl mode. [append]、[set]、[remove] can be set。default is append.\n");
 			printf("-o: output file, default is stdout\n");
 			printf("-v: node's version\n");
             printf("-h: help\n");
@@ -72,6 +77,26 @@ int parseArg(int argc, char**argv)
 			}
 			g_strOut = cmd_option.opt_arg();
 			break;
+		case 'm':
+			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
+			{
+				printf("-o requires an argument.\n");
+				return -1;
+			}
+			g_append = false;
+			g_remove = false;
+			g_set = false;
+			if (strcmp("append", cmd_option.opt_arg())==0){
+				g_append = true;
+			}else if (strcmp("remove", cmd_option.opt_arg()) == 0){
+				g_remove = true;
+			}else if (strcmp("set", cmd_option.opt_arg()) == 0){
+				g_set = true;
+			}else{
+				printf("unknown mode[%s], just can be [append], [remove] or [set].");
+				return -1;
+			}
+			break;
 		case 'v':
 			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
 			{
@@ -111,6 +136,41 @@ int parseArg(int argc, char**argv)
     return 1;
 }
 
+class AclItem{
+public:
+	AclItem(char * scheme, char *  id, int32_t perms){
+		m_scheme = scheme;
+		m_id = id;
+		m_perms = perms;
+	}
+	AclItem(AclItem const& item){
+		m_scheme = item.m_scheme;
+		m_id = item.m_id;
+		m_perms = item.m_perms;
+	}
+public:
+	AclItem& operator=(AclItem const& item)
+	{
+		if (this != &item)
+		{
+			m_scheme = item.m_scheme;
+			m_id = item.m_id;
+			m_perms = item.m_perms;
+		}
+		return *this;
+	}
+	bool operator < (AclItem const& item){
+		int ret = strcmp(m_scheme ,item.m_scheme);
+		if (ret < 0) return true;
+		if (ret > 0) return false;
+		return strcmp(m_id, item.m_id)<0?true:false;
+	}
+public:
+	char *  m_scheme;
+	char *  m_id;
+	int32_t m_perms;
+};
+
 
 //0:success
 //1:参数错误
@@ -148,6 +208,7 @@ int main(int argc ,char** argv)
 	}
 	
 	int timeout = 5000;
+	int ret = 0;
 	while(timeout > 0){
 		if (!zk.isConnected()){
 			timeout --;
@@ -169,27 +230,81 @@ int main(int argc ,char** argv)
 				iter++;
 			}
 		}
-		struct ACL_vector acl;
-		struct ACL_vector *pacl=&ZOO_OPEN_ACL_UNSAFE;
+
+		struct Stat stat;
+		struct ACL_vector aclOlds;
+		struct ACL_vector acls;
+		struct ACL_vector *pacls=&ZOO_OPEN_ACL_UNSAFE;
+		struct ACL acl;
+		set<AclItem>  acl_set;
 		if (g_priv.size())
 		{
-			acl.count = g_priv.size();
-			acl.data = new struct ACL[acl.count];
+			if (!g_set){
+				ret = zk.getAcl(g_strNode.c_str(), aclOlds, stat);
+				if (0 == ret){
+					output(outFd, 2, zk.getErrCode(), NULL, "msg: node doesn't exist\n");
+					if (outFd) fclose(outFd);
+					return 2;
+				}else if (-1 == ret){
+					output(outFd, 2, zk.getErrCode(), "msg:  Failure to get node acl, err=%s\n", zk.getErrMsg());
+					if (outFd) fclose(outFd);
+					return 2;
+				}
+				for (int i=0; i<aclOlds.count; i++){
+					acl_set.insert(AclItem(aclOlds.data[i].id.scheme, aclOlds.data[i].id.id, aclOlds.data[i].perms));
+				}
+			}
 			int index=0;
 			list<string>::iterator iter = g_priv.begin();
 			while(iter != g_priv.end())
 			{
-				if (!ZkAdaptor::fillAcl(iter->c_str(), acl.data[index++]))
+				if (!ZkAdaptor::fillAcl(iter->c_str(), acl))
 				{
 					output(outFd, 2, 0,"msg:  invalid auth %s\n", iter->c_str());
 					if (outFd) fclose(outFd);
 					return 2;
 				}
+				AclItem item(acl.id.scheme, acl.id.id, acl.perms);
+				if (g_set){
+					if (acl_set.find(item) != acl_set.end()){
+						output(outFd, 2, 0,"msg:  duplicate for auth %s\n", iter->c_str());
+						if (outFd) fclose(outFd);
+						return 2;
+					}
+					acl_set.insert(item);
+				}else if (g_append){
+					if (acl_set.find(item) != acl_set.end()){
+						output(outFd, 2, 0,"msg:  duplicate for auth %s\n", iter->c_str());
+						if (outFd) fclose(outFd);
+						return 2;
+					}
+					acl_set.insert(item);
+				}else{//g_remove=true
+					if (acl_set.find(item) == acl_set.end()){
+						output(outFd, 2, 0,"msg:  not exist for auth %s\n", iter->c_str());
+						if (outFd) fclose(outFd);
+						return 2;
+					}
+					acl_set.erase(item);
+				}
 				iter++;
 			}
-			pacl = &acl;
+			acls.count = acl_set.size();
+			acls.data = new struct ACL[acls.count];
+			set<AclItem>::iterator set_iter = acl_set.begin();
+			index = 0;
+			while(set_iter != acl_set.end())
+			{
+				acls.data[index].perms = set_iter->m_perms;
+				acls.data[index].id.scheme = set_iter->m_scheme;
+				acls.data[index].id.id = set_iter->m_id;
+				index++;
+				set_iter++;
+			}
+			pacls = &acls;
 		}
-		int ret = zk.setAcl(g_strNode.c_str(), pacl, g_verion);
+		ret = zk.setAcl(g_strNode.c_str(), pacls, g_verion);
+		delete [] acls.data;
 		if (-1 == ret){
 			output(outFd, 2, zk.getErrCode(), "msg:  Failure to set node acl, err=%s\n", zk.getErrMsg());
 			if (outFd) fclose(outFd);

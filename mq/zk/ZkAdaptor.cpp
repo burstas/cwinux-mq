@@ -538,16 +538,36 @@ bool ZkAdaptor::fillAcl(char const* priv, struct ACL& acl)
 		return true;
 	}
 	list<string> items;
+	string scheme;
 	string user;
 	string passwd;
 	string perms;
+	string ip;
 	int i=0;
 	split(string(priv), items, ':');
-	if (3 != items.size()) return false;
 	list<string>::iterator iter = items.begin();
-	user = *iter; iter++;
-	passwd = *iter; iter++;
-	perms = *iter;
+
+	scheme = *iter; iter++;
+
+	if (scheme == "digest"){
+		if (4 != items.size()) return false;
+		user = *iter; iter++;
+		passwd = *iter; iter++;
+		perms = *iter;
+		char* id = digest(priv, user.length() + passwd.length() + 1);
+		user = user + ":" + id;
+		acl.id.scheme = "digest";
+		acl.id.id = strdup(user.c_str());
+		free(id);
+	}else if (scheme == "ip"){
+		if (3 != items.size()) return false;
+		ip = *iter; iter++;
+		perms = *iter;
+		acl.id.scheme = "ip";
+		acl.id.id = strdup(ip.c_str());
+	}else{
+		return false;
+	}
 	acl.perms = 0;
 	while(perms[i])
 	{
@@ -573,11 +593,6 @@ bool ZkAdaptor::fillAcl(char const* priv, struct ACL& acl)
 		}
 		i++;
 	}
-	acl.id.scheme = "digest";
-	char* id = digest(priv, user.length() + passwd.length() + 1);
-	user = user + ":" + id;
-	acl.id.id = strdup(user.c_str());
-	free(id);
 	return true;
 }
 

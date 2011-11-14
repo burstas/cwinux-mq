@@ -184,6 +184,7 @@ int main(int argc ,char** argv)
 				iter++;
 			}
 		}
+		free(acl.data);
 		return 0;
 	}
 	output(outFd, 2, 0, NULL, "msg:  Timeout to connect zk\n");
