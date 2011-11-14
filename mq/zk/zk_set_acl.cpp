@@ -159,7 +159,7 @@ public:
 		}
 		return *this;
 	}
-	bool operator < (AclItem const& item){
+	bool operator < (AclItem const& item) const{
 		int ret = strcmp(m_scheme ,item.m_scheme);
 		if (ret < 0) return true;
 		if (ret > 0) return false;
