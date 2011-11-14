@@ -274,18 +274,19 @@ int main(int argc ,char** argv)
 					acl_set.insert(item);
 				}else if (g_append){
 					if (acl_set.find(item) != acl_set.end()){
-						output(outFd, 2, 0,"msg:  duplicate for auth %s\n", iter->c_str());
-						if (outFd) fclose(outFd);
-						return 2;
+						acl_set.find(item)->m_perms |= acl.perms;
+					}else{
+						acl_set.insert(item);
 					}
-					acl_set.insert(item);
+					if (0 == acl_set.find(item)->m_perms) acl_set.erase(item);
 				}else{//g_remove=true
 					if (acl_set.find(item) == acl_set.end()){
 						output(outFd, 2, 0,"msg:  not exist for auth %s\n", iter->c_str());
 						if (outFd) fclose(outFd);
 						return 2;
 					}
-					acl_set.erase(item);
+					acl_set.find(item)->m_perms &= (~acl.perms);
+					if (0 == acl_set.find(item)->m_perms) acl_set.erase(item);
 				}
 				iter++;
 			}
