@@ -13,7 +13,7 @@ bool   g_set = false;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	ZkGetOpt cmd_option(argc, argv, "H:n:a:o:l:a:e:h");
+	ZkGetOpt cmd_option(argc, argv, "H:n:a:o:l:m:h");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
