@@ -189,16 +189,12 @@ int main(int argc ,char** argv)
 			list<string>::iterator iter = g_auth.begin();
 			while(iter != g_auth.end())
 			{
-                                time_t now = time(NULL);
-                                printf("%s", ctime(&now));
 				if (!zk.addAuth("digest", iter->c_str(), iter->length(), 3000))
 				{
 					output(outFd, 2, 0,"msg:  Failure to auth, err=%s\n", zk.getErrMsg());
 					if (outFd) fclose(outFd);
 					return 2;
 				}
-                                now = time(NULL);
-                                printf("%s", ctime(&now));
 				iter++;
 			}
 		}
