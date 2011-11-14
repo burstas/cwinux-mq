@@ -555,7 +555,7 @@ bool ZkAdaptor::fillAcl(char const* priv, struct ACL& acl)
 		passwd = *iter; iter++;
 		perms = *iter;
 		string strId = user + ":" + passwd;
-		char* id = digest(strId.c_str());
+		char* id = digest(strId.c_str(), strId.length());
 		user = user + ":" + id;
 		acl.id.scheme = "digest";
 		acl.id.id = strdup(user.c_str());
