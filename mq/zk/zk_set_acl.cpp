@@ -93,7 +93,7 @@ int parseArg(int argc, char**argv)
 			}else if (strcmp("set", cmd_option.opt_arg()) == 0){
 				g_set = true;
 			}else{
-				printf("unknown mode[%s], just can be [append], [remove] or [set].");
+				printf("unknown mode[%s], just can be [append], [remove] or [set].", cmd_option.opt_arg());
 				return -1;
 			}
 			break;
