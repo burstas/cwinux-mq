@@ -91,8 +91,7 @@ zk_get_acl  -H host:port -n node [-o output file] [-a usr:passwd]
 -h: help
 
 ===============================================================
-zk_set_acl:  set zookeeper node's acl.
-zk_set_acl  -H host:port -n node [-o output file] [-a usr:passwd] [-l privilege] [-v version]
+./zk_set_acl  -H host:port -n node [-o output file] [-a usr:passwd] [-l privilege] [-v version]
 -H: zookeeper's host:port
 -n: node name to create, it's full path.
 -a: auth user's user:passwd. it can be multi.
@@ -100,9 +99,10 @@ zk_set_acl  -H host:port -n node [-o output file] [-a usr:passwd] [-l privilege]
     all               :  any privilege for any user;
     self              : any privilege for creator; 
     read              : read for any user;
-    user:passwd:acrwd : digest auth for [user] with [passwd], 
+    digest:user:passwd:acrwd : digest auth for [user] with [passwd], 
           admin(a), create(c), read(r), write(w), delete(d)
+    ip:ip_addr[/bits]:acrwd : ip auth for ip or ip subnet
+-m: set Acl mode. [append]¡¢[set]¡¢[remove] can be set¡£default is append.
 -o: output file, default is stdout
 -v: node's version
 -h: help
-
