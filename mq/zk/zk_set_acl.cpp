@@ -265,13 +265,13 @@ int main(int argc ,char** argv)
 					if (acl_map.find(item) != acl_map.end()){
 						acl_map.find(item)->second |= acl.perms;
 					}else{
-						acl_map.insert(item);
+						acl_map[item]=acl.perms;
 					}
 				}else if (g_append){
 					if (acl_map.find(item) != acl_map.end()){
 						acl_map.find(item)->second |= acl.perms;
 					}else{
-						acl_map.insert(item);
+						acl_map[item]=acl.perms;
 					}
 					if (0 == acl_map.find(item)->second) acl_map.erase(item);
 				}else{//g_remove=true
