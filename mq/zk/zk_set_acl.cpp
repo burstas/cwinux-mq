@@ -138,15 +138,13 @@ int parseArg(int argc, char**argv)
 
 class AclItem{
 public:
-	AclItem(char * scheme, char *  id, int32_t perms){
+	AclItem(char * scheme, char *  id){
 		m_scheme = scheme;
 		m_id = id;
-		m_perms = perms;
 	}
 	AclItem(AclItem const& item){
 		m_scheme = item.m_scheme;
 		m_id = item.m_id;
-		m_perms = item.m_perms;
 	}
 public:
 	AclItem& operator=(AclItem const& item)
@@ -155,7 +153,6 @@ public:
 		{
 			m_scheme = item.m_scheme;
 			m_id = item.m_id;
-			m_perms = item.m_perms;
 		}
 		return *this;
 	}
@@ -168,7 +165,6 @@ public:
 public:
 	char *  m_scheme;
 	char *  m_id;
-	int32_t m_perms;
 };
 
 
@@ -236,7 +232,7 @@ int main(int argc ,char** argv)
 		struct ACL_vector acls;
 		struct ACL_vector *pacls=&ZOO_OPEN_ACL_UNSAFE;
 		struct ACL acl;
-		set<AclItem>  acl_set;
+		map<AclItem, int32_t>  acl_map;
 		if (g_priv.size())
 		{
 			if (!g_set){
@@ -251,7 +247,7 @@ int main(int argc ,char** argv)
 					return 2;
 				}
 				for (int i=0; i<aclOlds.count; i++){
-					acl_set.insert(AclItem(aclOlds.data[i].id.scheme, aclOlds.data[i].id.id, aclOlds.data[i].perms));
+					acl_map[AclItem(aclOlds.data[i].id.scheme, aclOlds.data[i].id.id)] =  aclOlds.data[i].perms;
 				}
 			}
 			int index=0;
@@ -264,48 +260,47 @@ int main(int argc ,char** argv)
 					if (outFd) fclose(outFd);
 					return 2;
 				}
-				AclItem item(acl.id.scheme, acl.id.id, acl.perms);
+				AclItem item(acl.id.scheme, acl.id.id);
 				if (g_set){
-					if (acl_set.find(item) != acl_set.end()){
-						output(outFd, 2, 0,"msg:  duplicate for auth %s\n", iter->c_str());
-						if (outFd) fclose(outFd);
-						return 2;
-					}
-					acl_set.insert(item);
-				}else if (g_append){
-					if (acl_set.find(item) != acl_set.end()){
-						acl_set.find(item)->m_perms |= acl.perms;
+					if (acl_map.find(item) != acl_map.end()){
+						acl_map.find(item)->second |= acl.perms;
 					}else{
-						acl_set.insert(item);
+						acl_map.insert(item);
 					}
-					if (0 == acl_set.find(item)->m_perms) acl_set.erase(item);
+				}else if (g_append){
+					if (acl_map.find(item) != acl_map.end()){
+						acl_map.find(item)->second |= acl.perms;
+					}else{
+						acl_map.insert(item);
+					}
+					if (0 == acl_map.find(item)->second) acl_map.erase(item);
 				}else{//g_remove=true
-					if (acl_set.find(item) == acl_set.end()){
+					if (acl_map.find(item) == acl_map.end()){
 						output(outFd, 2, 0,"msg:  not exist for auth %s\n", iter->c_str());
 						if (outFd) fclose(outFd);
 						return 2;
 					}
-					acl_set.find(item)->m_perms &= (~acl.perms);
-					if (0 == acl_set.find(item)->m_perms) acl_set.erase(item);
+					acl_map.find(item)->second &= (~acl.perms);
+					if (0 == acl_map.find(item)->second) acl_map.erase(item);
 				}
 				iter++;
 			}
-			if (0 == acl_set.size()){
+			if (0 == acl_map.size()){
 				acls.count = 1;
 				acls.data = new struct ACL[acls.count];
 				ZkAdaptor::fillAcl("all", acls.data[0]);
 			}else{
-				acls.count = acl_set.size();
+				acls.count = acl_map.size();
 				acls.data = new struct ACL[acls.count];
-				set<AclItem>::iterator set_iter = acl_set.begin();
+				map<AclItem, int32_t>::iterator map_iter = acl_map.begin();
 				index = 0;
-				while(set_iter != acl_set.end())
+				while(map_iter != acl_map.end())
 				{
-					acls.data[index].perms = set_iter->m_perms;
-					acls.data[index].id.scheme = set_iter->m_scheme;
-					acls.data[index].id.id = set_iter->m_id;
+					acls.data[index].perms = map_iter->second;
+					acls.data[index].id.scheme = map_iter->first.m_scheme;
+					acls.data[index].id.id = map_iter->first.m_id;
 					index++;
-					set_iter++;
+					map_iter++;
 				}
 			}
 			pacls = &acls;
