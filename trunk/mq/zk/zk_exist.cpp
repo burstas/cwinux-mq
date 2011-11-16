@@ -164,7 +164,7 @@ int main(int argc ,char** argv)
 			}
 		}
 
-		output(outFd, 0, 0, "node:  \nmsg:  success\n\node:\n");
+		output(outFd, 0, 0, NULL, "node:  \nmsg:  success\n\node:\n");
 		struct Stat stat;
 		list<string>::iterator iter = g_node.begin();
 		while(iter != g_node.end()){
