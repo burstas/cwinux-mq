@@ -502,7 +502,7 @@ char* ZkAdaptor::digest(char const* input, int length)
 	return base64(output, 20);
 }
 
-static int split(string const& src, list<string>& value, char ch)
+int ZkAdaptor::split(string const& src, list<string>& value, char ch)
 {
 	string::size_type begin = 0;
 	string::size_type end = src.find(ch);
