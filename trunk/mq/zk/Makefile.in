@@ -38,13 +38,11 @@ build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = zk_create$(EXEEXT) zk_get$(EXEEXT) zk_update$(EXEEXT) \
 	zk_list$(EXEEXT) zk_delete$(EXEEXT) zk_loopcreate$(EXEEXT) \
-	zk_get_acl$(EXEEXT) zk_set_acl$(EXEEXT)
-DIST_COMMON = README $(am__configure_deps) $(srcdir)/../config.guess \
-	$(srcdir)/../config.sub $(srcdir)/../depcomp \
-	$(srcdir)/../install-sh $(srcdir)/../ltmain.sh \
-	$(srcdir)/../missing $(srcdir)/Makefile.am \
+	zk_get_acl$(EXEEXT) zk_set_acl$(EXEEXT) zk_exist$(EXEEXT)
+DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/configure AUTHORS COPYING \
-	ChangeLog INSTALL NEWS config.guess config.sub ltmain.sh
+	ChangeLog INSTALL NEWS config.guess config.sub depcomp \
+	install-sh ltmain.sh missing
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.in
@@ -69,45 +67,50 @@ am__objects_2 = zk_delete-ZkAdaptor.$(OBJEXT) \
 am_zk_delete_OBJECTS = $(am__objects_2) zk_delete-zk_delete.$(OBJEXT)
 zk_delete_OBJECTS = $(am_zk_delete_OBJECTS)
 zk_delete_DEPENDENCIES =
-am__objects_3 = zk_get-ZkAdaptor.$(OBJEXT) \
+am__objects_3 = zk_exist-ZkAdaptor.$(OBJEXT) \
+	zk_exist-ZkToolAdaptor.$(OBJEXT) zk_exist-zk_common.$(OBJEXT)
+am_zk_exist_OBJECTS = $(am__objects_3) zk_exist-zk_exist.$(OBJEXT)
+zk_exist_OBJECTS = $(am_zk_exist_OBJECTS)
+zk_exist_DEPENDENCIES =
+am__objects_4 = zk_get-ZkAdaptor.$(OBJEXT) \
 	zk_get-ZkToolAdaptor.$(OBJEXT) zk_get-zk_common.$(OBJEXT)
-am_zk_get_OBJECTS = $(am__objects_3) zk_get-zk_get.$(OBJEXT)
+am_zk_get_OBJECTS = $(am__objects_4) zk_get-zk_get.$(OBJEXT)
 zk_get_OBJECTS = $(am_zk_get_OBJECTS)
 zk_get_DEPENDENCIES =
-am__objects_4 = zk_get_acl-ZkAdaptor.$(OBJEXT) \
+am__objects_5 = zk_get_acl-ZkAdaptor.$(OBJEXT) \
 	zk_get_acl-ZkToolAdaptor.$(OBJEXT) \
 	zk_get_acl-zk_common.$(OBJEXT)
-am_zk_get_acl_OBJECTS = $(am__objects_4) \
+am_zk_get_acl_OBJECTS = $(am__objects_5) \
 	zk_get_acl-zk_get_acl.$(OBJEXT)
 zk_get_acl_OBJECTS = $(am_zk_get_acl_OBJECTS)
 zk_get_acl_DEPENDENCIES =
-am__objects_5 = zk_list-ZkAdaptor.$(OBJEXT) \
+am__objects_6 = zk_list-ZkAdaptor.$(OBJEXT) \
 	zk_list-ZkToolAdaptor.$(OBJEXT) zk_list-zk_common.$(OBJEXT)
-am_zk_list_OBJECTS = $(am__objects_5) zk_list-zk_list.$(OBJEXT)
+am_zk_list_OBJECTS = $(am__objects_6) zk_list-zk_list.$(OBJEXT)
 zk_list_OBJECTS = $(am_zk_list_OBJECTS)
 zk_list_DEPENDENCIES =
-am__objects_6 = zk_loopcreate-ZkAdaptor.$(OBJEXT) \
+am__objects_7 = zk_loopcreate-ZkAdaptor.$(OBJEXT) \
 	zk_loopcreate-ZkToolAdaptor.$(OBJEXT) \
 	zk_loopcreate-zk_common.$(OBJEXT)
-am_zk_loopcreate_OBJECTS = $(am__objects_6) \
+am_zk_loopcreate_OBJECTS = $(am__objects_7) \
 	zk_loopcreate-zk_loopcreate.$(OBJEXT)
 zk_loopcreate_OBJECTS = $(am_zk_loopcreate_OBJECTS)
 zk_loopcreate_DEPENDENCIES =
-am__objects_7 = zk_set_acl-ZkAdaptor.$(OBJEXT) \
+am__objects_8 = zk_set_acl-ZkAdaptor.$(OBJEXT) \
 	zk_set_acl-ZkToolAdaptor.$(OBJEXT) \
 	zk_set_acl-zk_common.$(OBJEXT)
-am_zk_set_acl_OBJECTS = $(am__objects_7) \
+am_zk_set_acl_OBJECTS = $(am__objects_8) \
 	zk_set_acl-zk_set_acl.$(OBJEXT)
 zk_set_acl_OBJECTS = $(am_zk_set_acl_OBJECTS)
 zk_set_acl_DEPENDENCIES =
-am__objects_8 = zk_update-ZkAdaptor.$(OBJEXT) \
+am__objects_9 = zk_update-ZkAdaptor.$(OBJEXT) \
 	zk_update-ZkToolAdaptor.$(OBJEXT) \
 	zk_update-zk_common.$(OBJEXT)
-am_zk_update_OBJECTS = $(am__objects_8) zk_update-zk_update.$(OBJEXT)
+am_zk_update_OBJECTS = $(am__objects_9) zk_update-zk_update.$(OBJEXT)
 zk_update_OBJECTS = $(am_zk_update_OBJECTS)
 zk_update_DEPENDENCIES =
 DEFAULT_INCLUDES = -I. -I$(srcdir)
-depcomp = $(SHELL) $(top_srcdir)/../depcomp
+depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -117,14 +120,14 @@ LTCXXCOMPILE = $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) \
 CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(zk_create_SOURCES) $(zk_delete_SOURCES) $(zk_get_SOURCES) \
-	$(zk_get_acl_SOURCES) $(zk_list_SOURCES) \
-	$(zk_loopcreate_SOURCES) $(zk_set_acl_SOURCES) \
-	$(zk_update_SOURCES)
+SOURCES = $(zk_create_SOURCES) $(zk_delete_SOURCES) \
+	$(zk_exist_SOURCES) $(zk_get_SOURCES) $(zk_get_acl_SOURCES) \
+	$(zk_list_SOURCES) $(zk_loopcreate_SOURCES) \
+	$(zk_set_acl_SOURCES) $(zk_update_SOURCES)
 DIST_SOURCES = $(zk_create_SOURCES) $(zk_delete_SOURCES) \
-	$(zk_get_SOURCES) $(zk_get_acl_SOURCES) $(zk_list_SOURCES) \
-	$(zk_loopcreate_SOURCES) $(zk_set_acl_SOURCES) \
-	$(zk_update_SOURCES)
+	$(zk_exist_SOURCES) $(zk_get_SOURCES) $(zk_get_acl_SOURCES) \
+	$(zk_list_SOURCES) $(zk_loopcreate_SOURCES) \
+	$(zk_set_acl_SOURCES) $(zk_update_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -272,6 +275,10 @@ zk_set_acl_CPPFLAGS = -W -Wall -Wno-deprecated
 zk_set_acl_SOURCES = $(COMMON_SRC)  zk_set_acl.cpp 
 zk_set_acl_LDADD = 
 zk_set_acl_LDFLAGS = -L@zk_dir@/lib -L@openssl_dir@/lib
+zk_exist_CPPFLAGS = -W -Wall -Wno-deprecated
+zk_exist_SOURCES = $(COMMON_SRC)  zk_exist.cpp
+zk_exist_LDADD = 
+zk_exist_LDFLAGS = -L@zk_dir@/lib -L@openssl_dir@/lib
 INCLUDES = -I@zk_dir@/include -I@openssl_dir@/include
 all: all-am
 
@@ -344,6 +351,9 @@ zk_create$(EXEEXT): $(zk_create_OBJECTS) $(zk_create_DEPENDENCIES)
 zk_delete$(EXEEXT): $(zk_delete_OBJECTS) $(zk_delete_DEPENDENCIES) 
 	@rm -f zk_delete$(EXEEXT)
 	$(CXXLINK) $(zk_delete_LDFLAGS) $(zk_delete_OBJECTS) $(zk_delete_LDADD) $(LIBS)
+zk_exist$(EXEEXT): $(zk_exist_OBJECTS) $(zk_exist_DEPENDENCIES) 
+	@rm -f zk_exist$(EXEEXT)
+	$(CXXLINK) $(zk_exist_LDFLAGS) $(zk_exist_OBJECTS) $(zk_exist_LDADD) $(LIBS)
 zk_get$(EXEEXT): $(zk_get_OBJECTS) $(zk_get_DEPENDENCIES) 
 	@rm -f zk_get$(EXEEXT)
 	$(CXXLINK) $(zk_get_LDFLAGS) $(zk_get_OBJECTS) $(zk_get_LDADD) $(LIBS)
@@ -377,6 +387,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zk_delete-ZkToolAdaptor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zk_delete-zk_common.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zk_delete-zk_delete.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zk_exist-ZkAdaptor.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zk_exist-ZkToolAdaptor.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zk_exist-zk_common.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zk_exist-zk_exist.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zk_get-ZkAdaptor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zk_get-ZkToolAdaptor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zk_get-zk_common.Po@am__quote@
@@ -534,6 +548,62 @@ zk_delete-zk_delete.obj: zk_delete.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='zk_delete.cpp' object='zk_delete-zk_delete.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_delete_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o zk_delete-zk_delete.obj `if test -f 'zk_delete.cpp'; then $(CYGPATH_W) 'zk_delete.cpp'; else $(CYGPATH_W) '$(srcdir)/zk_delete.cpp'; fi`
+
+zk_exist-ZkAdaptor.o: ZkAdaptor.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_exist_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT zk_exist-ZkAdaptor.o -MD -MP -MF "$(DEPDIR)/zk_exist-ZkAdaptor.Tpo" -c -o zk_exist-ZkAdaptor.o `test -f 'ZkAdaptor.cpp' || echo '$(srcdir)/'`ZkAdaptor.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/zk_exist-ZkAdaptor.Tpo" "$(DEPDIR)/zk_exist-ZkAdaptor.Po"; else rm -f "$(DEPDIR)/zk_exist-ZkAdaptor.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ZkAdaptor.cpp' object='zk_exist-ZkAdaptor.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_exist_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o zk_exist-ZkAdaptor.o `test -f 'ZkAdaptor.cpp' || echo '$(srcdir)/'`ZkAdaptor.cpp
+
+zk_exist-ZkAdaptor.obj: ZkAdaptor.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_exist_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT zk_exist-ZkAdaptor.obj -MD -MP -MF "$(DEPDIR)/zk_exist-ZkAdaptor.Tpo" -c -o zk_exist-ZkAdaptor.obj `if test -f 'ZkAdaptor.cpp'; then $(CYGPATH_W) 'ZkAdaptor.cpp'; else $(CYGPATH_W) '$(srcdir)/ZkAdaptor.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/zk_exist-ZkAdaptor.Tpo" "$(DEPDIR)/zk_exist-ZkAdaptor.Po"; else rm -f "$(DEPDIR)/zk_exist-ZkAdaptor.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ZkAdaptor.cpp' object='zk_exist-ZkAdaptor.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_exist_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o zk_exist-ZkAdaptor.obj `if test -f 'ZkAdaptor.cpp'; then $(CYGPATH_W) 'ZkAdaptor.cpp'; else $(CYGPATH_W) '$(srcdir)/ZkAdaptor.cpp'; fi`
+
+zk_exist-ZkToolAdaptor.o: ZkToolAdaptor.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_exist_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT zk_exist-ZkToolAdaptor.o -MD -MP -MF "$(DEPDIR)/zk_exist-ZkToolAdaptor.Tpo" -c -o zk_exist-ZkToolAdaptor.o `test -f 'ZkToolAdaptor.cpp' || echo '$(srcdir)/'`ZkToolAdaptor.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/zk_exist-ZkToolAdaptor.Tpo" "$(DEPDIR)/zk_exist-ZkToolAdaptor.Po"; else rm -f "$(DEPDIR)/zk_exist-ZkToolAdaptor.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ZkToolAdaptor.cpp' object='zk_exist-ZkToolAdaptor.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_exist_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o zk_exist-ZkToolAdaptor.o `test -f 'ZkToolAdaptor.cpp' || echo '$(srcdir)/'`ZkToolAdaptor.cpp
+
+zk_exist-ZkToolAdaptor.obj: ZkToolAdaptor.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_exist_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT zk_exist-ZkToolAdaptor.obj -MD -MP -MF "$(DEPDIR)/zk_exist-ZkToolAdaptor.Tpo" -c -o zk_exist-ZkToolAdaptor.obj `if test -f 'ZkToolAdaptor.cpp'; then $(CYGPATH_W) 'ZkToolAdaptor.cpp'; else $(CYGPATH_W) '$(srcdir)/ZkToolAdaptor.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/zk_exist-ZkToolAdaptor.Tpo" "$(DEPDIR)/zk_exist-ZkToolAdaptor.Po"; else rm -f "$(DEPDIR)/zk_exist-ZkToolAdaptor.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ZkToolAdaptor.cpp' object='zk_exist-ZkToolAdaptor.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_exist_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o zk_exist-ZkToolAdaptor.obj `if test -f 'ZkToolAdaptor.cpp'; then $(CYGPATH_W) 'ZkToolAdaptor.cpp'; else $(CYGPATH_W) '$(srcdir)/ZkToolAdaptor.cpp'; fi`
+
+zk_exist-zk_common.o: zk_common.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_exist_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT zk_exist-zk_common.o -MD -MP -MF "$(DEPDIR)/zk_exist-zk_common.Tpo" -c -o zk_exist-zk_common.o `test -f 'zk_common.cpp' || echo '$(srcdir)/'`zk_common.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/zk_exist-zk_common.Tpo" "$(DEPDIR)/zk_exist-zk_common.Po"; else rm -f "$(DEPDIR)/zk_exist-zk_common.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='zk_common.cpp' object='zk_exist-zk_common.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_exist_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o zk_exist-zk_common.o `test -f 'zk_common.cpp' || echo '$(srcdir)/'`zk_common.cpp
+
+zk_exist-zk_common.obj: zk_common.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_exist_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT zk_exist-zk_common.obj -MD -MP -MF "$(DEPDIR)/zk_exist-zk_common.Tpo" -c -o zk_exist-zk_common.obj `if test -f 'zk_common.cpp'; then $(CYGPATH_W) 'zk_common.cpp'; else $(CYGPATH_W) '$(srcdir)/zk_common.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/zk_exist-zk_common.Tpo" "$(DEPDIR)/zk_exist-zk_common.Po"; else rm -f "$(DEPDIR)/zk_exist-zk_common.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='zk_common.cpp' object='zk_exist-zk_common.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_exist_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o zk_exist-zk_common.obj `if test -f 'zk_common.cpp'; then $(CYGPATH_W) 'zk_common.cpp'; else $(CYGPATH_W) '$(srcdir)/zk_common.cpp'; fi`
+
+zk_exist-zk_exist.o: zk_exist.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_exist_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT zk_exist-zk_exist.o -MD -MP -MF "$(DEPDIR)/zk_exist-zk_exist.Tpo" -c -o zk_exist-zk_exist.o `test -f 'zk_exist.cpp' || echo '$(srcdir)/'`zk_exist.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/zk_exist-zk_exist.Tpo" "$(DEPDIR)/zk_exist-zk_exist.Po"; else rm -f "$(DEPDIR)/zk_exist-zk_exist.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='zk_exist.cpp' object='zk_exist-zk_exist.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_exist_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o zk_exist-zk_exist.o `test -f 'zk_exist.cpp' || echo '$(srcdir)/'`zk_exist.cpp
+
+zk_exist-zk_exist.obj: zk_exist.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_exist_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT zk_exist-zk_exist.obj -MD -MP -MF "$(DEPDIR)/zk_exist-zk_exist.Tpo" -c -o zk_exist-zk_exist.obj `if test -f 'zk_exist.cpp'; then $(CYGPATH_W) 'zk_exist.cpp'; else $(CYGPATH_W) '$(srcdir)/zk_exist.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/zk_exist-zk_exist.Tpo" "$(DEPDIR)/zk_exist-zk_exist.Po"; else rm -f "$(DEPDIR)/zk_exist-zk_exist.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='zk_exist.cpp' object='zk_exist-zk_exist.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_exist_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o zk_exist-zk_exist.obj `if test -f 'zk_exist.cpp'; then $(CYGPATH_W) 'zk_exist.cpp'; else $(CYGPATH_W) '$(srcdir)/zk_exist.cpp'; fi`
 
 zk_get-ZkAdaptor.o: ZkAdaptor.cpp
 @am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(zk_get_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT zk_get-ZkAdaptor.o -MD -MP -MF "$(DEPDIR)/zk_get-ZkAdaptor.Tpo" -c -o zk_get-ZkAdaptor.o `test -f 'ZkAdaptor.cpp' || echo '$(srcdir)/'`ZkAdaptor.cpp; \
@@ -932,7 +1002,6 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/..
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
