@@ -88,7 +88,7 @@ int parseArg(int argc, char**argv)
         printf("No host, set by -H\n");
         return -1;
     }
-	if (!g_node.begin() == g_node.end())
+	if (g_node.begin() == g_node.end())
 	{
 		if (g_strFile.length())
 		{
@@ -164,7 +164,7 @@ int main(int argc ,char** argv)
 			}
 		}
 
-		output(outFd, 0, 0, "node:  \nmsg:  success\n\node:\n", );
+		output(outFd, 0, 0, "node:  \nmsg:  success\n\node:\n");
 		struct Stat stat;
 		list<string>::iterator iter = g_node.begin();
 		while(iter != g_node.end()){
