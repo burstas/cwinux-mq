@@ -256,7 +256,7 @@ public:
 	///sleep miliSecond毫秒
 	static void sleep(uint32_t miliSecond);
 	///split the src
-	static int split(string const& src, list<string>& value, char ch)
+	static int split(string const& src, list<string>& value, char ch);
 
 	/**
 	*@brief  对input的字符串进行base64的签名，用户需要释放返回的字符空间。
