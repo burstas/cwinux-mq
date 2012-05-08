@@ -12,7 +12,7 @@ queue_info = {"port":9906, "name":"my_python_interface_test", "user":"python_use
             "auth_passwd":"mq_admin_passwd"}
 
 send_info = {"port":9901, "data":{"a":1,"b":2, "test":[4,5,{"k1":1,"k2":[6,7]}]},
-            "group":112233, "type":4455, "user":"recv", "passwd":"recv_passwd", 
+            "group":112233, "user":"recv", "passwd":"recv_passwd", 
             "sign":"md5", "zip":True}
 
 sync_info = {"port":9903, "user":"async", "passwd":"async_passwd"}
@@ -44,8 +44,7 @@ def test_create_queue ():
 def test_send_data():
     conn = send_conn
     pack = poco.pack_mq(0, send_info["data"], send_info["group"], 
-            send_info["type"], send_info["user"], 
-            send_info["passwd"], send_info["sign"], send_info["zip"])
+            send_info["user"], send_info["passwd"], send_info["sign"], send_info["zip"])
     conn.sendall(pack)
     msg = recv_msg(conn)
     res = poco.parse_mq_reply(msg)
