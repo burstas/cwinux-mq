@@ -1,3 +1,0 @@
-./configure --with-zk= zookeeper install path  --with-openssl= openssl install path
-make
-make install
