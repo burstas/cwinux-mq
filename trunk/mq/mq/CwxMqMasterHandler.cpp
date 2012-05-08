@@ -274,7 +274,6 @@ int CwxMqMasterHandler::saveBinlog(CwxMqTss* pTss,
 {
     CWX_UINT32 ttTimestamp;
     CWX_UINT32 uiGroup;
-    CWX_UINT32 uiType;
     CwxKeyValueItem const* data;
     ///获取binlog的数据
     if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseSyncData(pTss->m_pReader, 
@@ -284,7 +283,6 @@ int CwxMqMasterHandler::saveBinlog(CwxMqTss* pTss,
         ttTimestamp,
         data,
         uiGroup,
-        uiType,
         pTss->m_szBuf2K))
     {
         CWX_ERROR(("Failure to parse binlog from master, err=%s", pTss->m_szBuf2K));
@@ -297,7 +295,6 @@ int CwxMqMasterHandler::saveBinlog(CwxMqTss* pTss,
     if (0 !=m_pApp->getBinLogMgr()->append(ullSid,
         (time_t)ttTimestamp,
         uiGroup,
-        uiType,
         pTss->m_pWriter->getMsg(),
         pTss->m_pWriter->getMsgSize(),
         pTss->m_szBuf2K))

@@ -20,11 +20,8 @@ CWX_UINT32 g_max_timeout = 0;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:s:d:m:a:A:i:hc");
+	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:s:d:m:U:W:S:hc");
     int option;
-    cmd_option.long_option("auth_u", 'a', CwxGetOpt::ARG_REQUIRED);
-    cmd_option.long_option("auth_p", 'A', CwxGetOpt::ARG_REQUIRED);
-    cmd_option.long_option("sid", 'i', CwxGetOpt::ARG_REQUIRED);
 
     while( (option = cmd_option.next()) != -1)
     {
@@ -42,9 +39,9 @@ int parseArg(int argc, char**argv)
             printf("-s: queue's subscribe. it can be empty for subscribe all message.\n");
             printf("-d: default timeout second for commit queue. it can be zero for using server's default timeout.\n");
             printf("-m: max timeout second for commit queue. it can be zero for using server's max timeout.\n");
-            printf("--auth_u: authentication user for queue.\n");
-            printf("--auth_p: authentication user password for queue.\n");
-            printf("--sid: queue's start sid, zero for the current max sid.\n");
+            printf("-U: authentication user for queue.\n");
+            printf("-W: authentication user password for queue.\n");
+            printf("-S: queue's start sid, zero for the current max sid.\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -61,7 +58,7 @@ int parseArg(int argc, char**argv)
                 printf("-P requires an argument.\n");
                 return -1;
             }
-            g_unPort = strtoul(cmd_option.opt_arg(), NULL, 0);
+            g_unPort = strtoul(cmd_option.opt_arg(), NULL, 10);
             break;
         case 'u':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -104,7 +101,7 @@ int parseArg(int argc, char**argv)
                 printf("-d requires an argument.\n");
                 return -1;
             }
-            g_def_timeout = strtoul(cmd_option.opt_arg(),NULL,0);
+            g_def_timeout = strtoul(cmd_option.opt_arg(),NULL,10);
             break;
         case 'm':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -112,31 +109,31 @@ int parseArg(int argc, char**argv)
                 printf("-m requires an argument.\n");
                 return -1;
             }
-            g_max_timeout = strtoul(cmd_option.opt_arg(),NULL,0);
+            g_max_timeout = strtoul(cmd_option.opt_arg(),NULL,10);
             break;
-        case 'a':
+        case 'U':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
-                printf("--auth_u requires an argument.\n");
+                printf("-U requires an argument.\n");
                 return -1;
             }
             g_auth_user = cmd_option.opt_arg();
             break;
-        case 'A':
+        case 'W':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
-                printf("--auth_p requires an argument.\n");
+                printf("-W requires an argument.\n");
                 return -1;
             }
             g_auth_passwd = cmd_option.opt_arg();
             break;
-        case 'i':
+        case 'S':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
-                printf("--sid requires an argument.\n");
+                printf("-S requires an argument.\n");
                 return -1;
             }
-            g_sid = strtoull(cmd_option.opt_arg(),NULL,0);
+            g_sid = strtoull(cmd_option.opt_arg(),NULL,10);
             break;
         case ':':
             printf("%c requires an argument.\n", cmd_option.opt_opt ());

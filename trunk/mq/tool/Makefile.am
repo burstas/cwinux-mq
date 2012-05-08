@@ -6,7 +6,7 @@ pkgconfigdir =
 BUILD_DATE=$(shell date +%F)
 
 
-bin_PROGRAMS =mq_statinfo mq_add mq_del mq_fetch mq_recv mq_send mq_md5 mq_crc32
+bin_PROGRAMS =mq_statinfo mq_add mq_del mq_fetch mq_recv mq_send mq_md5 mq_crc32 mq_binlog
 mq_statinfo_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"  -W -Wall -Wno-deprecated
 mq_statinfo_SOURCES = stat_info.cpp 
 mq_statinfo_LDADD= 
@@ -47,8 +47,13 @@ mq_crc32_SOURCES = mq_crc32.cpp
 mq_crc32_LDADD=
 mq_crc32_LDFLAGS = -L@cwinux_dir@/lib
 
-LIBS=-lcwxnet -lcwxcmn -lcwxutil -lz -lpthread
-INCLUDES=-I@cwinux_dir@/include/net -I@cwinux_dir@/include/cmn  -I@cwinux_dir@/include/util -I../common
+mq_binlog_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)"  -W -Wall -Wno-deprecated
+mq_binlog_SOURCES = CwxBinlogOp.cpp binlog.cpp  ../common/CwxBinLogMgr.cpp 
+mq_binlog_LDADD=
+mq_binlog_LDFLAGS = -L@cwinux_dir@/lib
+
+LIBS=-lcwxnet -lcwxcmn -lz -lpthread
+INCLUDES=-I@cwinux_dir@/include/net -I@cwinux_dir@/include/cmn  -I../common
 
 
 ## Clean up template repositories, etc.

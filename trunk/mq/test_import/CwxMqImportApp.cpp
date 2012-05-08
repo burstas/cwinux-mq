@@ -26,7 +26,7 @@ int CwxMqImportApp::init(int argc, char** argv)
     ///若没有通过-f指定配置文件，则采用默认的配置文件
     if ((NULL == this->getConfFile()) || (strlen(this->getConfFile()) == 0))
     {
-        this->setConfFile("svr_conf.xml");
+        this->setConfFile("import.cnf");
     }
     ///加载配置文件
     if (0 != m_config.loadConfig(getConfFile()))
@@ -53,9 +53,7 @@ int CwxMqImportApp::initRunEnv()
     if (CwxAppFramework::initRunEnv() == -1 ) return -1;
 
     //output config
-    string strConfOut;
-    m_config.outputConfig(strConfOut);
-    CWX_INFO((strConfOut.c_str()));
+    m_config.outputConfig();
 
 
     CWX_UINT16 i=0;
@@ -197,7 +195,6 @@ void CwxMqImportApp::sendNextMsg(CWX_UINT32 uiSvrId, CWX_UINT32 uiHostId, CWX_UI
         0,
         data,
         m_config.m_uiGroup,
-        m_config.m_uiType,
         m_config.m_strUser.c_str(),
         m_config.m_strPasswd.c_str(),
         NULL,

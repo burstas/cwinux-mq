@@ -39,7 +39,6 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         if (CwxMqPoco::MSG_TYPE_RECV_DATA == msg->event().getMsgHeader().getMsgType())
         {
             CWX_UINT32 uiGroup;
-            CWX_UINT32 uiType;
             CwxKeyValueItem const* pData;
             if (m_pApp->getBinLogMgr()->isInvalid())
             {
@@ -85,7 +84,6 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 bZip?ulUnzipLen:msg->length(),
                 pData,
                 uiGroup,
-                uiType,
                 user,
                 passwd,
                 pTss->m_szBuf2K)))
@@ -114,7 +112,6 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             if (0 != m_pApp->getBinLogMgr()->append(ullSid,
                 time(NULL),
                 uiGroup,
-                uiType,
                 pTss->m_pWriter->getMsg(),
                 pTss->m_pWriter->getMsgSize(),
                 pTss->m_szBuf2K))

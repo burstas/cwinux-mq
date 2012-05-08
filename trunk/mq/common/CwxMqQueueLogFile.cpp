@@ -337,7 +337,7 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
             m_uiLine);
         return -1;
     }
-    queue.m_ullCursorSid = strtoull(item.second.c_str(), NULL, 0);
+    queue.m_ullCursorSid = strtoull(item.second.c_str(), NULL, 10);
     //get commit
     if (!CwxCommon::findKey(items, CWX_MQ_COMMIT, item))
     {
@@ -357,7 +357,7 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
             m_uiLine);
         return -1;
     }
-    queue.m_uiDefTimeout = strtoul(item.second.c_str(), NULL, 0);
+    queue.m_uiDefTimeout = strtoul(item.second.c_str(), NULL, 10);
     if (queue.m_uiDefTimeout < CWX_MQ_MIN_TIMEOUT_SECOND) queue.m_uiDefTimeout = CWX_MQ_MIN_TIMEOUT_SECOND;
     if (queue.m_uiDefTimeout > CWX_MQ_MAX_TIMEOUT_SECOND) queue.m_uiDefTimeout = CWX_MQ_MAX_TIMEOUT_SECOND;
     //get max_timeout
@@ -369,7 +369,7 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
             m_uiLine);
         return -1;
     }
-    queue.m_uiMaxTimeout = strtoul(item.second.c_str(), NULL, 0);
+    queue.m_uiMaxTimeout = strtoul(item.second.c_str(), NULL, 10);
     if (queue.m_uiMaxTimeout < CWX_MQ_MIN_TIMEOUT_SECOND) queue.m_uiMaxTimeout = CWX_MQ_MIN_TIMEOUT_SECOND;
     if (queue.m_uiMaxTimeout > CWX_MQ_MAX_TIMEOUT_SECOND) queue.m_uiMaxTimeout = CWX_MQ_MAX_TIMEOUT_SECOND;
     //get user
@@ -434,7 +434,7 @@ int CwxMqQueueLogFile::parseSid(string const& line, CWX_UINT64& ullSid)
 		return -1;
 	}
     //get sid
-    ullSid = strtoull(item.second.c_str(), NULL, 0);
+    ullSid = strtoull(item.second.c_str(), NULL, 10);
     return 0;
 }
 

@@ -7,7 +7,6 @@
 */
 #include "CwxMqMacro.h"
 #include "CwxAppFramework.h"
-#include "CwxAppAioWindow.h"
 #include "CwxBinLogMgr.h"
 #include "CwxMqConfig.h"
 #include "CwxMqTss.h"
@@ -24,8 +23,7 @@
 #define CWX_MQ_MODIFY_DATE "20110901102000"
 
 ///MQ服务的app对象
-class CwxMqApp : public CwxAppFramework
-{
+class CwxMqApp : public CwxAppFramework{
 public:
     enum
     {

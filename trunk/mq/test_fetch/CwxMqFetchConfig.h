@@ -7,11 +7,11 @@
 */
 #include "CwxHostInfo.h"
 #include "CwxCommon.h"
-#include "CwxXmlFileConfigParser.h"
+#include "CwxIniParse.h"
+#include "CwxMqMacro.h"
+#include "CwxMqDef.h"
+#include "CwxLogger.h"
 
-CWINUX_USING_NAMESPACE
-
-///echo压力测试的配置文件加载对象
 class CwxMqFetchConfig
 {
 public:
@@ -27,7 +27,7 @@ public:
     //加载配置文件.-1:failure, 0:success
     int loadConfig(string const & strConfFile);
     //输出配置文件
-    void outputConfig(string & strConfig);
+    void outputConfig();
     //获取加载配置文件的失败错误信息
     char const* getError() { return m_szError; };
     

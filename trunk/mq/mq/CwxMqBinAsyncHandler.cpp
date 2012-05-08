@@ -385,7 +385,6 @@ int CwxMqBinAsyncHandler::packOneBinLog(CwxPackageReader* reader,
                 m_dispatch.m_pCursor->getHeader().getDatetime(),
                 *pItem,
                 m_dispatch.m_pCursor->getHeader().getGroup(),
-                m_dispatch.m_pCursor->getHeader().getType(),
                 m_dispatch.m_strSign.c_str(),
                 m_dispatch.m_bZip,
                 szErr2K))
@@ -433,7 +432,6 @@ int CwxMqBinAsyncHandler::packMultiBinLog(CwxPackageReader* reader,
                 m_dispatch.m_pCursor->getHeader().getDatetime(),
                 *pItem,
                 m_dispatch.m_pCursor->getHeader().getGroup(),
-                m_dispatch.m_pCursor->getHeader().getType(),
                 szErr2K))
             {
                 ///形成数据包失败
@@ -480,8 +478,7 @@ int CwxMqBinAsyncHandler::seekToLog(CWX_UINT32& uiSkipNum)
     uiSkipNum++;
     m_dispatch.m_bNext = false;
     while (!CwxMqPoco::isSubscribe(m_dispatch.m_subscribe,
-        m_dispatch.m_pCursor->getHeader().getGroup(),
-        m_dispatch.m_pCursor->getHeader().getType()))
+        m_dispatch.m_pCursor->getHeader().getGroup()))
     {
         iRet = m_pApp->getBinLogMgr()->next(m_dispatch.m_pCursor);
         if (0 == iRet)
@@ -507,7 +504,7 @@ int CwxMqBinAsyncHandler::seekToLog(CWX_UINT32& uiSkipNum)
 int CwxMqBinAsyncHandler::seekToReportSid()
 {
     int iRet = 0;
-    if (m_pApp->getBinLogMgr()->isUnseek(m_dispatch.m_pCursor))
+    if (m_dispatch.m_pCursor->isUnseek())
     {//若binlog的读取cursor悬空，则定位
         if (m_dispatch.m_ullStartSid < m_pApp->getBinLogMgr()->getMaxSid())
         {
@@ -552,7 +549,7 @@ int CwxMqBinAsyncHandler::sendBinLog(CwxMqTss* pTss)
     CWX_UINT32 uiKeyLen = 0;
     CWX_UINT32 uiTotalLen = 0;
     CWX_UINT64 ullSid = 0;
-    if (m_pApp->getBinLogMgr()->isUnseek(m_dispatch.m_pCursor))
+    if (m_dispatch.m_pCursor->isUnseek())
     {//若binlog的读取cursor悬空，则定位
         if (1 != (iRet = seekToReportSid())) return iRet;
     }

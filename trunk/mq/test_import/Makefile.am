@@ -10,11 +10,11 @@ bin_PROGRAMS = cwx_mq_import
 cwx_mq_import_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)" -W -Wall  -Wno-deprecated
 cwx_mq_import_SOURCES = \
 	../common/CwxMqPoco.cpp  ../common/CwxMqTss.cpp\
-	CwxMqImportApp.cpp  CwxMqImportConfig.cpp  cwx_mq_import.cpp
+	CwxMqImportApp.cpp  CwxMqImportConfig.cpp  cwx_mq_import.cpp ../common/CwxMqDef.cpp
 cwx_mq_import_LDADD=
-cwx_mq_import_LDFLAGS =-L@xml_expat_dir@/lib -L@cwinux_dir@/lib 
-LIBS=-lcwxapp -lcwxutil -lcwxnet -lcwxparse -lcwxstore -lcwxcmn -lexpat -lpthread -ldl -lrt -lz
-INCLUDES=-I@cwinux_dir@/include/app -I@cwinux_dir@/include/util -I@cwinux_dir@/include/cmn -I@cwinux_dir@/include/net -I@cwinux_dir@/include/store -I@cwinux_dir@/include/parse -I@xml_expat_dir@/include  -I../common
+cwx_mq_import_LDFLAGS =-L@cwinux_dir@/lib 
+LIBS=-lcwxapp -lcwxnet -lcwxcmn -lpthread -ldl -lrt -lz
+INCLUDES=-I@cwinux_dir@/include/app -I@cwinux_dir@/include/cmn -I@cwinux_dir@/include/net  -I../common
 
 ## Clean up template repositories, etc.
 clean-local:

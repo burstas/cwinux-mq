@@ -56,7 +56,8 @@ am_cwx_mq_OBJECTS = cwx_mq-CwxMqApp.$(OBJEXT) \
 	cwx_mq-CwxMqBinRecvHandler.$(OBJEXT) cwx_mq-cwx_mq.$(OBJEXT) \
 	cwx_mq-CwxMqDef.$(OBJEXT) cwx_mq-CwxMqPoco.$(OBJEXT) \
 	cwx_mq-CwxMqQueueMgr.$(OBJEXT) \
-	cwx_mq-CwxMqQueueLogFile.$(OBJEXT) cwx_mq-CwxMqTss.$(OBJEXT)
+	cwx_mq-CwxMqQueueLogFile.$(OBJEXT) cwx_mq-CwxMqTss.$(OBJEXT) \
+	cwx_mq-CwxBinLogMgr.$(OBJEXT) cwx_mq-CwxSysLogFile.$(OBJEXT)
 cwx_mq_OBJECTS = $(am_cwx_mq_OBJECTS)
 cwx_mq_DEPENDENCIES =
 DEFAULT_INCLUDES = -I. -I$(srcdir)
@@ -110,7 +111,7 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
-LIBS = -lcwxapp -lcwxutil -lcwxnet -lcwxparse -lcwxstore -lcwxcmn -lexpat -lpthread -ldl -lrt -lz
+LIBS = -lcwxapp -lcwxnet -lcwxcmn -lpthread -ldl -lrt -lz
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -173,7 +174,6 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-xml_expat_dir = @xml_expat_dir@
 pkgconfigdir = 
 BUILD_DATE = $(shell date +%F)
 cwx_mq_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)" -W -Wall  -Wno-deprecated
@@ -188,11 +188,13 @@ cwx_mq_SOURCES = CwxMqApp.cpp\
                 ../common/CwxMqPoco.cpp\
 		../common/CwxMqQueueMgr.cpp\
 		../common/CwxMqQueueLogFile.cpp\
-		../common/CwxMqTss.cpp
+		../common/CwxMqTss.cpp\
+                ../common/CwxBinLogMgr.cpp\
+                ../common/CwxSysLogFile.cpp
 
 cwx_mq_LDADD = 
-cwx_mq_LDFLAGS = -L@xml_expat_dir@/lib -L@cwinux_dir@/lib
-INCLUDES = -I@cwinux_dir@/include/app -I@cwinux_dir@/include/util -I@cwinux_dir@/include/cmn -I@cwinux_dir@/include/net -I@cwinux_dir@/include/parse -I@cwinux_dir@/include/store -I@xml_expat_dir@/include  -I../common
+cwx_mq_LDFLAGS = -L@cwinux_dir@/lib
+INCLUDES = -I@cwinux_dir@/include/app -I@cwinux_dir@/include/cmn -I@cwinux_dir@/include/net  -I../common
 all: all-am
 
 .SUFFIXES:
@@ -264,6 +266,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxBinLogMgr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqApp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqBinAsyncHandler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqBinFetchHandler.Po@am__quote@
@@ -275,6 +278,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqQueueLogFile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqQueueMgr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxMqTss.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-CwxSysLogFile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq-cwx_mq.Po@am__quote@
 
 .cpp.o:
@@ -465,6 +469,34 @@ cwx_mq-CwxMqTss.obj: ../common/CwxMqTss.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqTss.cpp' object='cwx_mq-CwxMqTss.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxMqTss.obj `if test -f '../common/CwxMqTss.cpp'; then $(CYGPATH_W) '../common/CwxMqTss.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqTss.cpp'; fi`
+
+cwx_mq-CwxBinLogMgr.o: ../common/CwxBinLogMgr.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxBinLogMgr.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxBinLogMgr.Tpo" -c -o cwx_mq-CwxBinLogMgr.o `test -f '../common/CwxBinLogMgr.cpp' || echo '$(srcdir)/'`../common/CwxBinLogMgr.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxBinLogMgr.Tpo" "$(DEPDIR)/cwx_mq-CwxBinLogMgr.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxBinLogMgr.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxBinLogMgr.cpp' object='cwx_mq-CwxBinLogMgr.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxBinLogMgr.o `test -f '../common/CwxBinLogMgr.cpp' || echo '$(srcdir)/'`../common/CwxBinLogMgr.cpp
+
+cwx_mq-CwxBinLogMgr.obj: ../common/CwxBinLogMgr.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxBinLogMgr.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxBinLogMgr.Tpo" -c -o cwx_mq-CwxBinLogMgr.obj `if test -f '../common/CwxBinLogMgr.cpp'; then $(CYGPATH_W) '../common/CwxBinLogMgr.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxBinLogMgr.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxBinLogMgr.Tpo" "$(DEPDIR)/cwx_mq-CwxBinLogMgr.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxBinLogMgr.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxBinLogMgr.cpp' object='cwx_mq-CwxBinLogMgr.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxBinLogMgr.obj `if test -f '../common/CwxBinLogMgr.cpp'; then $(CYGPATH_W) '../common/CwxBinLogMgr.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxBinLogMgr.cpp'; fi`
+
+cwx_mq-CwxSysLogFile.o: ../common/CwxSysLogFile.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxSysLogFile.o -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxSysLogFile.Tpo" -c -o cwx_mq-CwxSysLogFile.o `test -f '../common/CwxSysLogFile.cpp' || echo '$(srcdir)/'`../common/CwxSysLogFile.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxSysLogFile.Tpo" "$(DEPDIR)/cwx_mq-CwxSysLogFile.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxSysLogFile.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxSysLogFile.cpp' object='cwx_mq-CwxSysLogFile.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxSysLogFile.o `test -f '../common/CwxSysLogFile.cpp' || echo '$(srcdir)/'`../common/CwxSysLogFile.cpp
+
+cwx_mq-CwxSysLogFile.obj: ../common/CwxSysLogFile.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq-CwxSysLogFile.obj -MD -MP -MF "$(DEPDIR)/cwx_mq-CwxSysLogFile.Tpo" -c -o cwx_mq-CwxSysLogFile.obj `if test -f '../common/CwxSysLogFile.cpp'; then $(CYGPATH_W) '../common/CwxSysLogFile.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxSysLogFile.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq-CwxSysLogFile.Tpo" "$(DEPDIR)/cwx_mq-CwxSysLogFile.Po"; else rm -f "$(DEPDIR)/cwx_mq-CwxSysLogFile.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxSysLogFile.cpp' object='cwx_mq-CwxSysLogFile.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq-CwxSysLogFile.obj `if test -f '../common/CwxSysLogFile.cpp'; then $(CYGPATH_W) '../common/CwxSysLogFile.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxSysLogFile.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

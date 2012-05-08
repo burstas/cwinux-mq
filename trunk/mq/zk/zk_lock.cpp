@@ -1,31 +1,27 @@
 #include "zk_common.h"
+#include "ZkLocker.h"
 
 string g_strHost;
 string g_strNode;
-string g_strValue;
-string g_strOut;
-string g_strFile;
-bool   g_ephemeral = false;
-bool   g_sequence = false;
-bool   g_recursive=false;
+string g_strPrev="lock";
+bool   g_bWatchMaster = false;
 list<string> g_auth;
 list<string>  g_priv;
 ///-1：失败；0：help；1：成功
 int parseArg(int argc, char**argv)
 {
-	ZkGetOpt cmd_option(argc, argv, "H:n:d:f:a:o:l:eshr");
+    ZkGetOpt cmd_option(argc, argv, "H:n:a:l:p:hm");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
         switch (option)
         {
         case 'h':
-            printf("create zookeeper node.\n");
+            printf("Test for lock zookeeper node.\n");
 			printf("%s  -H host:port -n node [-d data] [-f data file] [-o output file] [-a usr:passwd] [-l privilege]\n", argv[0]);
 			printf("-H: zookeeper's host:port\n");
-            printf("-n: node name to create, it's full path.\n");
-			printf("-d: value for node.\n");
-			printf("-f: data's file. -d is used if it exists\n");
+            printf("-n: node name for lock.\n");
+            printf("-p: prex for lock. default is [lock].\n");
 			printf("-a: auth user's user:passwd. it can be multi.\n");
 			printf("-l: node's acl. it can be multi. it's value can be:\n");
 			printf("    all               :  any privilege for any user;\n");
@@ -33,10 +29,7 @@ int parseArg(int argc, char**argv)
 			printf("    read              : read for any user;\n");
 			printf("    user:passwd:acrwd : digest auth for [user] with [passwd], \n");
 			printf("          admin(a), create(c), read(r), write(w), delete(d)\n");
-			printf("-o: output file, default is stdout\n");
-			printf("-e: node is EPHEMERAL node\n");
-			printf("-s: node is SEQUENCE node\n");
-            printf("-r: recursive to create child.\n");
+            printf("-m: watch master node\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -55,22 +48,6 @@ int parseArg(int argc, char**argv)
             }
             g_strNode = cmd_option.opt_arg();
             break;
-		case 'd':
-			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-			{
-				printf("-d requires an argument.\n");
-				return -1;
-			}
-			g_strValue = cmd_option.opt_arg();
-			break;
-		case 'f':
-			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-			{
-				printf("-f requires an argument.\n");
-				return -1;
-			}
-			g_strFile = cmd_option.opt_arg();
-			break;
 		case 'a':
 			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
 			{
@@ -87,22 +64,16 @@ int parseArg(int argc, char**argv)
 			}
 			g_priv.push_back(cmd_option.opt_arg());
 			break;
-		case 'o':
-			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-			{
-				printf("-o requires an argument.\n");
-				return -1;
-			}
-			g_strOut = cmd_option.opt_arg();
-			break;
-		case 'e':
-			g_ephemeral = true;
-			break;
-		case 's':
-			g_sequence = true;
-			break;
-        case 'r':
-            g_recursive = true;
+        case 'p':
+            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
+            {
+                printf("-p requires an argument.\n");
+                return -1;
+            }
+            g_strPrev = cmd_option.opt_arg();
+            break;
+        case 'm':
+            g_bWatchMaster = true;
             break;
         case ':':
             printf("%c requires an argument.\n", cmd_option.opt_opt ());
@@ -132,54 +103,48 @@ int parseArg(int argc, char**argv)
 		printf("No node, set by -n\n");
 		return -1;
 	}
-	if (!g_strValue.length())
-	{
-		if (g_strFile.length())
-		{
-			if (!readFile(g_strFile, g_strValue)){
-				printf("Failure to read file:%s, errno=%d\n", g_strFile.c_str(), errno);
-				return -1;
-			}
-		}
-	}
     return 1;
 }
 
+void get_lock(bool bLock, void* cbdata){
+    ZkLocker* zk = (ZkLocker*)cbdata;
+    string strSelf;
+    string strOwner;
+    string strPrev;
+    zk->_getSelfNode(strSelf);
+    zk->_getOwnerNode(strOwner);
+    zk->_getPrevNode(strPrev);
+    if (bLock){
+        printf("get the lock:self=%s, owner=%s, prev=%s\n", strSelf.c_str(), strOwner.c_str(), strPrev.c_str());
+    }else{
+        printf("lost the lock:self=%s, owner=%s, prev=%s\n", strSelf.c_str(), strOwner.c_str(), strPrev.c_str());
+    }
+}
 
 //0:success
 //1:参数错误
 //2:执行结果错误
 int main(int argc ,char** argv)
 {
-	FILE * outFd = NULL;
     int iRet = parseArg(argc, argv);
 
     if (0 == iRet) return 0;
     if (-1 == iRet) return 1;
 
-	if (g_strOut.length())
-	{
-		outFd = fopen(g_strOut.c_str(), "w+b");
-		if (!outFd){
-			printf("Failure to open output file:%s, errno=%d\n", g_strOut.c_str(), errno);
-			return 1;
-		}
-	}
-
 	ZkToolAdaptor zk(g_strHost);
 
 	if (0 != zk.init()){
-		output(outFd, 2, zk.getErrCode(), "msg:  Failure to init zk, err=%s\n", zk.getErrMsg());
-		if (outFd) fclose(outFd);
+		printf("msg:  Failure to init zk, err=%s\n", zk.getErrMsg());
 		return 2;
 	}
 
 	if (0 != zk.connect())
 	{
-		output(outFd, 2, zk.getErrCode(), "msg:  Failure to connect zk, err=%s\n", zk.getErrMsg());
-		if (outFd) fclose(outFd);
+		printf("msg:  Failure to connect zk, err=%s\n", zk.getErrMsg());
 		return 2;
 	}
+
+    ZkLocker locker;
 	
 	int timeout = 5000;
 	while(timeout > 0){
@@ -196,8 +161,7 @@ int main(int argc ,char** argv)
 			{
 				if (!zk.addAuth("digest", iter->c_str(), iter->length(), 3000))
 				{
-					output(outFd, 2, 0,"msg:  Failure to auth, err=%s\n", zk.getErrMsg());
-					if (outFd) fclose(outFd);
+					printf("msg:  Failure to auth, err=%s\n", zk.getErrMsg());
 					return 2;
 				}
 				iter++;
@@ -215,35 +179,45 @@ int main(int argc ,char** argv)
 			{
 				if (!ZkAdaptor::fillAcl(iter->c_str(), acl.data[index++]))
 				{
-					output(outFd, 2, 0,"msg:  invalid auth %s\n", iter->c_str());
-					if (outFd) fclose(outFd);
+					printf("msg:  invalid auth %s\n", iter->c_str());
 					return 2;
 				}
 				iter++;
 			}
 			pacl = &acl;
 		}
-		int flags = 0;
-		if (g_sequence) flags |= ZOO_SEQUENCE;
-		if (g_ephemeral) flags |= ZOO_EPHEMERAL;
-		char path[2048];
-		int ret = zk.createNode(g_strNode, g_strValue.c_str(), g_strValue.length(), pacl, flags, g_recursive, path, 2048);
-		if (-1 == ret){
-			output(outFd, 2, zk.getErrCode(), "msg:  Failure to create node, err=%s\n", zk.getErrMsg());
-			if (outFd) fclose(outFd);
-			return 2;
-		}
-		if (0 == ret){
-			output(outFd, 2, zk.getErrCode(), NULL, "msg:  node exists\n");
-			if (outFd) fclose(outFd);
-			return 2;
-		}
-		output(outFd, 0, 0, "node:  %s\nmsg:  success\n", !g_sequence?g_strNode.c_str():path);
-		if (outFd) fclose(outFd);
-		return 0;
-	}
+        if (0 != locker.init(&zk, (char*)g_strNode.c_str(), g_strPrev, get_lock, &zk, pacl))
+        {
+            printf("failure to init zk lock\n");
+            return 2;
+        }
+        
+        bool bNeedLock = true;
+        string lockPath;
+        string ownPath;
+        printf("Starting to lock......");
+        iRet = locker.lock(g_bWatchMaster);
+        string strSelf;
+        string strOwner;
+        string strPrev;
+        while(1){
+            if (!zk.isConnected()){
+                printf("Lost connnect..........\n");
+                ::sleep(1);
+                continue;
+                bNeedLock = true;
+            }
+            if (0 != iRet){
+                printf("Failure to lock, code=%d\n", iRet);
+                iRet = locker.lock(g_bWatchMaster);
+            }
+            locker.getSelfNode(strSelf);
+            locker.getOwnerNode(strOwner);
+            locker.getPrevNode(strPrev);
 
-	output(outFd, 2, 0, NULL, "msg:  Timeout to connect zk\n");
-	if (outFd) fclose(outFd);
+            printf("Sleep two second.........., Locked:%s,  Mine:%s,  Owner:%s,   Prev:%s\n", locker.isLocked()?"yes":"no", strSelf.c_str(), strOwner.c_str(), strPrev.c_str());
+            ::sleep(4);
+        }
+	}
 	return 2;
 }

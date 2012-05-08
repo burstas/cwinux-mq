@@ -7,9 +7,10 @@
 */
 #include "CwxHostInfo.h"
 #include "CwxCommon.h"
-#include "CwxXmlFileConfigParser.h"
-
-CWINUX_USING_NAMESPACE
+#include "CwxIniParse.h"
+#include "CwxMqMacro.h"
+#include "CwxMqDef.h"
+#include "CwxLogger.h"
 
 ///mq压力测试的配置文件加载对象
 class CwxMqImportConfig
@@ -20,7 +21,6 @@ public:
         m_unConnNum = 0;
         m_unDataSize = 0;
         m_uiGroup = 0;
-        m_uiType =0 ;
         m_bLasting = true;
     }
     
@@ -29,7 +29,7 @@ public:
     //加载配置文件.-1:failure, 0:success
     int loadConfig(string const & strConfFile);
     //输出配置文件
-    void outputConfig(string & strConfig);
+    void outputConfig();
     //获取加载配置文件的失败错误信息
     char const* getError() { return m_szError; };
     
@@ -40,7 +40,6 @@ public:
     CWX_UINT16           m_unConnNum;///<连接的数量
     CWX_UINT16           m_unDataSize;///<数据的大小
     CWX_UINT32           m_uiGroup; ///<数据的分组
-    CWX_UINT32           m_uiType; ///<数据的类型
     bool                m_bLasting;///<是否为持久连接，类似HTTP的keep-alive
     CwxHostInfo       m_listen;///<tcp连接的对方listen地址
     string              m_strUser; ///<fetch的用户名

@@ -17,7 +17,6 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         if (CwxMqPoco::MSG_TYPE_RECV_DATA == msg->event().getMsgHeader().getMsgType())
         {
             CWX_UINT32 uiGroup;
-            CWX_UINT32 uiType;
             CwxKeyValueItem const* pData;
             unsigned long ulUnzipLen = 0;
             bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
@@ -48,7 +47,6 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 bZip?ulUnzipLen:msg->length(),
                 pData,
                 uiGroup,
-                uiType,
                 user,
                 passwd,
                 pTss->m_szBuf2K)))
@@ -67,7 +65,6 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 uiTaskId,
                 *pData,
                 uiGroup,
-                uiType,
                 m_pApp->getConfig().m_mq.getUser().c_str(),
                 m_pApp->getConfig().m_mq.getPasswd().c_str(),
                 m_pApp->getConfig().m_mqSign.c_str(),

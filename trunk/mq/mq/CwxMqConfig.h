@@ -10,7 +10,7 @@
 #include "CwxGlobalMacro.h"
 #include "CwxHostInfo.h"
 #include "CwxCommon.h"
-#include "CwxXmlFileConfigParser.h"
+#include "CwxIniParse.h"
 #include "CwxBinLogMgr.h"
 #include "CwxStl.h"
 #include "CwxStlFunc.h"
@@ -176,10 +176,7 @@ public:
         return m_szErrMsg;
     };
 private:
-    bool fetchHost(CwxXmlFileConfigParser& parser,
-        string const& path,
-        CwxHostInfo& host,
-		bool bIpOnly=false);
+    bool fetchHost(CwxIniParse& cnf, string const& node, CwxHostInfo& host, bool bIpOnly=false);
 private:
     CwxMqConfigCmn      m_common; ///<common的配置信息
     CwxMqConfigBinLog   m_binlog; ///<binlog的配置信息

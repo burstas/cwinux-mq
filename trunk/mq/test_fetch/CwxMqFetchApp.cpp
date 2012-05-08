@@ -26,7 +26,7 @@ int CwxMqFetchApp::init(int argc, char** argv)
     ///若没有通过-f指定配置文件，则采用默认的配置文件
     if ((NULL == this->getConfFile()) || (strlen(this->getConfFile()) == 0))
     {
-        this->setConfFile("svr_conf.xml");
+        this->setConfFile("fetch.cnf");
     }
     ///加载配置文件
     if (0 != m_config.loadConfig(getConfFile()))
@@ -53,9 +53,7 @@ int CwxMqFetchApp::initRunEnv()
     if (CwxAppFramework::initRunEnv() == -1 ) return -1;
 
     //output config
-    string strConfOut;
-    m_config.outputConfig(strConfOut);
-    CWX_INFO((strConfOut.c_str()));
+    m_config.outputConfig();
 
 
     CWX_UINT16 i=0;

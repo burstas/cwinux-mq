@@ -242,7 +242,7 @@ int main(int argc ,char** argv)
 			}else{
 				strValue = g_strNode;
 			}
-			int ret = zk.createNode(strValue, g_strValue.c_str(), g_strValue.length(), pacl, flags, path, 2048);
+			int ret = zk.createNode(strValue, g_strValue.c_str(), g_strValue.length(), pacl, flags, false, path, 2048);
 
 			if (0 == i)
 			{

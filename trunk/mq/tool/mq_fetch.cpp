@@ -17,9 +17,8 @@ bool   g_commit = false;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:n:o:chb");
+	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:n:t:chb");
     int option;
-    cmd_option.long_option("timeout", 'o', CwxGetOpt::ARG_REQUIRED);
     while( (option = cmd_option.next()) != -1)
     {
         switch (option)
@@ -35,7 +34,7 @@ int parseArg(int argc, char**argv)
             printf("-b: block sign. with this option, fetch will be blocked if no message; otherwize, it will return right now.\n");
             printf("-n: message number to fetch. default is 1. 0 for fetching all.\n");
             printf("-c: queue is commit type. if no this option, the queue is non-commit type.\n");
-            printf("--timeout: timeout second for commit queue. 0 for default value.\n");
+            printf("-t: timeout second for commit queue. 0 for default value.\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -52,7 +51,7 @@ int parseArg(int argc, char**argv)
                 printf("-P requires an argument.\n");
                 return -1;
             }
-            g_unPort = strtoul(cmd_option.opt_arg(), NULL, 0);
+            g_unPort = strtoul(cmd_option.opt_arg(), NULL, 10);
             break;
         case 'u':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -87,18 +86,18 @@ int parseArg(int argc, char**argv)
                 printf("-n requires an argument.\n");
                 return -1;
             }
-            g_num = strtoul(cmd_option.opt_arg(),NULL,0);
+            g_num = strtoul(cmd_option.opt_arg(),NULL,10);
             break;
         case 'c':
             g_commit = true;
             break;
-        case 'o':
+        case 't':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
-                printf("--timeout requires an argument.\n");
+                printf("-t requires an argument.\n");
                 return -1;
             }
-            g_timeout = strtoul(cmd_option.opt_arg(),NULL,0);
+            g_timeout = strtoul(cmd_option.opt_arg(),NULL,10);
             break;
         case ':':
             printf("%c requires an argument.\n", cmd_option.opt_opt ());
@@ -160,7 +159,6 @@ int main(int argc ,char** argv)
     CWX_UINT64 ullSid = 0;
     CWX_UINT32 num = 0;
     CWX_UINT32 group = 0;
-    CWX_UINT32 type = 0;
     CWX_UINT32 timestamp = 0;
     CwxKeyValueItem const* item = NULL;
 
@@ -212,7 +210,6 @@ int main(int argc ,char** argv)
                     timestamp,
                     item,
                     group,
-                    type,
                     szErr2K))
                 {
                     printf("failure to unpack recieve msg, err=%s\n", szErr2K);
@@ -225,11 +222,10 @@ int main(int argc ,char** argv)
                     iRet = 1;
                     break;
                 }
-                printf("%s|%u|%u|%u|%s\n",
+                printf("%s|%u|%u|%s\n",
                     CwxCommon::toString(ullSid, szErr2K, 10),
                     timestamp,
                     group,
-                    type,
                     item->m_szData);
                 if (g_num)
                 {
