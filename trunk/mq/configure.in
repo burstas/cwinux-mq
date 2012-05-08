@@ -12,12 +12,6 @@ AM_PROG_LIBTOOL
 AC_DEFUN([LIBEVENT_DIR],[
 
     AC_ARG_WITH(
-        xml_expat,
-        [  --with-xml-expat[=DIR]        expat for xml directory],
-        ,
-        [with_xml_expat="no"]
-    )
-    AC_ARG_WITH(
         cwinux,
         [  --with-cwinux[=DIR]        cwinux directory],
         ,
@@ -25,18 +19,6 @@ AC_DEFUN([LIBEVENT_DIR],[
     )
 
     AC_MSG_CHECKING(for libevent directory)
-
-    if test "$with_xml_expat" = "no"; then
-        AC_MSG_ERROR( You need to specify the expat for xml directory using --with-xml-expat)
-    else
-        # make sure that a well known include file exists
-        if test -e $with_xml_expat/include/expat.h; then
-            xml_expat_dir=$with_xml_expat
-            AC_MSG_RESULT(xml-expat found!)
-        else
-            AC_MSG_ERROR( $with_xml_expat not found.  Check the value you specified with --with-xml-expat)
-        fi
-    fi
 
     if test "$with_cwinux" = "no"; then
         AC_MSG_ERROR( You need to specify the cwinux directory using --with-cwinux)
@@ -62,7 +44,6 @@ AC_DEFINE(_GNU_SOURC)
 
 
 # The AC_SUBST macro causes the variable to be saved in config.status
-AC_SUBST(xml_expat_dir)
 AC_SUBST(cwinux_dir)
 
 # Write config.status and the Makefile
