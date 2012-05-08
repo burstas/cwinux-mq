@@ -125,11 +125,12 @@ int CwxBinLogCursor::header(CWX_UINT32 uiOffset)
     m_curLogHeader.unserialize(m_szHeadBuf);
     if (uiOffset != m_curLogHeader.getOffset())
     {
-		m_ucSeekState = CURSOR_STATE_ERROR; ///<seekµÄ×´Ì¬
+        m_ucSeekState = CURSOR_STATE_ERROR; ///<seekµÄ×´Ì¬
         CwxCommon::snprintf(this->m_szErr2K, 2047, "Invalid binlog, offset of header[%u] is different with it's file-offset[%u].",
             uiOffset, m_curLogHeader.getOffset());
         return -1;
     }
+    m_ucSeekState = CURSOR_STATE_READY;
     return 1;
 }
 
