@@ -340,7 +340,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
 {
     int iRet = 0;
 
-	if (!m_cursor || (CwxBinLogMgr::CURSOR_STATE_READY != m_cursor->getSeekState()))
+	if (!m_cursor || (CwxBinLogCursor::CURSOR_STATE_READY != m_cursor->getSeekState()))
     {
         CWX_UINT64 ullStartSid = getStartSid();
         //
@@ -405,8 +405,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
     do 
     {
         while(!CwxMqPoco::isSubscribe(m_subscribe,
-            m_cursor->getHeader().getGroup(),
-            m_cursor->getHeader().getType()))
+            m_cursor->getHeader().getGroup()))
         {
             iRet = m_binLog->next(m_cursor);
             if (0 == iRet) return 0; ///<到了尾部
@@ -474,7 +473,6 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
                         m_cursor->getHeader().getDatetime(),
                         *pItem,
                         m_cursor->getHeader().getGroup(),
-                        m_cursor->getHeader().getType(),
                         pTss->m_szBuf2K))
                     {
                         ///形成数据包失败
@@ -518,7 +516,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
 
 CWX_UINT64 CwxMqQueue::getMqNum()
 {
-    if (!m_cursor || (CwxBinLogMgr::CURSOR_STATE_READY != m_cursor->getSeekState()))
+    if (!m_cursor || (CwxBinLogCursor::CURSOR_STATE_READY != m_cursor->getSeekState()))
     {
         CWX_UINT64 ullStartSid = getStartSid();
         if (ullStartSid < m_binLog->getMaxSid())
@@ -551,7 +549,7 @@ void CwxMqQueue::getQueueDumpInfo(CWX_UINT64& ullLastCommitSid,
                       set<CWX_UINT64>& uncommitSid,
                       set<CWX_UINT64>& commitSid)
 {
-    if (m_cursor && (CwxBinLogMgr::CURSOR_STATE_READY == m_cursor->getSeekState()))
+    if (m_cursor && (CwxBinLogCursor::CURSOR_STATE_READY == m_cursor->getSeekState()))
     {///cursor有效，此时，m_lastUncommitSid中小于cursor sid的记录应该删除
         ///原因是：1、已有记录已经失效；2、才内存或uncommit中记录。
         set<CWX_UINT64>::iterator iter = m_lastUncommitSid.begin();
@@ -1012,7 +1010,7 @@ void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues)
         if (iter->second.first->getCursor())
         {
             info.m_ucQueueState = iter->second.first->getCursor()->getSeekState();
-            if (CwxBinLogMgr::CURSOR_STATE_ERROR == info.m_ucQueueState)
+            if (CwxBinLogCursor::CURSOR_STATE_ERROR == info.m_ucQueueState)
             {
                 info.m_strQueueErrMsg = iter->second.first->getCursor()->getErrMsg();
             }
@@ -1023,7 +1021,7 @@ void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues)
         }
         else
         {
-            info.m_ucQueueState = CwxBinLogMgr::CURSOR_STATE_UNSEEK;
+            info.m_ucQueueState = CwxBinLogCursor::CURSOR_STATE_UNSEEK;
             info.m_strQueueErrMsg = "";
         }
 		info.m_bQueueLogFileValid = iter->second.second->isValid();

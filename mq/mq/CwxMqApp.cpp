@@ -34,7 +34,7 @@ int CwxMqApp::init(int argc, char** argv)
     ///检查是否通过-f指定了配置文件，若没有，则采用默认的配置文件
     if ((NULL == this->getConfFile()) || (strlen(this->getConfFile()) == 0))
     {
-        this->setConfFile("svr_conf.xml");
+        this->setConfFile("mq.cnf");
     }
     ///加载配置文件，若失败则退出
     if (0 != m_config.loadConfig(getConfFile()))
@@ -826,11 +826,11 @@ CWX_UINT32 CwxMqApp::packMonitorInfo()
         char const* state="";
         while(iter != queues.end())
         {
-            if (iter->m_ucQueueState==CwxBinLogMgr::CURSOR_STATE_UNSEEK)
+            if (iter->m_ucQueueState==CwxBinLogCursor::CURSOR_STATE_UNSEEK)
                 state = "unseek";
-            else if (iter->m_ucQueueState==CwxBinLogMgr::CURSOR_STATE_ERROR)
+            else if (iter->m_ucQueueState==CwxBinLogCursor::CURSOR_STATE_ERROR)
                 state = "error";
-            else if (iter->m_ucQueueState==CwxBinLogMgr::CURSOR_STATE_READY)
+            else if (iter->m_ucQueueState==CwxBinLogCursor::CURSOR_STATE_READY)
                 state = "ready";
             else
                 state = "unknown";
@@ -847,7 +847,7 @@ CWX_UINT32 CwxMqApp::packMonitorInfo()
                 szSid1,
                 szSid2,
                 iter->m_strSubScribe.c_str(),
-				iter->m_ucQueueState==CwxBinLogMgr::CURSOR_STATE_ERROR?iter->m_strQueueErrMsg.c_str():"",
+				iter->m_ucQueueState==CwxBinLogCursor::CURSOR_STATE_ERROR?iter->m_strQueueErrMsg.c_str():"",
 				iter->m_bQueueLogFileValid?"":iter->m_strQueueLogFileErrMsg.c_str());
             MQ_MONITOR_APPEND();
             iter++;

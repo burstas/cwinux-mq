@@ -1,111 +1,94 @@
 #include "CwxMqFetchConfig.h"
 
 int CwxMqFetchConfig::loadConfig(string const & strConfFile){
-    CwxXmlFileConfigParser parser;
-    char const* pValue;
+    CwxIniParse	 cnf;
     string value;
     //Ω‚Œˆ≈‰÷√Œƒº˛
-    if (false == parser.parse(strConfFile)){
-        snprintf(m_szError, 2047, "Failure to Load conf file.");
+    if (false == cnf.load(strConfFile))
+    {
+        CwxCommon::snprintf(m_szError, 2047, "Failure to Load conf file:%s. err:%s", strConfFile.c_str(), cnf.getErrMsg());
         return -1;
     }
-    //load workdir svr_def:workdir{path}
-    if ((NULL == (pValue=parser.getElementAttr("svr_def:workdir", "path"))) || !pValue[0]){
-        snprintf(m_szError, 2047, "Must set [svr_def:workdir].");
+
+    //load fetch:home
+    if (!cnf.getAttr("fetch", "home", value) || !value.length()){
+        snprintf(m_szError, 2047, "Must set [fetch:home].");
         return -1;
     }
-    value = pValue;
-	if ('/' != value[value.length()-1]) value +="/";
+    if ('/' != value[value.length()-1]) value +="/";
     m_strWorkDir = value;
-
-    // load echo connect num
-    if ((NULL == (pValue=parser.getElementAttr("svr_def:conn", "num"))) || !pValue[0]){
-        snprintf(m_szError, 2047, "Must set [svr_def:conn:num].");
+    //load fetch:listen
+    if (!cnf.getAttr("fetch", "listen", value) || !value.length()){
+        snprintf(m_szError, 2047, "Must set [fetch:listen].");
         return -1;
     }
-    m_unConnNum = strtoul(pValue, NULL, 0);
-    // load query conn type
-    if ((NULL == (pValue=parser.getElementAttr("svr_def:conn", "type"))) || !pValue[0]){
-        snprintf(m_szError, 2047, "Must set [svr_def:conn:type].");
+    if (!mqParseHostPort(value, m_listen)){
+        snprintf(m_szError, 2047, "fetch:listen must be [host:port], [%s] is invalid.", value.c_str());
         return -1;
     }
-    m_bTcp = strcasecmp("tcp", pValue)==0?true:false;
-
-    // load query conn lasting
-    if ((NULL == (pValue=parser.getElementAttr("svr_def:conn", "lasting"))) || !pValue[0]){
-        snprintf(m_szError, 2047, "Must set [svr_def:conn:lasting].");
+    //load fetch:unix
+    if (!cnf.getAttr("fetch", "unix", value) || !value.length()){
+        snprintf(m_szError, 2047, "Must set [fetch:unix].");
         return -1;
     }
-    m_bLasting = strcasecmp("1", pValue)==0?true:false;
-    // load query block
-    if ((NULL == (pValue=parser.getElementAttr("svr_def:conn", "block"))) || !pValue[0]){
-        snprintf(m_szError, 2047, "Must set [svr_def:conn:block].");
+    m_strUnixPathFile = value;
+    //load fetch:user
+    if (!cnf.getAttr("fetch", "user", value) || !value.length()){
+        snprintf(m_szError, 2047, "Must set [fetch:user].");
         return -1;
     }
-    m_bBlock = strcasecmp("1", pValue)==0?true:false;
-
-    //load listen
-    if ((NULL == (pValue=parser.getElementAttr("svr_def:listen", "ip"))) || !pValue[0]){
-        snprintf(m_szError, 2047, "Must set [svr_def:listen:ip].");
+    m_strUser = value;
+    //load fetch:passwd
+    if (!cnf.getAttr("fetch", "passwd", value) || !value.length()){
+        snprintf(m_szError, 2047, "Must set [fetch:passwd].");
         return -1;
     }
-    m_listen.setHostName(pValue);
-    if ((NULL == (pValue=parser.getElementAttr("svr_def:listen", "port"))) || !pValue[0]){
-        snprintf(m_szError, 2047, "Must set [svr_def:listen:port].");
+    m_strPasswd = value;
+    //load fetch:queue
+    if (!cnf.getAttr("fetch", "queue", value) || !value.length()){
+        snprintf(m_szError, 2047, "Must set [fetch:queue].");
         return -1;
     }
-    m_listen.setPort(strtoul(pValue, NULL, 0));
-
-    //load svr_def:unix{path}
-    if ((NULL == (pValue=parser.getElementAttr("svr_def:unix", "path"))) || !pValue[0]){
-        snprintf(m_szError, 2047, "Must set [svr_def:unix].");
+    m_strQueue = value;
+    //load fetch:conn_type
+    if (!cnf.getAttr("fetch", "conn_type", value) || !value.length()){
+        snprintf(m_szError, 2047, "Must set [fetch:conn_type].");
         return -1;
     }
-    m_strUnixPathFile = pValue;
-    //load svr_def:auth{user}
-    if ((NULL == (pValue=parser.getElementAttr("svr_def:auth", "user"))) || !pValue[0]){
-        m_strUser.erase();
-    }
-    else
-    {
-        m_strUser = pValue;
-    }
-    //load svr_def:auth{passwd}
-    if ((NULL == (pValue=parser.getElementAttr("svr_def:auth", "passwd"))) || !pValue[0]){
-        m_strPasswd.erase();
-    }
-    else
-    {
-        m_strPasswd = pValue;
-    }
-    // load queue name
-    if ((NULL == (pValue=parser.getElementAttr("svr_def:queue", "name"))) || !pValue[0]){
-        snprintf(m_szError, 2047, "Must set [svr_def:queue:name].");
+    m_bTcp = (value=="tcp"?true:false);
+    //load fetch:conn_num
+    if (!cnf.getAttr("fetch", "conn_num", value) || !value.length()){
+        snprintf(m_szError, 2047, "Must set [fetch:conn_num].");
         return -1;
     }
-    m_strQueue = pValue;
-
-
+    m_unConnNum = strtoul(value.c_str(), NULL, 10);
+    if (!m_unConnNum) m_unConnNum = 1;
+    //load fetch:conn_lasting
+    if (!cnf.getAttr("fetch", "conn_lasting", value) || !value.length()){
+        snprintf(m_szError, 2047, "Must set [fetch:conn_lasting].");
+        return -1;
+    }
+    m_bLasting = (value == "1"?true:false);
+    //load fetch:block
+    if (!cnf.getAttr("fetch", "block", value) || !value.length()){
+        snprintf(m_szError, 2047, "Must set [fetch:block].");
+        return -1;
+    }
+    m_bBlock = (value == "1"?true:false);
     return 0;
 }
 
-void CwxMqFetchConfig::outputConfig(string & strConfig){
-    char szBuf[32];
-	strConfig.clear();	
-	strConfig += "*****************BEGIN CONFIG *******************";
-    strConfig += "\nworkdir= " ;
-    strConfig += m_strWorkDir;
-    strConfig += "\nconn_num=";
-    sprintf(szBuf, "%u", m_unConnNum);
-    strConfig += szBuf;
-	strConfig += "\nlisten: ip=";
-    strConfig += m_listen.getHostName();
-    strConfig += " port=";
-    sprintf(szBuf, "%u", m_listen.getPort());
-    strConfig += szBuf;
-    strConfig += "\nauth: user=";
-    strConfig += m_strUser;
-    strConfig += "\nauth: passwd=";
-    strConfig += m_strPasswd;
-    strConfig += "\n*****************END   CONFIG *******************\n";   
+void CwxMqFetchConfig::outputConfig(){
+    CWX_INFO(("\n*****************BEGIN CONFIG*******************"));
+    CWX_INFO(("home=%s", m_strWorkDir.c_str()));
+    CWX_INFO(("listen=%s:%u", m_listen.getHostName().c_str(), m_listen.getPort()));
+    CWX_INFO(("unix=%s", m_strUnixPathFile.c_str()));
+    CWX_INFO(("user=%s", m_strUser.c_str()));
+    CWX_INFO(("passwd=%s", m_strPasswd.c_str()));
+    CWX_INFO(("queue=%s", m_strQueue.c_str()));
+    CWX_INFO(("conn_type=%s", m_bTcp?"tcp":"unix"));
+    CWX_INFO(("conn_num=%u", m_unConnNum));
+    CWX_INFO(("conn_lasting=%u", m_bLasting?1:0));
+    CWX_INFO(("block=%u", m_bBlock?1:0));
+    CWX_INFO(("*****************END   CONFIG *******************"));
 }

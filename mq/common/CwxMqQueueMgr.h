@@ -172,7 +172,7 @@ public:
     }
     inline CWX_UINT64 getCurSid() const
     {
-		return (m_cursor && (CwxBinLogMgr::CURSOR_STATE_READY == m_cursor->getSeekState()))?m_cursor->getHeader().getSid():0;
+		return (m_cursor && (CwxBinLogCursor::CURSOR_STATE_READY == m_cursor->getSeekState()))?m_cursor->getHeader().getSid():0;
     }
     inline CWX_UINT32 getWaitCommitNum() const
     {
@@ -202,7 +202,7 @@ public:
     inline CWX_UINT64 getCursorSid() const
     {
         ///如果cursor有效，则返回cursor的sid
-        if (m_cursor && (CwxBinLogMgr::CURSOR_STATE_READY == m_cursor->getSeekState()))
+        if (m_cursor && (CwxBinLogCursor::CURSOR_STATE_READY == m_cursor->getSeekState()))
             return m_cursor->getHeader().getSid();
         ///否则返回初始sid。
         return getStartSid();

@@ -19,11 +19,13 @@ cwx_mq_SOURCES = CwxMqApp.cpp\
                 ../common/CwxMqPoco.cpp\
 		../common/CwxMqQueueMgr.cpp\
 		../common/CwxMqQueueLogFile.cpp\
-		../common/CwxMqTss.cpp
+		../common/CwxMqTss.cpp\
+                ../common/CwxBinLogMgr.cpp\
+                ../common/CwxSysLogFile.cpp
 cwx_mq_LDADD=
-cwx_mq_LDFLAGS =-L@xml_expat_dir@/lib -L@cwinux_dir@/lib
-LIBS=-lcwxapp -lcwxutil -lcwxnet -lcwxparse -lcwxstore -lcwxcmn -lexpat -lpthread -ldl -lrt -lz
-INCLUDES=-I@cwinux_dir@/include/app -I@cwinux_dir@/include/util -I@cwinux_dir@/include/cmn -I@cwinux_dir@/include/net -I@cwinux_dir@/include/parse -I@cwinux_dir@/include/store -I@xml_expat_dir@/include  -I../common
+cwx_mq_LDFLAGS =-L@cwinux_dir@/lib
+LIBS=-lcwxapp -lcwxnet -lcwxcmn -lpthread -ldl -lrt -lz
+INCLUDES=-I@cwinux_dir@/include/app -I@cwinux_dir@/include/cmn -I@cwinux_dir@/include/net  -I../common
 
 ## Clean up template repositories, etc.
 clean-local:

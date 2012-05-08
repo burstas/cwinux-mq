@@ -12,7 +12,6 @@ CWX_UINT16 g_unPort = 0;
 string g_user;
 string g_passwd;
 CWX_UINT32 g_group=0;
-CWX_UINT32 g_type=0;
 string     g_data;
 string     g_file;
 char*       g_szData = NULL;
@@ -22,7 +21,7 @@ bool       g_zip=false;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:g:t:d:f:S:zh");
+    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:g:d:f:m:zh");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
@@ -36,9 +35,8 @@ int parseArg(int argc, char**argv)
             printf("-u: mq server's recieve user.\n");
             printf("-p: mq server's recieve user password.\n");
             printf("-g: message's group.\n");
-            printf("-t: message's type.\n");
             printf("-d: message's data.\n");
-            printf("-S: signature type, %s or %s. no signature by default\n", CWX_MQ_MD5, CWX_MQ_CRC32);
+            printf("-m: signature type, %s or %s. no signature by default\n", CWX_MQ_MD5, CWX_MQ_CRC32);
             printf("-f: file name which contains message's data.\n");
             printf("-z: compress sign. no compress by default.\n");
             printf("-h: help\n");
@@ -57,7 +55,7 @@ int parseArg(int argc, char**argv)
                 printf("-P requires an argument.\n");
                 return -1;
             }
-            g_unPort = strtoul(cmd_option.opt_arg(), NULL, 0);
+            g_unPort = strtoul(cmd_option.opt_arg(), NULL, 10);
             break;
         case 'u':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -81,15 +79,7 @@ int parseArg(int argc, char**argv)
                 printf("-g requires an argument.\n");
                 return -1;
             }
-            g_group = strtoul(cmd_option.opt_arg(), NULL, 0);
-            break;
-        case 't':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("-t requires an argument.\n");
-                return -1;
-            }
-            g_type = strtoul(cmd_option.opt_arg(),NULL,0);
+            g_group = strtoul(cmd_option.opt_arg(), NULL, 10);
             break;
         case 'd':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -99,10 +89,10 @@ int parseArg(int argc, char**argv)
             }
             g_data = cmd_option.opt_arg();
             break;
-        case 'S':
+        case 'm':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
-                printf("-s requires an argument.\n");
+                printf("-m requires an argument.\n");
                 return -1;
             }
             g_sign = cmd_option.opt_arg();
@@ -234,7 +224,6 @@ int main(int argc ,char** argv)
             0,
             item,
             g_group,
-            g_type,
             g_user.c_str(),
             g_passwd.c_str(),
             g_sign.c_str(),

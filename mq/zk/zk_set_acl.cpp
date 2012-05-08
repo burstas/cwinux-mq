@@ -10,10 +10,11 @@ int g_verion = -1;
 bool   g_append = true;
 bool   g_remove = false;
 bool   g_set = false;
+bool   g_recursive=false;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	ZkGetOpt cmd_option(argc, argv, "H:n:a:o:l:m:h");
+	ZkGetOpt cmd_option(argc, argv, "H:n:a:o:l:m:hr");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
@@ -34,6 +35,7 @@ int parseArg(int argc, char**argv)
 			printf("    ip:ip_addr[/bits]:acrwd : ip auth for ip or ip subnet\n"); 
 			printf("-m: set Acl mode. [append]¡¢[set]¡¢[remove] can be set¡£default is append.\n");
 			printf("-o: output file, default is stdout\n");
+            printf("-r: recursive to set child acl.\n");
 			printf("-v: node's version\n");
             printf("-h: help\n");
             return 0;
@@ -97,6 +99,9 @@ int parseArg(int argc, char**argv)
 				return -1;
 			}
 			break;
+        case 'r':
+            g_recursive = true;
+            break;
 		case 'v':
 			if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
 			{
@@ -305,7 +310,7 @@ int main(int argc ,char** argv)
 			}
 			pacls = &acls;
 		}
-		ret = zk.setAcl(g_strNode.c_str(), pacls, g_verion);
+		ret = zk.setAcl(g_strNode.c_str(), pacls, g_recursive, g_verion);
 		delete [] acls.data;
 		if (-1 == ret){
 			output(outFd, 2, zk.getErrCode(), "msg:  Failure to set node acl, err=%s\n", zk.getErrMsg());

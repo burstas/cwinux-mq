@@ -10,6 +10,7 @@
 #include <openssl/sha.h>
 #include <openssl/hmac.h>
 #include <inttypes.h>
+#include <stddef.h>
 
 void ZkAdaptor::authCompletion(int rc, const void *data)
 {
@@ -46,39 +47,44 @@ int ZkAdaptor::init(ZooLogLevel level)
 }
 
 
-void ZkAdaptor::watcher(zhandle_t *, int type, int state, const char *path,
+void ZkAdaptor::watcher(zhandle_t *t, int type, int state, const char *path,
 			 void* context)
 {
 	ZkAdaptor* adapter=(ZkAdaptor*)context;
+	adapter->onEvent(t, type, state, path);
+}
 
-	if (type == ZOO_SESSION_EVENT) {
-		if (state == ZOO_CONNECTED_STATE){
-			return adapter->onConnect();
-		} else if (state == ZOO_AUTH_FAILED_STATE) {
-			return adapter->onFailAuth();
-		} else if (state == ZOO_EXPIRED_SESSION_STATE) {
-			return adapter->onExpired();
-		} else if (state == ZOO_CONNECTING_STATE){
-			return adapter->onConnecting();
-		} else if (state == ZOO_ASSOCIATING_STATE){
-			return adapter->onAssociating();
-		}
-	}else if (type == ZOO_CREATED_EVENT){
-		return adapter->onNodeCreated(state, path);
-	}else if (type == ZOO_DELETED_EVENT){
-		return adapter->onNodeDeleted(state, path);
-	}else if (type == ZOO_CHANGED_EVENT){
-		return adapter->onNodeChanged(state, path);
-	}else if (type == ZOO_CHILD_EVENT){
-		return adapter->onNodeChildChanged(state, path);
-	}else if (type == ZOO_NOTWATCHING_EVENT){
-		return adapter->onNoWatching(state, path);
-	}
-	adapter->onOtherEvent(type, state, path);
+void ZkAdaptor::onEvent(zhandle_t *, int type, int state, const char *path)
+{
+    if (type == ZOO_SESSION_EVENT) {
+        if (state == ZOO_CONNECTED_STATE){
+            return onConnect();
+        } else if (state == ZOO_AUTH_FAILED_STATE) {
+            return onFailAuth();
+        } else if (state == ZOO_EXPIRED_SESSION_STATE) {
+            return onExpired();
+        } else if (state == ZOO_CONNECTING_STATE){
+            return onConnecting();
+        } else if (state == ZOO_ASSOCIATING_STATE){
+            return onAssociating();
+        }
+    }else if (type == ZOO_CREATED_EVENT){
+        return onNodeCreated(state, path);
+    }else if (type == ZOO_DELETED_EVENT){
+        return onNodeDeleted(state, path);
+    }else if (type == ZOO_CHANGED_EVENT){
+        return onNodeChanged(state, path);
+    }else if (type == ZOO_CHILD_EVENT){
+        return onNodeChildChanged(state, path);
+    }else if (type == ZOO_NOTWATCHING_EVENT){
+        return onNoWatching(state, path);
+    }
+    onOtherEvent(type, state, path);
+
 }
 
 
-int ZkAdaptor::connect(const clientid_t *clientid, int flags)
+int ZkAdaptor::connect(const clientid_t *clientid, int flags, watcher_fn watch, void *context)
 {
 	// Clear the connection state
 	disconnect();
@@ -89,10 +95,10 @@ int ZkAdaptor::connect(const clientid_t *clientid, int flags)
 
 	// Establish a new connection to ZooKeeper
 	m_zkHandle = zookeeper_init(m_strHost.c_str(), 
-		ZkAdaptor::watcher, 
+        watch?watch:ZkAdaptor::watcher, 
 		m_uiRecvTimeout,
 		clientid,
-		this,
+        watch?context:this,
 		flags);
 
 	if (m_zkHandle == NULL)
@@ -113,37 +119,8 @@ void ZkAdaptor::disconnect()
 	}
 }
 
-///node创建事件
-void ZkAdaptor::onNodeCreated(int , char const* )
-{
-}
 
-///node删除事件
-void ZkAdaptor::onNodeDeleted(int , char const* )
-{
-}
-
-///node修改事件
-void ZkAdaptor::onNodeChanged(int , char const* )
-{
-}
-
-///node child修改事件
-void ZkAdaptor::onNodeChildChanged(int , char const* )
-{
-}
-
-///node 不再watch事件
-void ZkAdaptor::onNoWatching(int , char const* )
-{
-}	
-
-void ZkAdaptor::onOtherEvent(int , int , const char *)
-{
-}
-
-
-bool ZkAdaptor::addAuth(const char* scheme, const char* cert, int certLen, uint32_t timeout)
+bool ZkAdaptor::addAuth(const char* scheme, const char* cert, int certLen, uint32_t timeout, void_completion_t completion, const void *data)
 {
 	int rc;
 	m_iErrCode = 0;
@@ -155,7 +132,7 @@ bool ZkAdaptor::addAuth(const char* scheme, const char* cert, int certLen, uint3
 	}
 
 	m_iAuthState = AUTH_STATE_WAITING;
-	rc = zoo_add_auth(m_zkHandle, scheme, cert, certLen, ZkAdaptor::authCompletion, this);
+    rc = zoo_add_auth(m_zkHandle, scheme, cert, certLen, completion?completion:ZkAdaptor::authCompletion, completion?data:this);
 	if (rc != ZOK) // check return status
 	{
 		m_iErrCode = rc;
@@ -193,6 +170,7 @@ int ZkAdaptor::createNode(const string &path,
 						   uint32_t dataLen,
 						   const struct ACL_vector *acl,
 						   int flags,
+                           bool recursive,
 						   char* pathBuf,
 						   uint32_t pathBufLen)
 {
@@ -214,15 +192,28 @@ int ZkAdaptor::createNode(const string &path,
 		pathBuf = realPath;
 		pathBufLen = MAX_PATH_LENGTH;
 	}
-	rc = zoo_create( m_zkHandle, 
-		path.c_str(), 
-		data,
-		dataLen,
-		acl?acl:&ZOO_OPEN_ACL_UNSAFE,
-		flags,
-		pathBuf,
-		pathBufLen);
-
+    rc = zoo_create( m_zkHandle, 
+        path.c_str(), 
+        data,
+        dataLen,
+        acl?acl:&ZOO_OPEN_ACL_UNSAFE,
+        flags,
+        pathBuf,
+        pathBufLen);
+    if (recursive && (ZNONODE == rc)){
+        for (string::size_type pos = 1; pos != string::npos; ){
+            pos = path.find( "/", pos );
+            if (pos != string::npos){
+                if (-1 == (rc = createNode(path.substr( 0, pos ), NULL, 0, acl, 0, true, pathBuf, pathBufLen))){
+                    return -1;
+                }
+                pos++;
+            }else{
+                // No more path components
+                return createNode(path, data, dataLen, acl, 0, false, pathBuf, pathBufLen);
+            }
+        }
+    }
 	if (rc != ZOK) // check return status
 	{
 		m_iErrCode = rc;
@@ -306,6 +297,14 @@ int ZkAdaptor::getNodeChildren( const string &path, list<string>& childs, int wa
 	{
 		childs.push_back(string(children.data[i]));
 	}
+    //释放
+    if (children.data) {
+        int32_t i;
+        for (i=0; i<children.count; i++) {
+            free(children.data[i]);
+        }
+        free(children.data);
+    }
 	return 1;
 }
 
@@ -370,6 +369,108 @@ int ZkAdaptor::getNodeData(const string &path, char* data, uint32_t& dataLen, st
 }
 
 
+
+int ZkAdaptor::wgetNodeChildren( const string &path, list<string>& childs, watcher_fn watcher, void* watcherCtx)
+{
+    m_iErrCode = 0;
+    memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
+
+    if (!isConnected())
+    {
+        strcpy(m_szErr2K, "No connect");
+        return -1;
+    }
+
+    String_vector children;
+    memset( &children, 0, sizeof(children) );
+    int rc;
+    rc = zoo_wget_children( m_zkHandle,
+        path.c_str(), 
+        watcher,
+        watcherCtx,
+        &children );
+
+    if (rc != ZOK) // check return code
+    {
+        m_iErrCode = rc;
+        if (rc == ZNONODE) return 0;
+        snprintf(m_szErr2K, 2047, "Failure to get node [%s] child, err:%s err-code:%d", path.c_str(), zerror(rc), rc);
+        return -1;
+    }
+    childs.clear();
+    for (int i = 0; i < children.count; ++i)
+    {
+        childs.push_back(string(children.data[i]));
+    }
+    return 1;
+
+}
+
+int ZkAdaptor::wnodeExists(const string &path, struct Stat& stat, watcher_fn watcher, void* watcherCtx)
+{
+    m_iErrCode = 0;
+    memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
+
+    if (!isConnected())
+    {
+        strcpy(m_szErr2K, "No connect");
+        return -1;
+    }
+
+    memset(&stat, 0, sizeof(stat) );
+    int rc;
+    rc = zoo_wexists( m_zkHandle,
+        path.c_str(),
+        watcher,
+        watcherCtx,
+        &stat);
+    if (rc != ZOK)
+    {
+        if (rc == ZNONODE) return 0;
+        m_iErrCode = rc;
+        snprintf(m_szErr2K, 2047, "Error in checking existance of [%s], err:%s err-code:%d", path.c_str(), zerror(rc), rc);
+        return -1;
+    }
+    return 1;
+
+}
+
+int ZkAdaptor::wgetNodeData(const string &path, char* data, uint32_t& dataLen, struct Stat& stat, watcher_fn watcher, void* watcherCtx)
+{
+    m_iErrCode = 0;
+    memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
+
+    if (!isConnected())
+    {
+        strcpy(m_szErr2K, "No connect");
+        return -1;
+    }
+
+    memset(&stat, 0, sizeof(stat) );
+
+    int rc = 0;
+    int len = dataLen;
+    rc = zoo_wget( m_zkHandle,
+        path.c_str(),
+        watcher,
+        watcherCtx,
+        data,
+        &len,
+        &stat);
+    if (rc != ZOK) // checl return code
+    {
+        m_iErrCode = rc;
+        if (rc == ZNONODE) return 0;
+        snprintf(m_szErr2K, 2047, "Error in fetching value of [%s], err:%s err-code:%d", path.c_str(), zerror(rc), rc);
+        return -1;
+    }
+    dataLen = len;
+    data[len] = 0x00;
+    return 1;
+}
+
+
+
 int ZkAdaptor::setNodeData(const string &path, char const* data, uint32_t dataLen, int version)
 {
 	m_iErrCode = 0;
@@ -430,7 +531,7 @@ int ZkAdaptor::getAcl(const char *path, struct ACL_vector& acl, struct Stat& sta
 	return 1;
 }
 
-int ZkAdaptor::setAcl(const char *path, const struct ACL_vector *acl, int version)
+int ZkAdaptor::setAcl(const char *path, const struct ACL_vector *acl, bool recursive, int version)
 {
 	m_iErrCode = 0;
 	memset(m_szErr2K, 0x00, sizeof(m_szErr2K));
@@ -455,6 +556,21 @@ int ZkAdaptor::setAcl(const char *path, const struct ACL_vector *acl, int versio
 		snprintf(m_szErr2K, 2047, "Error in set acl for [%s], err:%s err-code:%d", path, zerror(rc), rc);
 		return -1;
 	}
+    if (recursive){
+        list<string> childs;
+        list<string>::iterator iter;
+        string local_path;
+        if (1 == getNodeChildren(path, childs, 0)){
+            iter = childs.begin();
+            while(iter != childs.end()){
+                local_path = path;
+                local_path +="/";
+                local_path += *iter;
+                ZkAdaptor::setAcl(local_path.c_str(), acl, true, version);
+                iter++;
+            }
+        }
+    }
 	// success
 	return 1;
 }
@@ -660,4 +776,33 @@ void ZkAdaptor::dumpStat(struct Stat const& stat, string& info)
 
 	snprintf(line, 1024, "pzxid:%s\n", toString(stat.pzxid, szTmp, 16));
 	info += line;
+}
+
+///node创建事件
+void ZkAdaptor::onNodeCreated(int , char const* )
+{
+}
+
+///node删除事件
+void ZkAdaptor::onNodeDeleted(int , char const* )
+{
+}
+
+///node修改事件
+void ZkAdaptor::onNodeChanged(int , char const* )
+{
+}
+
+///node child修改事件
+void ZkAdaptor::onNodeChildChanged(int , char const* )
+{
+}
+
+///node 不再watch事件
+void ZkAdaptor::onNoWatching(int , char const* )
+{
+}	
+
+void ZkAdaptor::onOtherEvent(int , int , const char *)
+{
 }

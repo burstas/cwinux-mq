@@ -37,7 +37,7 @@ int parseArg(int argc, char**argv)
                 printf("-P requires an argument.\n");
                 return -1;
             }
-            g_unPort = strtoul(cmd_option.opt_arg(), NULL, 0);
+            g_unPort = strtoul(cmd_option.opt_arg(), NULL, 10);
             break;
         case ':':
             printf("%c requires an argument.\n", cmd_option.opt_opt ());

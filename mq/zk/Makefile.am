@@ -7,7 +7,7 @@ BUILD_DATE=$(shell date +%F)
 
 COMMON_SRC=ZkAdaptor.cpp ZkToolAdaptor.cpp zk_common.cpp
 
-bin_PROGRAMS =zk_create zk_get zk_update zk_list zk_delete zk_loopcreate zk_get_acl zk_set_acl zk_exist
+bin_PROGRAMS =zk_create zk_get zk_update zk_list zk_delete zk_loopcreate zk_get_acl zk_set_acl zk_exist zk_lock
 zk_create_CPPFLAGS = -W -Wall -Wno-deprecated
 zk_create_SOURCES = $(COMMON_SRC) zk_create.cpp
 zk_create_LDADD= 
@@ -53,10 +53,13 @@ zk_exist_SOURCES = $(COMMON_SRC)  zk_exist.cpp
 zk_exist_LDADD=
 zk_exist_LDFLAGS =  -L@zk_dir@/lib -L@openssl_dir@/lib
 
+zk_lock_CPPFLAGS =  -W -Wall -Wno-deprecated
+zk_lock_SOURCES = $(COMMON_SRC)  zk_lock.cpp ZkLocker.cpp
+zk_lock_LDADD=
+zk_lock_LDFLAGS =  -L@zk_dir@/lib -L@openssl_dir@/lib 
+
 LIBS=-lpthread -lzookeeper_mt -lssl
 INCLUDES=-I@zk_dir@/include -I@openssl_dir@/include
-
-
 ## Clean up template repositories, etc.
 clean-local:
 	-rm -f *~ *.bak *.rpo *.sym lib*.*_pure_* core core.*

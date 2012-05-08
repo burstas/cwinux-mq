@@ -52,7 +52,8 @@ am_cwx_mq_fetch_OBJECTS = cwx_mq_fetch-CwxMqPoco.$(OBJEXT) \
 	cwx_mq_fetch-CwxMqTss.$(OBJEXT) \
 	cwx_mq_fetch-CwxMqFetchApp.$(OBJEXT) \
 	cwx_mq_fetch-CwxMqFetchConfig.$(OBJEXT) \
-	cwx_mq_fetch-cwx_mq_fetch.$(OBJEXT)
+	cwx_mq_fetch-cwx_mq_fetch.$(OBJEXT) \
+	cwx_mq_fetch-CwxMqDef.$(OBJEXT)
 cwx_mq_fetch_OBJECTS = $(am_cwx_mq_fetch_OBJECTS)
 cwx_mq_fetch_DEPENDENCIES =
 DEFAULT_INCLUDES = -I. -I$(srcdir)
@@ -106,7 +107,7 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
-LIBS = -lcwxapp -lcwxutil -lcwxnet -lcwxparse -lcwxstore -lcwxcmn -lexpat   -lpthread -ldl -lrt -lz
+LIBS = -lcwxapp -lcwxnet -lcwxcmn  -lpthread -ldl -lrt -lz
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
@@ -169,17 +170,16 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-xml_expat_dir = @xml_expat_dir@
 pkgconfigdir = 
 BUILD_DATE = $(shell date +%F)
 cwx_mq_fetch_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)" -W -Wall  -Wno-deprecated
 cwx_mq_fetch_SOURCES = \
 	../common/CwxMqPoco.cpp  ../common/CwxMqTss.cpp\
-	CwxMqFetchApp.cpp  CwxMqFetchConfig.cpp  cwx_mq_fetch.cpp
+	CwxMqFetchApp.cpp  CwxMqFetchConfig.cpp  cwx_mq_fetch.cpp ../common/CwxMqDef.cpp
 
 cwx_mq_fetch_LDADD = 
 cwx_mq_fetch_LDFLAGS = -L@xml_expat_dir@/lib -L@cwinux_dir@/lib 
-INCLUDES = -I@cwinux_dir@/include/app -I@cwinux_dir@/include/util -I@cwinux_dir@/include/cmn -I@cwinux_dir@/include/net -I@cwinux_dir@/include/store -I@cwinux_dir@/include/parse -I@xml_expat_dir@/include  -I../common
+INCLUDES = -I@cwinux_dir@/include/app -I@cwinux_dir@/include/cmn -I@cwinux_dir@/include/net -I../common
 all: all-am
 
 .SUFFIXES:
@@ -251,6 +251,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq_fetch-CwxMqDef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq_fetch-CwxMqFetchApp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq_fetch-CwxMqFetchConfig.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwx_mq_fetch-CwxMqPoco.Po@am__quote@
@@ -347,6 +348,20 @@ cwx_mq_fetch-cwx_mq_fetch.obj: cwx_mq_fetch.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='cwx_mq_fetch.cpp' object='cwx_mq_fetch-cwx_mq_fetch.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_fetch_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq_fetch-cwx_mq_fetch.obj `if test -f 'cwx_mq_fetch.cpp'; then $(CYGPATH_W) 'cwx_mq_fetch.cpp'; else $(CYGPATH_W) '$(srcdir)/cwx_mq_fetch.cpp'; fi`
+
+cwx_mq_fetch-CwxMqDef.o: ../common/CwxMqDef.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_fetch_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq_fetch-CwxMqDef.o -MD -MP -MF "$(DEPDIR)/cwx_mq_fetch-CwxMqDef.Tpo" -c -o cwx_mq_fetch-CwxMqDef.o `test -f '../common/CwxMqDef.cpp' || echo '$(srcdir)/'`../common/CwxMqDef.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq_fetch-CwxMqDef.Tpo" "$(DEPDIR)/cwx_mq_fetch-CwxMqDef.Po"; else rm -f "$(DEPDIR)/cwx_mq_fetch-CwxMqDef.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqDef.cpp' object='cwx_mq_fetch-CwxMqDef.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_fetch_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq_fetch-CwxMqDef.o `test -f '../common/CwxMqDef.cpp' || echo '$(srcdir)/'`../common/CwxMqDef.cpp
+
+cwx_mq_fetch-CwxMqDef.obj: ../common/CwxMqDef.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_fetch_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT cwx_mq_fetch-CwxMqDef.obj -MD -MP -MF "$(DEPDIR)/cwx_mq_fetch-CwxMqDef.Tpo" -c -o cwx_mq_fetch-CwxMqDef.obj `if test -f '../common/CwxMqDef.cpp'; then $(CYGPATH_W) '../common/CwxMqDef.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqDef.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/cwx_mq_fetch-CwxMqDef.Tpo" "$(DEPDIR)/cwx_mq_fetch-CwxMqDef.Po"; else rm -f "$(DEPDIR)/cwx_mq_fetch-CwxMqDef.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../common/CwxMqDef.cpp' object='cwx_mq_fetch-CwxMqDef.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cwx_mq_fetch_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o cwx_mq_fetch-CwxMqDef.obj `if test -f '../common/CwxMqDef.cpp'; then $(CYGPATH_W) '../common/CwxMqDef.cpp'; else $(CYGPATH_W) '$(srcdir)/../common/CwxMqDef.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

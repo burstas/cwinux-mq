@@ -3,457 +3,365 @@
 
 int CwxMqConfig::loadConfig(string const & strConfFile)
 {
-    CwxXmlFileConfigParser parser;
-    char const* pValue;
+    CwxIniParse	 cnf;
     string value;
     string strErrMsg;
     //Ω‚Œˆ≈‰÷√Œƒº˛
-    if (false == parser.parse(strConfFile))
+    if (false == cnf.load(strConfFile))
     {
-        CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to Load conf file:%s.", strConfFile.c_str());
+        CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to Load conf file:%s. err:%s", strConfFile.c_str(), cnf.getErrMsg());
         return -1;
     }
-    //load mq:common:workdir:path
-    if ((NULL == (pValue=parser.getElementAttr("mq:common:workdir", "path"))) || !pValue[0])
-    {
-        snprintf(m_szErrMsg, 2047, "Must set [mq:common:workdir:path].");
+
+    //load cmn:home
+    if (!cnf.getAttr("cmn", "home", value) || !value.length()){
+        snprintf(m_szErrMsg, 2047, "Must set [cmn:home].");
         return -1;
     }
-    value = pValue;
-	if ('/' != value[value.length()-1]) value +="/";
+    if ('/' != value[value.length()-1]) value +="/";
     m_common.m_strWorkDir = value;
-    //load  mq:common:server:type
-    if ((NULL == (pValue=parser.getElementAttr("mq:common:server", "type"))) || !pValue[0])
-    {
-        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [mq:common:server:type].");
+
+    //load  cmn:server_type
+    if (!cnf.getAttr("cmn", "server_type", value) || !value.length()){
+        snprintf(m_szErrMsg, 2047, "Must set [cmn:server_type].");
         return -1;
     }
-    if (strcasecmp(pValue, "master") == 0)
-    {
+    if (value == "master"){
         m_common.m_bMaster = true;
-    }
-    else if (strcasecmp(pValue, "slave") == 0)
-    {
+    }else if (value == "slave"){
         m_common.m_bMaster = false;
-    }
-    else
-    {
-        CwxCommon::snprintf(m_szErrMsg, 2047, "[mq:common:server:type] must be [master] or [slave].");
+    }else{
+        CwxCommon::snprintf(m_szErrMsg, 2047, "[cmn:server_type] must be [master] or [slave].");
         return -1;
     }
-    //load mq:common:window:dispatch
-    if ((NULL == (pValue=parser.getElementAttr("mq:common:window", "sock_buf_kbyte"))) || !pValue[0])
-    {
-        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [mq:common:window:sock_buf_kbyte].");
+
+    //load cmn:sock_buf_kbyte
+    if (!cnf.getAttr("cmn", "sock_buf_kbyte", value) || !value.length()){
+        snprintf(m_szErrMsg, 2047, "Must set [cmn:sock_buf_kbyte].");
         return -1;
     }
-    m_common.m_uiSockBufSize = strtoul(pValue, NULL, 0);
-    if (m_common.m_uiSockBufSize < CwxMqConfigCmn::MIN_SOCK_BUF_KB)
-    {
+    m_common.m_uiSockBufSize = strtoul(value.c_str(), NULL, 10);
+    if (m_common.m_uiSockBufSize < CwxMqConfigCmn::MIN_SOCK_BUF_KB){
         m_common.m_uiSockBufSize = CwxMqConfigCmn::MIN_SOCK_BUF_KB;
     }
-    if (m_common.m_uiSockBufSize > CwxMqConfigCmn::MAX_SOCK_BUF_KB)
-    {
+    if (m_common.m_uiSockBufSize > CwxMqConfigCmn::MAX_SOCK_BUF_KB){
         m_common.m_uiSockBufSize = CwxMqConfigCmn::MAX_SOCK_BUF_KB;
     }
-    //load mq:common:window:from_master
-    if ((NULL == (pValue=parser.getElementAttr("mq:common:window", "max_chunk_kbyte"))) || !pValue[0])
-    {
-        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [mq:common:window:max_chunk_kbyte].");
+    //load cmn:max_chunk_kbyte
+    if (!cnf.getAttr("cmn", "max_chunk_kbyte", value) || !value.length()){
+        snprintf(m_szErrMsg, 2047, "Must set [cmn:max_chunk_kbyte].");
         return -1;
     }
-    m_common.m_uiChunkSize = strtoul(pValue, NULL, 0);
-    if (m_common.m_uiChunkSize < CwxMqConfigCmn::MIN_CHUNK_SIZE_KB)
-    {
+    m_common.m_uiChunkSize = strtoul(value.c_str(), NULL, 10);
+    if (m_common.m_uiChunkSize < CwxMqConfigCmn::MIN_CHUNK_SIZE_KB){
         m_common.m_uiChunkSize = CwxMqConfigCmn::MIN_CHUNK_SIZE_KB;
     }
-    if (m_common.m_uiChunkSize > CwxMqConfigCmn::MAX_CHUNK_SIZE_KB)
-    {
+    if (m_common.m_uiChunkSize > CwxMqConfigCmn::MAX_CHUNK_SIZE_KB){
         m_common.m_uiChunkSize = CwxMqConfigCmn::MAX_CHUNK_SIZE_KB;
     }
-    //load mq:common:window:window
-    if ((NULL == (pValue=parser.getElementAttr("mq:common:window", "window"))) || !pValue[0])
-    {
-        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [mq:common:window:window].");
+    //load cmn:window
+    if (!cnf.getAttr("cmn", "window", value) || !value.length()){
+        snprintf(m_szErrMsg, 2047, "Must set [cmn:window].");
         return -1;
     }
-    m_common.m_uiWindowSize = strtoul(pValue, NULL, 0);
-    if (m_common.m_uiWindowSize < CwxMqConfigCmn::MIN_WINDOW_NUM)
-    {
+    m_common.m_uiWindowSize = strtoul(value.c_str(), NULL, 10);
+    if (m_common.m_uiWindowSize < CwxMqConfigCmn::MIN_WINDOW_NUM){
         m_common.m_uiWindowSize = CwxMqConfigCmn::MIN_WINDOW_NUM;
     }
-    if (m_common.m_uiWindowSize > CwxMqConfigCmn::MAX_WINDOW_NUM)
-    {
+    if (m_common.m_uiWindowSize > CwxMqConfigCmn::MAX_WINDOW_NUM){
         m_common.m_uiWindowSize = CwxMqConfigCmn::MAX_WINDOW_NUM;
     }
-    //load mq:common:monitor
-    if (parser.getElementNode("mq:common:monitor"))
-    {
-        if (!fetchHost(parser, "mq:common:monitor", m_common.m_monitor, true)) return -1;
-    }
-    else
-    {
+    //load cmn:monitor
+    if (!cnf.getAttr("cmn", "monitor", value) || !value.length()){
         m_common.m_monitor.reset();
-    }
-    //load mq:binlog:file:path
-    if ((NULL == (pValue=parser.getElementAttr("mq:binlog:file", "path"))) || !pValue[0])
-    {
-        snprintf(m_szErrMsg, 2047, "Must set [mq:binlog:file:path].");
-        return -1;
-    }
-    value = pValue;
-    if ('/' != value[value.length()-1]) value +="/";
-    m_binlog.m_strBinlogPath  = value;
-    //load mq:binlog:file:prefix
-    if ((NULL == (pValue=parser.getElementAttr("mq:binlog:file", "prefix"))) || !pValue[0])
-    {
-        snprintf(m_szErrMsg, 2047, "Must set [mq:binlog:file:prefix].");
-        return -1;
-    }
-    m_binlog.m_strBinlogPrex = pValue;
-    //load mq:binlog:file:max_mbyte
-    if ((NULL == (pValue=parser.getElementAttr("mq:binlog:file", "max_mbyte"))) || !pValue[0])
-    {
-        snprintf(m_szErrMsg, 2047, "Must set [mq:binlog:file:max_mbyte].");
-        return -1;
-    }
-    m_binlog.m_uiBinLogMSize = strtoul(pValue, NULL, 0);
-    if (m_binlog.m_uiBinLogMSize < CwxMqConfigBinLog::MIN_BINLOG_MSIZE)
-    {
-        m_binlog.m_uiBinLogMSize = CwxMqConfigBinLog::MIN_BINLOG_MSIZE;
-    }
-    if (m_binlog.m_uiBinLogMSize > CwxMqConfigBinLog::MAX_BINLOG_MSIZE)
-    {
-        m_binlog.m_uiBinLogMSize = CwxMqConfigBinLog::MAX_BINLOG_MSIZE;
-    }
-    //load mq:binlog:manage:max_hour
-    if ((NULL == (pValue=parser.getElementAttr("mq:binlog:manage", "max_file_num"))) || !pValue[0])
-    {
-        snprintf(m_szErrMsg, 2047, "Must set [mq:binlog:manage:max_file_num].");
-        return -1;
-    }
-    m_binlog.m_uiMgrFileNum = strtoul(pValue, NULL, 0);
-	if (m_binlog.m_uiMgrFileNum < CwxBinLogMgr::MIN_MANAGE_FILE_NUM)
-    {
-        m_binlog.m_uiMgrFileNum = CwxBinLogMgr::MIN_MANAGE_FILE_NUM;
-    }
-    if (m_binlog.m_uiMgrFileNum > CwxBinLogMgr::MAX_MANAGE_FILE_NUM)
-    {
-        m_binlog.m_uiMgrFileNum = CwxBinLogMgr::MAX_MANAGE_FILE_NUM;
-    }
-
-    //load mq:binlog:manage:del_out_file
-    if ((NULL == (pValue=parser.getElementAttr("mq:binlog:manage", "del_out_file"))) || !pValue[0])
-    {
-        snprintf(m_szErrMsg, 2047, "Must set [mq:binlog:manage:del_out_file].");
-        return -1;
-    }
-    m_binlog.m_bDelOutdayLogFile = strcmp("yes", pValue)==0?true:false;
-
-	//load mq:binlog:flush:cache
-	if ((NULL == (pValue=parser.getElementAttr("mq:binlog:flush", "cache"))) || !pValue[0])
-	{
-		m_binlog.m_bCache = true;
-	}
-	else
-	{
-		m_binlog.m_bCache = strcmp("yes", pValue)==0?true:false;
-	}
-    //load mq:binlog:flush:log_num
-    if ((NULL == (pValue=parser.getElementAttr("mq:binlog:flush", "log_num"))) || !pValue[0])
-    {
-        snprintf(m_szErrMsg, 2047, "Must set [mq:binlog:flush:log_num].");
-        return -1;
-    }
-    m_binlog.m_uiFlushNum = strtoul(pValue, NULL, 0);
-    if (m_binlog.m_uiFlushNum < 1)
-    {
-        m_binlog.m_uiFlushNum = 1;
-    }
-	if (m_binlog.m_uiFlushNum > CWX_MQ_MAX_BINLOG_FLUSH_COUNT)
-	{
-		m_binlog.m_uiFlushNum = CWX_MQ_MAX_BINLOG_FLUSH_COUNT;
-	}
-    //load mq:binlog:flush:second
-    if ((NULL == (pValue=parser.getElementAttr("mq:binlog:flush", "second"))) || !pValue[0])
-    {
-        snprintf(m_szErrMsg, 2047, "Must set [mq:binlog:flush:second].");
-        return -1;
-    }
-    m_binlog.m_uiFlushSecond = strtoul(pValue, NULL, 0);
-    if (m_binlog.m_uiFlushSecond < 1)
-    {
-        m_binlog.m_uiFlushSecond = 1;
-    }
-    //load master
-    if (m_common.m_bMaster)
-    {
-        //load mq:master:recv
-        if (parser.getElementNode("mq:master:recv"))
-        {
-            if (!fetchHost(parser, "mq:master:recv", m_master.m_recv)) return -1;
-        }
-        else
-        {
-			CWX_ERROR(("Must set [mq:master:recv]"));
+    }else{
+        if (!mqParseHostPort(value, m_common.m_monitor)){
+            snprintf(m_szErrMsg, 2047, "cmn:monitor must be [host:port], [%s] is invalid.", value.c_str());
             return -1;
         }
-        //load mq:master:async
-        if (parser.getElementNode("mq:master:async"))
-        {
-            if (!fetchHost(parser, "mq:master:async", m_master.m_async)) return -1;
+    }
+
+    //load binlog:path
+    if (!cnf.getAttr("binlog", "path", value) || !value.length()){
+        snprintf(m_szErrMsg, 2047, "Must set [binlog:path].");
+        return -1;
+    }
+    if ('/' != value[value.length()-1]) value +="/";
+    m_binlog.m_strBinlogPath  = value;
+
+    //load binlog:file_prefix
+    if (!cnf.getAttr("binlog", "file_prefix", value) || !value.length()){
+        snprintf(m_szErrMsg, 2047, "Must set [binlog:file_prefix].");
+        return -1;
+    }
+    m_binlog.m_strBinlogPrex = value;
+
+    //load binlog:file_max_mbyte
+    if (!cnf.getAttr("binlog", "file_max_mbyte", value) || !value.length()){
+        snprintf(m_szErrMsg, 2047, "Must set [binlog:file_max_mbyte].");
+        return -1;
+    }
+    m_binlog.m_uiBinLogMSize = strtoul(value.c_str(), NULL, 10);
+    if (m_binlog.m_uiBinLogMSize < CwxMqConfigBinLog::MIN_BINLOG_MSIZE){
+        m_binlog.m_uiBinLogMSize = CwxMqConfigBinLog::MIN_BINLOG_MSIZE;
+    }
+    if (m_binlog.m_uiBinLogMSize > CwxMqConfigBinLog::MAX_BINLOG_MSIZE){
+        m_binlog.m_uiBinLogMSize = CwxMqConfigBinLog::MAX_BINLOG_MSIZE;
+    }
+    //load binlog:max_file_num
+    if (!cnf.getAttr("binlog", "max_file_num", value) || !value.length()){
+        snprintf(m_szErrMsg, 2047, "Must set [binlog:max_file_num].");
+        return -1;
+    }
+    m_binlog.m_uiMgrFileNum = strtoul(value.c_str(), NULL, 10);
+    if (m_binlog.m_uiMgrFileNum < CwxBinLogMgr::MIN_MANAGE_FILE_NUM){
+        m_binlog.m_uiMgrFileNum = CwxBinLogMgr::MIN_MANAGE_FILE_NUM;
+    }
+    if (m_binlog.m_uiMgrFileNum > CwxBinLogMgr::MAX_MANAGE_FILE_NUM){
+        m_binlog.m_uiMgrFileNum = CwxBinLogMgr::MAX_MANAGE_FILE_NUM;
+    }
+    //load binlog:del_out_file
+    if (!cnf.getAttr("binlog", "del_out_file", value) || !value.length()){
+        snprintf(m_szErrMsg, 2047, "Must set [binlog:del_out_file].");
+        return -1;
+    }
+    m_binlog.m_bDelOutdayLogFile = (value == "yes"?true:false);
+
+    //load binlog:cache
+    if (!cnf.getAttr("binlog", "cache", value) || !value.length()){
+        m_binlog.m_bCache = true;
+    }else{
+        m_binlog.m_bCache = (value =="yes"?true:false);
+    }
+    //load binlog:flush_log_num
+    if (!cnf.getAttr("binlog", "flush_log_num", value) || !value.length()){
+        snprintf(m_szErrMsg, 2047, "Must set [binlog:flush_log_num].");
+        return -1;
+    }
+    m_binlog.m_uiFlushNum = strtoul(value.c_str(), NULL, 10);
+    if (m_binlog.m_uiFlushNum < 1){
+        m_binlog.m_uiFlushNum = 1;
+    }
+    if (m_binlog.m_uiFlushNum > CWX_MQ_MAX_BINLOG_FLUSH_COUNT){
+        m_binlog.m_uiFlushNum = CWX_MQ_MAX_BINLOG_FLUSH_COUNT;
+    }
+    //load binlog:flush_log_second
+    if (!cnf.getAttr("binlog", "flush_log_second", value) || !value.length()){
+        snprintf(m_szErrMsg, 2047, "Must set [binlog:flush_log_second].");
+        return -1;
+    }
+    m_binlog.m_uiFlushSecond = strtoul(value.c_str(), NULL, 10);
+    if (m_binlog.m_uiFlushSecond < 1){
+        m_binlog.m_uiFlushSecond = 1;
+    }
+
+    //load master
+    if (m_common.m_bMaster){
+        //load recv
+        if (cnf.isExistSection("recv")){
+            if (!fetchHost(cnf, "recv", m_master.m_recv)){
+                return -1;
+            }
+        }else{
+            CWX_ERROR(("Must set [recv]"));
+            return -1;
         }
-        else
-        {
+        //load dispatch
+        if (cnf.isExistSection("dispatch")){
+            if (!fetchHost(cnf, "dispatch", m_master.m_async)){
+                return -1;
+            }
+        }else{
             m_master.m_async.reset();
         }
-    }
-    else
-    {//slave
-        //load mq:slave:master
-        if (!fetchHost(parser, "mq:slave:master", m_slave.m_master)) return -1;
-        //load mq:slave:master:zip
-        if ((NULL == (pValue=parser.getElementAttr("mq:slave:master", "zip"))) || !pValue[0])
-        {
+    }else{//slave
+        //load master
+        if (!fetchHost(cnf, "master", m_slave.m_master)) return -1;
+        //load master:zip
+        if (!cnf.getAttr("master", "zip", value) || !value.length()){
             m_slave.m_bzip = false;
-        }
-        else
-        {
-            if (strcmp("yes", pValue) == 0)
+        }else{
+            if (value == "yes")
                 m_slave.m_bzip = true;
             else
                 m_slave.m_bzip = false;
         }
-        //load mq:slave:master:sign
-        if ((NULL == (pValue=parser.getElementAttr("mq:slave:master", "sign"))) || !pValue[0])
-        {
+        //load master:sign
+        if (!cnf.getAttr("master", "sign", value) || !value.length()){
             m_slave.m_strSign = "";
-        }
-        else
-        {
-            if (strcmp(CWX_MQ_CRC32, pValue) == 0)
+        }else{
+            if (value == CWX_MQ_CRC32)
                 m_slave.m_strSign = CWX_MQ_CRC32;
-            else if (strcmp(CWX_MQ_MD5, pValue) == 0)
+            else if (value == CWX_MQ_MD5)
                 m_slave.m_strSign = CWX_MQ_MD5;
             else
                 m_slave.m_strSign = "";
         }
-        //fetch mq:slave:master:subscribe
-        if ((NULL == (pValue=parser.getElementAttr("mq:slave:master", "subscribe"))) || !pValue[0])
-        {
+        //fetch master:subscribe
+        if (!cnf.getAttr("master", "subscribe", value) || !value.length()){
             m_slave.m_strSubScribe = "";
-        }
-        else
-        {
-            m_slave.m_strSubScribe = pValue;
-            if (!CwxMqPoco::isValidSubscribe(m_slave.m_strSubScribe, strErrMsg))
-            {
+        }else{
+            m_slave.m_strSubScribe = value;
+            if (!CwxMqPoco::isValidSubscribe(m_slave.m_strSubScribe, strErrMsg)){
                 snprintf(m_szErrMsg,
                     2047,
-                    "[mq:slave:master:subscribe]'s value [%s] is not valid subscribe, err:%s",
-                    pValue,
+                    "[master:subscribe]'s value [%s] is not valid subscribe, err:%s",
+                    value.c_str(),
                     strErrMsg.c_str());
                 return -1;
             }
         }
-        //load mq:slave:async
-        if (parser.getElementNode("mq:slave:async"))
-        {
-            if (!fetchHost(parser, "mq:slave:async", m_slave.m_async)) return -1;
-        }
-        else
-        {
+        //load dispatch
+        if (cnf.isExistSection("dispatch")){
+            if (!fetchHost(cnf, "dispatch", m_slave.m_async)){
+                return -1;
+            }
+        }else{
             m_slave.m_async.reset();
         }
     }
     //fetch mq:mq
-    if (parser.getElementNode("mq:mq"))
-    {
-        if (!fetchHost(parser, "mq:mq:listen", m_mq.m_mq)) return -1;
-        //load mq:mq:log:file
-        if ((NULL == (pValue=parser.getElementAttr("mq:mq:log", "path"))) || !pValue[0])
-        {
-            snprintf(m_szErrMsg, 2047, "Must set [mq:mq:log:path].");
+    if (cnf.isExistSection("mq")){
+        if (!fetchHost(cnf, "mq", m_mq.m_mq)) return -1;
+        //load mq:log_path
+        if (!cnf.getAttr("mq", "log_path", value) || !value.length()){
+            snprintf(m_szErrMsg, 2047, "Must set [mq:log_path].");
             return -1;
         }
-        m_mq.m_strLogFilePath = pValue;
-        //load mq:mq:log:fetch_num
-        if ((NULL == (pValue=parser.getElementAttr("mq:mq:log", "fetch_num"))) || !pValue[0])
-        {
-            snprintf(m_szErrMsg, 2047, "Must set [mq:mq:log:fetch_num].");
+        if ('/' != value[value.length()-1]) value +="/";
+        m_mq.m_strLogFilePath = value;
+        //load mq:log_flush_num
+        if (!cnf.getAttr("mq", "log_flush_num", value) || !value.length()){
+            snprintf(m_szErrMsg, 2047, "Must set [mq:log_flush_num].");
             return -1;
         }
-        m_mq.m_uiFlushNum = strtoul(pValue, NULL, 0);
-        if (m_mq.m_uiFlushNum < 1)
-        {
+        m_mq.m_uiFlushNum = strtoul(value.c_str(), NULL, 10);
+        if (m_mq.m_uiFlushNum < 1){
             m_mq.m_uiFlushNum = 1;
         }
-        //load mq:mq:log:second
-        if ((NULL == (pValue=parser.getElementAttr("mq:mq:log", "second"))) || !pValue[0])
-        {
-            snprintf(m_szErrMsg, 2047, "Must set [mq:mq:log:second].");
+        //load mq:log_flush_num
+        if (!cnf.getAttr("mq", "log_flush_second", value) || !value.length()){
+            snprintf(m_szErrMsg, 2047, "Must set [mq:log_flush_second].");
             return -1;
         }
-        m_mq.m_uiFlushSecond = strtoul(pValue, NULL, 0);
-        if (m_mq.m_uiFlushSecond < 1)
-        {
+        m_mq.m_uiFlushSecond = strtoul(value.c_str(), NULL, 10);
+        if (m_mq.m_uiFlushSecond < 1){
             m_mq.m_uiFlushSecond = 1;
         }
-
-    }
-    else
-    {
+    }else{
         m_mq.m_mq.reset();
     }
-
     return 0;
 }
 
-bool CwxMqConfig::fetchHost(CwxXmlFileConfigParser& parser, 
-                            string const& path,
+bool CwxMqConfig::fetchHost(CwxIniParse& cnf,
+                            string const& node,
                             CwxHostInfo& host,
-							bool bIpOnly)
+                            bool bIpOnly)
 {
-    char const* pValue;
+    string value;
     host.reset();
-    pValue=parser.getElementAttr(path.c_str(), "ip");
-    if (pValue && pValue[0])
-    {
-        host.setHostName(pValue);
-        //load  path:port
-        if ((NULL == (pValue=parser.getElementAttr(path.c_str(), "port"))) || !pValue[0])
-        {
-            CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s:port].", path.c_str());
+    //get listen
+    if (cnf.getAttr(node, "listen", value) && value.length()){
+        if (!mqParseHostPort(value, host)){
+            snprintf(m_szErrMsg, 2047, "%s:listen must be [host:port], [%s] is invalid.", node.c_str(), value.c_str());
             return false;
         }
-        host.setPort(strtoul(pValue, NULL, 0));
     }
-	else
-	{
-		host.setHostName("");
-	}
-    //load path:keep_alive
-    pValue=parser.getElementAttr(path.c_str(), "keep_alive");
-    if (pValue && pValue[0])
-    {
-        host.setKeepAlive(strcasecmp(pValue, "yes")==0?true:false);
-    }
-    else
-    {
+    //load keepalive
+    if (cnf.getAttr(node, "keepalive", value) && value.length()){
+        host.setKeepAlive(value=="yes"?true:false);
+    }else{
         host.setKeepAlive(false);
     }
-    //load path:user
-    pValue=parser.getElementAttr(path.c_str(), "user");
-    if (pValue && pValue[0])
-    {
-        host.setUser(pValue);
-    }
-    else
-    {
+    //load user
+    if (cnf.getAttr(node, "user", value) && value.length()){
+        host.setUser(value);
+    }else{
         host.setUser("");
     }
-    //load path:passwd
-    pValue=parser.getElementAttr(path.c_str(), "passwd");
-    if (pValue && pValue[0])
-    {
-        host.setPassword(pValue);
-    }
-    else
-    {
+    //load passwd
+    if (cnf.getAttr(node, "passwd", value) && value.length()){
+        host.setPassword(value);
+    }else{
         host.setPassword("");
     }
-
     //load path:unix
-    pValue=parser.getElementAttr(path.c_str(), "unix");
-    if (pValue && pValue[0])
-    {
-        host.setUnixDomain(pValue);
+    if (cnf.getAttr(node, "unix", value) && value.length()){
+        host.setUnixDomain(value);
+    }else{
+        host.setUnixDomain("");
     }
-	else
-	{
-		host.setUnixDomain("");
-	}
-	if (!bIpOnly)
-	{
-		if (!host.getHostName().length() && !host.getUnixDomain().length())
-		{
-			CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s]'s ip or unix-domain file.", path.c_str());
-			return false;
-		}
-	}
-	else
-	{
-		if (!host.getHostName().length())
-		{
-			CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s]'s ip.", path.c_str());
-			return false;
-		}
-	}
-
+    if (!bIpOnly){
+        if (!host.getHostName().length() && !host.getUnixDomain().length()){
+            CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s]'s [listen] or [unix].", node.c_str());
+            return false;
+        }
+    }else{
+        if (!host.getHostName().length()){
+            CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s]'s [listen].", node.c_str());
+            return false;
+        }
+    }
     return true;
-
 }
 
 
 void CwxMqConfig::outputConfig() const
 {
     CWX_INFO(("\n*****************BEGIN CONFIG*******************"));
-    CWX_INFO(("*****************common*******************"));
-    CWX_INFO(("workdir=%s", m_common.m_strWorkDir.c_str()));
-    CWX_INFO(("server type=%s", m_common.m_bMaster?"master":"slave"));
-    CWX_INFO(("window sock_buf_kbyte=%u  chunk_kbyte=%u, window=%u", m_common.m_uiSockBufSize, m_common.m_uiChunkSize, m_common.m_uiWindowSize));
-	CWX_INFO(("monitor host=%s  port=%u", m_common.m_monitor.getHostName().c_str(), m_common.m_monitor.getPort()));
+    CWX_INFO(("*****************cmn*******************"));
+    CWX_INFO(("home=%s", m_common.m_strWorkDir.c_str()));
+    CWX_INFO(("server_type=%s", m_common.m_bMaster?"master":"slave"));
+    CWX_INFO(("sock_buf_kbyte=%u", m_common.m_uiSockBufSize));
+    CWX_INFO(("max_chunk_kbyte=%u", m_common.m_uiChunkSize));
+    CWX_INFO(("window=%u", m_common.m_uiWindowSize));
+    CWX_INFO(("monitor=%s:%u", m_common.m_monitor.getHostName().c_str(), m_common.m_monitor.getPort()));
     CWX_INFO(("*****************binlog*******************"));
-    CWX_INFO(("file path=%s prefix=%s max_mbyte(Mbyte)=%u", m_binlog.m_strBinlogPath.c_str(), m_binlog.m_strBinlogPrex.c_str(), m_binlog.m_uiBinLogMSize));
-    CWX_INFO(("manager binlog file max_fil_num=%u  del_out_file=%s", m_binlog.m_uiMgrFileNum, m_binlog.m_bDelOutdayLogFile?"yes":"no"));
-	CWX_INFO(("binlog flush cache=%s log_num=%u second=%u", m_binlog.m_bCache?"yes":"no", m_binlog.m_uiFlushNum, m_binlog.m_uiFlushSecond));
+    CWX_INFO(("path=%s", m_binlog.m_strBinlogPath.c_str()));
+    CWX_INFO(("file_prefix=%s", m_binlog.m_strBinlogPrex.c_str()));
+    CWX_INFO(("file_max_mbyte=%u", m_binlog.m_uiBinLogMSize));
+    CWX_INFO(("max_file_num=%u", m_binlog.m_uiMgrFileNum));
+    CWX_INFO(("del_out_file=%s", m_binlog.m_bDelOutdayLogFile?"yes":"no"));
+    CWX_INFO(("cache=%s", m_binlog.m_bCache?"yes":"no"));
+    CWX_INFO(("flush_log_num=%u", m_binlog.m_uiFlushNum));
+    CWX_INFO(("flush_log_second=%u", m_binlog.m_uiFlushSecond));
     if (m_common.m_bMaster){
-        CWX_INFO(("*****************master*******************"));
-		CWX_INFO(("recv keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
-			m_master.m_recv.isKeepAlive()?"yes":"no",
-			m_master.m_recv.getUser().c_str(),
-			m_master.m_recv.getPasswd().c_str(),
-			m_master.m_recv.getHostName().c_str(),
-			m_master.m_recv.getPort(),
-			m_master.m_recv.getUnixDomain().c_str()));
-		CWX_INFO(("async keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
-			m_master.m_async.isKeepAlive()?"yes":"no",
-			m_master.m_async.getUser().c_str(),
-			m_master.m_async.getPasswd().c_str(),
-			m_master.m_async.getHostName().c_str(),
-			m_master.m_async.getPort(),
-			m_master.m_async.getUnixDomain().c_str()));
+        CWX_INFO(("*****************dispatch*******************"));
+        CWX_INFO(("user=%s", m_master.m_async.getUser().c_str()));
+        CWX_INFO(("passwd=%s", m_master.m_async.getPasswd().c_str()));
+        CWX_INFO(("listen=%s:%u", m_master.m_async.getHostName().c_str(), m_master.m_async.getPort()));
+        CWX_INFO(("unix=%s", m_master.m_async.getUnixDomain().c_str()));
+
+        CWX_INFO(("*****************recv*******************"));
+        CWX_INFO(("user=%s", m_master.m_recv.getUser().c_str()));
+        CWX_INFO(("passwd=%s", m_master.m_recv.getPasswd().c_str()));
+        CWX_INFO(("listen=%s:%u", m_master.m_recv.getHostName().c_str(), m_master.m_recv.getPort()));
+        CWX_INFO(("unix=%s", m_master.m_recv.getUnixDomain().c_str()));
     }else{
-        CWX_INFO(("*****************slave*******************"));
-        CWX_INFO(("master zip=%s sign=%s, keep_alive=%s user=%s passwd=%s subscribe=%s ip=%s port=%u unix=%s",
-            m_slave.m_bzip?"yes":"no",
-            m_slave.m_strSign.c_str(),
-            m_slave.m_master.isKeepAlive()?"yes":"no",
-            m_slave.m_master.getUser().c_str(),
-            m_slave.m_master.getPasswd().c_str(),
-            m_slave.m_strSubScribe.c_str(),
-            m_slave.m_master.getHostName().c_str(),
-            m_slave.m_master.getPort(),
-            m_slave.m_master.getUnixDomain().c_str()));
-		CWX_INFO(("async keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
-			m_slave.m_async.isKeepAlive()?"yes":"no",
-			m_slave.m_async.getUser().c_str(),
-			m_slave.m_async.getPasswd().c_str(),
-			m_slave.m_async.getHostName().c_str(),
-			m_slave.m_async.getPort(),
-			m_slave.m_async.getUnixDomain().c_str()));
+        CWX_INFO(("*****************dispatch*******************"));
+        CWX_INFO(("user=%s", m_slave.m_async.getUser().c_str()));
+        CWX_INFO(("passwd=%s", m_slave.m_async.getPasswd().c_str()));
+        CWX_INFO(("listen=%s:%u", m_slave.m_async.getHostName().c_str(), m_slave.m_async.getPort()));
+        CWX_INFO(("unix=%s", m_slave.m_async.getUnixDomain().c_str()));
+        CWX_INFO(("*****************master*******************"));
+        CWX_INFO(("user=%s", m_slave.m_master.getUser().c_str()));
+        CWX_INFO(("passwd=%s", m_slave.m_master.getPasswd().c_str()));
+        CWX_INFO(("listen=%s:%u",m_slave.m_master.getHostName().c_str(), m_slave.m_master.getPort()));
+        CWX_INFO(("unix=%s", m_slave.m_master.getUnixDomain().c_str()));
+        CWX_INFO(("subscribe=%s", m_slave.m_strSubScribe.c_str()));
+        CWX_INFO(("zip=%s", m_slave.m_bzip?"yes":"no"));
+        CWX_INFO(("sign=%s", m_slave.m_strSign.c_str()));
     }
-	{
-		CWX_INFO(("*****************mq-fetch*******************"));
-		CWX_INFO(("listen keep_alive=%s user=%s passwd=%s ip=%s port=%u unix=%s",
-			m_mq.m_mq.isKeepAlive()?"yes":"no",
-			m_mq.m_mq.getUser().c_str(),
-			m_mq.m_mq.getPasswd().c_str(),
-			m_mq.m_mq.getHostName().c_str(),
-			m_mq.m_mq.getPort(),
-			m_mq.m_mq.getUnixDomain().c_str()));
-		CWX_INFO(("mq queue path:%s", m_mq.m_strLogFilePath.c_str()));
-		CWX_INFO(("mq flush log_num=%u second=%u", m_mq.m_uiFlushNum, m_mq.m_uiFlushSecond));
-	}
+    {
+        CWX_INFO(("*****************mq*******************"));
+        CWX_INFO(("user=%s", m_mq.m_mq.getUser().c_str()));
+        CWX_INFO(("passwd=%s", m_mq.m_mq.getPasswd().c_str()));
+        CWX_INFO(("listen=%s:%u",m_mq.m_mq.getHostName().c_str(), m_mq.m_mq.getPort()));
+        CWX_INFO(("unix=%s", m_mq.m_mq.getUnixDomain().c_str()));
+        CWX_INFO(("log_path=%s", m_mq.m_strLogFilePath.c_str()));
+        CWX_INFO(("log_flush_num=%u", m_mq.m_uiFlushNum));
+        CWX_INFO(("log_flush_second=%u", m_mq.m_uiFlushSecond));
+    }
     CWX_INFO(("*****************END   CONFIG *******************"));
 }

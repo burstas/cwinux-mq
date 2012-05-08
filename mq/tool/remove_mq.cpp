@@ -15,11 +15,8 @@ string g_auth_passwd;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:a:A:h");
+	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:U:W:h");
     int option;
-    cmd_option.long_option("auth_u", 'a', CwxGetOpt::ARG_REQUIRED);
-    cmd_option.long_option("auth_p", 'A', CwxGetOpt::ARG_REQUIRED);
-
     while( (option = cmd_option.next()) != -1)
     {
         switch (option)
@@ -32,8 +29,8 @@ int parseArg(int argc, char**argv)
             printf("-u: queue's user.\n");
             printf("-p: queue's user passwd.\n");
             printf("-q: queue's name, it can't be empty.\n");
-            printf("--auth_u: authentication user for queue.\n");
-            printf("--auth_p: authentication user password for queue.\n");
+            printf("-U: authentication user for queue.\n");
+            printf("-W: authentication user password for queue.\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -50,7 +47,7 @@ int parseArg(int argc, char**argv)
                 printf("-P requires an argument.\n");
                 return -1;
             }
-            g_unPort = strtoul(cmd_option.opt_arg(), NULL, 0);
+            g_unPort = strtoul(cmd_option.opt_arg(), NULL, 10);
             break;
         case 'u':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -76,18 +73,18 @@ int parseArg(int argc, char**argv)
             }
             g_queue = cmd_option.opt_arg();
             break;
-        case 'a':
+        case 'U':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
-                printf("--auth_u requires an argument.\n");
+                printf("-U requires an argument.\n");
                 return -1;
             }
             g_auth_user = cmd_option.opt_arg();
             break;
-        case 'A':
+        case 'W':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
-                printf("--auth_p requires an argument.\n");
+                printf("-W requires an argument.\n");
                 return -1;
             }
             g_auth_passwd = cmd_option.opt_arg();

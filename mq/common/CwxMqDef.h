@@ -23,6 +23,7 @@
 #include "CwxSTail.h"
 #include "CwxTypePoolEx.h"
 #include "CwxAppHandler4Channel.h"
+#include "CwxHostInfo.h"
 
 class CwxMqQueue;
 
@@ -173,7 +174,7 @@ public:
         m_ullLeftNum = 0;
         m_uiWaitCommitNum = 0;
         m_uiMemLogNum = 0;
-        m_ucQueueState = CwxBinLogMgr::CURSOR_STATE_UNSEEK;
+        m_ucQueueState = CwxBinLogCursor::CURSOR_STATE_UNSEEK;
 		m_bQueueLogFileValid = true;
 
     }
@@ -236,5 +237,7 @@ public:
 	bool							 m_bQueueLogFileValid;///队列log file是否有效
 	string							 m_strQueueLogFileErrMsg; ///<队列log file错误信息
 };
+
+bool mqParseHostPort(string const& strHostPort, CwxHostInfo& host);
 
 #endif

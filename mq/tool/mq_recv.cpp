@@ -23,10 +23,8 @@ unsigned long g_unzip_len = 0;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:s:w:n:S:i:C:zh");
+	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:s:w:n:m:S:c:zh");
     int option;
-    cmd_option.long_option("sid", 'i', CwxGetOpt::ARG_REQUIRED);
-    cmd_option.long_option("chunk", 'C', CwxGetOpt::ARG_REQUIRED);
     while( (option = cmd_option.next()) != -1)
     {
         switch (option)
@@ -42,9 +40,9 @@ int parseArg(int argc, char**argv)
             printf("-w: dispatch's window size, default is 1.\n");
             printf("-n: recieve message's number, default is 1.zero is all from the sid.\n");
             printf("-z: zip compress sign. no compress by default\n");
-            printf("-S: signature type, %s or %s. no signature by default\n", CWX_MQ_MD5, CWX_MQ_CRC32);
-            printf("--sid: start sid, zero for the current max sid.\n");
-            printf("--chunk: chunk size in kbyte. default is zero for no chunk.\n");
+            printf("-m: signature type, %s or %s. no signature by default\n", CWX_MQ_MD5, CWX_MQ_CRC32);
+            printf("-S: start sid, zero for the current max sid.\n");
+            printf("-c: chunk size in kbyte. default is zero for no chunk.\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -61,7 +59,7 @@ int parseArg(int argc, char**argv)
                 printf("-P requires an argument.\n");
                 return -1;
             }
-            g_unPort = strtoul(cmd_option.opt_arg(), NULL, 0);
+            g_unPort = strtoul(cmd_option.opt_arg(), NULL, 10);
             break;
         case 'u':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -93,7 +91,7 @@ int parseArg(int argc, char**argv)
                 printf("-w requires an argument.\n");
                 return -1;
             }
-            g_window = strtoul(cmd_option.opt_arg(),NULL,0);
+            g_window = strtoul(cmd_option.opt_arg(),NULL,10);
             break;
         case 'n':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -101,21 +99,21 @@ int parseArg(int argc, char**argv)
                 printf("-n requires an argument.\n");
                 return -1;
             }
-            g_num = strtoul(cmd_option.opt_arg(),NULL,0);
+            g_num = strtoul(cmd_option.opt_arg(),NULL,10);
             break;
-        case 'C':
+        case 'c':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
                 printf("-c requires an argument.\n");
                 return -1;
             }
-            g_chunk = strtoul(cmd_option.opt_arg(),NULL,0);
+            g_chunk = strtoul(cmd_option.opt_arg(),NULL,10);
             if (g_chunk > CWX_MQ_MAX_CHUNK_KSIZE) g_chunk = CWX_MQ_MAX_CHUNK_KSIZE;
             break;
         case 'z':
             g_zip = true;
             break;
-        case 'S':
+        case 'm':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
                 printf("-s requires an argument.\n");
@@ -127,13 +125,13 @@ int parseArg(int argc, char**argv)
                 printf("signature must be %s or %s\n", CWX_MQ_MD5, CWX_MQ_CRC32);
             }
             break;
-        case 'i':
+        case 'S':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
                 printf("--sid requires an argument.\n");
                 return -1;
             }
-            g_sid = strtoull(cmd_option.opt_arg(),NULL,0);
+            g_sid = strtoull(cmd_option.opt_arg(),NULL,10);
             break;
         case ':':
             printf("%c requires an argument.\n", cmd_option.opt_opt ());
@@ -171,7 +169,6 @@ int parseArg(int argc, char**argv)
 static int output(CwxPackageReader& reader, char const* szMsg, CWX_UINT32 uiMsgLen, CWX_UINT64& ullSid)
 {
     CWX_UINT32 group = 0;
-    CWX_UINT32 type = 0;
     CWX_UINT32 timestamp = 0;
     CwxKeyValueItem const* item=NULL;
     char szErr2K[2048];
@@ -183,17 +180,15 @@ static int output(CwxPackageReader& reader, char const* szMsg, CWX_UINT32 uiMsgL
         timestamp,
         item,
         group,
-        type,
         szErr2K))
     {
         printf("failure to unpack recieve msg, err=%s\n", szErr2K);
         return -1;
     }
-    printf("%s|%u|%u|%u|%s\n",
+    printf("%s|%u|%u|%s\n",
         CwxCommon::toString(ullSid, szErr2K, 10),
         timestamp,
         group,
-        type,
         item->m_szData);
     return 0;
 }
