@@ -1,0 +1,11 @@
+[fetch]
+home=/usr/home/wenbo/cwinux-mq/trunk/test_fetch
+listen=127.0.0.1:9907
+unix=/usr/home/wenbo/cwinux-mq/mq/trunk/mq/async.sock
+user=u_q1
+passwd=p_q1
+queue=q1
+conn_type=tcp
+conn_num=2500
+conn_lasting=0
+block=1
