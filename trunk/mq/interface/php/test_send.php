@@ -9,7 +9,6 @@
 		$port	=	9901;
 		
 		$group	=	'3';
-		$type	=	'5';
 		$user	=	'recv';
 		$passwd =	'recv_passwd';
 		
@@ -23,7 +22,7 @@
         
         $data = 'msg '.date('Y-m-d H:i:s ').rand(100,999);
                 
-        $pack = $poco->packRecvData(0,$data,$group,$type,$user,$passwd,$sign,$zip);
+        $pack = $poco->packRecvData(0,$data,$group,$user,$passwd,$sign,$zip);
         
         $ret = $request->connect();
         if($ret === false){

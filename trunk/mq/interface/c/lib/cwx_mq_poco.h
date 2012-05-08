@@ -54,7 +54,6 @@ extern "C" {
 
 ///协议的key定义
 #define CWX_MQ_KEY_DATA "data"
-#define CWX_MQ_KEY_TYPE "type"
 #define CWX_MQ_KEY_RET  "ret"
 #define CWX_MQ_KEY_SID  "sid"
 #define CWX_MQ_KEY_ERR  "err"
@@ -138,7 +137,6 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
         CWX_UINT32* buf_len,
         struct CWX_KEY_VALUE_ITEM_S const* data,
         CWX_UINT32 group,
-        CWX_UINT32 type,
         char const* user,
         char const* passwd,
         char const* sign,
@@ -152,7 +150,6 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
 *@param [in] msg_len msg的长度。
 *@param [out] data 返回msg的data。
 *@param [out] group msg的group。
-*@param [out] type 返回msg的type。
 *@param [out] user 返回msg中的用户，0表示不存在。
 *@param [out] passwd 返回msg中的用户口令，0表示不存在。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
@@ -163,7 +160,6 @@ int cwx_mq_parse_mq(struct CWX_PG_READER* reader,
         CWX_UINT32  msg_len,
         struct CWX_KEY_VALUE_ITEM_S const** data,
         CWX_UINT32* group,
-        CWX_UINT32* type,
         char const** user,
         char const** passwd,
         char* szErr2K);
@@ -388,7 +384,6 @@ int cwx_mq_parse_sync_report_reply(struct CWX_PG_READER* reader,
 *@param [in] uiTimeStamp 消息接收时的时间。
 *@param [in] data 消息的data。
 *@param [in] group 消息的group。
-*@param [in] type 消息的type。
 *@param [in] sign  接收的mq的签名类型，若为空，则表示不签名。
 *@param [in] zip  接收的mq是否压缩，1压缩；0不压缩。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
@@ -402,7 +397,6 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
         CWX_UINT32 uiTimeStamp,
         struct CWX_KEY_VALUE_ITEM_S const* data,
         CWX_UINT32 group,
-        CWX_UINT32 type,
         char const* sign,
         int       zip,
         char* szErr2K);
@@ -415,7 +409,6 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
 *@param [out] uiTimeStamp 消息接收时的时间。
 *@param [out] data 消息的data。
 *@param [out] group 消息的group。
-*@param [out] type 消息的type。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -426,7 +419,6 @@ int cwx_mq_parse_sync_data(struct CWX_PG_READER* reader,
         CWX_UINT32* uiTimeStamp,
         struct CWX_KEY_VALUE_ITEM_S const** data,
         CWX_UINT32* group,
-        CWX_UINT32* type,
         char* szErr2K);
 
 /**
@@ -516,7 +508,6 @@ int cwx_mq_parse_fetch_mq(struct CWX_PG_READER* reader,
 *@param [in] uiTimeStamp 成功时，返回消息的时间戳。
 *@param [in] data 成功时，返回消息的data。
 *@param [in] group 成功时，返回消息的group。
-*@param [in] type 成功时，返回消息的type。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -529,7 +520,6 @@ int cwx_mq_pack_fetch_mq_reply(struct CWX_PG_WRITER * writer,
         CWX_UINT32 uiTimeStamp,
         struct CWX_KEY_VALUE_ITEM_S const* data,
         CWX_UINT32 group,
-        CWX_UINT32 type,
         char* szErr2K);
 /**
 *@brief parse  mq的fetch msg的reply消息包
@@ -542,7 +532,6 @@ int cwx_mq_pack_fetch_mq_reply(struct CWX_PG_WRITER * writer,
 *@param [in] uiTimeStamp 成功时，返回消息的时间戳。
 *@param [in] data 成功时，返回消息的data。
 *@param [in] group 成功时，返回消息的group。
-*@param [in] type 成功时，返回消息的type。
 *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
 *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 */
@@ -555,7 +544,6 @@ int cwx_mq_parse_fetch_mq_reply(struct CWX_PG_READER* reader,
         CWX_UINT32* uiTimeStamp,
         struct CWX_KEY_VALUE_ITEM_S const** data,
         CWX_UINT32* group,
-        CWX_UINT32* type,
         char* szErr2K);
 
 /**
