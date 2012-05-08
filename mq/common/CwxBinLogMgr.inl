@@ -319,37 +319,33 @@ inline void CwxBinLogIndex::reset()
 ***********************************************************************/
 inline int CwxBinLogCursor::next()
 {
-	if (CURSOR_STATE_ERROR == m_ucSeekState) return -1;
-	if (CURSOR_STATE_UNSEEK == m_ucSeekState) {
-		CwxCommon::snprintf(this->m_szErr2K, 2047, "Doesn't seek");
-		return -1;
-	}
-	if (-1 == m_fd)
-	{
-		CwxCommon::snprintf(this->m_szErr2K, 2047, "Cursor's file handle is invalid");
-		return -1;
-	}
-	return header(m_curLogHeader.getOffset() + CwxBinLogHeader::BIN_LOG_HEADER_SIZE + m_curLogHeader.getLogLen());
+    if (CURSOR_STATE_ERROR == m_ucSeekState) return -1;
+    if (-1 == m_fd){
+        CwxCommon::snprintf(this->m_szErr2K, 2047, "Cursor's file handle is invalid");
+        return -1;
+    }
+    if (CURSOR_STATE_UNSEEK == m_ucSeekState) {
+        return header(0);
+    }
+    return header(m_curLogHeader.getOffset() + CwxBinLogHeader::BIN_LOG_HEADER_SIZE + m_curLogHeader.getLogLen());
 }
 
 inline int CwxBinLogCursor::prev()
 {
-	if (CURSOR_STATE_ERROR == m_ucSeekState) return -1;
-	if (CURSOR_STATE_UNSEEK == m_ucSeekState) {
-		CwxCommon::snprintf(this->m_szErr2K, 2047, "Doesn't seek");
-		return -1;
-	}
-	if (-1 == m_fd)
-	{
-		CwxCommon::snprintf(this->m_szErr2K, 2047, "Cursor's file handle is invalid");
-		return -1;
-	}
-	if (0 != m_curLogHeader.getOffset())
-	{
-		return header(m_curLogHeader.getPrevOffset());
-	}
-	return 0;
+    if (CURSOR_STATE_ERROR == m_ucSeekState) return -1;
+    if (-1 == m_fd){
+        CwxCommon::snprintf(this->m_szErr2K, 2047, "Cursor's file handle is invalid");
+        return -1;
+    }
+    if (CURSOR_STATE_UNSEEK == m_ucSeekState) {
+        return header(0);
+    }
+    if (0 != m_curLogHeader.getOffset()){
+        return header(m_curLogHeader.getPrevOffset());
+    }
+    return 0;
 }
+
 
 inline int CwxBinLogCursor::seek(CWX_UINT32 uiOffset)
 {
