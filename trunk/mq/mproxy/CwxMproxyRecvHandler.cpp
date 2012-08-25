@@ -26,7 +26,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 //首先准备解压的buf
                 if (!prepareUnzipBuf())
                 {
-                    iRet = CWX_MQ_ERR_INNER_ERR;
+                    iRet = CWX_MQ_ERR_ERROR;
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Failure to prepare unzip buf, size:%u", m_uiBufLen);
                     CWX_ERROR((pTss->m_szBuf2K));
                     break;
@@ -35,7 +35,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 //解压
                 if (!CwxZlib::unzip(m_unzipBuf, ulUnzipLen, (const unsigned char*)msg->rd_ptr(), msg->length()))
                 {
-                    iRet = CWX_MQ_ERR_INNER_ERR;
+                    iRet = CWX_MQ_ERR_ERROR;
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Failure to unzip recv msg, msg size:%u, buf size:%u", msg->length(), m_uiBufLen);
                     CWX_ERROR((pTss->m_szBuf2K));
                     break;
@@ -93,7 +93,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             {
                 //如果是无效数据，返回
                 CWX_DEBUG(("Failure to parse the commit msg, err=%s", pTss->m_szBuf2K));
-                iRet = CWX_MQ_ERR_INVALID_MSG;
+                iRet = CWX_MQ_ERR_ERROR;
                 break;
             }
             if (!*bAuth)
@@ -127,7 +127,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         {
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u", msg->event().getMsgHeader().getMsgType());
             CWX_ERROR((pTss->m_szBuf2K));
-            iRet = CWX_MQ_ERR_INVALID_MSG_TYPE;
+            iRet = CWX_MQ_ERR_ERROR;
             break;
         }
     }while(0);

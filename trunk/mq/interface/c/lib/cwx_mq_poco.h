@@ -85,34 +85,34 @@ extern "C" {
 
 ///协议错误代码定义
 #define CWX_MQ_ERR_SUCCESS          0  ///<成功
-#define CWX_MQ_ERR_NO_MSG           1   ///<没有数据
-#define CWX_MQ_ERR_INVALID_MSG      2 ///<接收到的数据包无效，也就是不是kv结构
-#define CWX_MQ_ERR_BINLOG_INVALID   3///<接收到的binlog数据无效
-#define CWX_MQ_ERR_NO_KEY_DATA       4 ///<接收到的binlog，没有【data】的key
-#define CWX_MQ_ERR_INVALID_DATA_KV   5 ///<data的可以为key/value，但格式非法
-#define CWX_MQ_ERR_NO_SID            6 ///<接收到的report数据包中，没有【sid】的key
-#define CWX_MQ_ERR_NO_RET            7 ///<接收到的数据包中，没有【ret】
-#define CWX_MQ_ERR_NO_ERR            8 ///<接收到的数据包中，没有【err】
-#define CWX_MQ_ERR_NO_TIMESTAMP      9 ///<接收到的数据中，没有【timestamp】
+#define CWX_MQ_ERR_ERROR           1   ///<没有数据
+#define CWX_MQ_ERR_ERROR      2 ///<接收到的数据包无效，也就是不是kv结构
+#define CWX_MQ_ERR_ERROR   3///<接收到的binlog数据无效
+#define CWX_MQ_ERR_ERROR       4 ///<接收到的binlog，没有【data】的key
+#define CWX_MQ_ERR_ERROR   5 ///<data的可以为key/value，但格式非法
+#define CWX_MQ_ERR_ERROR            6 ///<接收到的report数据包中，没有【sid】的key
+#define CWX_MQ_ERR_ERROR            7 ///<接收到的数据包中，没有【ret】
+#define CWX_MQ_ERR_ERROR            8 ///<接收到的数据包中，没有【err】
+#define CWX_MQ_ERR_ERROR      9 ///<接收到的数据中，没有【timestamp】
 #define CWX_MQ_ERR_FAIL_AUTH         10 ///<鉴权失败
-#define CWX_MQ_ERR_INVALID_BINLOG_TYPE 11 ///<binlog的type错误
-#define CWX_MQ_ERR_INVALID_MSG_TYPE   12 ///<接收到的消息类型无效
-#define CWX_MQ_ERR_INVALID_SID        13  ///<回复的sid无效
-#define CWX_MQ_ERR_FAIL_ADD_BINLOG    14 ///<往binglog mgr中添加binlog失败
-#define CWX_MQ_ERR_NO_QUEUE        15 ///<队列不存在
-#define CWX_MQ_ERR_INVALID_SUBSCRIBE 16 ///<无效的消息订阅类型
-#define CWX_MQ_ERR_INNER_ERR        17 ///<其他内部错误，一般为内存
-#define CWX_MQ_ERR_INVALID_MD5      18 ///<MD5校验失败
-#define CWX_MQ_ERR_INVALID_CRC32    19 ///<CRC32校验失败
-#define CWX_MQ_ERR_NO_NAME          20 ///<没有name字段
-#define CWX_MQ_ERR_TIMEOUT          21 ///<commit队列类型的消息commit超时
-#define CWX_MQ_ERR_INVALID_COMMIT   22 ///<commit命令无效
-#define CWX_MQ_ERR_USER_TO0_LONG     23 ///<队列的用户名太长
-#define CWX_MQ_ERR_PASSWD_TOO_LONG   24 ///<队列的口令太长
-#define CWX_MQ_ERR_NAME_TOO_LONG   25 ///<队列名字太长
-#define CWX_MQ_ERR_SCRIBE_TOO_LONG   26 ///<队列订阅表达式太长
-#define CWX_MQ_ERR_NAME_EMPTY        27 ///<队列的名字为空
-#define CWX_MQ_ERR_QUEUE_EXIST       28 ///<队列存在
+#define CWX_MQ_ERR_ERROR 11 ///<binlog的type错误
+#define CWX_MQ_ERR_ERROR   12 ///<接收到的消息类型无效
+#define CWX_MQ_ERR_ERROR        13  ///<回复的sid无效
+#define CWX_MQ_ERR_ERROR    14 ///<往binglog mgr中添加binlog失败
+#define CWX_MQ_ERR_ERROR        15 ///<队列不存在
+#define CWX_MQ_ERR_ERROR 16 ///<无效的消息订阅类型
+#define CWX_MQ_ERR_ERROR        17 ///<其他内部错误，一般为内存
+#define CWX_MQ_ERR_ERROR      18 ///<MD5校验失败
+#define CWX_MQ_ERR_ERROR    19 ///<CRC32校验失败
+#define CWX_MQ_ERR_ERROR          20 ///<没有name字段
+#define CWX_MQ_ERR_ERROR          21 ///<commit队列类型的消息commit超时
+#define CWX_MQ_ERR_ERROR   22 ///<commit命令无效
+#define CWX_MQ_ERR_ERROR     23 ///<队列的用户名太长
+#define CWX_MQ_ERR_ERROR   24 ///<队列的口令太长
+#define CWX_MQ_ERR_ERROR   25 ///<队列名字太长
+#define CWX_MQ_ERR_ERROR   26 ///<队列订阅表达式太长
+#define CWX_MQ_ERR_ERROR        27 ///<队列的名字为空
+#define CWX_MQ_ERR_ERROR       28 ///<队列存在
 
 
 /**

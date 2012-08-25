@@ -43,7 +43,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             if (m_pApp->getBinLogMgr()->isInvalid())
             {
                 ///如果binlog mgr无效，则停止接收
-                iRet = CWX_MQ_ERR_BINLOG_INVALID;
+                iRet = CWX_MQ_ERR_ERROR;
                 strcpy(pTss->m_szBuf2K, m_pApp->getBinLogMgr()->getInvalidMsg());
                 break;
             }
@@ -51,7 +51,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             {
                 strcpy(pTss->m_szBuf2K, "No data.");
                 CWX_DEBUG((pTss->m_szBuf2K));
-                iRet = CWX_MQ_ERR_NO_MSG;
+                iRet = CWX_MQ_ERR_ERROR;
                 break;
             }
 
@@ -63,7 +63,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 //首先准备解压的buf
                 if (!prepareUnzipBuf())
                 {
-                    iRet = CWX_MQ_ERR_INNER_ERR;
+                    iRet = CWX_MQ_ERR_ERROR;
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Failure to prepare unzip buf, size:%u", m_uiBufLen);
                     CWX_ERROR((pTss->m_szBuf2K));
                     break;
@@ -72,7 +72,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 //解压
                 if (!CwxZlib::unzip(m_unzipBuf, ulUnzipLen, (const unsigned char*)msg->rd_ptr(), msg->length()))
                 {
-                    iRet = CWX_MQ_ERR_INNER_ERR;
+                    iRet = CWX_MQ_ERR_ERROR;
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Failure to unzip recv msg, msg size:%u, buf size:%u", msg->length(), m_uiBufLen);
                     CWX_ERROR((pTss->m_szBuf2K));
                     break;
@@ -90,7 +90,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             {
                 //如果是无效数据，返回
                 CWX_DEBUG(("Failure to parse the recieve msg, err=%s", pTss->m_szBuf2K));
-//                iRet = CWX_MQ_ERR_INVALID_MSG;
+//                iRet = CWX_MQ_ERR_ERROR;
                 break;
             }
             if (!bAuth && m_pApp->getConfig().getMaster().m_recv.getUser().length())
@@ -106,7 +106,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 conn_iter->second = true;
             }
             pTss->m_pWriter->beginPack();
-            pTss->m_pWriter->addKeyValue(CWX_MQ_DATA, pData->m_szData, pData->m_uiDataLen, pData->m_bKeyValue);
+            pTss->m_pWriter->addKeyValue(CWX_MQ_D, pData->m_szData, pData->m_uiDataLen, pData->m_bKeyValue);
             pTss->m_pWriter->pack();
 			ullSid = m_pApp->nextSid();
             if (0 != m_pApp->getBinLogMgr()->append(ullSid,
@@ -117,7 +117,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 pTss->m_szBuf2K))
             {
                 CWX_ERROR((pTss->m_szBuf2K));
-                iRet = CWX_MQ_ERR_FAIL_ADD_BINLOG;
+                iRet = CWX_MQ_ERR_ERROR;
                 break;
             }
             ///增加未提交的binlog数量
@@ -131,7 +131,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 if (0 != commit(pTss->m_szBuf2K))
                 {
                     CWX_ERROR((pTss->m_szBuf2K));
-                    iRet = CWX_MQ_ERR_BINLOG_INVALID;
+                    iRet = CWX_MQ_ERR_ERROR;
                     break;
                 }
             }
@@ -153,7 +153,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 {
                     //如果是无效数据，返回
                     CWX_DEBUG(("Failure to parse the commit msg, err=%s", pTss->m_szBuf2K));
-                    //iRet = CWX_MQ_ERR_INVALID_MSG;
+                    //iRet = CWX_MQ_ERR_ERROR;
                     break;
                 }
             }
@@ -173,7 +173,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             if (0 != commit(pTss->m_szBuf2K))
             {
                 CWX_ERROR(("Failure to commit the binlog, err=%s", pTss->m_szBuf2K));
-                iRet = CWX_MQ_ERR_BINLOG_INVALID;
+                iRet = CWX_MQ_ERR_ERROR;
                 break;
             }
         }
@@ -181,7 +181,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         {
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u", msg->event().getMsgHeader().getMsgType());
             CWX_ERROR((pTss->m_szBuf2K));
-            iRet = CWX_MQ_ERR_INVALID_MSG_TYPE;
+            iRet = CWX_MQ_ERR_ERROR;
             break;
         }
     }while(0);

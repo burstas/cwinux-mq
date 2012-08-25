@@ -87,7 +87,7 @@ void CwxMproxyTask::reply(CwxTss* pThrEnv)
 				pTss->m_szBuf2K))
 			{
 				CWX_ERROR(("Failure to parse mq's reply, err:%s", pTss->m_szBuf2K));
-				ret = CWX_MQ_ERR_INNER_ERR;
+				ret = CWX_MQ_ERR_ERROR;
 				szErrMsg = "Failure to parse mq's rely";
 			}
 		}
@@ -100,7 +100,7 @@ void CwxMproxyTask::reply(CwxTss* pThrEnv)
 				pTss->m_szBuf2K))
 			{
 				CWX_ERROR(("Failure to parse mq's reply, err:%s", pTss->m_szBuf2K));
-				ret = CWX_MQ_ERR_INNER_ERR;
+				ret = CWX_MQ_ERR_ERROR;
 				szErrMsg = "Failure to parse mq's commit rely";
 			}
 		}
@@ -118,7 +118,7 @@ void CwxMproxyTask::reply(CwxTss* pThrEnv)
     else
     {
         CWX_ASSERT(0);
-        ret = CWX_MQ_ERR_INNER_ERR;
+        ret = CWX_MQ_ERR_ERROR;
         szErrMsg = "Unknown error";
     }
 	if (!m_bCommit)

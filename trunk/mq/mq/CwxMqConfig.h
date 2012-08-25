@@ -19,51 +19,45 @@
 CWINUX_USING_NAMESPACE
 
 ///配置文件的common参数对象
-class CwxMqConfigCmn
-{
+class CwxMqConfigCmn{
 public:
-    enum
-    {
+    enum{
         DEF_SOCK_BUF_KB = 64,
         MIN_SOCK_BUF_KB = 4,
         MAX_SOCK_BUF_KB = 8 * 1024,
         DEF_CHUNK_SIZE_KB = 32,
         MIN_CHUNK_SIZE_KB = 4,
         MAX_CHUNK_SIZE_KB = CWX_MQ_MAX_CHUNK_KSIZE,
-        DEF_WINDOW_NUM = 1,
-        MIN_WINDOW_NUM = 1,
-        MAX_WINDOW_NUM = 128
+        DEF_SYNC_CONN_NUM = 10,
+        MIN_SYNC_CONN_NUM = 1,
+        MAX_SYNC_CONN_NUM = 128
     };
 public:
-    CwxMqConfigCmn()
-    {
+    CwxMqConfigCmn(){
         m_bMaster = false;
         m_uiSockBufSize = DEF_SOCK_BUF_KB;
         m_uiChunkSize = DEF_CHUNK_SIZE_KB;
-        m_uiWindowSize = DEF_WINDOW_NUM;
+        m_uiSyncConnNum = DEF_SYNC_CONN_NUM;
     };
 public:
     string              m_strWorkDir;///<工作目录
     bool                m_bMaster; ///<是否是master dispatch
     CWX_UINT32          m_uiSockBufSize; ///<分发的socket连接的buf大小
     CWX_UINT32          m_uiChunkSize; ///<Trunk的大小
-    CWX_UINT32          m_uiWindowSize;   ///<首发窗口的大小
+    CWX_UINT32          m_uiSyncConnNum;   ///<同步连接数量
     CwxHostInfo         m_monitor; ///<监控监听
 };
 
 ///配置文件的binlog参数对象
-class CwxMqConfigBinLog
-{
+class CwxMqConfigBinLog{
 public:
-    enum
-    {
+    enum{
         DEF_BINLOG_MSIZE = 1024, ///<缺省的binlog大小
         MIN_BINLOG_MSIZE = 64, ///<最小的binlog大小
         MAX_BINLOG_MSIZE = 2048 ///<最大的binlog大小
     };
 public:
-    CwxMqConfigBinLog()
-    {
+    CwxMqConfigBinLog(){
         m_uiBinLogMSize = DEF_BINLOG_MSIZE;
         m_uiMgrFileNum = CwxBinLogMgr::DEF_MANAGE_FILE_NUM;
         m_bDelOutdayLogFile = false;
@@ -79,15 +73,13 @@ public:
     bool                m_bDelOutdayLogFile; ///<是否删除不管理的消息文件
     CWX_UINT32          m_uiFlushNum; ///<接收多少条记录后，flush binlog文件
     CWX_UINT32          m_uiFlushSecond; ///<间隔多少秒，必须flush binlog文件
-	bool				m_bCache;        ///<是否对写入的数据进行cache
+	bool				 m_bCache;        ///<是否对写入的数据进行cache
 };
 
 ///配置文件的master参数对象
-class CwxMqConfigMaster
-{
+class CwxMqConfigMaster{
 public:
-    CwxMqConfigMaster()
-    {
+    CwxMqConfigMaster(){
     }
 public:
     CwxHostInfo     m_recv; ///<master的bin协议端口信息
@@ -95,11 +87,9 @@ public:
 };
 
 ///配置文件的slave参数对象
-class CwxMqConfigSlave
-{
+class CwxMqConfigSlave{
 public:
-    CwxMqConfigSlave()
-    {
+    CwxMqConfigSlave(){
         m_bzip = false;
     }
 public:
@@ -111,11 +101,9 @@ public:
 };
 
 ///配置文件的mq对象
-class CwxMqConfigMq
-{
+class CwxMqConfigMq{
 public:
-    CwxMqConfigMq()
-    {
+    CwxMqConfigMq(){
         m_uiFlushNum = 1;
         m_uiFlushSecond = 30;
     }
@@ -128,17 +116,14 @@ public:
 };
 
 ///配置文件加载对象
-class CwxMqConfig
-{
+class CwxMqConfig{
 public:
     ///构造函数
-    CwxMqConfig()
-    {
+    CwxMqConfig(){
         m_szErrMsg[0] = 0x00;
     }
     ///析构函数
-    ~CwxMqConfig()
-    {
+    ~CwxMqConfig(){
     }
 public:
     //加载配置文件.-1:failure, 0:success
@@ -147,36 +132,32 @@ public:
     void outputConfig() const;
 public:
     ///获取common配置信息
-    inline CwxMqConfigCmn const& getCommon() const
-    {
+    inline CwxMqConfigCmn const& getCommon() const{
         return  m_common;
     }
     ///获取binlog配置信息
-    inline CwxMqConfigBinLog const& getBinLog() const
-    {
+    inline CwxMqConfigBinLog const& getBinLog() const{
         return m_binlog;
     }
     ///获取master配置信息
-    inline CwxMqConfigMaster const& getMaster() const
-    {
+    inline CwxMqConfigMaster const& getMaster() const{
         return m_master;
     }
     ///获取slave配置信息
-    inline CwxMqConfigSlave const& getSlave() const 
-    {
+    inline CwxMqConfigSlave const& getSlave() const {
         return m_slave;
     }
-    inline CwxMqConfigMq const& getMq() const
-    {
+    inline CwxMqConfigMq const& getMq() const{
         return m_mq;
     }
     ///获取配置文件加载的失败原因
-    inline char const* getErrMsg() const 
-    {
+    inline char const* getErrMsg() const {
         return m_szErrMsg;
     };
 private:
-    bool fetchHost(CwxIniParse& cnf, string const& node, CwxHostInfo& host, bool bIpOnly=false);
+    bool fetchHost(CwxIniParse& cnf,
+        string const& node,
+        CwxHostInfo& host);
 private:
     CwxMqConfigCmn      m_common; ///<common的配置信息
     CwxMqConfigBinLog   m_binlog; ///<binlog的配置信息
