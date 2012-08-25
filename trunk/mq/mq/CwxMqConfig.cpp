@@ -265,6 +265,12 @@ bool CwxMqConfig::fetchHost(CwxIniParse& cnf,
             return false;
         }
     }
+    //load keepalive
+    if (cnf.getAttr(node, "keepalive", value) && value.length()){
+        host.setKeepAlive(value=="yes"?true:false);
+    }else{
+        host.setKeepAlive(false);
+    }
     //load user
     if (cnf.getAttr(node, "user", value) && value.length()){
         host.setUser(value);
