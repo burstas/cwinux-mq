@@ -1,5 +1,5 @@
-#ifndef __CWX_DISPATCH_MACRO_H__
-#define __CWX_DISPATCH_MACRO_H__
+#ifndef __CWX_MQ_MACRO_H__
+#define __CWX_MQ_MACRO_H__
 /*
 版权声明：
     本软件遵循GNU GPL V3（http://www.gnu.org/licenses/gpl.html），
@@ -23,21 +23,21 @@ CWINUX_USING_NAMESPACE
 
 
 ///通信的key定义
-#define CWX_MQ_DATA "data"
+#define CWX_MQ_D    "d"  ///<data的key
 #define CWX_MQ_RET  "ret"
 #define CWX_MQ_SID  "sid"
 #define CWX_MQ_ERR  "err"
-#define CWX_MQ_BLOCK "block"
-#define CWX_MQ_TIMESTAMP  "timestamp"
-#define CWX_MQ_USER  "user"
-#define CWX_MQ_PASSWD "passwd"
+#define CWX_MQ_B    "b" ///<是否block
+#define CWX_MQ_T    "t" ///<时间戳
+#define CWX_MQ_U    "u" ///<user的key
+#define CWX_MQ_P    "p"  ///<passwd的key
 #define CWX_MQ_SUBSCRIBE "subscribe"
-#define CWX_MQ_QUEUE "queue"
-#define CWX_MQ_GROUP "group"
+#define CWX_MQ_Q   "q"   ///<队列的名字
+#define CWX_MQ_G    "g" ///<group的key
 #define CWX_MQ_CHUNK "chunk"
 #define CWX_MQ_M     "m"
-#define CWX_MQ_WINDOW "window"
 #define CWX_MQ_SIGN   "sign"
+#define CWX_MQ_SESSION "session"
 #define CWX_MQ_CRC32  "crc32"
 #define CWX_MQ_MD5    "md5"
 #define CWX_MQ_NAME   "name"
@@ -51,38 +51,15 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_ZIP     "zip"
 #define CWX_MQ_DELAY   "delay"
 ///错误代码定义
-#define CWX_MQ_ERR_SUCCESS          0  ///<成功
-#define CWX_MQ_ERR_NO_MSG           1   ///<没有数据
-#define CWX_MQ_ERR_INVALID_MSG      2 ///<接收到的数据包无效，也就是不是kv结构
-#define CWX_MQ_ERR_BINLOG_INVALID   3///<接收到的binlog数据无效
-#define CWX_MQ_ERR_NO_KEY_DATA       4 ///<接收到的binlog，没有【data】的key
-#define CWX_MQ_ERR_INVALID_DATA_KV   5 ///<data的可以为key/value，但格式非法
-#define CWX_MQ_ERR_NO_SID            6 ///<接收到的report数据包中，没有【sid】的key
-#define CWX_MQ_ERR_NO_RET            7 ///<接收到的数据包中，没有【ret】
-#define CWX_MQ_ERR_NO_ERR            8 ///<接收到的数据包中，没有【err】
-#define CWX_MQ_ERR_NO_TIMESTAMP      9 ///<接收到的数据中，没有【timestamp】
-#define CWX_MQ_ERR_FAIL_AUTH         10 ///<鉴权失败
-#define CWX_MQ_ERR_INVALID_BINLOG_TYPE 11 ///<binlog的group错误，不能为0xFFFFFFFF
-#define CWX_MQ_ERR_INVALID_MSG_TYPE   12 ///<接收到的消息类型无效
-#define CWX_MQ_ERR_INVALID_SID        13  ///<回复的sid无效
-#define CWX_MQ_ERR_FAIL_ADD_BINLOG    14 ///<往binglog mgr中添加binlog失败
-#define CWX_MQ_ERR_NO_QUEUE        15 ///<队列不存在
-#define CWX_MQ_ERR_INVALID_SUBSCRIBE 16 ///<无效的消息订阅类型
-#define CWX_MQ_ERR_INNER_ERR        17 ///<其他内部错误，一般为内存
-#define CWX_MQ_ERR_INVALID_MD5      18 ///<MD5校验失败
-#define CWX_MQ_ERR_INVALID_CRC32    19 ///<CRC32校验失败
-#define CWX_MQ_ERR_NO_NAME          20 ///<没有name字段
-#define CWX_MQ_ERR_TIMEOUT          21 ///<commit队列类型的消息commit超时
-#define CWX_MQ_ERR_INVALID_COMMIT   22 ///<commit命令无效
-#define CWX_MQ_ERR_USER_TO0_LONG     23 ///<队列的用户名太长
-#define CWX_MQ_ERR_PASSWD_TOO_LONG   24 ///<队列的口令太长
-#define CWX_MQ_ERR_NAME_TOO_LONG   25 ///<队列名字太长
-#define CWX_MQ_ERR_SCRIBE_TOO_LONG   26 ///<队列订阅表达式太长
-#define CWX_MQ_ERR_NAME_EMPTY        27 ///<队列的名字为空
-#define CWX_MQ_ERR_QUEUE_EXIST       28 ///<队列存在
-#define CWX_MQ_ERR_LOST_SYNC         29 ///<失去了同步状态
-#define CWX_MQ_ERR_INVALID_QUEUE_NAME 30 ///<无效的队列名字，必须为[a-z,A-Z,0-9,-,_]
+#define UNISTOR_ERR_SUCCESS          0  ///<成功
+#define UNISTOR_ERR_ERROR            1 ///<无需区分的笼统错误
+#define UNISTOR_ERR_FAIL_AUTH        2 ///<鉴权失败
+#define UNISTOR_ERR_LOST_SYNC        3 ///<失去了同步状态
 
+#define CWX_MQ_ERR_SUCCESS          0  ///<成功
+#define CWX_MQ_ERR_ERROR            1  ///<错误
+#define CWX_MQ_ERR_FAIL_AUTH        2 ///<鉴权失败
+#define CWX_MQ_ERR_LOST_SYNC        3 ///<失去了同步状态
 
 #define CWX_MQ_PROXY_NO_AUTH_GROUP    100 ///<消息的group没有被允许
 #define CWX_MQ_PROXY_FORBID_GROUP     101 ///<消息的group被禁止

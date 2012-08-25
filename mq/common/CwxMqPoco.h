@@ -23,28 +23,23 @@
 #include "CwxMd5.h"
 
 ///订阅规则的规则信息对象
-class CwxMqSubscribeItem
-{
+class CwxMqSubscribeItem{
 public:
-    CwxMqSubscribeItem()
-    {
+    CwxMqSubscribeItem(){
         m_bAll = false;
         m_bMod = false;
         m_uiModBase = 0;
         m_uiModIndex = 0;
     }
-    CwxMqSubscribeItem(CwxMqSubscribeItem const& item)
-    {
+    CwxMqSubscribeItem(CwxMqSubscribeItem const& item){
         m_bAll = item.m_bAll;
         m_bMod = item.m_bMod;
         m_uiModBase = item.m_uiModBase;
         m_uiModIndex = item.m_uiModIndex;
         m_set = item.m_set;
     }
-    CwxMqSubscribeItem& operator=(CwxMqSubscribeItem const& item)
-    {
-        if (this != &item)
-        {
+    CwxMqSubscribeItem& operator=(CwxMqSubscribeItem const& item){
+        if (this != &item){
             m_bAll = item.m_bAll;
             m_bMod = item.m_bMod;
             m_uiModBase = item.m_uiModBase;
@@ -55,13 +50,11 @@ public:
     }
 public:
     ///是否订阅指定的id
-    inline bool isSubscribe(CWX_UINT32 id) const
-    {
+    inline bool isSubscribe(CWX_UINT32 id) const{
         if (m_bAll) return true;
         if (m_bMod) return (id%m_uiModBase)==m_uiModIndex;
         list<pair<CWX_UINT32, CWX_UINT32> >::const_iterator iter = m_set.begin();
-        while(iter != m_set.end())
-        {
+        while(iter != m_set.end()){
             if ((id>=iter->first) && (id<=iter->second)) return true;
             iter++;
         }
@@ -76,24 +69,19 @@ public:
 };
 
 ///订阅规则表达式对象
-class CwxMqSubscribe
-{
+class CwxMqSubscribe{
 public:
-    CwxMqSubscribe()
-    {
+    CwxMqSubscribe(){
         m_bAll = false;
     }
 
-    CwxMqSubscribe(CwxMqSubscribe const& item)
-    {
+    CwxMqSubscribe(CwxMqSubscribe const& item){
         m_bAll = item.m_bAll;
         m_subscribe = item.m_subscribe;
     }
 
-    CwxMqSubscribe& operator=(CwxMqSubscribe const& item)
-    {
-        if (this != &item)
-        {
+    CwxMqSubscribe& operator=(CwxMqSubscribe const& item){
+        if (this != &item){
             m_bAll = item.m_bAll;
             m_subscribe = item.m_subscribe;
         }
@@ -119,8 +107,7 @@ public:
 };
 
 //mq的协议定义对象
-class CwxMqPoco
-{
+class CwxMqPoco{
 public:
     enum ///<消息类型定义
     {
@@ -132,22 +119,21 @@ public:
         ///分发的消息类型定义
         MSG_TYPE_SYNC_REPORT = 5, ///<同步SID点报告消息类型
         MSG_TYPE_SYNC_REPORT_REPLY = 6, ///<失败返回
-        MSG_TYPE_SYNC_DATA = 7,  ///<发送数据
-        MSG_TYPE_SYNC_DATA_REPLY = 8, ///<数据的回复
+        MSG_TYPE_SYNC_SESSION_REPORT = 7, ///<session的报告
+        MSG_TYPE_SYNC_SESSION_REPORT_REPLY = 8, ///<session报告的回复
+        MSG_TYPE_SYNC_DATA = 9,  ///<发送数据
+        MSG_TYPE_SYNC_DATA_REPLY = 10, ///<数据的回复
         ///MQ Fetch服务类型的消息类型定义
-        MSG_TYPE_FETCH_DATA = 9, ///<数据获取消息类型
-        MSG_TYPE_FETCH_DATA_REPLY = 10, ///<回复数据获取消息类型
-        MSG_TYPE_FETCH_COMMIT = 11, ///<commit 获取的消息
-        MSG_TYPE_FETCH_COMMIT_REPLY = 12, ///<reply commit的消息
+        MSG_TYPE_FETCH_DATA = 11, ///<数据获取消息类型
+        MSG_TYPE_FETCH_DATA_REPLY = 12, ///<回复数据获取消息类型
         ///创建mq queue消息
-        MSG_TYPE_CREATE_QUEUE = 100, ///<创建MQ QUEUE的消息类型
-        MSG_TYPE_CREATE_QUEUE_REPLY = 101, ///<回复创建MQ QUEUE的消息类型
+        MSG_TYPE_CREATE_QUEUE = 101, ///<创建MQ QUEUE的消息类型
+        MSG_TYPE_CREATE_QUEUE_REPLY = 102, ///<回复创建MQ QUEUE的消息类型
         ///删除mq queue消息
-        MSG_TYPE_DEL_QUEUE = 102, ///<删除MQ QUEUE的消息类型
-        MSG_TYPE_DEL_QUEUE_REPLY = 103 ///<回复删除MQ QUEUE的消息类型
+        MSG_TYPE_DEL_QUEUE = 103, ///<删除MQ QUEUE的消息类型
+        MSG_TYPE_DEL_QUEUE_REPLY = 104 ///<回复删除MQ QUEUE的消息类型
     };
-    enum
-    {
+    enum{
         MAX_CONTINUE_SEEK_NUM = 8192
     };
 public:
@@ -217,9 +203,6 @@ public:
         char const*& user,
         char const*& passwd,
         char* szErr2K=NULL);
-
-
-
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int packCommitReply(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
@@ -234,7 +217,6 @@ public:
         char const*& szErrMsg,
         char* szErr2K=NULL);
 
-
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int packReportData(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
@@ -242,7 +224,6 @@ public:
         CWX_UINT64 ullSid,
         bool      bNewly,
         CWX_UINT32  uiChunkSize,
-        CWX_UINT32  uiWindow,
         char const* subscribe = NULL,
         char const* user=NULL,
         char const* passwd=NULL,
@@ -255,7 +236,6 @@ public:
         CWX_UINT64& ullSid,
         bool&       bNewly,
         CWX_UINT32&  uiChunkSize,
-        CWX_UINT32&  uiWindow,
         char const*& subscribe,
         char const*& user,
         char const*& passwd,
@@ -263,20 +243,45 @@ public:
         bool&        zip,
         char* szErr2K=NULL);
 
-
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int packReportDataReply(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
         int ret,
-        CWX_UINT64 ullSid,
+        CWX_UINT64 ullSession,
         char const* szErrMsg,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseReportDataReply(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         int& ret,
-        CWX_UINT64& ullSid,
+        CWX_UINT64& ullSession,
+        char const*& szErrMsg,
+        char* szErr2K=NULL);
+    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
+    static int packReportNewConn(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        CWX_UINT32 uiTaskId,
+        CWX_UINT64 ullSession,
+        char* szErr2K=NULL);
+    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
+    static int parseReportNewConn(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        CWX_UINT64& ullSession,
+        char* szErr2K=NULL);
+    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
+    static int packReportNewConnReply(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        CWX_UINT32 uiTaskId,
+        int ret,
+        CWX_UINT64 ullSession,
+        char const* szErrMsg,
+        char* szErr2K=NULL);
+    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
+    static int parseReportNewConnReply(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        int& ret,
+        CWX_UINT64& ullSession,
         char const*& szErrMsg,
         char* szErr2K=NULL);
 
@@ -343,7 +348,6 @@ public:
         char const* queue_name,
         char const* user=NULL,
         char const* passwd=NULL,
-        CWX_UINT32  timeout = 0,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseFetchMq(CwxPackageReader* reader,
@@ -352,7 +356,6 @@ public:
         char const*& queue_name,
         char const*& user,
         char const*& passwd,
-        CWX_UINT32&  timeout,
         char* szErr2K=NULL);
 
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
@@ -378,32 +381,6 @@ public:
 
 
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packFetchMqCommit(CwxPackageWriter* writer,
-        CwxMsgBlock*& msg,
-        bool bCommit,
-        CWX_UINT32 uiDelay,
-        char* szErr2K=NULL);
-    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int parseFetchMqCommit(CwxPackageReader* reader,
-        CwxMsgBlock const* msg,
-        bool& bCommit,
-        CWX_UINT32& uiDelay,
-        char* szErr2K=NULL);
-
-    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packFetchMqCommitReply(CwxPackageWriter* writer,
-        CwxMsgBlock*& msg,
-        int  ret,
-        char const* szErrMsg,
-        char* szErr2K=NULL);
-    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int parseFetchMqCommitReply(CwxPackageReader* reader,
-        CwxMsgBlock const* msg,
-        int&  ret,
-        char const*& szErrMsg,
-        char* szErr2K=NULL);
-
-    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseCreateQueue(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         char const*& name,
@@ -413,9 +390,6 @@ public:
         char const*& auth_user,
         char const*& auth_passwd,
         CWX_UINT64&  ullSid,///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
-        bool&  bCommit, ///< true：commit类型；false：uncommit类型
-        CWX_UINT32& uiDefTimeout, ///< 0：采用系统默认的timeout，否则为具体的timeout值，单位为s
-        CWX_UINT32& uiMaxTimeout, ///< 0：采用系统最大的timeout值，否则为具体的最大timeout值，单位为s
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int packCreateQueue(CwxPackageWriter* writer,
@@ -427,11 +401,7 @@ public:
         char const* auth_user,
         char const* auth_passwd,
         CWX_UINT64  ullSid=0,///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
-        bool  bCommit=false, ///< true：commit类型；false：uncommit类型
-        CWX_UINT32 uiDefTimeout=CWX_MQ_DEF_TIMEOUT_SECOND, ///< 0：采用系统默认的timeout，否则为具体的timeout值，单位为s
-        CWX_UINT32 uiMaxTimeout=CWX_MQ_MAX_TIMEOUT_SECOND, ///< 0：采用系统最大的timeout值，否则为具体的最大timeout值，单位为s
         char* szErr2K=NULL);
-
 
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseCreateQueueReply(CwxPackageReader* reader,
@@ -473,6 +443,7 @@ public:
         int&  ret,
         char const*& szErrMsg,
         char* szErr2K=NULL);
+
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int packDelQueueReply(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
@@ -481,18 +452,15 @@ public:
         char* szErr2K=NULL);
 
     ///返回sync记录。
-    inline static char const* getSyncRecordData()
-    {
+    inline static char const* getSyncRecordData(){
         return m_pWriter->getMsg();
     }
     ///获取sync记录的长度
-    inline static CWX_UINT32 getSyncRecordDataLen()
-    {
+    inline static CWX_UINT32 getSyncRecordDataLen(){
         return m_pWriter->getMsgSize();
     }
     ///是否继续查找订阅的消息类型
-    inline static bool isContinueSeek(CWX_UINT32 uiSeekedNum)
-    {
+    inline static bool isContinueSeek(CWX_UINT32 uiSeekedNum){
         return MAX_CONTINUE_SEEK_NUM>uiSeekedNum;
     }
     ///是否为有效地消息订阅语法
@@ -509,14 +477,12 @@ public:
     */
     static bool parseSubsribe(string const& strSubscribe, CwxMqSubscribe& subscribe, string& strErrMsg);
     ///消息是否订阅
-    inline static bool isSubscribe(CwxMqSubscribe const& subscribe, CWX_UINT32 uiGroup)
-    {
+    inline static bool isSubscribe(CwxMqSubscribe const& subscribe, CWX_UINT32 uiGroup){
         return subscribe.isSubscribe(uiGroup);
     }
 private:
     ///禁止创建对象实例
-    CwxMqPoco()
-    {
+    CwxMqPoco(){
     }
     ///析构函数
     ~CwxMqPoco();

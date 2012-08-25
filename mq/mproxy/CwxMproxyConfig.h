@@ -31,7 +31,7 @@ public:
     //获取加载配置文件的失败错误信息
     char const* getError() { return m_szErrMsg; };
 private:
-    bool fetchHost(CwxIniParse& cnf, string const& node, CwxHostInfo& host, bool bIpOnly=false);
+    bool fetchHost(CwxIniParse& cnf, string const& node, CwxHostInfo& host);
     bool parsePasswd(string const& strName, string const& strPasswd, CwxMqConfigQueue& passwd);
     bool parseIds(string const& group, list<pair<CWX_UINT32, CWX_UINT32> >& ids);
 public:

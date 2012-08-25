@@ -75,21 +75,21 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             { ///如果连接不是同步状态，则是错误
                 strcpy(pTss->m_szBuf2K, "Client no in sync state");
                 CWX_DEBUG((pTss->m_szBuf2K));
-                iRet = CWX_MQ_ERR_INVALID_MSG_TYPE;
+                iRet = CWX_MQ_ERR_ERROR;
                 break;
             }
             if (!m_dispatch.m_sendingSid.size())
             {
                 strcpy(pTss->m_szBuf2K, "Not sent binlog data");
                 CWX_DEBUG((pTss->m_szBuf2K));
-                iRet = CWX_MQ_ERR_INVALID_MSG_TYPE;
+                iRet = CWX_MQ_ERR_ERROR;
                 break;
             }
             if (!m_recvMsgData)
             {
                 strcpy(pTss->m_szBuf2K, "No data.");
                 CWX_DEBUG((pTss->m_szBuf2K));
-                iRet = CWX_MQ_ERR_NO_MSG;
+                iRet = CWX_MQ_ERR_ERROR;
                 break;
             }
             ///若是同步sid的报告消息,则获取报告的sid
@@ -111,7 +111,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
                     CwxCommon::toString(ullSid, szBuf1, 10),
                     CwxCommon::toString(*m_dispatch.m_sendingSid.begin(), szBuf2, 10));
                 CWX_ERROR((pTss->m_szBuf2K));
-               iRet = CWX_MQ_ERR_INVALID_SID;
+               iRet = CWX_MQ_ERR_ERROR;
                 break;
             }
             ///将sid从分发sid的set中去掉
@@ -136,13 +136,13 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             {
                 strcpy(pTss->m_szBuf2K, "No data.");
                 CWX_DEBUG((pTss->m_szBuf2K));
-                iRet = CWX_MQ_ERR_NO_MSG;
+                iRet = CWX_MQ_ERR_ERROR;
                 break;
             }
             ///禁止重复report sid。若cursor存在，表示已经报告过一次
             if (m_dispatch.m_pCursor)
             {
-                iRet = CWX_MQ_ERR_INVALID_MSG;
+                iRet = CWX_MQ_ERR_ERROR;
                 CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Can't report sync sid duplicatly.");
                 CWX_ERROR((pTss->m_szBuf2K));
                 break;
@@ -197,7 +197,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             string strErrMsg;
             if (!CwxMqPoco::parseSubsribe(subscribe, m_dispatch.m_subscribe, strErrMsg))
             {
-                iRet = CWX_MQ_ERR_INVALID_SUBSCRIBE;
+                iRet = CWX_MQ_ERR_ERROR;
                 CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Invalid subscribe[%s], err=%s", strSubcribe.c_str(), strErrMsg.c_str());
                 CWX_DEBUG((pTss->m_szBuf2K));
                 break;
@@ -236,7 +236,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
             CwxBinLogCursor* pCursor = m_pApp->getBinLogMgr()->createCurser(ullSid);
             if (!pCursor)
             {
-                iRet = CWX_MQ_ERR_INNER_ERR;
+                iRet = CWX_MQ_ERR_ERROR;
                 strcpy(pTss->m_szBuf2K, "Failure to create cursor");
                 CWX_ERROR((pTss->m_szBuf2K));
                 break;
@@ -277,7 +277,7 @@ int CwxMqBinAsyncHandler::recvMessage(CwxMqTss* pTss)
         {
             ///若其他消息，则返回错误
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u", m_header.getMsgType());
-            iRet = CWX_MQ_ERR_INVALID_MSG_TYPE;
+            iRet = CWX_MQ_ERR_ERROR;
             CWX_ERROR((pTss->m_szBuf2K));
         }
 
@@ -373,8 +373,8 @@ int CwxMqBinAsyncHandler::packOneBinLog(CwxPackageReader* reader,
     ///unpack data的数据包
     if (reader->unpack(szData, uiDataLen, false,true))
     {
-        ///获取CWX_MQ_DATA的key，此为真正data数据
-        pItem = reader->getKey(CWX_MQ_DATA);
+        ///获取CWX_MQ_D的key，此为真正data数据
+        pItem = reader->getKey(CWX_MQ_D);
         if (pItem)
         {
             ///形成binlog发送的数据包
@@ -396,7 +396,7 @@ int CwxMqBinAsyncHandler::packOneBinLog(CwxPackageReader* reader,
         }
         else
         {///读取的数据无效                
-            CWX_ERROR(("Can't find key[%s] in binlog, sid=%s", CWX_MQ_DATA,
+            CWX_ERROR(("Can't find key[%s] in binlog, sid=%s", CWX_MQ_D,
                 CwxCommon::toString(m_dispatch.m_pCursor->getHeader().getSid(), szErr2K)));
             return 0;
         }            
@@ -422,8 +422,8 @@ int CwxMqBinAsyncHandler::packMultiBinLog(CwxPackageReader* reader,
     ///unpack data的数据包
     if (reader->unpack(szData, uiDataLen, false,true))
     {
-        ///获取CWX_MQ_DATA的key，此为真正data数据
-        pItem = reader->getKey(CWX_MQ_DATA);
+        ///获取CWX_MQ_D的key，此为真正data数据
+        pItem = reader->getKey(CWX_MQ_D);
         if (pItem)
         {
             ///形成binlog发送的数据包
@@ -441,7 +441,7 @@ int CwxMqBinAsyncHandler::packMultiBinLog(CwxPackageReader* reader,
         }
         else
         {///读取的数据无效                
-            CWX_ERROR(("Can't find key[%s] in binlog, sid=%s", CWX_MQ_DATA,
+            CWX_ERROR(("Can't find key[%s] in binlog, sid=%s", CWX_MQ_D,
                 CwxCommon::toString(m_dispatch.m_pCursor->getHeader().getSid(), szErr2K)));
             return 0;
         }            

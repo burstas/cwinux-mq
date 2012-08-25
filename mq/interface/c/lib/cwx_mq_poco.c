@@ -45,27 +45,27 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
     if (0 != cwx_pg_writer_add_key(writer, CWX_MQ_KEY_DATA, data->m_szData, data->m_uiDataLen, data->m_bKeyValue))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_add_key_uint32(writer, CWX_MQ_KEY_GROUP, group))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (user && (0!=cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_USER, user)))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (passwd && (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_PASSWD, passwd)))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if ( 0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (sign)
     {
@@ -75,7 +75,7 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
             if (0 != cwx_pg_writer_add_key(writer, CWX_MQ_KEY_CRC32, (char*)&uiCrc32, sizeof(uiCrc32), 0))
             {
                 if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-                return CWX_MQ_ERR_INNER_ERR;
+                return CWX_MQ_ERR_ERROR;
             }
         }
         else if (strcmp(sign, CWX_MQ_KEY_MD5) == 0)//md5Ç©Ãû
@@ -88,7 +88,7 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
             if (0 != cwx_pg_writer_add_key(writer, CWX_MQ_KEY_MD5, (char*)szMd5, 16, 0))
             {
                 if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-                return CWX_MQ_ERR_INNER_ERR;
+                return CWX_MQ_ERR_ERROR;
             }
         }
     }
@@ -123,7 +123,7 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
         if (szErr2K) snprintf(szErr2K, 2047, "msg buf is too small[%u], size[%u] is needed.",
             *buf_len, 
             CWX_MSG_HEAD_LEN + cwx_pg_writer_get_msg_size(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     return CWX_MQ_ERR_SUCCESS;
 }
@@ -140,21 +140,21 @@ int cwx_mq_parse_mq(struct CWX_PG_READER* reader,
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_reader_get_error(reader));
-        return CWX_MQ_ERR_INVALID_MSG;
+        return CWX_MQ_ERR_ERROR;
     }
     //get data
     *data = cwx_pg_reader_get_key(reader, CWX_MQ_KEY_DATA, 0);
     if (!(*data))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_DATA);
-        return CWX_MQ_ERR_NO_KEY_DATA;
+        return CWX_MQ_ERR_ERROR;
     }
     if ((*data)->m_bKeyValue)
     {
         if (!cwx_pg_is_valid((*data)->m_szData, (*data)->m_uiDataLen))
         {
             if (szErr2K) snprintf(szErr2K, 2047, "key[%s] is key/value, but it's format is not valid..", CWX_MQ_KEY_DATA);
-            return CWX_MQ_ERR_INVALID_DATA_KV;
+            return CWX_MQ_ERR_ERROR;
         }
     }
     //get group
@@ -165,7 +165,7 @@ int cwx_mq_parse_mq(struct CWX_PG_READER* reader,
     if (CWX_MQ_GROUP_SYNC == *group)
     {
         if (szErr2K) snprintf(szErr2K, 2047, "mq's group can't be [%x], it's binlog sync group.", CWX_MQ_GROUP_SYNC);
-        return CWX_MQ_ERR_INVALID_BINLOG_TYPE;
+        return CWX_MQ_ERR_ERROR;
     }
     struct CWX_KEY_VALUE_ITEM_S const* pItem = 0;
     //get user
@@ -195,7 +195,7 @@ int cwx_mq_parse_mq(struct CWX_PG_READER* reader,
         if (uiCrc32 != uiOrgCrc32)
         {
             if (szErr2K) snprintf(szErr2K, 2047, "CRC32 signture error. recv signture:%x, local signture:%x", uiOrgCrc32, uiCrc32);
-            return CWX_MQ_ERR_INVALID_CRC32;
+            return CWX_MQ_ERR_ERROR;
         }
     }
     //get md5
@@ -220,7 +220,7 @@ int cwx_mq_parse_mq(struct CWX_PG_READER* reader,
                 }
                 snprintf(szErr2K, 2047, "MD5 signture error. recv signture:%s, local signture:%s", szTmp1, szTmp2);
             }
-            return CWX_MQ_ERR_INVALID_MD5;
+            return CWX_MQ_ERR_ERROR;
         }
     }
 
@@ -240,12 +240,12 @@ int cwx_mq_pack_mq_reply(struct CWX_PG_WRITER * writer,
     if (0 != cwx_pg_writer_add_key_int32(writer, CWX_MQ_KEY_RET, ret))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_add_key_uint64(writer, CWX_MQ_KEY_SID, ullSid))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (CWX_MQ_ERR_SUCCESS != ret)
     {
@@ -253,13 +253,13 @@ int cwx_mq_pack_mq_reply(struct CWX_PG_WRITER * writer,
         if (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_ERR, szErrMsg?szErrMsg:""))
         {
             if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-            return CWX_MQ_ERR_INNER_ERR;
+            return CWX_MQ_ERR_ERROR;
         }
     }
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_mq_pack_msg(CWX_MQ_MSG_TYPE_MQ_REPLY,
         uiTaskId,
@@ -271,7 +271,7 @@ int cwx_mq_pack_mq_reply(struct CWX_PG_WRITER * writer,
         if (szErr2K) snprintf(szErr2K, 2047, "msg buf is too small[%u], size[%u] is needed.",
             *buf_len, 
             CWX_MSG_HEAD_LEN + cwx_pg_writer_get_msg_size(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     return CWX_MQ_ERR_SUCCESS;
 }
@@ -287,19 +287,19 @@ int cwx_mq_parse_mq_reply(struct CWX_PG_READER* reader,
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_reader_get_error(reader));
-        return CWX_MQ_ERR_INVALID_MSG;
+        return CWX_MQ_ERR_ERROR;
     }
     //get ret
     if (0 == cwx_pg_reader_get_int32(reader, CWX_MQ_KEY_RET, ret, 0))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_RET);
-        return CWX_MQ_ERR_NO_RET;
+        return CWX_MQ_ERR_ERROR;
     }
     //get sid
     if (0 == cwx_pg_reader_get_uint64(reader, CWX_MQ_KEY_SID, ullSid, 0))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_SID);
-        return CWX_MQ_ERR_NO_SID;
+        return CWX_MQ_ERR_ERROR;
     }
     //get err
     if (CWX_MQ_ERR_SUCCESS != *ret)
@@ -308,7 +308,7 @@ int cwx_mq_parse_mq_reply(struct CWX_PG_READER* reader,
         if (!(pItem = cwx_pg_reader_get_key(reader, CWX_MQ_KEY_ERR, 0)))
         {
             if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_ERR);
-            return CWX_MQ_ERR_NO_ERR;
+            return CWX_MQ_ERR_ERROR;
         }
         *szErrMsg = pItem->m_szData;
     }
@@ -333,21 +333,21 @@ int cwx_mq_pack_commit(struct CWX_PG_WRITER * writer,
         if (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_USER, user))
         {
             if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-            return CWX_MQ_ERR_INNER_ERR;
+            return CWX_MQ_ERR_ERROR;
         }
         if (passwd)
         {
             if (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_PASSWD, passwd))
             {
                 if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-                return CWX_MQ_ERR_INNER_ERR;
+                return CWX_MQ_ERR_ERROR;
             }
         }
     }
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_mq_pack_msg(CWX_MQ_MSG_TYPE_MQ_COMMIT,
         uiTaskId,
@@ -359,7 +359,7 @@ int cwx_mq_pack_commit(struct CWX_PG_WRITER * writer,
         if (szErr2K) snprintf(szErr2K, 2047, "msg buf is too small[%u], size[%u] is needed.",
             *buf_len, 
             CWX_MSG_HEAD_LEN + cwx_pg_writer_get_msg_size(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
 
     }
     return CWX_MQ_ERR_SUCCESS;
@@ -375,7 +375,7 @@ int cwx_mq_parse_commit(struct CWX_PG_READER* reader,
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_reader_get_error(reader));
-        return CWX_MQ_ERR_INVALID_MSG;
+        return CWX_MQ_ERR_ERROR;
     }
     struct CWX_KEY_VALUE_ITEM_S const* pItem = 0;
     //get user
@@ -411,7 +411,7 @@ int cwx_mq_pack_commit_reply(struct CWX_PG_WRITER * writer,
     if (0 != cwx_pg_writer_add_key_int32(writer, CWX_MQ_KEY_RET, ret))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (CWX_MQ_ERR_SUCCESS != ret)
     {
@@ -419,13 +419,13 @@ int cwx_mq_pack_commit_reply(struct CWX_PG_WRITER * writer,
         if (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_ERR, szErrMsg?szErrMsg:""))
         {
             if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-            return CWX_MQ_ERR_INNER_ERR;
+            return CWX_MQ_ERR_ERROR;
         }
     }
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_mq_pack_msg(CWX_MQ_MSG_TYPE_MQ_COMMIT_REPLY,
         uiTaskId,
@@ -437,7 +437,7 @@ int cwx_mq_pack_commit_reply(struct CWX_PG_WRITER * writer,
         if (szErr2K) snprintf(szErr2K, 2047, "msg buf is too small[%u], size[%u] is needed.",
             *buf_len, 
             CWX_MSG_HEAD_LEN + cwx_pg_writer_get_msg_size(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     return CWX_MQ_ERR_SUCCESS;
 }
@@ -452,13 +452,13 @@ int cwx_mq_parse_commit_reply(struct CWX_PG_READER* reader,
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_reader_get_error(reader));
-        return CWX_MQ_ERR_INVALID_MSG;
+        return CWX_MQ_ERR_ERROR;
     }
     //get ret
     if (0 == cwx_pg_reader_get_int32(reader, CWX_MQ_KEY_RET, ret, 0))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_RET);
-        return CWX_MQ_ERR_NO_RET;
+        return CWX_MQ_ERR_ERROR;
     }
     //get err
     if (CWX_MQ_ERR_SUCCESS != *ret)
@@ -467,7 +467,7 @@ int cwx_mq_parse_commit_reply(struct CWX_PG_READER* reader,
         if (!(pItem = cwx_pg_reader_get_key(reader, CWX_MQ_KEY_ERR, 0)))
         {
             if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_ERR);
-            return CWX_MQ_ERR_NO_ERR;
+            return CWX_MQ_ERR_ERROR;
         }
         *szErrMsg = pItem->m_szData;
     }
@@ -498,44 +498,44 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
         if (0 != cwx_pg_writer_add_key_uint64(writer, CWX_MQ_KEY_SID, ullSid))
         {
             if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-            return CWX_MQ_ERR_INNER_ERR;
+            return CWX_MQ_ERR_ERROR;
         }
     }
     if (uiChunk && (0 != cwx_pg_writer_add_key_uint32(writer, CWX_MQ_KEY_CHUNK, uiChunk)))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (subscribe && (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_SUBSCRIBE, subscribe)))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (user && (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_USER, user)))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (passwd && (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_PASSWD, passwd)))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (sign && (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_SIGN, sign)))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (zip && (0 != cwx_pg_writer_add_key_int32(writer, CWX_MQ_KEY_ZIP, zip)))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
 
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_mq_pack_msg(CWX_MQ_MSG_TYPE_SYNC_REPORT,
         uiTaskId,
@@ -547,7 +547,7 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
         if (szErr2K) snprintf(szErr2K, 2047, "msg buf is too small[%u], size[%u] is needed.",
             *buf_len, 
             CWX_MSG_HEAD_LEN + cwx_pg_writer_get_msg_size(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     return CWX_MQ_ERR_SUCCESS;
 }
@@ -568,7 +568,7 @@ int cwx_mq_parse_sync_report(struct CWX_PG_READER* reader,
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_reader_get_error(reader));
-        return CWX_MQ_ERR_INVALID_MSG;
+        return CWX_MQ_ERR_ERROR;
     }
     //get sid
     if (0 == cwx_pg_reader_get_uint64(reader, CWX_MQ_KEY_SID, ullSid, 0))
@@ -643,22 +643,22 @@ int cwx_mq_pack_sync_report_reply(struct CWX_PG_WRITER * writer,
     if (0 != cwx_pg_writer_add_key_int32(writer, CWX_MQ_KEY_RET, ret))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_add_key_uint64(writer, CWX_MQ_KEY_SID, ullSid))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_ERR, szErrMsg?szErrMsg:""))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_mq_pack_msg(CWX_MQ_MSG_TYPE_SYNC_REPORT_REPLY,
         uiTaskId,
@@ -670,7 +670,7 @@ int cwx_mq_pack_sync_report_reply(struct CWX_PG_WRITER * writer,
         if (szErr2K) snprintf(szErr2K, 2047, "msg buf is too small[%u], size[%u] is needed.",
             *buf_len, 
             CWX_MSG_HEAD_LEN + cwx_pg_writer_get_msg_size(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     return CWX_MQ_ERR_SUCCESS;
 }
@@ -686,19 +686,19 @@ int cwx_mq_parse_sync_report_reply(struct CWX_PG_READER* reader,
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_reader_get_error(reader));
-        return CWX_MQ_ERR_INVALID_MSG;
+        return CWX_MQ_ERR_ERROR;
     }
     //get ret
     if (0 == cwx_pg_reader_get_int32(reader, CWX_MQ_KEY_RET, ret, 0))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_RET);
-        return CWX_MQ_ERR_NO_RET;
+        return CWX_MQ_ERR_ERROR;
     }
     //get sid
     if (0 == cwx_pg_reader_get_uint64(reader, CWX_MQ_KEY_SID, ullSid, 0))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_SID);
-        return CWX_MQ_ERR_NO_SID;
+        return CWX_MQ_ERR_ERROR;
     }
     //get err
     if (CWX_MQ_ERR_SUCCESS != *ret)
@@ -707,7 +707,7 @@ int cwx_mq_parse_sync_report_reply(struct CWX_PG_READER* reader,
         if (!(pItem = cwx_pg_reader_get_key(reader, CWX_MQ_KEY_ERR, 0)))
         {
             if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_ERR);
-            return CWX_MQ_ERR_NO_ERR;
+            return CWX_MQ_ERR_ERROR;
         }
         *szErrMsg = pItem->m_szData;
     }
@@ -734,22 +734,22 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
     if (0 != cwx_pg_writer_add_key_uint64(writer, CWX_MQ_KEY_SID, ullSid))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_add_key_uint32(writer, CWX_MQ_KEY_TIMESTAMP, uiTimeStamp))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_add_key(writer, CWX_MQ_KEY_DATA, data->m_szData, data->m_uiDataLen, data->m_bKeyValue))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_add_key_uint32(writer, CWX_MQ_KEY_GROUP, group))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (sign)
     {
@@ -759,7 +759,7 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
             if (0 != cwx_pg_writer_add_key(writer, CWX_MQ_KEY_CRC32, (char*)&uiCrc32, sizeof(uiCrc32), 0))
             {
                 if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-                return CWX_MQ_ERR_INNER_ERR;
+                return CWX_MQ_ERR_ERROR;
             }
         }
         else if (strcmp(sign, CWX_MQ_KEY_MD5) == 0)//md5Ç©Ãû
@@ -772,14 +772,14 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
             if (0 != cwx_pg_writer_add_key(writer, CWX_MQ_KEY_MD5, (char*)szMd5, 16, 0))
             {
                 if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-                return CWX_MQ_ERR_INNER_ERR;
+                return CWX_MQ_ERR_ERROR;
             }
         }
     }
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (zip)
     {
@@ -811,7 +811,7 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
         if (szErr2K) snprintf(szErr2K, 2047, "msg buf is too small[%u], size[%u] is needed.",
             *buf_len, 
             CWX_MSG_HEAD_LEN + cwx_pg_writer_get_msg_size(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     return CWX_MQ_ERR_SUCCESS;
 }
@@ -828,26 +828,26 @@ int cwx_mq_parse_sync_data(struct CWX_PG_READER* reader,
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_reader_get_error(reader));
-        return CWX_MQ_ERR_INVALID_MSG;
+        return CWX_MQ_ERR_ERROR;
     }
     //get SID
     if (0 == cwx_pg_reader_get_uint64(reader, CWX_MQ_KEY_SID, ullSid, 0))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_SID);
-        return CWX_MQ_ERR_NO_SID;
+        return CWX_MQ_ERR_ERROR;
     }
     //get timestamp
     if (0 == cwx_pg_reader_get_uint32(reader, CWX_MQ_KEY_TIMESTAMP, uiTimeStamp, 0))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_TIMESTAMP);
-        return CWX_MQ_ERR_NO_TIMESTAMP;
+        return CWX_MQ_ERR_ERROR;
     }
     //get data
     *data=cwx_pg_reader_get_key(reader, CWX_MQ_KEY_DATA, 0);
     if (!(*data))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_DATA);
-        return CWX_MQ_ERR_NO_KEY_DATA;
+        return CWX_MQ_ERR_ERROR;
     }
     //get group
     if (0 == cwx_pg_reader_get_uint32(reader, CWX_MQ_KEY_GROUP, group, 0))
@@ -864,7 +864,7 @@ int cwx_mq_parse_sync_data(struct CWX_PG_READER* reader,
         if (uiCrc32 != uiOrgCrc32)
         {
             if (szErr2K) snprintf(szErr2K, 2047, "CRC32 signture error. recv signture:%x, local signture:%x", uiOrgCrc32, uiCrc32);
-            return CWX_MQ_ERR_INVALID_CRC32;
+            return CWX_MQ_ERR_ERROR;
         }
     }
     //get md5
@@ -889,7 +889,7 @@ int cwx_mq_parse_sync_data(struct CWX_PG_READER* reader,
                 }
                 snprintf(szErr2K, 2047, "MD5 signture error. recv signture:%s, local signture:%s", szTmp1, szTmp2);
             }
-            return CWX_MQ_ERR_INVALID_MD5;
+            return CWX_MQ_ERR_ERROR;
         }
     }
     return CWX_MQ_ERR_SUCCESS;
@@ -907,12 +907,12 @@ int cwx_mq_pack_sync_data_reply(struct CWX_PG_WRITER * writer,
     if (0 != cwx_pg_writer_add_key_uint64(writer, CWX_MQ_KEY_SID, ullSid))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_mq_pack_msg(CWX_MQ_MSG_TYPE_SYNC_DATA_REPLY,
         uiTaskId,
@@ -924,7 +924,7 @@ int cwx_mq_pack_sync_data_reply(struct CWX_PG_WRITER * writer,
         if (szErr2K) snprintf(szErr2K, 2047, "msg buf is too small[%u], size[%u] is needed.",
             *buf_len, 
             CWX_MSG_HEAD_LEN + cwx_pg_writer_get_msg_size(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     return CWX_MQ_ERR_SUCCESS;
 }
@@ -938,13 +938,13 @@ int cwx_mq_parse_sync_data_reply(struct CWX_PG_READER* reader,
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_reader_get_error(reader));
-        return CWX_MQ_ERR_INVALID_MSG;
+        return CWX_MQ_ERR_ERROR;
     }
     //get SID
     if (0 == cwx_pg_reader_get_uint64(reader, CWX_MQ_KEY_SID, ullSid, 0))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_SID);
-        return CWX_MQ_ERR_NO_SID;
+        return CWX_MQ_ERR_ERROR;
     }
     return CWX_MQ_ERR_SUCCESS;
 }
@@ -963,32 +963,32 @@ int cwx_mq_pack_fetch_mq(struct CWX_PG_WRITER * writer,
     if (0 != cwx_pg_writer_add_key_int32(writer, CWX_MQ_KEY_BLOCK, bBlock))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (queue_name && (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_QUEUE, queue_name)))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (user && (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_USER, user)))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (passwd && (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_PASSWD, passwd)))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (timeout && (0 != cwx_pg_writer_add_key_uint32(writer, CWX_MQ_KEY_TIMEOUT, timeout)))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_mq_pack_msg(CWX_MQ_MSG_TYPE_FETCH_DATA,
         0,
@@ -1000,7 +1000,7 @@ int cwx_mq_pack_fetch_mq(struct CWX_PG_WRITER * writer,
         if (szErr2K) snprintf(szErr2K, 2047, "msg buf is too small[%u], size[%u] is needed.",
             *buf_len, 
             CWX_MSG_HEAD_LEN + cwx_pg_writer_get_msg_size(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     return CWX_MQ_ERR_SUCCESS;
 
@@ -1019,7 +1019,7 @@ int cwx_mq_parse_fetch_mq(struct CWX_PG_READER* reader,
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_reader_get_error(reader));
-        return CWX_MQ_ERR_INVALID_MSG;
+        return CWX_MQ_ERR_ERROR;
     }
     //get block
     if (0 == cwx_pg_reader_get_int32(reader, CWX_MQ_KEY_BLOCK, bBlock, 0))
@@ -1079,7 +1079,7 @@ int cwx_mq_pack_fetch_mq_reply(struct CWX_PG_WRITER * writer,
     if (0 != cwx_pg_writer_add_key_int32(writer,CWX_MQ_KEY_RET, ret))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if(CWX_MQ_ERR_SUCCESS != ret)
     {
@@ -1087,33 +1087,33 @@ int cwx_mq_pack_fetch_mq_reply(struct CWX_PG_WRITER * writer,
         if (0 != cwx_pg_writer_add_key_str(writer, CWX_MQ_KEY_ERR, szErrMsg))
         {
             if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-            return CWX_MQ_ERR_INNER_ERR;
+            return CWX_MQ_ERR_ERROR;
         }
     }
     if (0 !=cwx_pg_writer_add_key_uint64(writer, CWX_MQ_KEY_SID, ullSid))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_add_key_uint32(writer, CWX_MQ_KEY_TIMESTAMP, uiTimeStamp))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_add_key(writer, CWX_MQ_KEY_DATA, data->m_szData, data->m_uiDataLen, data->m_bKeyValue))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_add_key_uint32(writer, CWX_MQ_KEY_GROUP, group))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_mq_pack_msg(CWX_MQ_MSG_TYPE_FETCH_DATA_REPLY,
         0,
@@ -1125,7 +1125,7 @@ int cwx_mq_pack_fetch_mq_reply(struct CWX_PG_WRITER * writer,
         if (szErr2K) snprintf(szErr2K, 2047, "msg buf is too small[%u], size[%u] is needed.",
             *buf_len, 
             CWX_MSG_HEAD_LEN + cwx_pg_writer_get_msg_size(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     return CWX_MQ_ERR_SUCCESS;
 }
@@ -1144,13 +1144,13 @@ int cwx_mq_parse_fetch_mq_reply(struct CWX_PG_READER* reader,
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_reader_get_error(reader));
-        return CWX_MQ_ERR_INVALID_MSG;
+        return CWX_MQ_ERR_ERROR;
     }
     //get ret
     if (0 == cwx_pg_reader_get_int32(reader, CWX_MQ_KEY_RET, ret, 0))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_RET);
-        return CWX_MQ_ERR_NO_RET;
+        return CWX_MQ_ERR_ERROR;
     }
     if (CWX_MQ_ERR_SUCCESS != *ret)
     {
@@ -1159,7 +1159,7 @@ int cwx_mq_parse_fetch_mq_reply(struct CWX_PG_READER* reader,
         if (!(pItem = cwx_pg_reader_get_key(reader, CWX_MQ_KEY_ERR, 0)))
         {
             if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_ERR);
-            return CWX_MQ_ERR_NO_ERR;
+            return CWX_MQ_ERR_ERROR;
         }
         *szErrMsg = pItem->m_szData;
     }
@@ -1171,20 +1171,20 @@ int cwx_mq_parse_fetch_mq_reply(struct CWX_PG_READER* reader,
     if (0 == cwx_pg_reader_get_uint64(reader, CWX_MQ_KEY_SID, ullSid, 0))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_SID);
-        return CWX_MQ_ERR_NO_SID;
+        return CWX_MQ_ERR_ERROR;
     }
     //get timestamp
     if (0 == cwx_pg_reader_get_uint32(reader, CWX_MQ_KEY_TIMESTAMP, uiTimeStamp, 0))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_TIMESTAMP);
-        return CWX_MQ_ERR_NO_TIMESTAMP;
+        return CWX_MQ_ERR_ERROR;
     }
     //get data
     *data=cwx_pg_reader_get_key(reader, CWX_MQ_KEY_DATA, 0);
     if (!(*data))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_DATA);
-        return CWX_MQ_ERR_NO_KEY_DATA;
+        return CWX_MQ_ERR_ERROR;
     }
     //get group
     if (0 == cwx_pg_reader_get_uint32(reader, CWX_MQ_KEY_GROUP, group, 0))
@@ -1205,18 +1205,18 @@ int cwx_mq_pack_fetch_mq_commit(struct CWX_PG_WRITER * writer,
     if (0 != cwx_pg_writer_add_key_int32(writer,CWX_MQ_KEY_COMMIT, commit))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_add_key_uint32(writer,CWX_MQ_KEY_DELAY, delay))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
 
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_mq_pack_msg(CWX_MQ_MSG_TYPE_FETCH_COMMIT,
         0,
@@ -1228,7 +1228,7 @@ int cwx_mq_pack_fetch_mq_commit(struct CWX_PG_WRITER * writer,
         if (szErr2K) snprintf(szErr2K, 2047, "msg buf is too small[%u], size[%u] is needed.",
             *buf_len, 
             CWX_MSG_HEAD_LEN + cwx_pg_writer_get_msg_size(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     return CWX_MQ_ERR_SUCCESS;
 
@@ -1244,7 +1244,7 @@ int cwx_mq_parse_fetch_mq_commit(struct CWX_PG_READER* reader,
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_reader_get_error(reader));
-        return CWX_MQ_ERR_INVALID_MSG;
+        return CWX_MQ_ERR_ERROR;
     }
     //get commit
     if (0 == cwx_pg_reader_get_int32(reader, CWX_MQ_KEY_COMMIT, commit, 0))
@@ -1270,17 +1270,17 @@ int cwx_mq_pack_fetch_mq_commit_reply(struct CWX_PG_WRITER * writer,
     if (0 != cwx_pg_writer_add_key_int32(writer,CWX_MQ_KEY_RET, ret))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_add_key_str(writer,CWX_MQ_KEY_ERR, szErrMsg))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_mq_pack_msg(CWX_MQ_MSG_TYPE_FETCH_COMMIT_REPLY,
         0,
@@ -1292,7 +1292,7 @@ int cwx_mq_pack_fetch_mq_commit_reply(struct CWX_PG_WRITER * writer,
         if (szErr2K) snprintf(szErr2K, 2047, "msg buf is too small[%u], size[%u] is needed.",
             *buf_len, 
             CWX_MSG_HEAD_LEN + cwx_pg_writer_get_msg_size(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     return CWX_MQ_ERR_SUCCESS;
 }
@@ -1307,13 +1307,13 @@ int cwx_mq_parse_fetch_mq_commit_reply(struct CWX_PG_READER* reader,
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_reader_get_error(reader));
-        return CWX_MQ_ERR_INVALID_MSG;
+        return CWX_MQ_ERR_ERROR;
     }
     //get ret
     if (0 == cwx_pg_reader_get_int32(reader, CWX_MQ_KEY_RET, ret, 0))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_RET);
-        return CWX_MQ_ERR_NO_RET;
+        return CWX_MQ_ERR_ERROR;
     }
     if (CWX_MQ_ERR_SUCCESS != *ret)
     {
@@ -1322,7 +1322,7 @@ int cwx_mq_parse_fetch_mq_commit_reply(struct CWX_PG_READER* reader,
         if (!(pItem = cwx_pg_reader_get_key(reader, CWX_MQ_KEY_ERR, 0)))
         {
             if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_ERR);
-            return CWX_MQ_ERR_NO_ERR;
+            return CWX_MQ_ERR_ERROR;
         }
         *szErrMsg = pItem->m_szData;
     }
@@ -1353,66 +1353,66 @@ int cwx_mq_pack_create_queue(struct CWX_PG_WRITER * writer,
     if (0 != cwx_pg_writer_add_key_str(writer,CWX_MQ_KEY_NAME, name))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     //add user
     if (0 != cwx_pg_writer_add_key_str(writer,CWX_MQ_KEY_USER, user))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     //add passwd
     if (0 != cwx_pg_writer_add_key_str(writer,CWX_MQ_KEY_PASSWD, passwd))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     //add subscribe
     if (0 != cwx_pg_writer_add_key_str(writer,CWX_MQ_KEY_SUBSCRIBE, scribe))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     //add auth_user
     if (0 != cwx_pg_writer_add_key_str(writer,CWX_MQ_KEY_AUTH_USER, auth_user))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     //add auth_passwd
     if (0 != cwx_pg_writer_add_key_str(writer,CWX_MQ_KEY_AUTH_PASSWD, auth_passwd))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     //add sid
     if (0 != cwx_pg_writer_add_key_uint64(writer,CWX_MQ_KEY_SID, ullSid))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     //add commit
     if (0 != cwx_pg_writer_add_key_int32(writer,CWX_MQ_KEY_COMMIT, commit))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     //add def_timeout
     if (0 != cwx_pg_writer_add_key_int32(writer,CWX_MQ_KEY_DEF_TIMEOUT, uiDefTimeout))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     //add max_timeout
     if (0 != cwx_pg_writer_add_key_int32(writer,CWX_MQ_KEY_MAX_TIMEOUT, uiMaxTimeout))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_mq_pack_msg(CWX_MQ_MSG_TYPE_CREATE_QUEUE,
         0,
@@ -1424,7 +1424,7 @@ int cwx_mq_pack_create_queue(struct CWX_PG_WRITER * writer,
         if (szErr2K) snprintf(szErr2K, 2047, "msg buf is too small[%u], size[%u] is needed.",
             *buf_len, 
             CWX_MSG_HEAD_LEN + cwx_pg_writer_get_msg_size(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     return CWX_MQ_ERR_SUCCESS;
 
@@ -1448,7 +1448,7 @@ int cwx_mq_parse_create_queue(struct CWX_PG_READER* reader,
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_reader_get_error(reader));
-        return CWX_MQ_ERR_INVALID_MSG;
+        return CWX_MQ_ERR_ERROR;
     }
 
     struct CWX_KEY_VALUE_ITEM_S const* pItem = 0;
@@ -1540,17 +1540,17 @@ int cwx_mq_pack_create_queue_reply(struct CWX_PG_WRITER * writer,
     if (0 != cwx_pg_writer_add_key_int32(writer,CWX_MQ_KEY_RET, ret))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_add_key_str(writer,CWX_MQ_KEY_ERR, szErrMsg))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_mq_pack_msg(CWX_MQ_MSG_TYPE_CREATE_QUEUE_REPLY,
         0,
@@ -1562,7 +1562,7 @@ int cwx_mq_pack_create_queue_reply(struct CWX_PG_WRITER * writer,
         if (szErr2K) snprintf(szErr2K, 2047, "msg buf is too small[%u], size[%u] is needed.",
             *buf_len, 
             CWX_MSG_HEAD_LEN + cwx_pg_writer_get_msg_size(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     return CWX_MQ_ERR_SUCCESS;
 }
@@ -1577,13 +1577,13 @@ int cwx_mq_parse_create_queue_reply(struct CWX_PG_READER* reader,
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_reader_get_error(reader));
-        return CWX_MQ_ERR_INVALID_MSG;
+        return CWX_MQ_ERR_ERROR;
     }
     //get ret
     if (0 == cwx_pg_reader_get_int32(reader, CWX_MQ_KEY_RET, ret, 0))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_RET);
-        return CWX_MQ_ERR_NO_RET;
+        return CWX_MQ_ERR_ERROR;
     }
     if (CWX_MQ_ERR_SUCCESS != *ret)
     {
@@ -1592,7 +1592,7 @@ int cwx_mq_parse_create_queue_reply(struct CWX_PG_READER* reader,
         if (!(pItem = cwx_pg_reader_get_key(reader, CWX_MQ_KEY_ERR, 0)))
         {
             if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_ERR);
-            return CWX_MQ_ERR_NO_ERR;
+            return CWX_MQ_ERR_ERROR;
         }
         *szErrMsg = pItem->m_szData;
     }
@@ -1618,36 +1618,36 @@ int cwx_mq_pack_del_queue(struct CWX_PG_WRITER * writer,
     if (0 != cwx_pg_writer_add_key_str(writer,CWX_MQ_KEY_NAME, name))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     //add user
     if (0 != cwx_pg_writer_add_key_str(writer,CWX_MQ_KEY_USER, user))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     //add passwd
     if (0 != cwx_pg_writer_add_key_str(writer,CWX_MQ_KEY_PASSWD, passwd))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     //add auth_user
     if (0 != cwx_pg_writer_add_key_str(writer,CWX_MQ_KEY_AUTH_USER, auth_user))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     //add auth_passwd
     if (0 != cwx_pg_writer_add_key_str(writer,CWX_MQ_KEY_AUTH_PASSWD, auth_passwd))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_mq_pack_msg(CWX_MQ_MSG_TYPE_DEL_QUEUE,
         0,
@@ -1659,7 +1659,7 @@ int cwx_mq_pack_del_queue(struct CWX_PG_WRITER * writer,
         if (szErr2K) snprintf(szErr2K, 2047, "msg buf is too small[%u], size[%u] is needed.",
             *buf_len, 
             CWX_MSG_HEAD_LEN + cwx_pg_writer_get_msg_size(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     return CWX_MQ_ERR_SUCCESS;
 
@@ -1678,7 +1678,7 @@ int cwx_mq_parse_del_queue(struct CWX_PG_READER* reader,
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_reader_get_error(reader));
-        return CWX_MQ_ERR_INVALID_MSG;
+        return CWX_MQ_ERR_ERROR;
     }
 
     struct CWX_KEY_VALUE_ITEM_S const* pItem = 0;
@@ -1741,17 +1741,17 @@ int cwx_mq_pack_del_queue_reply(struct CWX_PG_WRITER * writer,
     if (0 != cwx_pg_writer_add_key_int32(writer,CWX_MQ_KEY_RET, ret))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_add_key_str(writer,CWX_MQ_KEY_ERR, szErrMsg))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_pg_writer_pack(writer))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_writer_get_error(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     if (0 != cwx_mq_pack_msg(CWX_MQ_MSG_TYPE_DEL_QUEUE_REPLY,
         0,
@@ -1763,7 +1763,7 @@ int cwx_mq_pack_del_queue_reply(struct CWX_PG_WRITER * writer,
         if (szErr2K) snprintf(szErr2K, 2047, "msg buf is too small[%u], size[%u] is needed.",
             *buf_len, 
             CWX_MSG_HEAD_LEN + cwx_pg_writer_get_msg_size(writer));
-        return CWX_MQ_ERR_INNER_ERR;
+        return CWX_MQ_ERR_ERROR;
     }
     return CWX_MQ_ERR_SUCCESS;
 }
@@ -1778,13 +1778,13 @@ int cwx_mq_parse_del_queue_reply(struct CWX_PG_READER* reader,
     if (0 != cwx_pg_reader_unpack(reader, msg, msg_len, 0, 1))
     {
         if (szErr2K) strcpy(szErr2K, cwx_pg_reader_get_error(reader));
-        return CWX_MQ_ERR_INVALID_MSG;
+        return CWX_MQ_ERR_ERROR;
     }
     //get ret
     if (0 == cwx_pg_reader_get_int32(reader, CWX_MQ_KEY_RET, ret, 0))
     {
         if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_RET);
-        return CWX_MQ_ERR_NO_RET;
+        return CWX_MQ_ERR_ERROR;
     }
     if (CWX_MQ_ERR_SUCCESS != *ret)
     {
@@ -1793,7 +1793,7 @@ int cwx_mq_parse_del_queue_reply(struct CWX_PG_READER* reader,
         if (!(pItem = cwx_pg_reader_get_key(reader, CWX_MQ_KEY_ERR, 0)))
         {
             if (szErr2K) snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_KEY_ERR);
-            return CWX_MQ_ERR_NO_ERR;
+            return CWX_MQ_ERR_ERROR;
         }
         *szErrMsg = pItem->m_szData;
     }

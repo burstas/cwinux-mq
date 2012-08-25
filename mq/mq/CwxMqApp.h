@@ -75,143 +75,114 @@ public:
     ///-1:失败；0：成功
     int commit_mq();
     ///是否是第一条binlog
-    inline bool isFirstBinLog() const
-    {
+    inline bool isFirstBinLog() const{
         return m_bFirstBinLog;
     }
     ///设置为收到的第一条binlog
-    inline void clearFirstBinLog()
-    {
+    inline void clearFirstBinLog(){
         m_bFirstBinLog = false;
     }
     ///获取上一次commit的时间
-    inline CWX_UINT32 getLastCommitTime() const
-    {
+    inline CWX_UINT32 getLastCommitTime() const{
         return m_ttLastCommitTime;
     }
 
     ///设置上一次commit的时间
-    inline void setLastCommitTime(CWX_UINT32 ttTime)
-    {
+    inline void setLastCommitTime(CWX_UINT32 ttTime){
         m_ttLastCommitTime = ttTime;
     }
 
     ///获取未commit的log数量
-    inline CWX_UINT32 getUnCommitLogNum() const
-    {
+    inline CWX_UINT32 getUnCommitLogNum() const{
         return m_uiUnCommitLogNum;
     }
 
     ///增加未commit的log数量
-    inline CWX_UINT32 incUnCommitLogNum()
-    {
+    inline CWX_UINT32 incUnCommitLogNum(){
         return ++m_uiUnCommitLogNum;
     }
 
     ///将未commit的log数量归零
-    inline void zeroUnCommitLogNum()
-    {
+    inline void zeroUnCommitLogNum(){
         m_uiUnCommitLogNum = 0;
     }
 
     ///获取MQ上次commit的时间
-    inline CWX_UINT32 getMqLastCommitTime() const
-    {
+    inline CWX_UINT32 getMqLastCommitTime() const{
         return m_ttMqLastCommitTime;
     }
 
     ///设置MQ上次commit的时间
-    inline void setMqLastCommitTime(CWX_UINT32 ttTime)
-    {
+    inline void setMqLastCommitTime(CWX_UINT32 ttTime){
         m_ttMqLastCommitTime = ttTime;
     }
 
 
     ///将当前的SID加1并返回，只有master才形成sid
-    inline CWX_UINT64 nextSid()
-    {
+    inline CWX_UINT64 nextSid(){
         return ++m_uiCurSid;
     }
 
     ///获取当前的sid
-    inline CWX_UINT64 getCurSid()
-    {
+    inline CWX_UINT64 getCurSid(){
         return m_uiCurSid;
     }
 
     ///获取配置信息对象
-    inline CwxMqConfig const& getConfig() const
-    {
+    inline CwxMqConfig const& getConfig() const{
         return m_config;
     }
 
     ///获取binlog manager 对象指针
-    inline CwxBinLogMgr* getBinLogMgr()
-    {
+    inline CwxBinLogMgr* getBinLogMgr(){
         return m_pBinLogMgr;
     }
 
     ///获取mq队列管理器
-    inline CwxMqQueueMgr* getQueueMgr()
-    {
+    inline CwxMqQueueMgr* getQueueMgr(){
         return m_queueMgr;
     }
 
     ///获取slave从master同步binlog的handler对象
-    inline CwxMqMasterHandler* getMasterHandler()
-    {
+    inline CwxMqMasterHandler* getMasterHandler(){
         return m_pMasterHandler;
     }
 
     ///获取master接收binlog的handler对象
-    inline CwxMqBinRecvHandler* getBinRecvHandler()
-    {
+    inline CwxMqBinRecvHandler* getBinRecvHandler(){
         return m_pBinRecvHandler;
     }
 
     ///更新服务状态
-    inline void updateAppRunState()
-    {
+    inline void updateAppRunState(){
         bool bValid = true;
         char const* szReason = "";
-        do
-        {
-            if (m_pBinLogMgr->isInvalid())
-            {
+        do{
+            if (m_pBinLogMgr->isInvalid()){
                 bValid = false;
                 szReason = m_pBinLogMgr->getInvalidMsg();
                 break;
-            }
-            else if (m_pMasterHandler)
-            {
-                if (!m_pMasterHandler->isSync())
-                {
+            }else if (m_pMasterHandler){
+                if (!m_pMasterHandler->isSync()){
                     bValid = false;
                     szReason = m_pMasterHandler->getMasterErr().c_str();
                 }
-            }
-            else if (m_queueMgr)
-            {
-                if (!m_queueMgr->isValid())
-                {
+            }else if (m_queueMgr){
+                if (!m_queueMgr->isValid()){
                     bValid = false;
                     szReason = m_queueMgr->getErrMsg().c_str();
                 }
-
             }
-
         }while(0);
         setAppRunValid(bValid);
         setAppRunFailReason(szReason);
     }
 
-    CwxAppChannel* getAsyncDispChannel()
-    {
+    CwxAppChannel* getAsyncDispChannel(){
         return m_asyncDispChannel;
     }
 
-    CwxAppChannel* getMqChannel()
-    {
+    CwxAppChannel* getMqChannel(){
         return m_mqChannel;
     }
 

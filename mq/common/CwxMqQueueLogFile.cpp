@@ -68,21 +68,17 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
     char line[1024];
     char szSid[64];
     ssize_t len = 0;
-    //queue:name=q1|sid=12345|commit=true|def_timeout=5|max_timeout=300|user=u_q1|passwd=p_q1|subscribe=*
+    //queue:name=q1|sid=12345|user=u_q1|passwd=p_q1|subscribe=*
 	len = CwxCommon::snprintf(line, 
             1023,
-            "%s:name=%s|sid=%s|commit=%s|def_timeout=%u|max_timeout=%u|user=%s|passwd=%s|subscribe=%s\n",
-            CWX_MQ_QUEUE,
+            "%s:name=%s|sid=%s|user=%s|passwd=%s|subscribe=%s\n",
+            CWX_MQ_Q,
             queue.m_strName.c_str(),
             CwxCommon::toString(queue.m_ullCursorSid, szSid, 10),
-            queue.m_bCommit?"true":"false",
-            queue.m_uiDefTimeout,
-            queue.m_uiMaxTimeout,
             queue.m_strUser.c_str(),
             queue.m_strPasswd.c_str(),
             queue.m_strSubScribe.c_str());
-	if (len != write(fd, line, len))
-	{
+	if (len != write(fd, line, len)){
 		CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write new sys file:%s, errno=%d",
 			m_strNewFileName.c_str(),
 			errno);
@@ -91,8 +87,7 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
 	}
     //写未提交的sid
     set<CWX_UINT64>::const_iterator iter_sid = uncommitSets.begin();
-    while(iter_sid != uncommitSets.end())
-    {
+    while(iter_sid != uncommitSets.end()){
 		//uncommit:sid=1
 		len = CwxCommon::snprintf(line, 1023, "%s:sid=%s\n",
 			CWX_MQ_UNCOMMIT,
@@ -109,14 +104,12 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
     }
     //写提交的sid
     iter_sid = commitSets.begin();
-    while(iter_sid != commitSets.end())
-    {
+    while(iter_sid != commitSets.end()){
 		//commit:sid=1
 		len = CwxCommon::snprintf(line, 1023, "%s:sid=%s\n",
 			CWX_MQ_COMMIT,
 			CwxCommon::toString(*iter_sid, szSid, 10));
-		if (len != write(fd, line, len))
-		{
+		if (len != write(fd, line, len)){
 			CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write new sys file:%s, errno=%d",
 				m_strNewFileName.c_str(),
 				errno);
@@ -184,15 +177,12 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
 }
 
 ///写commit记录；-1：失败；否则返回已经写入的log数量
-int CwxMqQueueLogFile::log(CWX_UINT64 sid)
-{
-    if (m_fd)
-    {
+int CwxMqQueueLogFile::log(CWX_UINT64 sid){
+    if (m_fd){
         char szBuf[1024];
         char szSid[64];
 		size_t len = CwxCommon::snprintf(szBuf, 1023, "%s:sid=%s\n", CWX_MQ_COMMIT, CwxCommon::toString(sid, szSid, 10));
-        if (len != fwrite(szBuf, 1, len, m_fd))
-        {
+        if (len != fwrite(szBuf, 1, len, m_fd)){
             closeFile(false);
             CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write log to file[%s], errno=%d",
                 m_strFileName.c_str(),
@@ -210,13 +200,10 @@ int CwxMqQueueLogFile::log(CWX_UINT64 sid)
     return -1;
 }
 ///强行fsync日志文件；0：成功；-1：失败
-int CwxMqQueueLogFile::fsync()
-{
-    if (m_uiCurLogCount && m_fd)
-    {
+int CwxMqQueueLogFile::fsync(){
+    if (m_uiCurLogCount && m_fd){
         fflush(m_fd);
-        if (0 != ::fsync(fileno(m_fd)))
-        {
+        if (0 != ::fsync(fileno(m_fd))){
             CwxCommon::snprintf(m_szErr2K, 2047, "Failure to fsync file[%s], errno=%d",
                 m_strFileName.c_str(),
                 errno);
@@ -231,12 +218,11 @@ int CwxMqQueueLogFile::fsync()
 
 int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue,
                             set<CWX_UINT64>& uncommitSets,
-                            set<CWX_UINT64>& commitSets)
-{
+                            set<CWX_UINT64>& commitSets){
 
     bool bRet = true;
     string line;
-    string strQueuePrex=CWX_MQ_QUEUE;
+    string strQueuePrex=CWX_MQ_Q;
     string strCommitPrex = CWX_MQ_COMMIT;
     string strUncommitPrex = CWX_MQ_UNCOMMIT;
     strQueuePrex +=":";
@@ -249,15 +235,13 @@ int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue,
     m_uiLine = 0;
     string strQueue;
     CWX_UINT64 ullSid;
-    while((bRet = CwxFile::readTxtLine(m_fd, line)))
-    {
+    while((bRet = CwxFile::readTxtLine(m_fd, line))){
         if (line.empty()) break;
         m_uiLine++;
         if (0 == step)
-        {//queue:name=q1|sid=12345|commit=true|def_timeout=5|max_timeout=300|user=u_q1|passwd=p_q1|subscribe=*
+        {//queue:name=q1|sid=12345|user=u_q1|passwd=p_q1|subscribe=*
 			line = line.substr(strQueuePrex.length());
-			if (0 != parseQueue(line, queue))
-			{
+			if (0 != parseQueue(line, queue)){
 				return -1;
 			}
             step = 1;
@@ -338,56 +322,22 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
         return -1;
     }
     queue.m_ullCursorSid = strtoull(item.second.c_str(), NULL, 10);
-    //get commit
-    if (!CwxCommon::findKey(items, CWX_MQ_COMMIT, item))
-    {
-        CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] has no [%s] key, line:%u",
-            queue.m_strName.c_str(),
-            CWX_MQ_COMMIT,
-            m_uiLine);
-        return -1;
-    }
-    queue.m_bCommit = item.second=="true"?true:false;
-    //get def_timeout
-    if (!CwxCommon::findKey(items, CWX_MQ_DEF_TIMEOUT, item))
-    {
-        CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] has no [%s] key, line:%u",
-            queue.m_strName.c_str(),
-            CWX_MQ_DEF_TIMEOUT,
-            m_uiLine);
-        return -1;
-    }
-    queue.m_uiDefTimeout = strtoul(item.second.c_str(), NULL, 10);
-    if (queue.m_uiDefTimeout < CWX_MQ_MIN_TIMEOUT_SECOND) queue.m_uiDefTimeout = CWX_MQ_MIN_TIMEOUT_SECOND;
-    if (queue.m_uiDefTimeout > CWX_MQ_MAX_TIMEOUT_SECOND) queue.m_uiDefTimeout = CWX_MQ_MAX_TIMEOUT_SECOND;
-    //get max_timeout
-    if (!CwxCommon::findKey(items, CWX_MQ_MAX_TIMEOUT, item))
-    {
-        CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] has no [%s] key, line:%u",
-            queue.m_strName.c_str(),
-            CWX_MQ_MAX_TIMEOUT,
-            m_uiLine);
-        return -1;
-    }
-    queue.m_uiMaxTimeout = strtoul(item.second.c_str(), NULL, 10);
-    if (queue.m_uiMaxTimeout < CWX_MQ_MIN_TIMEOUT_SECOND) queue.m_uiMaxTimeout = CWX_MQ_MIN_TIMEOUT_SECOND;
-    if (queue.m_uiMaxTimeout > CWX_MQ_MAX_TIMEOUT_SECOND) queue.m_uiMaxTimeout = CWX_MQ_MAX_TIMEOUT_SECOND;
     //get user
-    if (!CwxCommon::findKey(items, CWX_MQ_USER, item))
+    if (!CwxCommon::findKey(items, CWX_MQ_U, item))
     {
         CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] has no [%s] key, line:%u",
             queue.m_strName.c_str(),
-            CWX_MQ_USER,
+            CWX_MQ_U,
             m_uiLine);
         return -1;
     }
     queue.m_strUser = item.second;
     //get passwd
-    if (!CwxCommon::findKey(items, CWX_MQ_PASSWD, item))
+    if (!CwxCommon::findKey(items, CWX_MQ_P, item))
     {
         CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] has no [%s] key, line:%u",
             queue.m_strName.c_str(),
-            CWX_MQ_PASSWD,
+            CWX_MQ_P,
             m_uiLine);
         return -1;
     }

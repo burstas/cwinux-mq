@@ -290,7 +290,7 @@ int CwxMqMasterHandler::saveBinlog(CwxMqTss* pTss,
     }
     //add to binlog
     pTss->m_pWriter->beginPack();
-    pTss->m_pWriter->addKeyValue(CWX_MQ_DATA, data->m_szData, data->m_uiDataLen, data->m_bKeyValue);
+    pTss->m_pWriter->addKeyValue(CWX_MQ_D, data->m_szData, data->m_uiDataLen, data->m_bKeyValue);
     pTss->m_pWriter->pack();
     if (0 !=m_pApp->getBinLogMgr()->append(ullSid,
         (time_t)ttTimestamp,

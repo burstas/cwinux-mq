@@ -1,14 +1,12 @@
 #include "CwxMqConfig.h"
 #include "CwxMqApp.h"
 
-int CwxMqConfig::loadConfig(string const & strConfFile)
-{
+int CwxMqConfig::loadConfig(string const & strConfFile){
     CwxIniParse	 cnf;
     string value;
     string strErrMsg;
     //Ω‚Œˆ≈‰÷√Œƒº˛
-    if (false == cnf.load(strConfFile))
-    {
+    if (false == cnf.load(strConfFile)){
         CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to Load conf file:%s. err:%s", strConfFile.c_str(), cnf.getErrMsg());
         return -1;
     }
@@ -60,16 +58,16 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
         m_common.m_uiChunkSize = CwxMqConfigCmn::MAX_CHUNK_SIZE_KB;
     }
     //load cmn:window
-    if (!cnf.getAttr("cmn", "window", value) || !value.length()){
-        snprintf(m_szErrMsg, 2047, "Must set [cmn:window].");
+    if (!cnf.getAttr("cmn", "sync_conn_num", value) || !value.length()){
+        snprintf(m_szErrMsg, 2047, "Must set [cmn:sync_conn_num].");
         return -1;
     }
-    m_common.m_uiWindowSize = strtoul(value.c_str(), NULL, 10);
-    if (m_common.m_uiWindowSize < CwxMqConfigCmn::MIN_WINDOW_NUM){
-        m_common.m_uiWindowSize = CwxMqConfigCmn::MIN_WINDOW_NUM;
+    m_common.m_uiSyncConnNum = strtoul(value.c_str(), NULL, 10);
+    if (m_common.m_uiSyncConnNum < CwxMqConfigCmn::MIN_SYNC_CONN_NUM){
+        m_common.m_uiSyncConnNum = CwxMqConfigCmn::MIN_SYNC_CONN_NUM;
     }
-    if (m_common.m_uiWindowSize > CwxMqConfigCmn::MAX_WINDOW_NUM){
-        m_common.m_uiWindowSize = CwxMqConfigCmn::MAX_WINDOW_NUM;
+    if (m_common.m_uiSyncConnNum > CwxMqConfigCmn::MAX_SYNC_CONN_NUM){
+        m_common.m_uiSyncConnNum = CwxMqConfigCmn::MAX_SYNC_CONN_NUM;
     }
     //load cmn:monitor
     if (!cnf.getAttr("cmn", "monitor", value) || !value.length()){
@@ -256,8 +254,7 @@ int CwxMqConfig::loadConfig(string const & strConfFile)
 
 bool CwxMqConfig::fetchHost(CwxIniParse& cnf,
                             string const& node,
-                            CwxHostInfo& host,
-                            bool bIpOnly)
+                            CwxHostInfo& host)
 {
     string value;
     host.reset();
@@ -267,12 +264,6 @@ bool CwxMqConfig::fetchHost(CwxIniParse& cnf,
             snprintf(m_szErrMsg, 2047, "%s:listen must be [host:port], [%s] is invalid.", node.c_str(), value.c_str());
             return false;
         }
-    }
-    //load keepalive
-    if (cnf.getAttr(node, "keepalive", value) && value.length()){
-        host.setKeepAlive(value=="yes"?true:false);
-    }else{
-        host.setKeepAlive(false);
     }
     //load user
     if (cnf.getAttr(node, "user", value) && value.length()){
@@ -286,22 +277,9 @@ bool CwxMqConfig::fetchHost(CwxIniParse& cnf,
     }else{
         host.setPassword("");
     }
-    //load path:unix
-    if (cnf.getAttr(node, "unix", value) && value.length()){
-        host.setUnixDomain(value);
-    }else{
-        host.setUnixDomain("");
-    }
-    if (!bIpOnly){
-        if (!host.getHostName().length() && !host.getUnixDomain().length()){
-            CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s]'s [listen] or [unix].", node.c_str());
-            return false;
-        }
-    }else{
-        if (!host.getHostName().length()){
-            CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s]'s [listen].", node.c_str());
-            return false;
-        }
+    if (!host.getHostName().length()){
+        CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s]'s [listen].", node.c_str());
+        return false;
     }
     return true;
 }
@@ -315,7 +293,7 @@ void CwxMqConfig::outputConfig() const
     CWX_INFO(("server_type=%s", m_common.m_bMaster?"master":"slave"));
     CWX_INFO(("sock_buf_kbyte=%u", m_common.m_uiSockBufSize));
     CWX_INFO(("max_chunk_kbyte=%u", m_common.m_uiChunkSize));
-    CWX_INFO(("window=%u", m_common.m_uiWindowSize));
+    CWX_INFO(("sync_conn_num=%u", m_common.m_uiSyncConnNum));
     CWX_INFO(("monitor=%s:%u", m_common.m_monitor.getHostName().c_str(), m_common.m_monitor.getPort()));
     CWX_INFO(("*****************binlog*******************"));
     CWX_INFO(("path=%s", m_binlog.m_strBinlogPath.c_str()));
@@ -331,24 +309,19 @@ void CwxMqConfig::outputConfig() const
         CWX_INFO(("user=%s", m_master.m_async.getUser().c_str()));
         CWX_INFO(("passwd=%s", m_master.m_async.getPasswd().c_str()));
         CWX_INFO(("listen=%s:%u", m_master.m_async.getHostName().c_str(), m_master.m_async.getPort()));
-        CWX_INFO(("unix=%s", m_master.m_async.getUnixDomain().c_str()));
-
         CWX_INFO(("*****************recv*******************"));
         CWX_INFO(("user=%s", m_master.m_recv.getUser().c_str()));
         CWX_INFO(("passwd=%s", m_master.m_recv.getPasswd().c_str()));
         CWX_INFO(("listen=%s:%u", m_master.m_recv.getHostName().c_str(), m_master.m_recv.getPort()));
-        CWX_INFO(("unix=%s", m_master.m_recv.getUnixDomain().c_str()));
     }else{
         CWX_INFO(("*****************dispatch*******************"));
         CWX_INFO(("user=%s", m_slave.m_async.getUser().c_str()));
         CWX_INFO(("passwd=%s", m_slave.m_async.getPasswd().c_str()));
         CWX_INFO(("listen=%s:%u", m_slave.m_async.getHostName().c_str(), m_slave.m_async.getPort()));
-        CWX_INFO(("unix=%s", m_slave.m_async.getUnixDomain().c_str()));
         CWX_INFO(("*****************master*******************"));
         CWX_INFO(("user=%s", m_slave.m_master.getUser().c_str()));
         CWX_INFO(("passwd=%s", m_slave.m_master.getPasswd().c_str()));
         CWX_INFO(("listen=%s:%u",m_slave.m_master.getHostName().c_str(), m_slave.m_master.getPort()));
-        CWX_INFO(("unix=%s", m_slave.m_master.getUnixDomain().c_str()));
         CWX_INFO(("subscribe=%s", m_slave.m_strSubScribe.c_str()));
         CWX_INFO(("zip=%s", m_slave.m_bzip?"yes":"no"));
         CWX_INFO(("sign=%s", m_slave.m_strSign.c_str()));
@@ -358,7 +331,6 @@ void CwxMqConfig::outputConfig() const
         CWX_INFO(("user=%s", m_mq.m_mq.getUser().c_str()));
         CWX_INFO(("passwd=%s", m_mq.m_mq.getPasswd().c_str()));
         CWX_INFO(("listen=%s:%u",m_mq.m_mq.getHostName().c_str(), m_mq.m_mq.getPort()));
-        CWX_INFO(("unix=%s", m_mq.m_mq.getUnixDomain().c_str()));
         CWX_INFO(("log_path=%s", m_mq.m_strLogFilePath.c_str()));
         CWX_INFO(("log_flush_num=%u", m_mq.m_uiFlushNum));
         CWX_INFO(("log_flush_second=%u", m_mq.m_uiFlushSecond));
