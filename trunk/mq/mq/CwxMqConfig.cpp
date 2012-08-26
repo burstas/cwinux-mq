@@ -254,7 +254,8 @@ int CwxMqConfig::loadConfig(string const & strConfFile){
 
 bool CwxMqConfig::fetchHost(CwxIniParse& cnf,
                             string const& node,
-                            CwxHostInfo& host)
+                            CwxHostInfo& host,
+                            bool bIpOnly)
 {
     string value;
     host.reset();

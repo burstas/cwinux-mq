@@ -84,13 +84,11 @@ private:
         bool bClose=false ///<是否发送完毕需要关闭连接
         );
     //将一个发送失败的消息，返还消息队列
-    void backMq(CwxMqTss* pTss);
+    void backMq(CWX_UINT64 ullSid, CwxMqTss* pTss);
     ///发送消息，0：没有消息发送；1：发送一个；-1：发送失败
     int sentBinlog(CwxMqTss* pTss);
     ///fetch mq,返回值,0：成功；-1：失败
     int fetchMq(CwxMqTss* pTss);
-    ///commit mq,返回值,0：成功；-1：失败
-    int fetchMqCommit(CwxMqTss* pTss);
     ///create queue,返回值,0：成功；-1：失败
     int createQueue(CwxMqTss* pTss);
     ///del queue,返回值,0：成功；-1：失败

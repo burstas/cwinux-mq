@@ -5,8 +5,7 @@
 @brief 连接可读事件，返回-1，close()会被调用
 @return -1：处理失败，会调用close()； 0：处理成功
 */
-int CwxMqBinFetchHandler::onInput()
-{
+int CwxMqBinFetchHandler::onInput(){
     ///接受消息
     int ret = CwxAppHandler4Channel::recvPackage(getHandle(),
         m_uiRecvHeadLen,
@@ -14,7 +13,6 @@ int CwxMqBinFetchHandler::onInput()
         m_szHeadBuf,
         m_header,
         m_recvMsgData);
-
     if (1 != ret) return ret; ///如果失败或者消息没有接收完，返回。
     ///获取fetch 线程的tss对象
     CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
@@ -31,17 +29,7 @@ int CwxMqBinFetchHandler::onInput()
 @brief 通知连接关闭。
 @return 1：不从engine中移除注册；0：从engine中移除注册但不删除handler；-1：从engine中将handle移除并删除。
 */
-int CwxMqBinFetchHandler::onConnClosed()
-{
-    ///如果当前还有发送的mq消息没有完成，则回收此消息
-    ///对于非commit的队列，消息发送完毕后，m_ullSendSid会置0。
-    ///对于commit队列，消息commit后，m_ullSendSid会置0
-    if (m_conn.m_ullSendSid)
-    {
-        CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
-        backMq(tss);
-        m_conn.m_ullSendSid = 0;
-    }
+int CwxMqBinFetchHandler::onConnClosed(){
     return -1;
 }
 
@@ -49,18 +37,14 @@ int CwxMqBinFetchHandler::onConnClosed()
 @brief Handler的redo事件，在每次dispatch时执行。
 @return -1：处理失败，会调用close()； 0：处理成功
 */
-int CwxMqBinFetchHandler::onRedo()
-{
+int CwxMqBinFetchHandler::onRedo(){
     ///获取tss实例
     CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
     int iRet = sentBinlog(tss);
-    if (0 == iRet)
-    {///继续等待消息
+    if (0 == iRet){///继续等待消息
         m_conn.m_bWaiting = true;
         channel()->regRedoHander(this);
-    }
-    else if (-1 == iRet)
-    {///错误，关闭连接
+    }else if (-1 == iRet){///错误，关闭连接
         return -1;
     }
     m_conn.m_bWaiting = false;
@@ -76,44 +60,20 @@ CwxMsgSendCtrl::UNDO_CONN：不修改连接的接收状态
 CwxMsgSendCtrl::RESUME_CONN：让连接从suspend状态变为数据接收状态。
 CwxMsgSendCtrl::SUSPEND_CONN：让连接从数据接收状态变为suspend状态
 */
-CWX_UINT32 CwxMqBinFetchHandler::onEndSendMsg(CwxMsgBlock*& msg)
-{
+CWX_UINT32 CwxMqBinFetchHandler::onEndSendMsg(CwxMsgBlock*& msg){
     ///获取tss实例
     CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
-    CWX_ASSERT(!m_conn.m_bSent);
     int iRet = m_pApp->getQueueMgr()->endSendMsg(m_conn.m_strQueueName,
-        m_conn.m_ullSendSid,
+        msg->event().m_ullArg,
         true,
         tss->m_szBuf2K);
-    //0：不存在，1：成功，-1：失败，-2：队列不存在
-    if (0 == iRet)
-    {//消息已经超时，此一定是commit类型的队列
-        char szSid[64];
-        CWX_DEBUG(("Queue[%s]: sid[%s] is timeout",
-            m_conn.m_strQueueName.c_str(), 
-            CwxCommon::toString(m_conn.m_ullSendSid, szSid, 10)));
-    }
-    else if (-1 == iRet)
-    {//内部错误，此时必须关闭连接
+    //0：成功，-1：失败，-2：队列不存在
+    if (-1 == iRet){//内部错误，此时必须关闭连接
         CWX_ERROR(("Queue[%s]: Failure to endSendMsg， err: %s",
             m_conn.m_strQueueName.c_str(), 
             tss->m_szBuf2K));
-    }
-    else if (-2 == iRet)
-    {//队列不存在
+    }else if (-2 == iRet){//队列不存在
         CWX_ERROR(("Queue[%s]: No queue"));
-    }
-    ///设置消息已经发送完毕
-    m_conn.m_bSent = true;
-    if (!m_conn.m_bCommit)
-    {///如果是commit队列的，则清空m_conn.m_ullSendSid，否则等待commit的消息
-        m_conn.m_ullSendSid = 0;
-    }
-    else if (1 != iRet)
-    {
-        ///对于commit队列不存在或内部错误或消息发送超时，都需要清空。
-        ///此放置错误的commit，因为消息已经进入了可再发送的队列
-        m_conn.m_ullSendSid = 0;
     }
     //此msg由queue mgr负责管理，外层不能释放
     msg = NULL;
@@ -126,43 +86,27 @@ CWX_UINT32 CwxMqBinFetchHandler::onEndSendMsg(CwxMsgBlock*& msg)
 @param [in,out] msg 发送失败的消息，若返回NULL，则msg有上层释放，否则底层释放。
 @return void。
 */
-void CwxMqBinFetchHandler::onFailSendMsg(CwxMsgBlock*& msg)
-{
-	CWX_ASSERT(m_conn.m_ullSendSid > 0);
-	CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
-	backMq(tss);
-	m_conn.m_ullSendSid = 0;
-	//此msg由queue mgr负责管理，外层不能释放
-	msg = NULL;
+void CwxMqBinFetchHandler::onFailSendMsg(CwxMsgBlock*& msg){
+    CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
+    backMq(msg->event().m_ullArg, tss);
+    //此msg由queue mgr负责管理，外层不能释放
+    msg = NULL;
 }
 
-
-
 ///收到一个消息，0：成功；-1：失败
-int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
-{
-    if (CwxMqPoco::MSG_TYPE_FETCH_DATA == m_header.getMsgType())
-    {///mq的获取消息
+int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss){
+    if (CwxMqPoco::MSG_TYPE_FETCH_DATA == m_header.getMsgType()){///mq的获取消息
         return fetchMq(pTss);
-    }
-    else if (CwxMqPoco::MSG_TYPE_FETCH_COMMIT == m_header.getMsgType())
-    {///mq的单独commit消息
-        return fetchMqCommit(pTss);
-    }
-    else if (CwxMqPoco::MSG_TYPE_CREATE_QUEUE == m_header.getMsgType())
-    {///创建队列的消息
+    }else if (CwxMqPoco::MSG_TYPE_CREATE_QUEUE == m_header.getMsgType()){///创建队列的消息
         return createQueue(pTss);
-    }
-    else if (CwxMqPoco::MSG_TYPE_DEL_QUEUE == m_header.getMsgType())
-    {///删除队列的消息
+    }else if (CwxMqPoco::MSG_TYPE_DEL_QUEUE == m_header.getMsgType()){///删除队列的消息
         return delQueue(pTss);
     }
     ///若其他消息，则返回错误
     CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u", m_header.getMsgType());
     CWX_ERROR((pTss->m_szBuf2K));
     CwxMsgBlock* block = packEmptyFetchMsg(pTss, CWX_MQ_ERR_ERROR, pTss->m_szBuf2K);
-    if (!block)
-    {
+    if (!block){
         CWX_ERROR(("No memory to malloc package"));
         return -1;
     }
@@ -171,8 +115,7 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss)
 }
 
 ///fetch mq
-int CwxMqBinFetchHandler::fetchMq(CwxMqTss* pTss)
-{
+int CwxMqBinFetchHandler::fetchMq(CwxMqTss* pTss){
     int iRet = CWX_MQ_ERR_SUCCESS;
     bool bBlock = false;
     bool bClose = false;
@@ -180,32 +123,24 @@ int CwxMqBinFetchHandler::fetchMq(CwxMqTss* pTss)
     char const* user=NULL;
     char const* passwd=NULL;
     CwxMsgBlock* block = NULL;
-    CWX_UINT32  timeout = 0;
-    do
-    {
-        if (!m_recvMsgData)
-        {
+    do{
+        if (!m_recvMsgData){
             strcpy(pTss->m_szBuf2K, "No data.");
             CWX_DEBUG((pTss->m_szBuf2K));
             iRet = CWX_MQ_ERR_ERROR;
             break;
         }
-
         iRet = CwxMqPoco::parseFetchMq(pTss->m_pReader,
             m_recvMsgData,
             bBlock,
             queue_name,
             user,
             passwd,
-            timeout,
             pTss->m_szBuf2K);
         ///如果解析失败，则进入错误消息处理
         if (CWX_MQ_ERR_SUCCESS != iRet) break; 
         ///如果当前mq的获取处于waiting状态或还没有多的确认，则直接忽略
-        if (m_conn.m_bWaiting || !m_conn.m_bSent) 
-        {
-            return 0;
-        }
+        if (m_conn.m_bWaiting) return 0;
         ///如果是第一次获取或者改变了消息对了，则校验队列权限
         if (!m_conn.m_strQueueName.length() ||  ///第一次获取
             m_conn.m_strQueueName != queue_name ///新队列
@@ -218,16 +153,14 @@ int CwxMqBinFetchHandler::fetchMq(CwxMqTss* pTss)
             ///鉴权队列的用户名、口令
             iRet = m_pApp->getQueueMgr()->authQueue(strQueue, strUser, strPasswd);
             ///如果队列不存在，则返回错误消息
-            if (0 == iRet)
-            {
+            if (0 == iRet){
                 iRet = CWX_MQ_ERR_ERROR;
                 CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "No queue:%s", strQueue.c_str());
                 CWX_DEBUG((pTss->m_szBuf2K));
                 break;
             }
             ///如果权限错误，则返回错误消息
-            if (-1 == iRet)
-            {
+            if (-1 == iRet){
                 iRet = CWX_MQ_ERR_FAIL_AUTH;
                 CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
                 CWX_DEBUG((pTss->m_szBuf2K));
@@ -238,51 +171,24 @@ int CwxMqBinFetchHandler::fetchMq(CwxMqTss* pTss)
             ///设置队列名
             m_conn.m_strQueueName = strQueue;
         }
-        else if (m_conn.m_bCommit && m_conn.m_ullSendSid)
-        {//如果队列是commit类型的，而且发送的消息没有commit，则首先commit
-            ///此时提交失败是不单独回复的，若需要回复，则采用commit的消息
-            iRet = m_pApp->getQueueMgr()->commitBinlog(m_conn.m_strQueueName,
-                m_conn.m_ullSendSid,
-                true,
-                0,
-                pTss->m_szBuf2K);
-            if (0 == iRet)
-            {//消息不存在，此时消息已经超时
-                char szSid[64];
-                CWX_DEBUG(("queue[%s]: sid[%s] is timeout", m_conn.m_strQueueName.c_str(), CwxCommon::toString(m_conn.m_ullSendSid, szSid, 10)));
-            }
-            else if (-1 == iRet)
-            {//内部提交失败
-                CWX_ERROR(("queue[%s]: Failure to commit msg, err:%s", m_conn.m_strQueueName.c_str(), pTss->m_szBuf2K));
-            }
-            else if (-2 == iRet)
-            {
-                CWX_DEBUG(("queue[%s]: No queue", m_conn.m_strQueueName.c_str()));
-            }
-            //清空m_ullSendSid
-            m_conn.m_ullSendSid = 0;
-        }
         ///设置是否block
         m_conn.m_bBlock = bBlock;
         ///设置timeout值
         m_conn.m_uiTimeout = timeout;
         ///发送消息
         int ret = sentBinlog(pTss);
-        if (0 == ret)
-        {///等待消息
+        if (0 == ret){///等待消息
             m_conn.m_bWaiting = true;
             channel()->regRedoHander(this);
-			return 0;
-        }
-        else if (-1 == ret)
-        {///发送失败，关闭连接。此属于内存不足、连接关闭等等严重的错误
+            return 0;
+        }else if (-1 == ret){///发送失败，关闭连接。此属于内存不足、连接关闭等等严重的错误
             return -1;
         }
         //发送了一个消息
         m_conn.m_bWaiting = false;
         return 0;
     }while(0);
-    
+
     ///回复错误消息
     m_conn.m_bWaiting = false;
     block = packEmptyFetchMsg(pTss, iRet, pTss->m_szBuf2K);
@@ -296,110 +202,10 @@ int CwxMqBinFetchHandler::fetchMq(CwxMqTss* pTss)
     return 0;
 
 }
-
-///commit mq,返回值,0：成功；-1：失败
-int CwxMqBinFetchHandler::fetchMqCommit(CwxMqTss* pTss)
-{
-    int iRet = CWX_MQ_ERR_SUCCESS;
-    bool bCommit = true;
-    CWX_UINT32 uiDelay = 0;
-    do
-    {
-        if (m_recvMsgData)
-        {
-            iRet = CwxMqPoco::parseFetchMqCommit(pTss->m_pReader,
-                m_recvMsgData,
-                bCommit,
-                uiDelay,
-                pTss->m_szBuf2K);
-
-        }
-        else
-        {
-            bCommit = true;
-            uiDelay = 0;
-        }
-        ///如果解析失败，则进入错误消息处理
-        if (CWX_MQ_ERR_SUCCESS != iRet) break;
-        if (!m_conn.m_bCommit)
-        {
-            iRet = CWX_MQ_ERR_ERROR;
-            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue is not commit type queue");
-            break;
-        }
-        if (!m_conn.m_bSent)
-        {
-            iRet = CWX_MQ_ERR_ERROR;
-            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "No message to commit.");
-            break;
-        }
-        if (0 == m_conn.m_ullSendSid)
-        {//超时
-            iRet = CWX_MQ_ERR_ERROR;
-            strcpy(pTss->m_szBuf2K, "Message is timeout.");
-            break;
-        }
-
-
-        iRet = m_pApp->getQueueMgr()->commitBinlog(m_conn.m_strQueueName,
-            m_conn.m_ullSendSid,
-            bCommit,
-            uiDelay,
-            pTss->m_szBuf2K);
-
-        //清空m_ullSendSid
-        m_conn.m_ullSendSid = 0;
-        if (0 == iRet)
-        {//消息不存在，此时消息已经超时
-            iRet = CWX_MQ_ERR_ERROR;
-            strcpy(pTss->m_szBuf2K, "Message is timeout.");
-            break;
-        }
-        else if (-1 == iRet)
-        {//内部提交失败
-            iRet = CWX_MQ_ERR_ERROR;
-            CWX_ERROR(("queue[%s]: Failure to commit msg, err:%s", m_conn.m_strQueueName.c_str(), pTss->m_szBuf2K));
-            break;
-        }
-        else if (-2 == iRet)
-        {//队列不存在
-            iRet = CWX_MQ_ERR_ERROR;
-			CwxCommon::snprintf(pTss->m_szBuf2K, 2047,  "No queue:%s", m_conn.m_strQueueName.c_str());
-            break;
-        }
-        ///成功提交消息
-        iRet = CWX_MQ_ERR_SUCCESS;
-        pTss->m_szBuf2K[0] = 0x00;
-    }while(0);
-
-    CwxMsgBlock* block = NULL;
-    iRet = CwxMqPoco::packFetchMqCommitReply(pTss->m_pWriter, block, iRet, pTss->m_szBuf2K, pTss->m_szBuf2K);
-    if (CWX_MQ_ERR_SUCCESS != iRet)
-    {
-        CWX_ERROR(("Failure to pack mq-commit-reply, err:%s", pTss->m_szBuf2K));
-        return -1;
-    }
-
-    block->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
-    block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
-    block->send_ctrl().setHostId(0);
-    block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
-    ///将消息放到连接的发送队列等待发送
-    if (!putMsg(block))
-    {///放发送队列失败
-        CWX_ERROR(("Failure to reply fetch mq commit"));
-        CwxMsgBlockAlloc::free(block);
-        return -1;
-    }
-    return 0;
-
-}
-
 ///create queue
 int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
 {
     int iRet = CWX_MQ_ERR_SUCCESS;
-    bool bCommit = true;
     char const* queue_name = NULL;
     char const* user = NULL;
     char const* passwd = NULL;
@@ -407,13 +213,8 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
     char const* auth_user = NULL;
     char const* auth_passwd = NULL;
     CWX_UINT64 ullSid = 0;
-    CWX_UINT32 uiDefTimeout = 0;
-    CWX_UINT32 uiMaxTimeout = 0;
-
-    do
-    {
-        if (!m_recvMsgData)
-        {
+    do{
+        if (!m_recvMsgData){
             strcpy(pTss->m_szBuf2K, "No data.");
             CWX_DEBUG((pTss->m_szBuf2K));
             iRet = CWX_MQ_ERR_ERROR;
@@ -428,15 +229,11 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
             auth_user,
             auth_passwd,
             ullSid,
-            bCommit,
-            uiDefTimeout,
-            uiMaxTimeout,
             pTss->m_szBuf2K);
         ///如果解析失败，则进入错误消息处理
         if (CWX_MQ_ERR_SUCCESS != iRet) break;
         //校验权限
-        if (m_pApp->getConfig().getMq().m_mq.getUser().length())
-        {
+        if (m_pApp->getConfig().getMq().m_mq.getUser().length()){
             if ((m_pApp->getConfig().getMq().m_mq.getUser() != auth_user) ||
                 (m_pApp->getConfig().getMq().m_mq.getPasswd() != auth_passwd))
             {
@@ -446,84 +243,58 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
             }
         }
         //检测参数
-        if (!strlen(queue_name))
-        {
+        if (!strlen(queue_name)){
             iRet = CWX_MQ_ERR_ERROR;
             strcpy(pTss->m_szBuf2K, "queue name is empty");
             break;
         }
-        if (strlen(queue_name) > CWX_MQ_MAX_QUEUE_NAME_LEN)
-        {
+        if (strlen(queue_name) > CWX_MQ_MAX_QUEUE_NAME_LEN){
             iRet = CWX_MQ_ERR_ERROR;
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue name[%s] is too long, max:%u", queue_name, CWX_MQ_MAX_QUEUE_NAME_LEN);
             break;
         }
-		if (!CwxMqQueueMgr::isInvalidQueueName(queue_name))
-		{
-			iRet = CWX_MQ_ERR_ERROR;
-			CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue name[%s] is invalid, charactor must be in [a-z, A-Z, 0-9, -, _]", queue_name);
-			break;
-		}
-        if (strlen(user) > CWX_MQ_MAX_QUEUE_USER_LEN)
-        {
+        if (!CwxMqQueueMgr::isInvalidQueueName(queue_name)){
+            iRet = CWX_MQ_ERR_ERROR;
+            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue name[%s] is invalid, charactor must be in [a-z, A-Z, 0-9, -, _]", queue_name);
+            break;
+        }
+        if (strlen(user) > CWX_MQ_MAX_QUEUE_USER_LEN){
             iRet = CWX_MQ_ERR_ERROR;
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue's user name[%s] is too long, max:%u", user, CWX_MQ_MAX_QUEUE_USER_LEN);
             break;
         }
-        if (strlen(passwd) > CWX_MQ_MAX_QUEUE_PASSWD_LEN)
-        {
+        if (strlen(passwd) > CWX_MQ_MAX_QUEUE_PASSWD_LEN){
             iRet = CWX_MQ_ERR_ERROR;
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue's passwd [%s] is too long, max:%u", passwd, CWX_MQ_MAX_QUEUE_PASSWD_LEN);
             break;
         }
         if (!strlen(scribe)) scribe = "*";
-        if (strlen(scribe) > CWX_MQ_MAX_QUEUE_SCRIBE_LEN)
-        {
+        if (strlen(scribe) > CWX_MQ_MAX_QUEUE_SCRIBE_LEN){
             iRet = CWX_MQ_ERR_ERROR;
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue's scribe [%s] is too long, max:%u", scribe, CWX_MQ_MAX_QUEUE_SCRIBE_LEN);
             break;
         }
         string strErrMsg;
-        if (!CwxMqPoco::isValidSubscribe(string(scribe), strErrMsg))
-        {
+        if (!CwxMqPoco::isValidSubscribe(string(scribe), strErrMsg)){
             iRet = CWX_MQ_ERR_ERROR;
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "%s", strErrMsg.c_str());
             break;
         }
-        //设置超时范围
-        if (0 == uiDefTimeout) uiDefTimeout = CWX_MQ_DEF_TIMEOUT_SECOND;
-        if (uiDefTimeout < CWX_MQ_MIN_TIMEOUT_SECOND) uiDefTimeout = CWX_MQ_MIN_TIMEOUT_SECOND;
-        if (uiDefTimeout > CWX_MQ_MAX_TIMEOUT_SECOND) uiDefTimeout = CWX_MQ_MAX_TIMEOUT_SECOND;
-        if (0 == uiMaxTimeout) uiMaxTimeout = CWX_MQ_MAX_TIMEOUT_SECOND;
-        if (uiMaxTimeout < CWX_MQ_MIN_TIMEOUT_SECOND) uiMaxTimeout = CWX_MQ_MIN_TIMEOUT_SECOND;
-        if (uiMaxTimeout > CWX_MQ_MAX_TIMEOUT_SECOND) uiMaxTimeout = CWX_MQ_MAX_TIMEOUT_SECOND;
-
-		if (uiDefTimeout > uiMaxTimeout) uiDefTimeout = uiMaxTimeout;
-
         if (0 == ullSid) ullSid = m_pApp->getBinLogMgr()->getMaxSid();
-
         iRet = m_pApp->getQueueMgr()->addQueue(string(queue_name),
             ullSid,
-            bCommit,
             string(user),
             string(passwd),
             string(scribe),
-            uiDefTimeout,
-            uiMaxTimeout,
             pTss->m_szBuf2K);
-        if (1 == iRet)
-        {//成功
+        if (1 == iRet){//成功
             iRet = CWX_MQ_ERR_SUCCESS;
             break;
-        }
-        else if (0 == iRet)
-        {//exist
+        }else if (0 == iRet){//exist
             iRet = CWX_MQ_ERR_ERROR;
             strcpy(pTss->m_szBuf2K, "Queue exists");
             break;
-        }
-        else
-        {//内部错误
+        }else{//内部错误
             iRet = CWX_MQ_ERR_ERROR;
             break;
         }
@@ -531,19 +302,16 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
 
     CwxMsgBlock* block = NULL;
     iRet = CwxMqPoco::packCreateQueueReply(pTss->m_pWriter, block, iRet, pTss->m_szBuf2K, pTss->m_szBuf2K);
-    if (CWX_MQ_ERR_SUCCESS != iRet)
-    {
+    if (CWX_MQ_ERR_SUCCESS != iRet){
         CWX_ERROR(("Failure to pack create-queue-reply, err:%s", pTss->m_szBuf2K));
         return -1;
     }
-
     block->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
     block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
     block->send_ctrl().setHostId(0);
     block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
     ///将消息放到连接的发送队列等待发送
-    if (!putMsg(block))
-    {///放发送队列失败
+    if (!putMsg(block)){///放发送队列失败
         CWX_ERROR(("Failure to reply create queue"));
         CwxMsgBlockAlloc::free(block);
         return -1;
@@ -551,18 +319,15 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
     return 0;
 }
 ///del queue
-int CwxMqBinFetchHandler::delQueue(CwxMqTss* pTss)
-{
+int CwxMqBinFetchHandler::delQueue(CwxMqTss* pTss){
     int iRet = CWX_MQ_ERR_SUCCESS;
     char const* queue_name = NULL;
     char const* user = NULL;
     char const* passwd = NULL;
     char const* auth_user = NULL;
     char const* auth_passwd = NULL;
-    do
-    {
-        if (!m_recvMsgData)
-        {
+    do{
+        if (!m_recvMsgData){
             strcpy(pTss->m_szBuf2K, "No data.");
             CWX_DEBUG((pTss->m_szBuf2K));
             iRet = CWX_MQ_ERR_ERROR;
@@ -579,8 +344,7 @@ int CwxMqBinFetchHandler::delQueue(CwxMqTss* pTss)
         ///如果解析失败，则进入错误消息处理
         if (CWX_MQ_ERR_SUCCESS != iRet) break;
         //校验权限
-        if (m_pApp->getConfig().getMq().m_mq.getUser().length())
-        {
+        if (m_pApp->getConfig().getMq().m_mq.getUser().length()){
             if ((m_pApp->getConfig().getMq().m_mq.getUser() != auth_user) ||
                 (m_pApp->getConfig().getMq().m_mq.getPasswd() != auth_passwd))
             {
@@ -590,34 +354,26 @@ int CwxMqBinFetchHandler::delQueue(CwxMqTss* pTss)
             }
         }
         iRet = m_pApp->getQueueMgr()->authQueue(string(queue_name), string(user), string(passwd));
-        if (0 == iRet)
-        {//队列不存在
+        if (0 == iRet){//队列不存在
             iRet = CWX_MQ_ERR_ERROR;
-			CwxCommon::snprintf(pTss->m_szBuf2K,  2047, "Queue[%s] doesn't exists", queue_name);
+            CwxCommon::snprintf(pTss->m_szBuf2K,  2047, "Queue[%s] doesn't exists", queue_name);
             break;
-
         }
         ///如果权限错误，则返回错误消息
-        if (-1 == iRet)
-        {
+        if (-1 == iRet){
             iRet = CWX_MQ_ERR_FAIL_AUTH;
             strcpy(pTss->m_szBuf2K, "No auth");
             break;
         }
         iRet = m_pApp->getQueueMgr()->delQueue(string(queue_name), pTss->m_szBuf2K);
-        if (1 == iRet)
-        {//成功
+        if (1 == iRet){//成功
             iRet = CWX_MQ_ERR_SUCCESS;
             break;
-        }
-        else if (0 == iRet)
-        {//exist
+        }else if (0 == iRet){//exist
             iRet = CWX_MQ_ERR_ERROR;
             strcpy(pTss->m_szBuf2K, "Queue exists");
             break;
-        }
-        else
-        {//内部错误
+        }else{//内部错误
             iRet = CWX_MQ_ERR_ERROR;
             break;
         }
@@ -625,19 +381,16 @@ int CwxMqBinFetchHandler::delQueue(CwxMqTss* pTss)
 
     CwxMsgBlock* block = NULL;
     iRet = CwxMqPoco::packDelQueueReply(pTss->m_pWriter, block, iRet, pTss->m_szBuf2K, pTss->m_szBuf2K);
-    if (CWX_MQ_ERR_SUCCESS != iRet)
-    {
+    if (CWX_MQ_ERR_SUCCESS != iRet){
         CWX_ERROR(("Failure to pack del-queue-reply, err:%s", pTss->m_szBuf2K));
         return -1;
     }
-
     block->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
     block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
     block->send_ctrl().setHostId(0);
     block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
     ///将消息放到连接的发送队列等待发送
-    if (!putMsg(block))
-    {///放发送队列失败
+    if (!putMsg(block)){///放发送队列失败
         CWX_ERROR(("Failure to reply delete queue"));
         CwxMsgBlockAlloc::free(block);
         return -1;
@@ -647,9 +400,9 @@ int CwxMqBinFetchHandler::delQueue(CwxMqTss* pTss)
 
 
 CwxMsgBlock* CwxMqBinFetchHandler::packEmptyFetchMsg(CwxMqTss* pTss,
-                        int iRet,
-                        char const* szErrMsg
-                        )
+                                                     int iRet,
+                                                     char const* szErrMsg
+                                                     )
 {
     CwxMsgBlock* pBlock = NULL;
     CwxKeyValueItem kv;
@@ -667,34 +420,30 @@ CwxMsgBlock* CwxMqBinFetchHandler::packEmptyFetchMsg(CwxMqTss* pTss,
 
 
 int CwxMqBinFetchHandler::replyFetchMq(CwxMqTss* pTss,
-                                CwxMsgBlock* msg,
-                                bool bBinlog,
-                                bool bClose)
+                                       CwxMsgBlock* msg,
+                                       bool bBinlog,
+                                       bool bClose)
 {
     msg->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
     msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
     msg->send_ctrl().setHostId(0);
-    if (bBinlog)
-    {///如果是binlog，此时需要发送完毕的时候通知
+    if (bBinlog){///如果是binlog，此时需要发送完毕的时候通知
         if (bClose) ///是否关闭连接
             msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::FAIL_NOTICE | CwxMsgSendCtrl::FINISH_NOTICE|CwxMsgSendCtrl::CLOSE_NOTICE);
         else 
             msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::FAIL_NOTICE | CwxMsgSendCtrl::FINISH_NOTICE);
-    }
-    else
-    {
+    }else{
         if (bClose)
             msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::CLOSE_NOTICE);
         else
             msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
     }
     ///将消息放到连接的发送队列等待发送
-    if (!putMsg(msg))
-    {///放发送队列失败
+    if (!putMsg(msg)){///放发送队列失败
         CWX_ERROR(("Failure to reply fetch mq"));
         ///如果是binlog，需要将消息返回到mq manager
         if (bBinlog) 
-            backMq(pTss);
+            backMq(msg->event().m_ullArg, pTss);
         else///否则释放消息
             CwxMsgBlockAlloc::free(msg);
         return -1;
@@ -702,58 +451,26 @@ int CwxMqBinFetchHandler::replyFetchMq(CwxMqTss* pTss,
     return 0;
 }
 
-void CwxMqBinFetchHandler::backMq(CwxMqTss* pTss)
-{
-    int iRet = 0;
-    if (m_conn.m_ullSendSid)
-    {
-        if (!m_conn.m_bSent)
-        {//此时可能是commit队列，也可能是非commit队列。
-            iRet = m_pApp->getQueueMgr()->endSendMsg(m_conn.m_strQueueName,
-                m_conn.m_ullSendSid,
-                false,
-                pTss->m_szBuf2K);
+void CwxMqBinFetchHandler::backMq(CWX_UINT64 ullSid, CwxMqTss* pTss){
+    int iRet = m_pApp->getQueueMgr()->endSendMsg(m_conn.m_strQueueName,
+        ullSid,
+        false,
+        pTss->m_szBuf2K);
+    if (0 != iRet){
+        char szSid[32];
+        if(-1 == iRet){///队列错误
+            CWX_ERROR(("Failure to back queue[%s]'s message, err:%s",
+                m_conn.m_strQueueName.c_str(),
+                pTss->m_szBuf2K));
+        }else{///队列不存在
+            CWX_ERROR(("Failure to back queue[%s]'s message for no existing",
+                m_conn.m_strQueueName.c_str()));
         }
-        else
-        {//此时一定是commit队列
-            CWX_ASSERT(m_conn.m_bCommit);
-            iRet = m_pApp->getQueueMgr()->commitBinlog(m_conn.m_strQueueName,
-                 m_conn.m_ullSendSid,
-                 false,
-                 0,
-                 pTss->m_szBuf2K);
-        }
-        if (1 != iRet)
-        {
-            char szSid[32];
-            if (0 == iRet)
-            {///消息已经超时
-                CWX_DEBUG(("Sid[%s] is timeout, queue[%s]",
-                    m_conn.m_strQueueName.c_str(),
-                    CwxCommon::toString(m_conn.m_ullSendSid, szSid, 10)));
-            }
-            else if(-1 == iRet)
-            {///队列错误
-                CWX_ERROR(("Failure to back queue[%s]'s message, err:%s",
-                    m_conn.m_strQueueName.c_str(),
-                    pTss->m_szBuf2K));
-            }
-            else
-            {///队列不存在
-                CWX_ERROR(("Failure to back queue[%s]'s message for no existing",
-                    m_conn.m_strQueueName.c_str()));
-            }
-        }
-
     }
-    //清空连接的发送sid
-    m_conn.m_ullSendSid = 0;
-    m_conn.m_bSent = true;
 }
 
 ///发送消息，0：没有消息发送；1：发送一个；-1：发送失败
-int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss)
-{
+int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss){
     CwxMsgBlock* pBlock=NULL;
     int err_no = CWX_MQ_ERR_SUCCESS;
     int iState = 0;
@@ -764,26 +481,20 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss)
         err_no,
         m_conn.m_bCommit,
         pTss->m_szBuf2K);
-    if (-1 == iState)
-    {///获取消息失败
+    if (-1 == iState){///获取消息失败
         CWX_ERROR(("Failure to read binlog ,err:%s", pTss->m_szBuf2K));
         pBlock = packEmptyFetchMsg(pTss, CWX_MQ_ERR_ERROR, pTss->m_szBuf2K);
-        if (!pBlock)
-        {
+        if (!pBlock){
             CWX_ERROR(("No memory to malloc package"));
             return -1;
         }
         ///此log不是binlog。
         if (0 != replyFetchMq(pTss, pBlock, false, false))  return -1;
         return 1;
-    }
-    else if (0 == iState) ///已经完成
-    {
-        if (!m_conn.m_bBlock)
-        {///如果不是block类型，回复没有消息
+    }else if (0 == iState){ ///已经完成
+        if (!m_conn.m_bBlock){///如果不是block类型，回复没有消息
             pBlock = packEmptyFetchMsg(pTss, CWX_MQ_ERR_ERROR, "No message");
-            if (!pBlock)
-            {
+            if (!pBlock){
                 CWX_ERROR(("No memory to malloc package"));
                 return -1;
             }
@@ -792,28 +503,20 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss)
         }
         //未完成，等待block
         return 0;
-    }
-    else if (1 == iState)
-    {///获取了一个消息
-        m_conn.m_ullSendSid = pBlock->event().m_ullArg;
-        m_conn.m_bSent = false;
-        if (0 != replyFetchMq(pTss, pBlock, true, false))
-        {
+    }else if (1 == iState){///获取了一个消息
+        if (0 != replyFetchMq(pTss, pBlock, true, false)){
             return -1;
         }
         return 1;
-    }
-    else if (2 == iState)
-    {//未完成
+    }else if (2 == iState){//未完成
         return 0;
     }
     //此时，iState为-2
     //no queue
     CWX_ERROR(("Not find queue:%s", m_conn.m_strQueueName.c_str()));
-	string strErr = string("No queue:") + m_conn.m_strQueueName;
+    string strErr = string("No queue:") + m_conn.m_strQueueName;
     pBlock = packEmptyFetchMsg(pTss, CWX_MQ_ERR_ERROR, strErr.c_str());
-    if (!pBlock)
-    {
+    if (!pBlock){
         CWX_ERROR(("No memory to malloc package"));
         return -1;
     }

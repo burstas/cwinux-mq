@@ -88,7 +88,7 @@ int CwxMqApp::initRunEnv(){
     if (0 != startBinLogMgr()) return -1;
 
     CwxMqPoco::init(NULL);
-    
+
     if (m_config.getCommon().m_bMaster){
         ///注册数据接收handler
         if (m_config.getMaster().m_recv.getHostName().length()){
@@ -186,15 +186,24 @@ void CwxMqApp::onTime(CwxTimeValue const& current){
     ///调用基类的onTime函数
     CwxAppFramework::onTime(current);
     ///检查超时
-    static CWX_UINT32 ttBinLogLastTime = time(NULL);
+    static CWX_UINT32 ttLastTime = time(NULL);
     CWX_UINT32 uiNow = time(NULL);
-    if (m_config.getCommon().m_bMaster && (uiNow >= ttBinLogLastTime + 1)){
-        ttBinLogLastTime = uiNow;
-        CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
-        pBlock->event().setSvrId(SVR_TYPE_RECV);
-        pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
-        //将超时检查事件，放入事件队列
-        m_pRecvThreadPool->append(pBlock);
+    if (uiNow >= ttLastTime + 1){
+        if (m_config.getCommon().m_bMaster){
+            ttLastTime = uiNow;
+            CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
+            pBlock->event().setSvrId(SVR_TYPE_RECV);
+            pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
+            //将超时检查事件，放入事件队列
+            m_pRecvThreadPool->append(pBlock);
+        }else{
+            ttLastTime = uiNow;
+            CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
+            pBlock->event().setSvrId(SVR_TYPE_MASTER);
+            pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
+            //将超时检查事件，放入事件队列
+            m_pRecvThreadPool->append(pBlock);
+        }
     }
 }
 
@@ -214,9 +223,10 @@ void CwxMqApp::onSignal(int signum){
 }
 
 int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
-                          CWX_UINT32 uiHostId,
-                          CWX_HANDLE handle,
-                          bool& ){
+                            CWX_UINT32 uiHostId,
+                            CWX_HANDLE handle,
+                            bool& )
+{
     CwxMsgBlock* msg = CwxMsgBlockAlloc::malloc(0);
     msg->event().setSvrId(uiSvrId);
     msg->event().setHostId(uiHostId);
@@ -310,7 +320,7 @@ int CwxMqApp::onRecvMsg(CwxMsgBlock* msg,
 
 ///收到消息的响应函数
 int CwxMqApp::onRecvMsg(CwxAppHandler4Msg& conn,
-                      bool& )
+                        bool& )
 {
     if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId()){
         char  szBuf[1024];
@@ -387,13 +397,13 @@ int CwxMqApp::startBinLogMgr(){
     {
         CWX_UINT64 ullBinLogSize = m_config.getBinLog().m_uiBinLogMSize;
         ullBinLogSize *= 1024 * 1024;
-		if (ullBinLogSize > CwxBinLogMgr::MAX_BINLOG_FILE_SIZE) ullBinLogSize = CwxBinLogMgr::MAX_BINLOG_FILE_SIZE;
+        if (ullBinLogSize > CwxBinLogMgr::MAX_BINLOG_FILE_SIZE) ullBinLogSize = CwxBinLogMgr::MAX_BINLOG_FILE_SIZE;
         m_pBinLogMgr = new CwxBinLogMgr(m_config.getBinLog().m_strBinlogPath.c_str(),
             m_config.getBinLog().m_strBinlogPrex.c_str(),
             ullBinLogSize,
             m_config.getBinLog().m_bDelOutdayLogFile);
         if (0 != m_pBinLogMgr->init(m_config.getBinLog().m_uiMgrFileNum,
-			m_config.getBinLog().m_bCache,
+            m_config.getBinLog().m_bCache,
             CWX_TSS_2K_BUF))
         {///<如果失败，则返回-1
             CWX_ERROR(("Failure to init binlog manager, error:%s", CWX_TSS_2K_BUF));
@@ -403,7 +413,7 @@ int CwxMqApp::startBinLogMgr(){
         m_ttLastCommitTime = time(NULL);
         m_uiUnCommitLogNum = 0;
         ///提取sid
-		m_uiCurSid = m_pBinLogMgr->getMaxSid() + CWX_MQ_MAX_BINLOG_FLUSH_COUNT + 1;
+        m_uiCurSid = m_pBinLogMgr->getMaxSid() + CWX_MQ_MAX_BINLOG_FLUSH_COUNT + 1;
     }
     //初始化MQ
     if (m_config.getMq().m_mq.getHostName().length() ||
@@ -473,28 +483,10 @@ int CwxMqApp::startNetwork()
                 return -1;
             }
         }
-    }else{
-        if (m_config.getSlave().m_master.getHostName().length()){
-            if (0 > this->noticeTcpConnect(SVR_TYPE_MASTER, 0, 
-                m_config.getSlave().m_master.getHostName().c_str(),
-                m_config.getSlave().m_master.getPort(),
-                false,
-                1,
-                2,
-                CwxMqApp::setSlaveReportSockAttr,
-                this))
-            {
-                CWX_ERROR(("Can't register the master tcp connect: addr=%s, port=%d",
-                    m_config.getSlave().m_master.getHostName().c_str(),
-                    m_config.getSlave().m_master.getPort()));
-                return -1;
-            }
-        }else{
-            CWX_ERROR(("Not config master dispatch"));
-            return -1;
-        }
+    } else{
         ///bin协议异步分发
-        if (m_config.getSlave().m_async.getHostName().length()){
+        if (m_config.getSlave().m_async.getHostName().length())
+        {
             if (0 > this->noticeTcpListen(SVR_TYPE_ASYNC, 
                 m_config.getSlave().m_async.getHostName().c_str(),
                 m_config.getSlave().m_async.getPort(),
@@ -511,7 +503,8 @@ int CwxMqApp::startNetwork()
         }
     }
     //打开bin mq获取的监听端口
-    if (m_config.getMq().m_mq.getHostName().length()){
+    if (m_config.getMq().m_mq.getHostName().length())
+    {
         if (0 > this->noticeTcpListen(SVR_TYPE_FETCH, 
             m_config.getMq().m_mq.getHostName().c_str(),
             m_config.getMq().m_mq.getPort(),
@@ -679,18 +672,15 @@ CWX_UINT32 CwxMqApp::packMonitorInfo(){
 
             CwxCommon::toString(iter->m_ullCursorSid, szSid1, 10);
             CwxCommon::toString(iter->m_ullLeftNum, szSid2, 10);
-            CwxCommon::snprintf(szLine, 4096, "STAT name(%s)|commit(%s)|def_timeout(%u)|max_timeout(%u)|cursor_state(%s)|log_state(%s)|sid(%s)|msg(%s)|subscribe(%s)|cursor_err(%s)|log_err(%s)\r\n",
+            CwxCommon::snprintf(szLine, 4096, "STAT name(%s)|cursor_state(%s)|log_state(%s)|sid(%s)|msg(%s)|subscribe(%s)|cursor_err(%s)|log_err(%s)\r\n",
                 iter->m_strName.c_str(),
-                iter->m_bCommit?"yes":"no",
-				iter->m_uiDefTimeout,
-				iter->m_uiMaxTimeout,
                 state,
-				iter->m_bQueueLogFileValid?"yes":"no",
+                iter->m_bQueueLogFileValid?"yes":"no",
                 szSid1,
                 szSid2,
                 iter->m_strSubScribe.c_str(),
-				iter->m_ucQueueState==CwxBinLogCursor::CURSOR_STATE_ERROR?iter->m_strQueueErrMsg.c_str():"",
-				iter->m_bQueueLogFileValid?"":iter->m_strQueueLogFileErrMsg.c_str());
+                iter->m_ucQueueState==CwxBinLogCursor::CURSOR_STATE_ERROR?iter->m_strQueueErrMsg.c_str():"",
+                iter->m_bQueueLogFileValid?"":iter->m_strQueueLogFileErrMsg.c_str());
             MQ_MONITOR_APPEND();
             iter++;
         }
@@ -702,7 +692,7 @@ CWX_UINT32 CwxMqApp::packMonitorInfo(){
 }
 
 ///分发channel的线程函数，arg为app对象
-void* CwxMqApp::DispatchThreadMain(CwxTss* , CwxMsgQueue* queue, void* arg)
+void* CwxMqApp::DispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg)
 {
     CwxMqApp* app = (CwxMqApp*) arg;
     if (0 != app->getAsyncDispChannel()->open()){
@@ -711,12 +701,18 @@ void* CwxMqApp::DispatchThreadMain(CwxTss* , CwxMsgQueue* queue, void* arg)
     }
     while(1){
         //获取队列中的消息并处理
-        if (0 != DispatchThreadDoQueue(queue, app, app->getAsyncDispChannel())) break;
+        if (0 != DispatchThreadDoQueue(tss, queue, app, app->getAsyncDispChannel())) break;
         if (-1 == app->getAsyncDispChannel()->dispatch(1)){
             CWX_ERROR(("Failure to invoke async dispatch channel CwxAppChannel::dispatch()"));
             sleep(1);
         }
+        ///检查关闭的连接
+        CwxMqBinAsyncHandler::dealClosedSession();
+
     }
+    ///释放分发的资源
+    CwxMqBinAsyncHandler::destroy();
+
     app->getAsyncDispChannel()->stop();
     app->getAsyncDispChannel()->close();
     if (!app->isStopped()){
@@ -726,36 +722,15 @@ void* CwxMqApp::DispatchThreadMain(CwxTss* , CwxMsgQueue* queue, void* arg)
     return NULL;
 }
 ///分发channel的队列消息函数。返回值：0：正常；-1：队列停止
-int CwxMqApp::DispatchThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel)
+int CwxMqApp::DispatchThreadDoQueue(CwxTss* tss, CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel)
 {
     int iRet = 0;
     CwxMsgBlock* block = NULL;
-    CwxAppHandler4Channel* handler = NULL;
     while (!queue->isEmpty()){
-        do{
-            iRet = queue->dequeue(block);
-            if (-1 == iRet) return -1;
-            CWX_ASSERT(block->event().getEvent() == CwxEventInfo::CONN_CREATED);
-            CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_ASYNC);
-
-            if (channel->isRegIoHandle(block->event().getIoHandle())){
-                CWX_ERROR(("Handler[%] is register", block->event().getIoHandle()));
-                break;
-            }
-            if (block->event().getSvrId() == SVR_TYPE_ASYNC){
-                handler = new CwxMqBinAsyncHandler(app, channel);
-            }else{
-                CWX_ERROR(("Invalid svr_type[%d], close handle[%d]", block->event().getSvrId(), block->event().getIoHandle()));
-                ::close(block->event().getIoHandle());
-            }
-            handler->setHandle(block->event().getIoHandle());
-            if (0 != handler->open()){
-                CWX_ERROR(("Failure to register handler[%d]", handler->getHandle()));
-                delete handler;
-                break;
-            }
-        } while(0);
-        CwxMsgBlockAlloc::free(block);
+        iRet = queue->dequeue(block);
+        if (-1 == iRet) return -1;
+        CwxMqBinAsyncHandler::doEvent(app, tss, block);
+        if (block) CwxMsgBlockAlloc::free(block);
         block = NULL;
     }
     if (queue->isDeactived()) return -1;
