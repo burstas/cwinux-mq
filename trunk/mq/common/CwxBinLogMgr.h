@@ -505,11 +505,10 @@ public:
     /**
     @brief 初始化binlog管理器对象。
     @param [in] uiMaxFileNum 管理的binlog的最多数量。
-	@param [in] bCache 是否对写入的数据进行cache。
     @param [out] szErr2K 若初始化失败，返回失败的错误信息；若为NULL，即便失败也不返回错误的原因。
     @return -1：失败；0：成功。
     */
-    int init(CWX_UINT32 uiMaxFileNum, bool bCache, char* szErr2K=NULL);
+    int init(CWX_UINT32 uiMaxFileNum, char* szErr2K=NULL);
     /**
     @brief 添加一条binlog。
     @param [in] ullSid binlog的sid，其值必须大于当前已有的最大值。
@@ -704,7 +703,6 @@ private:
     bool                      m_bDelOutManageLogFile; ///<是否删除不在管理内的文件
     CWX_UINT32                m_uiMaxFileSize; ///<binlog文件的最大大小
     CWX_UINT32                m_uiMaxFileNum; ///<管理的binlog的最大数量
-	bool					  m_bCache;  ///<是否对写入的数据进行cache
     char                      m_szErr2K[2048]; ///<binlog 管理器无效的原因
     int                       m_fdLock; ///<系统锁文件句柄
     CwxRwLock                 m_rwLock; ///<binlog的读写锁
