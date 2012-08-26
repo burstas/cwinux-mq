@@ -37,7 +37,6 @@ public:
 public:
     bool            m_bWaiting; ///<是否正在等在发送信息
     bool            m_bBlock; ///<是否为block连接
-    CWX_UINT32      m_uiTimeout; ///<当前消息的timeout值
     CWX_UINT32      m_uiTaskId; ///<连接的taskid
     string          m_strQueueName; ///<队列的名字
 };
