@@ -662,7 +662,7 @@ int CwxMqBinAsyncHandler::syncSeekToReportSid(CwxMqTss* tss){
 
 
 ///-1：失败，1：成功
-int CwxMqBinAsyncHandler::syncPackOneBinLog(CwxPackageWriterEx* writer,
+int CwxMqBinAsyncHandler::syncPackOneBinLog(CwxPackageWriter* writer,
                                             CwxMsgBlock*& block,
                                             CWX_UINT64 ullSeq,
                                             CwxKeyValueItem const* pData,
@@ -689,8 +689,8 @@ int CwxMqBinAsyncHandler::syncPackOneBinLog(CwxPackageWriterEx* writer,
 }
 
 ///-1：失败，否则返回添加数据的尺寸
-int CwxMqBinAsyncHandler::syncPackMultiBinLog(CwxPackageWriterEx* writer,
-                                              CwxPackageWriterEx* writer_item,
+int CwxMqBinAsyncHandler::syncPackMultiBinLog(CwxPackageWriter* writer,
+                                              CwxPackageWriter* writer_item,
                                               CwxKeyValueItem const* pData,
                                               CWX_UINT32&  uiLen,
                                               char* szErr2K)

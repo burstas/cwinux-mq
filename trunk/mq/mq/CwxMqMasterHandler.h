@@ -2,8 +2,8 @@
 #define __CWX_MQ_MASTER_HANDLER_H__
 /*
 版权声明：
-    本软件遵循GNU GPL V3（http://www.gnu.org/licenses/gpl.html），
-    联系方式：email:cwinux@gmail.com；微博:http://t.sina.com.cn/cwinux
+本软件遵循GNU GPL V3（http://www.gnu.org/licenses/gpl.html），
+联系方式：email:cwinux@gmail.com；微博:http://t.sina.com.cn/cwinux
 */
 #include "CwxCommander.h"
 #include "CwxMqMacro.h"
@@ -86,7 +86,6 @@ public:
     CwxMqMasterHandler(CwxMqApp* pApp):m_pApp(pApp){
         m_unzipBuf = NULL;
         m_uiBufLen = 0;
-		m_bSync = false;
         m_uiCurHostId = 0;
         m_syncSession = NULL;
     }
@@ -105,9 +104,9 @@ private:
     //关闭已有连接
     void closeSession();
     ///创建与master同步的连接。返回值：0：成功；-1：失败
-    int createSession(CwxMqTss* pTss) ///<tss对象
-        ///收到一条消息的处理函数。返回值：0:成功；-1：失败
-        int recvMsg(CwxMsgBlock*& msg, ///<收到的消息
+    int createSession(CwxMqTss* pTss); ///<tss对象
+    ///收到一条消息的处理函数。返回值：0:成功；-1：失败
+    int recvMsg(CwxMsgBlock*& msg, ///<收到的消息
         list<CwxMsgBlock*>& msgs ///<接收池中返回的可处理的消息。在list按照先后次序排序
         );
 
