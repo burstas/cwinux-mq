@@ -133,15 +133,7 @@ public:
         CwxMqTss* tss  ///<线程tss
         );
     ///释放资源
-    static void destroy(CwxMqApp* app){
-        map<CWX_UINT64, CwxMqBinAsyncHandlerSession* >::iterator iter = m_sessionMap.begin();
-        while(iter != m_sessionMap.end()){
-            if (iter->second->m_pCursor) app->getStore()->getBinLogMgr()->destoryCurser(iter->second->m_pCursor);
-            delete iter->second;
-            iter++;
-        }
-        m_sessionMap.clear();
-    }
+    static void destroy(CwxMqApp* app);
 private:
     ///收到一个消息并处理。返回值：0：成功；-1：失败
     int recvMessage();
