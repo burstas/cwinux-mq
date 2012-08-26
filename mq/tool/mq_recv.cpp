@@ -249,6 +249,7 @@ int main(int argc ,char** argv)
     char szErr2K[2048];
     char const* pErrMsg=NULL;
     CWX_UINT64 ullSid = 0;
+    CWX_UINT64 ullSeq = 0;
     CWX_UINT32 num = 0;
     CwxMqPoco::init();
     do 
@@ -297,9 +298,7 @@ int main(int argc ,char** argv)
                 if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseReportDataReply(
                     &reader,
                     block,
-                    iRet,
-                    ullSid,
-                    pErrMsg,
+                    ullSeq,
                     szErr2K
                     ))
                 {
@@ -307,8 +306,8 @@ int main(int argc ,char** argv)
                     iRet = 1;
                     break;
                 }
-                printf("failure to report dispatch, err-code=%d, err=%s\n", iRet, pErrMsg);
-                iRet = 1;
+                printf("receive report reply seq=%s\n", CwxCommon::toString(ullSeq, szErr2K,10));
+                iRet = 0;
                 break;
             }
             else if (CwxMqPoco::MSG_TYPE_SYNC_DATA == head.getMsgType())
