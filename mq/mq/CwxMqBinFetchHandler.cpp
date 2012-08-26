@@ -455,7 +455,6 @@ void CwxMqBinFetchHandler::backMq(CWX_UINT64 ullSid, CwxMqTss* pTss){
         false,
         pTss->m_szBuf2K);
     if (0 != iRet){
-        char szSid[32];
         if(-1 == iRet){///∂”¡–¥ÌŒÛ
             CWX_ERROR(("Failure to back queue[%s]'s message, err:%s",
                 m_conn.m_strQueueName.c_str(),
