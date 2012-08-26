@@ -3,8 +3,7 @@
 #include "CwxMqPoco.h"
 
 
-CwxMqFetchConn::CwxMqFetchConn()
-{
+CwxMqFetchConn::CwxMqFetchConn(){
     m_bWaiting = false;
     m_bBlock = false;
     m_uiTaskId = 0;

@@ -23,17 +23,14 @@
 #include "CwxBinLogMgr.h"
 
 //mq的tss
-class CwxMqTss:public CwxTss
-{
+class CwxMqTss:public CwxTss{
 public:
-    enum
-    {
+    enum{
         MAX_PACKAGE_SIZE = CWX_MQ_MAX_MSG_SIZE ///<分发数据包的最大长度
     };
 public:
     ///构造函数
-    CwxMqTss():CwxTss()
-    {
+    CwxMqTss():CwxTss(){
         m_pReader = NULL;
         m_pWriter = NULL;
         m_szDataBuf = NULL;
@@ -46,10 +43,8 @@ public:
     ///tss的初始化，0：成功；-1：失败
     int init();
     ///获取package的buf，返回NULL表示失败
-    inline char* getBuf(CWX_UINT32 uiSize)
-    {
-        if (m_uiDataBufLen < uiSize)
-        {
+    inline char* getBuf(CWX_UINT32 uiSize){
+        if (m_uiDataBufLen < uiSize){
             delete [] m_szDataBuf;
             m_szDataBuf = new char[uiSize];
             m_uiDataBufLen = uiSize;
@@ -67,9 +62,5 @@ private:
     char*                  m_szDataBuf; ///<数据buf
     CWX_UINT32             m_uiDataBufLen; ///<数据buf的空间大小
 };
-
-
-
-
 
 #endif
