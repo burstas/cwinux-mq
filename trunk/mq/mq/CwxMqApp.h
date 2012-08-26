@@ -25,9 +25,8 @@
 ///MQ服务的app对象
 class CwxMqApp : public CwxAppFramework{
 public:
-    enum
-    {
-        MAX_MONITOR_REPLY_SIZE = 1024 * 1024,
+    enum{
+        MAX_MONITOR_REPLY_SIZE = 1024 * 1024, ///<监控的BUF空间大小
         LOG_FILE_SIZE = 30, ///<每个可循环使用日志文件的MByte
         LOG_FILE_NUM = 7, ///<可循环使用日志文件的数量
         SVR_TYPE_RECV = CwxAppFramework::SVR_TYPE_USER_START, ///<master bin协议接收的svr type
@@ -36,8 +35,7 @@ public:
         SVR_TYPE_FETCH = CwxAppFramework::SVR_TYPE_USER_START + 5, ///<mq bin协议消息获取服务类型
         SVR_TYPE_MONITOR = CwxAppFramework::SVR_TYPE_USER_START + 7 ///<监控监听的服务类型
     };
-    enum
-    {
+    enum{
         MQ_NEW_MSG_EVENT=CwxEventInfo::SYS_EVENT_NUM + 1, ///<binlog有新数据的事件
         MQ_CONTINUE_SEND_EVENT= MQ_NEW_MSG_EVENT + 1 ///<未完成发送的连接，继续发送
     };
@@ -53,14 +51,16 @@ public:
     ///signal响应函数
     virtual void onSignal(int signum);
     ///连接建立
-    virtual int onConnCreated(CWX_UINT32 uiSvrId,
-        CWX_UINT32 uiHostId,
-        CWX_HANDLE handle,
-        bool& bSuspendListen);
+    virtual int onConnCreated(CWX_UINT32 uiSvrId, ///<service id
+        CWX_UINT32 uiHostId, ///<host id
+        CWX_HANDLE handle, ///<连接handle
+        bool& bSuspendListen ///<是否suspend listen
+        );
     ///连接建立
-    virtual int onConnCreated(CwxAppHandler4Msg& conn,
-        bool& bSuspendConn,
-        bool& bSuspendListen);
+    virtual int onConnCreated(CwxAppHandler4Msg& conn, ///<连接对象
+        bool& bSuspendConn, ///<是否suspend 连接消息的接收
+        bool& bSuspendListen ///<是否suspend 新连接的监听
+        );
     ///连接关闭
     virtual int onConnClosed(CwxAppHandler4Msg& conn);
     ///收到消息的响应函数
@@ -95,73 +95,58 @@ public:
     inline CWX_UINT32 getLastCommitTime() const{
         return m_ttLastCommitTime;
     }
-
     ///设置上一次commit的时间
     inline void setLastCommitTime(CWX_UINT32 ttTime){
         m_ttLastCommitTime = ttTime;
     }
-
     ///获取未commit的log数量
     inline CWX_UINT32 getUnCommitLogNum() const{
         return m_uiUnCommitLogNum;
     }
-
     ///增加未commit的log数量
     inline CWX_UINT32 incUnCommitLogNum(){
         return ++m_uiUnCommitLogNum;
     }
-
     ///将未commit的log数量归零
     inline void zeroUnCommitLogNum(){
         m_uiUnCommitLogNum = 0;
     }
-
     ///获取MQ上次commit的时间
     inline CWX_UINT32 getMqLastCommitTime() const{
         return m_ttMqLastCommitTime;
     }
-
     ///设置MQ上次commit的时间
     inline void setMqLastCommitTime(CWX_UINT32 ttTime){
         m_ttMqLastCommitTime = ttTime;
     }
-
-
     ///将当前的SID加1并返回，只有master才形成sid
     inline CWX_UINT64 nextSid(){
         return ++m_uiCurSid;
     }
-
     ///获取当前的sid
     inline CWX_UINT64 getCurSid(){
         return m_uiCurSid;
     }
-
     ///获取配置信息对象
     inline CwxMqConfig const& getConfig() const{
         return m_config;
     }
-
     ///获取binlog manager 对象指针
     inline CwxBinLogMgr* getBinLogMgr(){
         return m_pBinLogMgr;
     }
-
     ///获取mq队列管理器
     inline CwxMqQueueMgr* getQueueMgr(){
         return m_queueMgr;
     }
-
     ///获取slave从master同步binlog的handler对象
     inline CwxMqMasterHandler* getMasterHandler(){
         return m_pMasterHandler;
     }
-
     ///获取master接收binlog的handler对象
     inline CwxMqBinRecvHandler* getBinRecvHandler(){
         return m_pBinRecvHandler;
     }
-
     ///更新服务状态
     inline void updateAppRunState(){
         bool bValid = true;
@@ -186,35 +171,36 @@ public:
         setAppRunValid(bValid);
         setAppRunFailReason(szReason);
     }
-
+    ///获取分发的channel
     CwxAppChannel* getAsyncDispChannel(){
         return m_asyncDispChannel;
     }
-
+    ///获取mq的channel
     CwxAppChannel* getMqChannel(){
         return m_mqChannel;
     }
-
 protected:
     ///重载运行环境设置API
     virtual int initRunEnv();
+    ///释放app资源
     virtual void destroy();
 private:
     ///启动binlog管理器，-1：失败；0：成功
     int startBinLogMgr();
+    ///启动网络，-1：失败；0：成功
     int startNetwork();
     ///stats命令，-1：因为错误关闭连接；0：不关闭连接
     int monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHandler4Msg& conn);
     ///形成监控内容，返回监控内容的长度
     CWX_UINT32 packMonitorInfo();
     ///分发channel的线程函数，arg为app对象
-    static void* DispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg);
+    static void* dispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg);
     ///分发channel的队列消息函数。返回值：0：正常；-1：队列停止
-    static int DispatchThreadDoQueue(CwxTss* tss, CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel);
+    static int dealDispatchThreadQueueMsg(CwxTss* tss, CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel);
     ///分发mq channel的线程函数，arg为app对象
-    static void* MqThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg);
+    static void* mqFetchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg);
     ///分发mq channel的队列消息函数。返回值：0：正常；-1：队列停止
-    static int MqThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel);
+    static int dealMqFetchThreadQueueMsg(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel);
     ///设置master recv连接的属性
     static int setMasterRecvSockAttr(CWX_HANDLE handle, void* arg);
     ///设置master dispatch连接的属性
