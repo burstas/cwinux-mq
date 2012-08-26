@@ -1,7 +1,7 @@
 #include "CwxMqBinAsyncHandler.h"
 #include "CwxMqApp.h"
 
-CwxMqBinAsyncHandler::map<CWX_UINT64, CwxMqBinAsyncHandlerSession* > m_sessionMap;  ///<session的map，key为session id
+map<CWX_UINT64, CwxMqBinAsyncHandlerSession* > CwxMqBinAsyncHandler::m_sessionMap;  ///<session的map，key为session id
 list<CwxMqBinAsyncHandlerSession*>  CwxMqBinAsyncHandler::m_freeSession; ///<需要关闭的session
 
 
@@ -78,19 +78,18 @@ void CwxMqBinAsyncHandler::doEvent(CwxMqApp* app, CwxMqTss* tss, CwxMsgBlock*& m
 }
 
 ///释放关闭的session
-void CwxMqBinAsyncHandler::dealClosedSession(CwxMqApp* app, CwxMqTss* tss){
+void CwxMqBinAsyncHandler::dealClosedSession(CwxMqApp* app, CwxMqTss* ){
     list<CwxMqBinAsyncHandlerSession*>::iterator iter;
     CwxMqBinAsyncHandler* handler;
     ///获取用户object对象
-    UnistorDispatchThreadUserObj* userObj = (UnistorDispatchThreadUserObj*) tss->getUserObj();
-    if (userObj->m_freeSession.begin() != userObj->m_freeSession.end()){
-        iter = userObj->m_freeSession.begin();
-        while(iter != userObj->m_freeSession.end()){
+    if (m_freeSession.begin() != m_freeSession.end()){
+        iter = m_freeSession.begin();
+        while(iter != m_freeSession.end()){
             ///session必须是closed状态
             CWX_ASSERT((*iter)->m_bClosed);
             CWX_INFO(("Close sync session from host:%s", (*iter)->m_strHost.c_str()));
             ///将session从session的map中删除
-            userObj->m_sessionMap.erase((*iter)->m_ullSessionId);
+            m_sessionMap.erase((*iter)->m_ullSessionId);
             ///开始关闭连接
             map<CWX_UINT32, CwxMqBinAsyncHandler*>::iterator conn_iter = (*iter)->m_conns.begin();
             while(conn_iter != (*iter)->m_conns.end()){
@@ -101,12 +100,12 @@ void CwxMqBinAsyncHandler::dealClosedSession(CwxMqApp* app, CwxMqTss* tss){
             }
             ///释放对应的cursor
             if ((*iter)->m_pCursor){
-                app->getStore()->getBinLogMgr()->destoryCurser((*iter)->m_pCursor);
+                app->getBinLogMgr()->destoryCurser((*iter)->m_pCursor);
             }
             delete *iter;
             iter++;
         }
-        userObj->m_freeSession.clear();
+        m_freeSession.clear();
     }
 }
 
@@ -140,15 +139,14 @@ int CwxMqBinAsyncHandler::onConnClosed(){
     CWX_INFO(("CwxMqBinAsyncHandler: conn closed, conn_id=%u", m_uiConnId));
     ///一条连接关闭，则整个session失效
     if (m_syncSession){
-        UnistorDispatchThreadUserObj* userObj=(UnistorDispatchThreadUserObj*)m_tss->getUserObj();
         ///如果连接对应的session存在
-        if (userObj->m_sessionMap.find(m_ullSessionId) != userObj->m_sessionMap.end()){
+        if (m_sessionMap.find(m_ullSessionId) != m_sessionMap.end()){
             CWX_INFO(("CwxMqBinAsyncHandler: conn closed, conn_id=%u", m_uiConnId));
             if (!m_syncSession->m_bClosed){
                 ///将session标记为close
                 m_syncSession->m_bClosed = true;
                 ///将session放到需要是否的session列表
-                userObj->m_freeSession.push_back(m_syncSession);
+                m_freeSession.push_back(m_syncSession);
             }
             ///将连接从session的连接中删除，因此此连接将被delete
             m_syncSession->m_conns.erase(m_uiConnId);
@@ -253,10 +251,11 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
         string strSubcribe=subscribe?subscribe:"";
         string strErrMsg;
         m_syncSession = new CwxMqBinAsyncHandlerSession();
-        string strSubcribe=subscribe?subscribe:"";
         if (!CwxMqPoco::parseSubsribe(strSubcribe, m_syncSession->m_subscribe, strErrMsg)){
             iRet = CWX_MQ_ERR_ERROR;
-            CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Invalid subscribe[%s], err=%s",subscribe,  m_syncSession->m_subscribe.m_strErrMsg.c_str());
+            CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Invalid subscribe[%s], err=%s",
+                subscribe,
+                strErrMsg);
             CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
             delete m_syncSession;
             m_syncSession = NULL;
@@ -266,8 +265,8 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
         m_syncSession->m_uiChunk = uiChunk;
         m_syncSession->m_bZip = bzip;
         m_syncSession->m_strSign = sign;
-        if ((m_syncSession->m_strSign != UNISTOR_KEY_CRC32) &&
-            (m_syncSession->m_strSign != UNISTOR_KEY_MD5))
+        if ((m_syncSession->m_strSign != CWX_MQ_CRC32) &&
+            (m_syncSession->m_strSign != CWX_MQ_MD5))
         {//如果签名不是CRC32或MD5，则忽略
             m_syncSession->m_strSign.erase();
         }
@@ -301,7 +300,7 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
         if (!bNewly){
             if (ullSid && ullSid < m_pApp->getBinLogMgr()->getMinSid()){
                 m_pApp->getBinLogMgr()->destoryCurser(pCursor);
-                iRet = UNISTOR_ERR_LOST_SYNC;
+                iRet = CWX_MQ_ERR_LOST_SYNC;
                 char szBuf1[64], szBuf2[64];
                 sprintf(pTss->m_szBuf2K, "Lost sync state, report sid:%s, min sid:%s",
                     CwxCommon::toString(ullSid, szBuf1),
@@ -348,7 +347,6 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
         pBlock,
         m_header.getTaskId(),
         iRet,
-        0,
         pTss->m_szBuf2K,
         pTss->m_szBuf2K))
     {
@@ -418,7 +416,6 @@ int CwxMqBinAsyncHandler::recvSyncNewConnection(CwxMqTss* pTss){
         msg,
         m_header.getTaskId(),
         iRet,
-        0,
         pTss->m_szBuf2K,
         pTss->m_szBuf2K))
     {
@@ -595,19 +592,19 @@ int CwxMqBinAsyncHandler::syncSendBinLog(CwxMqTss* pTss){
         if (0 == uiTotalLen) return 0;
         //add sign
         if (m_syncSession->m_strSign.length()){
-            if (m_syncSession->m_strSign == CWX_MQ_KEY_CRC32){//CRC32签名
+            if (m_syncSession->m_strSign == CWX_MQ_CRC32){//CRC32签名
                 CWX_UINT32 uiCrc32 = CwxCrc32::value(pTss->m_pWriter->getMsg(), pTss->m_pWriter->getMsgSize());
-                if (!pTss->m_pWriter->addKeyValue(CWX_MQ_KEY_CRC32, (char*)&uiCrc32, sizeof(uiCrc32))){
+                if (!pTss->m_pWriter->addKeyValue(CWX_MQ_CRC32, (char*)&uiCrc32, sizeof(uiCrc32))){
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Failure to add key value, err:%s", pTss->m_pWriter->getErrMsg());
                     CWX_ERROR((pTss->m_szBuf2K));
                     return -1;
                 }
-            } else if (m_syncSession->m_strSign == CWX_MQ_KEY_MD5){//md5签名
+            } else if (m_syncSession->m_strSign == CWX_MQ_MD5){//md5签名
                 CwxMd5 md5;
                 unsigned char szMd5[16];
                 md5.update((unsigned char*)pTss->m_pWriter->getMsg(), pTss->m_pWriter->getMsgSize());
                 md5.final(szMd5);
-                if (!pTss->m_pWriter->addKeyValue(CWX_MQ_KEY_MD5, (char*)szMd5, 16)){
+                if (!pTss->m_pWriter->addKeyValue(CWX_MQ_MD5, (char*)szMd5, 16)){
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Failure to add key value, err:%s", pTss->m_pWriter->getErrMsg());
                     CWX_ERROR((pTss->m_szBuf2K));
                     return -1;
@@ -718,13 +715,13 @@ int CwxMqBinAsyncHandler::syncPackMultiBinLog(CwxPackageWriter* writer,
         CWX_ERROR(("Failure to pack binlog package, err:%s", szErr2K));
         return -1;
     }
-    if (!writer->addKeyValue(UNISTOR_KEY_M, writer_item->getMsg(), writer_item->getMsgSize(),true)){
+    if (!writer->addKeyValue(CWX_MQ_M, writer_item->getMsg(), writer_item->getMsgSize(),true)){
         ///形成数据包失败
         CwxCommon::snprintf(szErr2K, 2047, "Failure to pack binlog package, err:%s", writer->getErrMsg());
         CWX_ERROR((szErr2K));
         return -1;
     }
-    uiLen = CwxPackage::getKvLen(strlen(UNISTOR_KEY_M),  writer_item->getMsgSize());
+    uiLen = CwxPackage::getKvLen(strlen(CWX_MQ_M),  writer_item->getMsgSize());
     return 1;
 }
 
@@ -741,8 +738,6 @@ int CwxMqBinAsyncHandler::syncSeekToBinlog(CwxMqTss* tss, CWX_UINT32& uiSkipNum)
         }
     }
     bool bFind = false;
-    char const* szKey=NULL;
-    CwxKeyValueItem const* pKeyItem=NULL;
     CWX_UINT32 uiDataLen = m_syncSession->m_pCursor->getHeader().getLogLen();
     ///准备data读取的buf
     char* szData = tss->getBuf(uiDataLen);        
