@@ -192,6 +192,29 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     return 1;
 }
 
+int CwxMqMasterHandler::recvMsg(CwxMsgBlock*& msg, list<CwxMsgBlock*>& msgs){
+    CWX_UINT64 ullSeq = 0;
+    if (!m_syncSession->m_ullSessionId){
+        CWX_ERROR(("No Session"));
+        return -1;
+    }
+    if (msg->length() < sizeof(ullSeq)){
+        CWX_ERROR(("sync data's size[%u] is invalid, min-size=%u", msg->length(), sizeof(ullSeq)));
+        return -1;
+    }
+    map<CWX_UINT32,  bool/*ÊÇ·ñÒÑ¾­report*/>::iterator conn_iter = m_syncSession->m_conns.find(msg->event().getConnId());
+    if (conn_iter == m_syncSession->m_conns.end()){
+        CWX_ERROR(("Conn-id[%u] doesn't exist.", msg->event().getConnId()));
+        return -1;
+    }
+    ullSeq =  CwxMqPoco::getSeq(msg->rd_ptr());
+    if (!m_syncSession->recv(ullSeq, msg, msgs)){
+        CWX_ERROR(("Conn-id[%u] doesn't exist.", msg->event().getConnId()));
+        return -1;
+    }
+    return 0;
+}
+
 int CwxMqMasterHandler::dealErrMsg(CwxMsgBlock*& msg, CwxMqTss* pTss){
     int ret = 0;
     char const* szErrMsg;
