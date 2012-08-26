@@ -7,7 +7,6 @@ CwxMqFetchConn::CwxMqFetchConn()
 {
     m_bWaiting = false;
     m_bBlock = false;
-    m_uiTimeout = 0;
     m_uiTaskId = 0;
 }
 
@@ -18,7 +17,6 @@ void CwxMqFetchConn::reset()
 {
     m_bWaiting = false;
     m_bBlock = false;
-    m_uiTimeout = 0;
     m_uiTaskId = 0;
 }
 

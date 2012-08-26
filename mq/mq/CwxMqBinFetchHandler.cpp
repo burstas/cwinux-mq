@@ -173,8 +173,6 @@ int CwxMqBinFetchHandler::fetchMq(CwxMqTss* pTss){
         }
         ///设置是否block
         m_conn.m_bBlock = bBlock;
-        ///设置timeout值
-        m_conn.m_uiTimeout = timeout;
         ///发送消息
         int ret = sentBinlog(pTss);
         if (0 == ret){///等待消息
@@ -477,9 +475,7 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss){
     iState = m_pApp->getQueueMgr()->getNextBinlog(pTss,
         m_conn.m_strQueueName,
         pBlock,
-        m_conn.m_uiTimeout,
         err_no,
-        m_conn.m_bCommit,
         pTss->m_szBuf2K);
     if (-1 == iState){///获取消息失败
         CWX_ERROR(("Failure to read binlog ,err:%s", pTss->m_szBuf2K));
