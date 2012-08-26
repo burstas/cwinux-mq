@@ -45,7 +45,10 @@ int CwxMqMasterHandler::createSession(CwxMqTss* pTss){
         &timeouter,
         true))
     {
-        CWX_ERROR(("Failure to connect to addr:%s, port:%u, err=%d", strHost.c_str(), unPort, errno)); 
+        CWX_ERROR(("Failure to connect to addr:%s, port:%u, err=%d",
+            m_pApp->getConfig().getSlave().m_master.getHostName().c_str(),
+            m_pApp->getConfig().getSlave().m_master.getPort(),
+            errno)); 
         return -1;
     }
     m_uiCurHostId++;
@@ -73,7 +76,7 @@ int CwxMqMasterHandler::createSession(CwxMqTss* pTss){
     ///发送report的消息
     ///创建往master报告sid的通信数据包
     CwxMsgBlock* pBlock = NULL;
-    int ret = CwxMqPoco::packReportData(pTss->m_pWriter,
+    ret = CwxMqPoco::packReportData(pTss->m_pWriter,
         pBlock,
         0,
         m_pApp->getBinLogMgr()->getMaxSid(),
@@ -91,7 +94,7 @@ int CwxMqMasterHandler::createSession(CwxMqTss* pTss){
         return -1;
     }else{
         ///发送消息
-        pBlock->send_ctrl().setConnId(m_uiConnId);
+        pBlock->send_ctrl().setConnId(m_syncSession->m_conns.begin()->first);
         pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_MASTER);
         pBlock->send_ctrl().setHostId(0);
         pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
@@ -110,6 +113,7 @@ int CwxMqMasterHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* pThrEnv){
     if (!m_syncSession){
         createSession((CwxMqTss*)pThrEnv);
     }
+    return 0;
 }
 
 ///master的连接关闭后，需要清理环境
@@ -127,8 +131,6 @@ int CwxMqMasterHandler::onConnClosed(CwxMsgBlock*&, CwxTss* ){
 ///接收来自master的消息
 int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
-    int iRet = 0;
-    CWX_UINT32 i = 0;
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     if (!m_syncSession){///关闭连接
         m_pApp->noticeCloseConn(msg->event().getConnId());
@@ -141,7 +143,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     int ret = -1;
     do{
         if (!msg || !msg->length()){
-            CWX_ERROR(("Recv empty msg from master:%s", m_syncSession->m_strHost.c_str()));
+            CWX_ERROR(("Receive empty msg from master"));
             break;
         }
         //SID报告的回复，此时，一定是报告失败
@@ -178,7 +180,8 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             dealErrMsg(msg, pTss);
             break;
         }else{
-            CWX_ERROR(("Receive invalid msg type from master, msg_type=%u, server=%s", msg->event().getMsgHeader().getMsgType(), m_syncSession->m_strHost.c_str()));
+            CWX_ERROR(("Receive invalid msg type from master, msg_type=%u",
+                msg->event().getMsgHeader().getMsgType()));
             break;
         }
         ret = 0;
@@ -273,12 +276,13 @@ int CwxMqMasterHandler::dealSyncData(CwxMsgBlock*& msg, ///<收到的消息
                  )
 {
     unsigned long ulUnzipLen = 0;
-    CWX_UINT32 ullSeq =  UnistorPoco::getSeq(msg->rd_ptr());
+    CWX_UINT32 ullSeq =  CwxMqPoco::getSeq(msg->rd_ptr());
     bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
     if (!msg){
         CWX_ERROR(("received sync data is empty."));
         return -1;
     }
+    int iRet = 0;
     //判断是否压缩数据
     if (bZip){//压缩数据，需要解压
         //首先准备解压的buf
@@ -315,7 +319,7 @@ int CwxMqMasterHandler::dealSyncData(CwxMsgBlock*& msg, ///<收到的消息
         CWX_ERROR(("Failure to pack sync data reply, errno=%s", pTss->m_szBuf2K));
         return -1;
     }
-    reply_block->send_ctrl().setConnId(m_uiConnId);
+    reply_block->send_ctrl().setConnId(msg->event().getConnId());
     reply_block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_MASTER);
     reply_block->send_ctrl().setHostId(0);
     reply_block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
@@ -332,12 +336,11 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
                       CwxMqTss* pTss ///<tss对象
                       )
 {
-    CWX_UINT64 ullSeq;
     unsigned long ulUnzipLen = 0;
-    CWX_UINT32 ullSeq =  UnistorPoco::getSeq(msg->rd_ptr());
+    CWX_UINT32 ullSeq =  CwxMqPoco::getSeq(msg->rd_ptr());
     bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
     if (!msg){
-        CWX_ERROR(("recieved sync data is empty."));
+        CWX_ERROR(("received sync data is empty."));
         return -1;
     }
 
@@ -385,7 +388,7 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
             bSign = 1;
         }
     }
-    for (i=0; i<m_reader.getKeyNum() - bSign; i++){
+    for (CWX_UINT32 i=0; i<m_reader.getKeyNum() - bSign; i++){
         if(0 != strcmp(m_reader.getKey(i)->m_szKey, CWX_MQ_M)){
             CWX_ERROR(("Master multi-binlog's key must be:%s, but:%s", CWX_MQ_M, m_reader.getKey(i)->m_szKey));
             return -1;
@@ -409,7 +412,7 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
         CWX_ERROR(("Failure to pack sync data reply, errno=%s", pTss->m_szBuf2K));
         return -1;
     }
-    reply_block->send_ctrl().setConnId(m_uiConnId);
+    reply_block->send_ctrl().setConnId(msg->event().getConnId());
     reply_block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_MASTER);
     reply_block->send_ctrl().setHostId(0);
     reply_block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
