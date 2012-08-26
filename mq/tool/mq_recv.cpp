@@ -443,7 +443,7 @@ int main(int argc ,char** argv)
                     &reader,
                     block,
                     iRet,
-                    szErr2K,
+                    pErrMsg,
                     szErr2K
                     ))
                 {
@@ -451,7 +451,7 @@ int main(int argc ,char** argv)
                     iRet = 1;
                     break;
                 }
-                printf("receive sync err msg, ret=%d, err=%s\n", iRet, szErr2K);
+                printf("receive sync err msg, ret=%d, err=%s\n", iRet, pErrMsg?pErrMsg:"");
                 iRet = 1;
                 break;
             }else{
