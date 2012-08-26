@@ -14,13 +14,10 @@ string g_auth_user;
 string g_auth_passwd;
 string g_subscribe;
 CWX_UINT64 g_sid;
-bool   g_commit=false;
-CWX_UINT32 g_def_timeout = 0;
-CWX_UINT32 g_max_timeout = 0;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:s:d:m:U:W:S:hc");
+	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:s:U:W:S:h");
     int option;
 
     while( (option = cmd_option.next()) != -1)
@@ -35,10 +32,7 @@ int parseArg(int argc, char**argv)
             printf("-u: queue's user, it can be empty.\n");
             printf("-p: queue's user passwd, it can be empty.\n");
             printf("-q: queue's name, it can't be empty.\n");
-            printf("-c: commit type queue. if no this option, the created queue is non-commit type.\n");
             printf("-s: queue's subscribe. it can be empty for subscribe all message.\n");
-            printf("-d: default timeout second for commit queue. it can be zero for using server's default timeout.\n");
-            printf("-m: max timeout second for commit queue. it can be zero for using server's max timeout.\n");
             printf("-U: authentication user for queue.\n");
             printf("-W: authentication user password for queue.\n");
             printf("-S: queue's start sid, zero for the current max sid.\n");
@@ -84,8 +78,6 @@ int parseArg(int argc, char**argv)
             }
             g_queue = cmd_option.opt_arg();
             break;
-        case 'c':
-            g_commit = true;
             break;
         case 's':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -94,22 +86,6 @@ int parseArg(int argc, char**argv)
                 return -1;
             }
             g_subscribe = cmd_option.opt_arg();
-            break;
-        case 'd':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("-d requires an argument.\n");
-                return -1;
-            }
-            g_def_timeout = strtoul(cmd_option.opt_arg(),NULL,10);
-            break;
-        case 'm':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("-m requires an argument.\n");
-                return -1;
-            }
-            g_max_timeout = strtoul(cmd_option.opt_arg(),NULL,10);
             break;
         case 'U':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -207,9 +183,6 @@ int main(int argc ,char** argv)
             g_auth_user.c_str(),
             g_auth_passwd.c_str(),
             g_sid,
-            g_commit,
-            g_def_timeout,
-            g_max_timeout,
             szErr2K
             ))
         {
