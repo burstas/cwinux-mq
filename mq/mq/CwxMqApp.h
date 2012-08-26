@@ -72,6 +72,15 @@ public:
     virtual int onRecvMsg(CwxAppHandler4Msg& conn,
            bool& bSuspendConn);
 public:
+    ///计算机的时钟是否回调
+    static bool isClockBack(CWX_UINT32& uiLastTime, CWX_UINT32 uiNow){
+        if (uiLastTime > uiNow + 1){
+            uiLastTime = uiNow;
+            return true;
+        }
+        uiLastTime = uiNow;
+        return false;
+    }
     ///-1:失败；0：成功
     int commit_mq();
     ///是否是第一条binlog
