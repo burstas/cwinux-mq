@@ -172,9 +172,9 @@ public:
                 szReason = m_pBinLogMgr->getInvalidMsg();
                 break;
             }else if (m_pMasterHandler){
-                if (!m_pMasterHandler->isSync()){
+                if (!m_pMasterHandler->getSession()){
                     bValid = false;
-                    szReason = m_pMasterHandler->getMasterErr().c_str();
+                    szReason = "Lost Master";
                 }
             }else if (m_queueMgr){
                 if (!m_queueMgr->isValid()){

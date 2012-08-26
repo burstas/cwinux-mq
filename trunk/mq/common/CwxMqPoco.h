@@ -278,8 +278,8 @@ public:
         CWX_UINT32 uiTimeStamp,
         CwxKeyValueItem const& data,
         CWX_UINT32 group,
-        char const* sign=NULL,
-        bool       zip = false,
+        char const* sign,
+        bool       zip,
         CWX_UINT64 ullSeq,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败

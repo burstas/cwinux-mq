@@ -709,8 +709,7 @@ void* CwxMqApp::DispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg)
             sleep(1);
         }
         ///检查关闭的连接
-        CwxMqBinAsyncHandler::dealClosedSession();
-
+        CwxMqBinAsyncHandler::dealClosedSession(this, (CwxMqTss*)tss);
     }
     ///释放分发的资源
     CwxMqBinAsyncHandler::destroy();
@@ -724,7 +723,10 @@ void* CwxMqApp::DispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg)
     return NULL;
 }
 ///分发channel的队列消息函数。返回值：0：正常；-1：队列停止
-int CwxMqApp::DispatchThreadDoQueue(CwxTss* tss, CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel)
+int CwxMqApp::DispatchThreadDoQueue(CwxTss* tss,
+                                    CwxMsgQueue* queue,
+                                    CwxMqApp* app,
+                                    CwxAppChannel* channel)
 {
     int iRet = 0;
     CwxMsgBlock* block = NULL;

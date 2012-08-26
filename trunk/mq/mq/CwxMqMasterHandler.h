@@ -100,6 +100,12 @@ public:
     virtual int onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     ///超时检查
     virtual int onTimeoutCheck(CwxMsgBlock*& msg, CwxTss* pThrEnv);
+public:
+    ///获取session
+    CwxMqSyncSession*  getSession(){
+        return m_syncSession; ///<数据同步的session
+    }
+
 private:
     //关闭已有连接
     void closeSession();
@@ -127,7 +133,7 @@ private:
 
     //处理错误消息。返回值：0：成功；-1：失败
     int dealErrMsg(CwxMsgBlock*& msg,  ///<收到的消息
-        UnistorTss* pTss ///<tss对象
+        CwxMqTss* pTss ///<tss对象
         );
 
     //0：成功；-1：失败
@@ -145,7 +151,7 @@ private:
     CwxPackageReader         m_reader; ///<解包的reader
     unsigned char*           m_unzipBuf; ///<解压的buffer
     CWX_UINT32               m_uiBufLen; ///<解压buffer的大小，其为trunk的20倍，最小为20M。
-    UnistorSyncSession*       m_syncSession; ///<数据同步的session
+    CwxMqSyncSession*        m_syncSession; ///<数据同步的session
     CWX_UINT32               m_uiCurHostId; ///<当前的host id
 };
 

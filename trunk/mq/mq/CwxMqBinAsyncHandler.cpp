@@ -34,6 +34,16 @@ CwxMqBinAsyncHandler::~CwxMqBinAsyncHandler(){
     m_recvMsgData = NULL;
 }
 
+///释放资源
+void CwxMqBinAsyncHandler::destroy(CwxMqApp* app){
+    map<CWX_UINT64, CwxMqBinAsyncHandlerSession* >::iterator iter = m_sessionMap.begin();
+    while(iter != m_sessionMap.end()){
+        if (iter->second->m_pCursor) app->getBinLogMgr()->destoryCurser(iter->second->m_pCursor);
+        delete iter->second;
+        iter++;
+    }
+    m_sessionMap.clear();
+}
 
 void CwxMqBinAsyncHandler::doEvent(CwxMqApp* app, CwxMqTss* tss, CwxMsgBlock*& msg){
     if (CwxEventInfo::CONN_CREATED == msg->event().getEvent()){///连接建立
