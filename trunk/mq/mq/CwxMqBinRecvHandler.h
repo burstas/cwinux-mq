@@ -12,18 +12,15 @@ class CwxMqApp;
 
 
 ///Dispatch master处理收到的bin协议的binlog handler
-class CwxMqBinRecvHandler: public CwxCmdOp
-{
+class CwxMqBinRecvHandler: public CwxCmdOp{
 public:
     ///构造函数
-    CwxMqBinRecvHandler(CwxMqApp* pApp):m_pApp(pApp)
-    {
+    CwxMqBinRecvHandler(CwxMqApp* pApp):m_pApp(pApp){
         m_unzipBuf = NULL;
         m_uiBufLen = 0;
     }
     ///析构函数
-    virtual ~CwxMqBinRecvHandler()
-    {
+    virtual ~CwxMqBinRecvHandler(){
         if (m_unzipBuf) delete [] m_unzipBuf;
     }
 public:
