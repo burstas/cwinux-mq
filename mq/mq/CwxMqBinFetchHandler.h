@@ -18,8 +18,7 @@
 
 class CwxMqApp;
 
-class CwxMqBinFetchHandler: public CwxAppHandler4Channel
-{
+class CwxMqBinFetchHandler: public CwxAppHandler4Channel{
 public:
     ///构造函数
     CwxMqBinFetchHandler(CwxMqApp* pApp, CwxAppChannel* channel):CwxAppHandler4Channel(channel)
@@ -31,8 +30,7 @@ public:
 
     }
     ///析构函数
-    virtual ~CwxMqBinFetchHandler()
-    {
+    virtual ~CwxMqBinFetchHandler(){
         if (m_recvMsgData) CwxMsgBlockAlloc::free(m_recvMsgData);
     }
 public:
@@ -98,9 +96,9 @@ private:
     CwxMqFetchConn         m_conn; ///<mq fetch的连接
     CwxMsgHead             m_header; ///<消息头
     char                   m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN + 1]; ///<消息头的buf
-    CWX_UINT32             m_uiRecvHeadLen; ///<recieved msg header's byte number.
-    CWX_UINT32             m_uiRecvDataLen; ///<recieved data's byte number.
-    CwxMsgBlock*           m_recvMsgData; ///<the recieved msg data
+    CWX_UINT32             m_uiRecvHeadLen; ///<received msg header's byte number.
+    CWX_UINT32             m_uiRecvDataLen; ///<received data's byte number.
+    CwxMsgBlock*           m_recvMsgData; ///<the received msg data
 };
 
 #endif 

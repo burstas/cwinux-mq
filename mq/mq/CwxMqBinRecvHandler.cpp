@@ -3,8 +3,7 @@
 #include "CwxZlib.h"
 
 ///连接建立后，需要维护连接上数据的分发
-int CwxMqBinRecvHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* )
-{
+int CwxMqBinRecvHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* ){
     ///连接必须必须不存在
     CWX_ASSERT(m_clientMap.find(msg->event().getConnId()) == m_clientMap.end());
     m_clientMap[msg->event().getConnId()] = false;
@@ -13,8 +12,7 @@ int CwxMqBinRecvHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* )
 }
 
 ///连接关闭后，需要清理环境
-int CwxMqBinRecvHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss* )
-{
+int CwxMqBinRecvHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss* ){
     map<CWX_UINT32, bool>::iterator iter = m_clientMap.find(msg->event().getConnId());
     ///连接必须存在
     CWX_ASSERT(iter != m_clientMap.end());
@@ -24,8 +22,7 @@ int CwxMqBinRecvHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss* )
 }
 
 ///echo请求的处理函数
-int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
-{
+int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     int iRet = CWX_MQ_ERR_SUCCESS;
     char const* user=NULL;
@@ -33,22 +30,20 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     map<CWX_UINT32, bool>::iterator conn_iter = m_clientMap.find(msg->event().getConnId());
     CWX_ASSERT(conn_iter != m_clientMap.end());
     bool bAuth = conn_iter->second;
-	CWX_UINT64 ullSid = 0;
+    CWX_UINT64 ullSid = 0;
     do{
         ///binlog数据接收消息
         if (CwxMqPoco::MSG_TYPE_RECV_DATA == msg->event().getMsgHeader().getMsgType())
         {
             CWX_UINT32 uiGroup;
             CwxKeyValueItem const* pData;
-            if (m_pApp->getBinLogMgr()->isInvalid())
-            {
+            if (m_pApp->getBinLogMgr()->isInvalid()){
                 ///如果binlog mgr无效，则停止接收
                 iRet = CWX_MQ_ERR_ERROR;
                 strcpy(pTss->m_szBuf2K, m_pApp->getBinLogMgr()->getInvalidMsg());
                 break;
             }
-            if (!msg)
-            {
+            if (!msg){
                 strcpy(pTss->m_szBuf2K, "No data.");
                 CWX_DEBUG((pTss->m_szBuf2K));
                 iRet = CWX_MQ_ERR_ERROR;
@@ -58,11 +53,9 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             unsigned long ulUnzipLen = 0;
             bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
             //判断是否压缩数据
-            if (bZip)
-            {//压缩数据，需要解压
+            if (bZip){//压缩数据，需要解压
                 //首先准备解压的buf
-                if (!prepareUnzipBuf())
-                {
+                if (!prepareUnzipBuf()){
                     iRet = CWX_MQ_ERR_ERROR;
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Failure to prepare unzip buf, size:%u", m_uiBufLen);
                     CWX_ERROR((pTss->m_szBuf2K));
@@ -70,8 +63,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 }
                 ulUnzipLen = m_uiBufLen;
                 //解压
-                if (!CwxZlib::unzip(m_unzipBuf, ulUnzipLen, (const unsigned char*)msg->rd_ptr(), msg->length()))
-                {
+                if (!CwxZlib::unzip(m_unzipBuf, ulUnzipLen, (const unsigned char*)msg->rd_ptr(), msg->length())){
                     iRet = CWX_MQ_ERR_ERROR;
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Failure to unzip recv msg, msg size:%u, buf size:%u", msg->length(), m_uiBufLen);
                     CWX_ERROR((pTss->m_szBuf2K));
@@ -90,11 +82,9 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             {
                 //如果是无效数据，返回
                 CWX_DEBUG(("Failure to parse the recieve msg, err=%s", pTss->m_szBuf2K));
-//                iRet = CWX_MQ_ERR_ERROR;
                 break;
             }
-            if (!bAuth && m_pApp->getConfig().getMaster().m_recv.getUser().length())
-            {
+            if (!bAuth && m_pApp->getConfig().getMaster().m_recv.getUser().length()){
                 if ((m_pApp->getConfig().getMaster().m_recv.getUser() != user) ||
                     (m_pApp->getConfig().getMaster().m_recv.getPasswd() != passwd))
                 {
@@ -108,7 +98,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             pTss->m_pWriter->beginPack();
             pTss->m_pWriter->addKeyValue(CWX_MQ_D, pData->m_szData, pData->m_uiDataLen, pData->m_bKeyValue);
             pTss->m_pWriter->pack();
-			ullSid = m_pApp->nextSid();
+            ullSid = m_pApp->nextSid();
             if (0 != m_pApp->getBinLogMgr()->append(ullSid,
                 time(NULL),
                 uiGroup,
@@ -128,23 +118,17 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 (time(NULL) > (time_t)(m_pApp->getLastCommitTime() + m_pApp->getConfig().getBinLog().m_uiFlushSecond)))
             {
                 ///若达到提交的数量或第一次提交，则提交
-                if (0 != commit(pTss->m_szBuf2K))
-                {
+                if (0 != commit(pTss->m_szBuf2K)){
                     CWX_ERROR((pTss->m_szBuf2K));
                     iRet = CWX_MQ_ERR_ERROR;
                     break;
                 }
             }
-        }
-        else if(CwxMqPoco::MSG_TYPE_RECV_COMMIT == msg->event().getMsgHeader().getMsgType())
-        {
-            if (!msg)
-            {
+        }else if(CwxMqPoco::MSG_TYPE_RECV_COMMIT == msg->event().getMsgHeader().getMsgType()){
+            if (!msg){
                 user = "";
                 passwd = "";
-            }
-            else
-            {
+            }else{
                 if (CWX_MQ_ERR_SUCCESS != (iRet=CwxMqPoco::parseCommit(pTss->m_pReader,
                     msg,
                     user,
@@ -157,9 +141,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                     break;
                 }
             }
-
-            if (m_pApp->getConfig().getMaster().m_recv.getUser().length())
-            {
+            if (m_pApp->getConfig().getMaster().m_recv.getUser().length()){
                 if ((m_pApp->getConfig().getMaster().m_recv.getUser() != user) ||
                     (m_pApp->getConfig().getMaster().m_recv.getPasswd() != passwd))
                 {
@@ -170,15 +152,12 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 }
             }
 
-            if (0 != commit(pTss->m_szBuf2K))
-            {
+            if (0 != commit(pTss->m_szBuf2K)){
                 CWX_ERROR(("Failure to commit the binlog, err=%s", pTss->m_szBuf2K));
                 iRet = CWX_MQ_ERR_ERROR;
                 break;
             }
-        }
-        else
-        {
+        }else{
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u", msg->event().getMsgHeader().getMsgType());
             CWX_ERROR((pTss->m_szBuf2K));
             iRet = CWX_MQ_ERR_ERROR;
@@ -186,8 +165,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         }
     }while(0);
     CwxMsgBlock* pBlock = NULL;
-    if (CwxMqPoco::MSG_TYPE_RECV_COMMIT==msg->event().getMsgHeader().getMsgType())
-    {
+    if (CwxMqPoco::MSG_TYPE_RECV_COMMIT==msg->event().getMsgHeader().getMsgType()){
         if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packCommitReply(pTss->m_pWriter,
             pBlock,
             msg->event().getMsgHeader().getTaskId(),
@@ -199,9 +177,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             m_pApp->noticeCloseConn(msg->event().getConnId());
             return 1;
         }
-    }
-    else
-    {
+    }else{
         if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packRecvDataReply(pTss->m_pWriter,
             pBlock,
             msg->event().getMsgHeader().getTaskId(),
@@ -219,8 +195,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_RECV);
     pBlock->send_ctrl().setHostId(0);
     pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
-    if (0 != m_pApp->sendMsgByConn(pBlock))
-    {
+    if (0 != m_pApp->sendMsgByConn(pBlock)){
         CWX_ERROR(("Failure to reply error msg"));
         CwxMsgBlockAlloc::free(pBlock);
         m_pApp->noticeCloseConn(msg->event().getConnId());
@@ -229,17 +204,14 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 }
 
 ///对于同步dispatch，需要检查同步的超时
-int CwxMqBinRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* pThrEnv)
-{
+int CwxMqBinRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* pThrEnv){
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     ///flush binlog
-    if (m_pApp->getUnCommitLogNum())
-    {
+    if (m_pApp->getUnCommitLogNum()){
         if ((m_pApp->getUnCommitLogNum()>=m_pApp->getConfig().getBinLog().m_uiFlushNum) ||
             (time(NULL) > (time_t)(m_pApp->getLastCommitTime() + m_pApp->getConfig().getBinLog().m_uiFlushSecond)))
         {
-            if (0 != this->commit(pTss->m_szBuf2K))
-            {
+            if (0 != this->commit(pTss->m_szBuf2K)){
                 CWX_ERROR(("Failure to flush binlog ,err=%s", pTss->m_szBuf2K));
             }
         }
@@ -248,12 +220,10 @@ int CwxMqBinRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* pThrEnv)
 }
 
 
-int CwxMqBinRecvHandler::commit(char* szErr2K)
-{
+int CwxMqBinRecvHandler::commit(char* szErr2K){
     int iRet = 0;
     CWX_INFO(("Begin flush bin log......."));
-    if (m_pApp->getUnCommitLogNum())
-    {
+    if (m_pApp->getUnCommitLogNum()){
         m_pApp->clearFirstBinLog();
         iRet = m_pApp->getBinLogMgr()->commit(false, szErr2K);
         m_pApp->zeroUnCommitLogNum();
@@ -263,15 +233,11 @@ int CwxMqBinRecvHandler::commit(char* szErr2K)
     return iRet;
 }
 
-bool CwxMqBinRecvHandler::prepareUnzipBuf()
-{
-    if (!m_unzipBuf)
-    {
+bool CwxMqBinRecvHandler::prepareUnzipBuf(){
+    if (!m_unzipBuf){
         m_uiBufLen = CWX_MQ_MAX_MSG_SIZE + 4096;
         if (m_uiBufLen < 1024 * 1024) m_uiBufLen = 1024 * 1024;
         m_unzipBuf = new unsigned char[m_uiBufLen];
     }
     return m_unzipBuf!=NULL;
 }
-
-

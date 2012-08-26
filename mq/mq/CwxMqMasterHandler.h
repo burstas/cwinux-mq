@@ -74,13 +74,7 @@ public:
 };
 
 ///slave从master接收binlog的处理handle
-class CwxMqMasterHandler : public CwxCmdOp
-{
-public:
-    enum
-    {
-        RECONN_MASTER_DELAY_SECOND = 4
-    };
+class CwxMqMasterHandler : public CwxCmdOp{
 public:
     ///构造函数
     CwxMqMasterHandler(CwxMqApp* pApp):m_pApp(pApp){
@@ -115,27 +109,22 @@ private:
     int recvMsg(CwxMsgBlock*& msg, ///<收到的消息
         list<CwxMsgBlock*>& msgs ///<接收池中返回的可处理的消息。在list按照先后次序排序
         );
-
     ///处理Sync report的reply消息。返回值：0：成功；-1：失败
     int dealSyncReportReply(CwxMsgBlock*& msg, ///<收到的消息
         CwxMqTss* pTss ///<tss对象
         );
-
     ///处理收到的sync data。返回值：0：成功；-1：失败
     int dealSyncData(CwxMsgBlock*& msg, ///<收到的消息
         CwxMqTss* pTss ///<tss对象
         );
-
     //处理收到的chunk模式下的sync data。返回值：0：成功；-1：失败
     int dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
         CwxMqTss* pTss ///<tss对象
         );
-
     //处理错误消息。返回值：0：成功；-1：失败
     int dealErrMsg(CwxMsgBlock*& msg,  ///<收到的消息
         CwxMqTss* pTss ///<tss对象
         );
-
     //0：成功；-1：失败
     int saveBinlog(CwxMqTss* pTss,
         char const* szBinLog,
