@@ -261,7 +261,6 @@ int main(int argc ,char** argv)
             g_sid>0?g_sid-1:g_sid,
             g_sid==0?true:false,
             g_chunk,
-            g_window,
             g_subscribe.c_str(),
             g_user.c_str(),
             g_passwd.c_str(),
