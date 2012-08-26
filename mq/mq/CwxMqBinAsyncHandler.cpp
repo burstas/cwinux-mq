@@ -255,7 +255,7 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
             iRet = CWX_MQ_ERR_ERROR;
             CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Invalid subscribe[%s], err=%s",
                 subscribe,
-                strErrMsg);
+                strErrMsg.c_str());
             CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
             delete m_syncSession;
             m_syncSession = NULL;
@@ -767,7 +767,9 @@ int CwxMqBinAsyncHandler::syncSeekToBinlog(CwxMqTss* tss, CWX_UINT32& uiSkipNum)
             bFind = true;
         }while(0);
         if (bFind){
-            if (CwxMqPoco::isSubscribe(m_syncSession->m_subscribe, m_syncSession->m_pCursor->getHeader().getGroup()){
+            if (CwxMqPoco::isSubscribe(m_syncSession->m_subscribe,
+                m_syncSession->m_pCursor->getHeader().getGroup()))
+            {
                 break;
             }
         }
