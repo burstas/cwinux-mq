@@ -709,10 +709,10 @@ void* CwxMqApp::DispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg)
             sleep(1);
         }
         ///检查关闭的连接
-        CwxMqBinAsyncHandler::dealClosedSession(this, (CwxMqTss*)tss);
+        CwxMqBinAsyncHandler::dealClosedSession(app, (CwxMqTss*)tss);
     }
     ///释放分发的资源
-    CwxMqBinAsyncHandler::destroy();
+    CwxMqBinAsyncHandler::destroy(app);
 
     app->getAsyncDispChannel()->stop();
     app->getAsyncDispChannel()->close();
@@ -726,14 +726,14 @@ void* CwxMqApp::DispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg)
 int CwxMqApp::DispatchThreadDoQueue(CwxTss* tss,
                                     CwxMsgQueue* queue,
                                     CwxMqApp* app,
-                                    CwxAppChannel* channel)
+                                    CwxAppChannel* )
 {
     int iRet = 0;
     CwxMsgBlock* block = NULL;
     while (!queue->isEmpty()){
         iRet = queue->dequeue(block);
         if (-1 == iRet) return -1;
-        CwxMqBinAsyncHandler::doEvent(app, tss, block);
+        CwxMqBinAsyncHandler::doEvent(app, (CwxMqTss*)tss, block);
         if (block) CwxMsgBlockAlloc::free(block);
         block = NULL;
     }
@@ -798,7 +798,6 @@ int CwxMqApp::MqThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* 
             }else{
                 CWX_ASSERT(block->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
                 CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_FETCH);
-                app->getQueueMgr()->checkTimeout(time(NULL));
                 app->commit_mq();
             }
         } while(0);
