@@ -125,12 +125,6 @@ int CwxMqConfig::loadConfig(string const & strConfFile){
     }
     m_binlog.m_bDelOutdayLogFile = (value == "yes"?true:false);
 
-    //load binlog:cache
-    if (!cnf.getAttr("binlog", "cache", value) || !value.length()){
-        m_binlog.m_bCache = true;
-    }else{
-        m_binlog.m_bCache = (value =="yes"?true:false);
-    }
     //load binlog:flush_log_num
     if (!cnf.getAttr("binlog", "flush_log_num", value) || !value.length()){
         snprintf(m_szErrMsg, 2047, "Must set [binlog:flush_log_num].");
@@ -307,7 +301,6 @@ void CwxMqConfig::outputConfig() const
     CWX_INFO(("file_max_mbyte=%u", m_binlog.m_uiBinLogMSize));
     CWX_INFO(("max_file_num=%u", m_binlog.m_uiMgrFileNum));
     CWX_INFO(("del_out_file=%s", m_binlog.m_bDelOutdayLogFile?"yes":"no"));
-    CWX_INFO(("cache=%s", m_binlog.m_bCache?"yes":"no"));
     CWX_INFO(("flush_log_num=%u", m_binlog.m_uiFlushNum));
     CWX_INFO(("flush_log_second=%u", m_binlog.m_uiFlushSecond));
     if (m_common.m_bMaster){

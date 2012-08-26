@@ -923,7 +923,6 @@ CwxBinLogMgr::CwxBinLogMgr(char const* szLogPath, char const* szFilePrex, CWX_UI
     m_uiMaxFileSize = uiMaxFileSize;
 	if (m_uiMaxFileSize > MAX_BINLOG_FILE_SIZE) m_uiMaxFileSize = MAX_BINLOG_FILE_SIZE;
     m_uiMaxFileNum = DEF_MANAGE_FILE_NUM;
-	m_bCache = true;
     m_bDelOutManageLogFile = bDelOutManageLogFile;
     m_fdLock = -1;
     m_ullMinSid = 0; ///<binlog文件的最小sid
@@ -949,7 +948,7 @@ CwxBinLogMgr::~CwxBinLogMgr()
 }
 
 // -1：失败；0：成功。
-int CwxBinLogMgr::init(CWX_UINT32 uiMaxFileNum, bool bCache, char* szErr2K)
+int CwxBinLogMgr::init(CWX_UINT32 uiMaxFileNum, char* szErr2K)
 {
     ///写锁保护
     CwxWriteLockGuard<CwxRwLock> lock(&m_rwLock);
@@ -959,8 +958,6 @@ int CwxBinLogMgr::init(CWX_UINT32 uiMaxFileNum, bool bCache, char* szErr2K)
     if (uiMaxFileNum < MIN_MANAGE_FILE_NUM) m_uiMaxFileNum = MIN_MANAGE_FILE_NUM;
     if (uiMaxFileNum > MAX_MANAGE_FILE_NUM) m_uiMaxFileNum = MAX_MANAGE_FILE_NUM;
     m_uiMaxFileNum = uiMaxFileNum;
-
-	m_bCache = bCache;
 
     //如果binlog的目录不存在，则创建此目录
     if (!CwxFile::isDir(m_strLogPath.c_str()))
