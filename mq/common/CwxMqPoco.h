@@ -123,15 +123,19 @@ public:
         MSG_TYPE_SYNC_SESSION_REPORT_REPLY = 8, ///<session报告的回复
         MSG_TYPE_SYNC_DATA = 9,  ///<发送数据
         MSG_TYPE_SYNC_DATA_REPLY = 10, ///<数据的回复
+        MSG_TYPE_SYNC_DATA_CHUNK = 11,  ///<发送数据
+        MSG_TYPE_SYNC_DATA_CHUNK_REPLY = 12, ///<数据的回复
         ///MQ Fetch服务类型的消息类型定义
-        MSG_TYPE_FETCH_DATA = 11, ///<数据获取消息类型
-        MSG_TYPE_FETCH_DATA_REPLY = 12, ///<回复数据获取消息类型
+        MSG_TYPE_FETCH_DATA = 13, ///<数据获取消息类型
+        MSG_TYPE_FETCH_DATA_REPLY = 14, ///<回复数据获取消息类型
         ///创建mq queue消息
         MSG_TYPE_CREATE_QUEUE = 101, ///<创建MQ QUEUE的消息类型
         MSG_TYPE_CREATE_QUEUE_REPLY = 102, ///<回复创建MQ QUEUE的消息类型
         ///删除mq queue消息
         MSG_TYPE_DEL_QUEUE = 103, ///<删除MQ QUEUE的消息类型
-        MSG_TYPE_DEL_QUEUE_REPLY = 104 ///<回复删除MQ QUEUE的消息类型
+        MSG_TYPE_DEL_QUEUE_REPLY = 104, ///<回复删除MQ QUEUE的消息类型
+        ///错误消息
+        MSG_TYPE_SYNC_ERR = 105  ///<数据同步错误消息
     };
     enum{
         MAX_CONTINUE_SEEK_NUM = 8192
@@ -247,16 +251,12 @@ public:
     static int packReportDataReply(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
-        int ret,
         CWX_UINT64 ullSession,
-        char const* szErrMsg,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseReportDataReply(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
-        int& ret,
         CWX_UINT64& ullSession,
-        char const*& szErrMsg,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int packReportNewConn(CwxPackageWriter* writer,
@@ -269,21 +269,6 @@ public:
         CwxMsgBlock const* msg,
         CWX_UINT64& ullSession,
         char* szErr2K=NULL);
-    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packReportNewConnReply(CwxPackageWriter* writer,
-        CwxMsgBlock*& msg,
-        CWX_UINT32 uiTaskId,
-        int ret,
-        CWX_UINT64 ullSession,
-        char const* szErrMsg,
-        char* szErr2K=NULL);
-    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int parseReportNewConnReply(CwxPackageReader* reader,
-        CwxMsgBlock const* msg,
-        int& ret,
-        CWX_UINT64& ullSession,
-        char const*& szErrMsg,
-        char* szErr2K=NULL);
 
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int packSyncData(CwxPackageWriter* writer,
@@ -295,6 +280,7 @@ public:
         CWX_UINT32 group,
         char const* sign=NULL,
         bool       zip = false,
+        CWX_UINT64 ullSeq,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int packSyncDataItem(CwxPackageWriter* writer,
@@ -309,6 +295,7 @@ public:
         char const* szData,
         CWX_UINT32 uiDataLen,
         CwxMsgBlock*& msg,
+        CWX_UINT64 ullSeq,
         bool  zip = false,
         char* szErr2K=NULL
         );
@@ -334,12 +321,12 @@ public:
     static int packSyncDataReply(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
-        CWX_UINT64 ullSid,
+        CWX_UINT64 ullSeq,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseSyncDataReply(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
-        CWX_UINT64& ullSid,
+        CWX_UINT64& ullSeq,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int packFetchMq(CwxPackageWriter* writer,
@@ -450,6 +437,43 @@ public:
         int  ret,
         char const* szErrMsg,
         char* szErr2K=NULL);
+    ///pack report或sync的出错消息包。返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
+    static int packSyncErr(CwxPackageWriter* writer, ///<用于pack的writer
+        CwxMsgBlock*& msg, ///<返回的消息包，对象由内部分配
+        CWX_UINT32 uiTaskId, ///<消息包的task id
+        int ret, ///<错误代码
+        char const* szErrMsg, ///<错误消息
+        char* szErr2K=NULL///<pack出错时的错误信息
+        );
+
+    ///parse report或sync的出错数据包。返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
+    static int parseSyncErr(CwxPackageReader* reader, ///<reader
+        CwxMsgBlock const* msg, ///<数据包
+        int& ret,  ///<错误代码
+        char const*& szErrMsg,  ///<错误消息
+        char* szErr2K=NULL ///<解包时的错误信息
+        );
+    ///设置数据同步包的seq号
+    inline static void setSeq(char* szBuf, CWX_UINT64 ullSeq){
+        CWX_UINT32 byte4 = (CWX_UINT32)(ullSeq>>32);
+        byte4 = CWX_HTONL(byte4);
+        memcpy(szBuf, &byte4, 4);
+        byte4 = (CWX_UINT32)(ullSeq&0xFFFFFFFF);
+        byte4 = CWX_HTONL(byte4);
+        memcpy(szBuf + 4, &byte4, 4);
+
+    }    
+    ///获取数据同步包的seq号
+    inline static CWX_UINT64 getSeq(char const* szBuf) {
+        CWX_UINT64 ullSeq = 0;
+        CWX_UINT32 byte4;
+        memcpy(&byte4, szBuf, 4);
+        ullSeq = CWX_NTOHL(byte4);
+        memcpy(&byte4, szBuf+4, 4);
+        ullSeq <<=32;
+        ullSeq += CWX_NTOHL(byte4);
+        return ullSeq;
+    }
 
     ///返回sync记录。
     inline static char const* getSyncRecordData(){

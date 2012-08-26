@@ -51,11 +51,6 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_ZIP     "zip"
 #define CWX_MQ_DELAY   "delay"
 ///错误代码定义
-#define UNISTOR_ERR_SUCCESS          0  ///<成功
-#define UNISTOR_ERR_ERROR            1 ///<无需区分的笼统错误
-#define UNISTOR_ERR_FAIL_AUTH        2 ///<鉴权失败
-#define UNISTOR_ERR_LOST_SYNC        3 ///<失去了同步状态
-
 #define CWX_MQ_ERR_SUCCESS          0  ///<成功
 #define CWX_MQ_ERR_ERROR            1  ///<错误
 #define CWX_MQ_ERR_FAIL_AUTH        2 ///<鉴权失败
@@ -67,7 +62,7 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_PROXY_TIMEOUT          103 ///<发送超时
 #define CWX_MQ_PROXY_MQ_INVALID       104 ///<mq服务不可用
 
-
+#define CWX_MQ_CONN_TIMEOUT_SECOND    5  ///<mq的同步连接的连接超时时间
 
 #define CWX_MQ_MIN_TIMEOUT_SECOND     1 ///<最小的超时秒数
 #define CWX_MQ_MAX_TIMEOUT_SECOND     1800 ///<最大的超时秒数

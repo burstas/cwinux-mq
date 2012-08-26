@@ -97,10 +97,9 @@ int CwxMqQueue::getNextBinlog(CwxMqTss* pTss,
 }
 
 ///消息发送完毕，bSend=true表示已经发送成功；false表示发送失败
-///返回值：0：不存在，1：成功.
-int CwxMqQueue::endSendMsg(CWX_UINT64 ullSid, bool bSend){
+void CwxMqQueue::endSendMsg(CWX_UINT64 ullSid, bool bSend){
     map<CWX_UINT64, CwxMsgBlock*>::iterator iter=m_uncommitMap.find(ullSid);
-    if (iter == m_uncommitMap.end()) return 0; ///如果不在uncommit Map中存在，说明ullSid不存在
+    CWX_ASSERT(iter != m_uncommitMap.end());
     CwxMsgBlock* msg = (CwxMsgBlock*)iter->second;
     if (bSend){///发送成功
         CwxMsgBlockAlloc::free(msg);
@@ -109,7 +108,6 @@ int CwxMqQueue::endSendMsg(CWX_UINT64 ullSid, bool bSend){
     }
     ///从未commit的map中删除
     m_uncommitMap.erase(iter);
-    return 1;
 }
 
 ///0：没有消息；
@@ -481,7 +479,7 @@ int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss,
 }
 
 ///消息发送完毕，bSend=true表示已经发送成功；false表示发送失败
-///返回值：0：不存在，1：成功，-1：失败，-2：队列不存在
+///返回值：0：成功，-1：失败，-2：队列不存在
 int CwxMqQueueMgr::endSendMsg(string const& strQueue,
                CWX_UINT64 ullSid,
                bool bSend,
@@ -495,24 +493,8 @@ int CwxMqQueueMgr::endSendMsg(string const& strQueue,
 			if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
 			return -1;
 		}
-        int ret = iter->second.first->endSendMsg(ullSid, bSend);
-        if (0 == ret) return 0;
-        if (1 == ret){
-            if (!iter->second.first->isCommit()){
-                int num = iter->second.second->log(ullSid);
-                if (-1 == num){
-                    if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
-                    return -1;
-                }
-                if (num >= MQ_SWITCH_LOG_NUM){
-					if (!_save(iter->second.first, iter->second.second)){
-						if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
-						return -1;
-					}
-                }
-            }
-            return 1;
-        }
+       iter->second.first->endSendMsg(ullSid, bSend);
+       return 0;
     }
     if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
     return -1;

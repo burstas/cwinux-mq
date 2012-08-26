@@ -201,7 +201,7 @@ private:
     ///分发channel的线程函数，arg为app对象
     static void* DispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg);
     ///分发channel的队列消息函数。返回值：0：正常；-1：队列停止
-    static int DispatchThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel);
+    static int DispatchThreadDoQueue(CwxTss* tss, CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel);
     ///分发mq channel的线程函数，arg为app对象
     static void* MqThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg);
     ///分发mq channel的队列消息函数。返回值：0：正常；-1：队列停止

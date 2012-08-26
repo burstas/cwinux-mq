@@ -27,30 +27,8 @@
 
 class CwxMqQueue;
 
-///分发连接的session信息对象
-class CwxMqDispatchConn
-{
-public:
-    CwxMqDispatchConn();
-    ~CwxMqDispatchConn();
-public:
-    CwxBinLogCursor*         m_pCursor; ///<binlog的读取cursor
-    CWX_UINT32               m_uiChunk; ///<chunk大小
-    CWX_UINT64               m_ullStartSid; ///<report的sid
-    CWX_UINT64               m_ullSid; ///<当前发送到的sid
-    bool                     m_bNext; ///<是否发送下一个消息
-    bool                     m_bSync; ///<是否接受sync数据
-    CwxMqSubscribe           m_subscribe; ///<消息订阅对象
-    CWX_UINT32               m_uiWindow; ///<窗口的大小
-    string                   m_strSign; ///<签名类型
-    bool                     m_bZip; ///<是否压缩
-    set<CWX_UINT64>          m_sendingSid; ///<发送中的sid
-};
-
-
 ///mq的fetch连接的session对象
-class CwxMqFetchConn
-{
+class CwxMqFetchConn{
 public:
     CwxMqFetchConn();
     ~CwxMqFetchConn();
@@ -59,10 +37,7 @@ public:
 public:
     bool            m_bWaiting; ///<是否正在等在发送信息
     bool            m_bBlock; ///<是否为block连接
-    bool            m_bCommit; ///<是否commit类型的queue
     CWX_UINT32      m_uiTimeout; ///<当前消息的timeout值
-    CWX_UINT64      m_ullSendSid; ///<已经发送的sid
-    bool            m_bSent;     ///<当前的消息是否发送完毕
     CWX_UINT32      m_uiTaskId; ///<连接的taskid
     string          m_strQueueName; ///<队列的名字
 };

@@ -206,7 +206,8 @@ void CwxMproxyConfig::outputConfig()
 
 bool CwxMproxyConfig::fetchHost(CwxIniParse& cnf,
                                 string const& node,
-                                CwxHostInfo& host)
+                                CwxHostInfo& host,
+                                bool bIpOnly)
 {
     string value;
     host.reset();
