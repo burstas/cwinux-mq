@@ -49,7 +49,7 @@ int CwxMqQueue::init(CWX_UINT64 ullLastCommitSid,
     if (m_cursor) m_binLog->destoryCurser(m_cursor);
     m_cursor = NULL;
 
-    map<CWX_UINT64, void*>::iterator iter = m_uncommitMap.begin();
+    map<CWX_UINT64, CwxMsgBlock*>::iterator iter = m_uncommitMap.begin();
     while(iter != m_uncommitMap.end()){
         CwxMsgBlockAlloc::free((CwxMsgBlock*)iter->second);
         iter++;
@@ -217,8 +217,8 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
             }
             ///unpack data的数据包
             if (pTss->m_pReader->unpack(pBuf, uiDataLen, false, true)){
-                ///获取CWX_MQ_DATA的key，此为真正data数据
-                CwxKeyValueItem const* pItem = pTss->m_pReader->getKey(CWX_MQ_DATA);
+                ///获取CWX_MQ_D的key，此为真正data数据
+                CwxKeyValueItem const* pItem = pTss->m_pReader->getKey(CWX_MQ_D);
                 if (pItem){
                     ///形成binlog发送的数据包
                     if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packFetchMqReply(pTss->m_pWriter,
@@ -241,7 +241,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
                     }
                 }else{///读取的数据无效
                     char szBuf[64];
-                    CWX_ERROR(("Can't find key[%s] in binlog, sid=%s", CWX_MQ_DATA,
+                    CWX_ERROR(("Can't find key[%s] in binlog, sid=%s", CWX_MQ_D,
                         CwxCommon::toString(m_cursor->getHeader().getSid(), szBuf)));
                 }            
             }else{///binlog的数据格式错误，不是kv
@@ -321,7 +321,7 @@ void CwxMqQueue::getQueueDumpInfo(CWX_UINT64& ullLastCommitSid,
         uncommitSid = m_lastUncommitSid;
         //添加m_uncommitMap中的记录
         {
-            map<CWX_UINT64, void*>::iterator iter = m_uncommitMap.begin();
+            map<CWX_UINT64, CwxMsgBlock*>::iterator iter = m_uncommitMap.begin();
             while(iter != m_uncommitMap.end()){
                 uncommitSid.insert(iter->first);
                 iter++;
