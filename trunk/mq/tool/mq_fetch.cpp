@@ -12,12 +12,10 @@ string g_passwd;
 string g_queue;
 CWX_UINT32 g_num =1;
 bool   g_block = false;
-CWX_UINT32 g_timeout = 0;
-bool   g_commit = false;
 ///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:n:t:chb");
+	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:n:hb");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
@@ -33,8 +31,6 @@ int parseArg(int argc, char**argv)
             printf("-q: queue's name.\n");
             printf("-b: block sign. with this option, fetch will be blocked if no message; otherwize, it will return right now.\n");
             printf("-n: message number to fetch. default is 1. 0 for fetching all.\n");
-            printf("-c: queue is commit type. if no this option, the queue is non-commit type.\n");
-            printf("-t: timeout second for commit queue. 0 for default value.\n");
             printf("-h: help\n");
             return 0;
         case 'H':
@@ -87,17 +83,6 @@ int parseArg(int argc, char**argv)
                 return -1;
             }
             g_num = strtoul(cmd_option.opt_arg(),NULL,10);
-            break;
-        case 'c':
-            g_commit = true;
-            break;
-        case 't':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("-t requires an argument.\n");
-                return -1;
-            }
-            g_timeout = strtoul(cmd_option.opt_arg(),NULL,10);
             break;
         case ':':
             printf("%c requires an argument.\n", cmd_option.opt_opt ());
@@ -174,7 +159,6 @@ int main(int argc ,char** argv)
                 g_queue.c_str(),
                 g_user.c_str(),
                 g_passwd.c_str(),
-                g_timeout,
                 szErr2K))
             {
                 printf("failure to pack fetch-queue package, err=%s\n", szErr2K);
@@ -246,73 +230,6 @@ int main(int argc ,char** argv)
             }
         }
     } while(0);
-    if ((0 == iRet) && (g_commit))
-    {
-        do
-        {
-            if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packFetchMqCommit(
-                &writer,
-                block,
-                true,
-                0,
-                szErr2K))
-            {
-                printf("failure to pack commit message package, err=%s\n", szErr2K);
-                iRet = 1;
-                break;
-            }
-            if (block->length() != (CWX_UINT32)CwxSocket::write_n(stream.getHandle(),
-                block->rd_ptr(),
-                block->length()))
-            {
-                printf("failure to send message, errno=%d\n", errno);
-                iRet = 1;
-                break;
-            }
-            CwxMsgBlockAlloc::free(block);
-            block = NULL;
-            //recv msg
-            if (0 >= CwxSocket::read(stream.getHandle(), head, block))
-            {
-                printf("failure to read the reply, errno=%d\n", errno);
-                iRet = 1;
-                break;
-            }
-            if (CwxMqPoco::MSG_TYPE_FETCH_COMMIT_REPLY == head.getMsgType())
-            {
-                if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseFetchMqCommitReply(
-                    &reader,
-                    block,
-                    iRet,
-                    pErrMsg,
-                    szErr2K))
-                {
-                    printf("failure to unpack commit-reply msg, err=%s\n", szErr2K);
-                    iRet = 1;
-                    break;
-                }
-                if (CWX_MQ_ERR_SUCCESS != iRet)
-                {
-                    printf("failure to commit msg, err-code=%u, errmsg=%s\n", iRet, pErrMsg);
-                    iRet = 1;
-                    break;
-                }
-                CwxMsgBlockAlloc::free(block);
-                block = NULL;
-                printf("success to commit last message\n");
-                iRet = 0;
-                break;
-            }
-            else
-            {
-                printf("recv a unknow msg type, msg_type=%u\n", head.getMsgType());
-                iRet = 1;
-                break;
-            }
-
-        }while(0);
-
-    }
 
     if (block) CwxMsgBlockAlloc::free(block);
     CwxMqPoco::destory();
