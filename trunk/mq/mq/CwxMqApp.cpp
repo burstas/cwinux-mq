@@ -186,9 +186,11 @@ void CwxMqApp::onTime(CwxTimeValue const& current){
     ///调用基类的onTime函数
     CwxAppFramework::onTime(current);
     ///检查超时
+    static CWX_UINT32 ttTimeBase = 0;
     static CWX_UINT32 ttLastTime = time(NULL);
     CWX_UINT32 uiNow = time(NULL);
-    if (uiNow >= ttLastTime + 1){
+    bool bClockBack = isClockBack(ttTimeBase, uiNow);
+    if (bClockBack || (uiNow >= ttLastTime + 1)){
         if (m_config.getCommon().m_bMaster){
             ttLastTime = uiNow;
             CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
