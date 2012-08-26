@@ -317,7 +317,7 @@ int CwxMqMasterHandler::dealSyncData(CwxMsgBlock*& msg, ///<收到的消息
         //解压
         if (!CwxZlib::unzip(m_unzipBuf,
             ulUnzipLen,
-            (const unsigned char*)(msg->rd_ptr() +  + sizeof(ullSeq)),
+            (const unsigned char*)(msg->rd_ptr() + sizeof(ullSeq)),
             msg->length() - sizeof(ullSeq)))
         {
             CWX_ERROR(("Failure to unzip recv msg, msg size:%u, buf size:%u",
