@@ -42,25 +42,20 @@ public:
 };
 
 ///mq信息对象
-class CwxMqConfigQueue
-{
+class CwxMqConfigQueue{
 public:
-    CwxMqConfigQueue()
-    {
+    CwxMqConfigQueue(){
         m_bCommit = false;
     }
-    CwxMqConfigQueue(CwxMqConfigQueue const& item)
-    {
+    CwxMqConfigQueue(CwxMqConfigQueue const& item){
         m_strName = item.m_strName;
         m_strUser = item.m_strUser;
         m_strPasswd = item.m_strPasswd;
         m_strSubScribe = item.m_strSubScribe;
         m_bCommit = item.m_bCommit;
     }
-    CwxMqConfigQueue& operator=(CwxMqConfigQueue const& item)
-    {
-        if (this != &item)
-        {
+    CwxMqConfigQueue& operator=(CwxMqConfigQueue const& item){
+        if (this != &item){
             m_strName = item.m_strName;
             m_strUser = item.m_strUser;
             m_strPasswd = item.m_strPasswd;
@@ -69,8 +64,7 @@ public:
         }
         return *this;
     }
-    bool operator==(CwxMqConfigQueue const& item) const
-    {
+    bool operator==(CwxMqConfigQueue const& item) const{
         return m_strName == item.m_strName;
     };
 public:
@@ -82,29 +76,23 @@ public:
 };
 
 ///id 范围的比较对象
-class CwxMqIdRange
-{
+class CwxMqIdRange{
 public:
-    CwxMqIdRange(CWX_UINT32 uiBegin, CWX_UINT32 uiEnd):m_uiBegin(uiBegin),m_uiEnd(uiEnd)
-    {
+    CwxMqIdRange(CWX_UINT32 uiBegin, CWX_UINT32 uiEnd):m_uiBegin(uiBegin),m_uiEnd(uiEnd){
     }
-    CwxMqIdRange(CwxMqIdRange const& item)
-    {
+    CwxMqIdRange(CwxMqIdRange const& item){
         m_uiBegin = item.m_uiBegin;
         m_uiEnd = item.m_uiEnd;
     }
-    CwxMqIdRange& operator=(CwxMqIdRange const& item)
-    {
-        if (this != &item)
-        {
+    CwxMqIdRange& operator=(CwxMqIdRange const& item){
+        if (this != &item){
             m_uiBegin = item.m_uiBegin;
             m_uiEnd = item.m_uiEnd;
         }
         return *this;
     }
     ///有重叠就相等
-    bool operator == (CwxMqIdRange const& item) const
-    {
+    bool operator == (CwxMqIdRange const& item) const{
          if (((m_uiBegin>=item.m_uiBegin)&&(m_uiBegin<=item.m_uiEnd)) ||
              ((m_uiEnd >= item.m_uiBegin)&&(m_uiEnd<=item.m_uiEnd)))
              return true;
@@ -114,19 +102,16 @@ public:
          return false;
     }
     ///以begin为依据比较大小
-    bool operator < (CwxMqIdRange const& item) const
-    {
+    bool operator < (CwxMqIdRange const& item) const{
         if (*this == item) return false;
         return m_uiBegin<item.m_uiBegin;
     }
 
-    inline CWX_UINT32 getBegin() const
-    {
+    inline CWX_UINT32 getBegin() const{
         return m_uiBegin;
     }
 
-    inline CWX_UINT32 getEnd() const
-    {
+    inline CWX_UINT32 getEnd() const{
         return m_uiEnd;
     }
 private:

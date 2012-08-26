@@ -16,11 +16,9 @@
 @bug
 */
 
-class CwxSysLogFile
-{
+class CwxSysLogFile{
 public:
-    enum
-    {
+    enum{
         DEF_SWITCH_SYS_FILE_NUM = 100000 ///<同一个系统文件，写多少次切换文件
     };
 public:
@@ -31,21 +29,16 @@ public:
     int init();
 public:
     ///提交系统文件；0：成功；-1：失败
-    inline int commit()
-    {
-        if (-1 != m_fd)
-        {
-            if (!m_bSaved)
-            {
-                if (0 != saveFile())
-                {
+    inline int commit(){
+        if (-1 != m_fd){
+            if (!m_bSaved){
+                if (0 != saveFile()){
                     ::close(m_fd);
                     m_fd = -1;
                     return -1;
                 }
             }
-            if (0 != ::fsync(m_fd))
-            {
+            if (0 != ::fsync(m_fd)){
                 CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to commit sys file:%s, errno=%d",
                     m_strFileName.c_str(),
                     errno);
@@ -58,12 +51,12 @@ public:
         return -1;
     }
     ///保存系统文件
-    inline int write(char const* szContent, CWX_UINT32 uiSize, bool bSaveFile=true)
+    inline int write(char const* szContent,
+        CWX_UINT32 uiSize,
+        bool bSaveFile=true)
     {
-        if (-1 != m_fd)
-        {
-            if (!prepareBuf(uiSize))
-            {
+        if (-1 != m_fd){
+            if (!prepareBuf(uiSize)){
                 CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to alloc buf, size=%u", uiSize);
                 ::close(m_fd);
                 m_fd = -1;
@@ -73,10 +66,8 @@ public:
             m_uiContentSize = uiSize;
             m_szFileContentBuf[uiSize] = 0x00;
             m_bSaved = false;
-            if (bSaveFile)
-            {
-                if (0 != saveFile())
-                {
+            if (bSaveFile){
+                if (0 != saveFile()){
                     ::close(m_fd);
                     m_fd = -1;
                     return -1;
@@ -86,28 +77,23 @@ public:
         }
         return -1;
     }
-    inline char const* getFileContents() const
-    {
+    inline char const* getFileContents() const{
         return m_szFileContentBuf;
     }
     ///获取content的大小
-    inline CWX_UINT32 getFileContentSize() const
-    {
+    inline CWX_UINT32 getFileContentSize() const{
         return m_uiContentSize;
     }
     ///获取系统文件的名字
-    inline string const& getFileName() const
-    {
+    inline string const& getFileName() const{
         return m_strFileName;
     }
     ///获取错误信息
-    inline char const* getErrMsg() const
-    {
+    inline char const* getErrMsg() const{
         return m_szErrMsg;
     }
     ///是否有效
-    inline bool isValid() const
-    {
+    inline bool isValid() const{
         return -1 != m_fd;
     }
 private:

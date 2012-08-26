@@ -24,12 +24,9 @@
 @bug
 */
 
-
-class CwxMqQueueLogFile
-{
+class CwxMqQueueLogFile{
 public:
-    enum
-    {
+    enum{
         SWITCH_FILE_LOG_NUM = 100000, ///<写入多少个Log记录，需要切换日志文件
     };
 public:
@@ -50,8 +47,7 @@ public:
     int fsync();
 public:
 	///删除队列文件
-	inline static void removeFile(string const& file)
-	{
+	inline static void removeFile(string const& file){
 		string strFile = file;
 		CwxFile::rmFile(strFile.c_str());
 		//remove old file
@@ -61,32 +57,25 @@ public:
 		strFile = file + ".new";
 		CwxFile::rmFile(strFile.c_str());
 	}
-
     ///获取系统文件的名字
-    inline string const& getFileName() const
-    {
+    inline string const& getFileName() const{
         return m_strFileName;
     }
     ///获取错误信息
-    inline char const* getErrMsg() const
-    {
+    inline char const* getErrMsg() const{
         return m_szErr2K;
     }
     ///是否有效
-    inline bool isValid() const
-    {
+    inline bool isValid() const{
         return m_fd!=NULL;
     }
-    inline CWX_UINT32 getCurLogCount() const
-    {
+    inline CWX_UINT32 getCurLogCount() const{
         return m_uiCurLogCount;
     }
-    inline CWX_UINT32 getTotalLogCount() const
-    {
+    inline CWX_UINT32 getTotalLogCount() const{
         return m_uiTotalLogCount;
     }
-	inline CWX_UINT32 getLastSaveTime() const
-	{
+	inline CWX_UINT32 getLastSaveTime() const{
 		return m_uiLastSaveTime;
 	}
 private:
@@ -101,13 +90,10 @@ private:
     ///0：成功；-1：失败
     int parseSid(string const& line, CWX_UINT64& ullSid);
     ///关闭文件
-    inline void closeFile(bool bSync=true)
-    {
-        if (m_fd)
-        {
+    inline void closeFile(bool bSync=true){
+        if (m_fd){
             if (bSync) ::fsync(fileno(m_fd));
-            if (m_bLock)
-            {
+            if (m_bLock){
                 CwxFile::unlock(fileno(m_fd));
                 m_bLock = false;
             }

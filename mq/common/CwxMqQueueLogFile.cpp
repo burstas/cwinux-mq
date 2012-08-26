@@ -16,8 +16,7 @@ CwxMqQueueLogFile::CwxMqQueueLogFile(CWX_UINT32 uiFsyncInternal,
     strcpy(m_szErr2K, "No init");
 }
 
-CwxMqQueueLogFile::~CwxMqQueueLogFile()
-{
+CwxMqQueueLogFile::~CwxMqQueueLogFile(){
     closeFile(true);
 }
 
@@ -26,8 +25,7 @@ int CwxMqQueueLogFile::init(CwxMqQueueInfo& queue,
          set<CWX_UINT64>& uncommitSets,
          set<CWX_UINT64>& commitSets)
 {
-    if (0 != prepare())
-    {
+    if (0 != prepare()){
         closeFile(false);
         return -1;
     }
@@ -36,8 +34,7 @@ int CwxMqQueueLogFile::init(CwxMqQueueInfo& queue,
 	uncommitSets.clear();
     commitSets.clear();
     //加载数据
-    if (0 != load(queue, uncommitSets, commitSets))
-    {
+    if (0 != load(queue, uncommitSets, commitSets)){
         //若失败，清空数据
 		uncommitSets.clear();
 		commitSets.clear();
@@ -56,8 +53,7 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
     if (!m_fd) return -1;
     //写新文件
     int fd = ::open(m_strNewFileName.c_str(),  O_RDWR|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-    if (-1 == fd)
-    {
+    if (-1 == fd){
         CwxCommon::snprintf(m_szErr2K, 2047, "Failure to open new sys file:%s, errno=%d",
             m_strNewFileName.c_str(),
             errno);
@@ -92,8 +88,7 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
 		len = CwxCommon::snprintf(line, 1023, "%s:sid=%s\n",
 			CWX_MQ_UNCOMMIT,
 			CwxCommon::toString(*iter_sid, szSid, 10));
-		if (len != write(fd, line, len))
-		{
+		if (len != write(fd, line, len)){
 			CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write new sys file:%s, errno=%d",
 				m_strNewFileName.c_str(),
 				errno);
@@ -133,8 +128,7 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
     //关闭当前文件
     closeFile(true);
     //将当前文件move为old文件
-    if (!CwxFile::moveFile(m_strFileName.c_str(), m_strOldFileName.c_str()))
-    {
+    if (!CwxFile::moveFile(m_strFileName.c_str(), m_strOldFileName.c_str())){
         CwxCommon::snprintf(m_szErr2K, 2047, "Failure to move current sys file:%s to old sys file:%s, errno=%d",
             m_strFileName.c_str(),
             m_strOldFileName.c_str(),
@@ -142,8 +136,7 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
         return -1;
     }
     //将新文件移为当前文件
-    if (!CwxFile::moveFile(m_strNewFileName.c_str(), m_strFileName.c_str()))
-    {
+    if (!CwxFile::moveFile(m_strNewFileName.c_str(), m_strFileName.c_str())){
         CwxCommon::snprintf(m_szErr2K, 2047, "Failure to move new sys file:%s to current sys file:%s, errno=%d",
             m_strNewFileName.c_str(),
             m_strFileName.c_str(),
@@ -155,15 +148,13 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
     //打开当前文件，接受写
     //open file
     m_fd = ::fopen(m_strFileName.c_str(), "a+");
-    if (!m_fd)
-    {
+    if (!m_fd){
         CwxCommon::snprintf(m_szErr2K, 2047, "Failure to open sys file:[%s], errno=%d",
             m_strFileName.c_str(),
             errno);
         return -1;
     }
-    if (!CwxFile::lock(fileno(m_fd)))
-    {
+    if (!CwxFile::lock(fileno(m_fd))){
         CwxCommon::snprintf(m_szErr2K, 2047, "Failure to lock sys file:[%s], errno=%d",
             m_strFileName.c_str(),
             errno);
@@ -191,8 +182,7 @@ int CwxMqQueueLogFile::log(CWX_UINT64 sid){
         }
         m_uiCurLogCount++;
         m_uiTotalLogCount++;
-        if (m_uiCurLogCount >= m_uiFsyncInternal)
-        {
+        if (m_uiCurLogCount >= m_uiFsyncInternal){
             if (0 != fsync()) return -1;
         }
         return m_uiTotalLogCount;
@@ -238,8 +228,7 @@ int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue,
     while((bRet = CwxFile::readTxtLine(m_fd, line))){
         if (line.empty()) break;
         m_uiLine++;
-        if (0 == step)
-        {//queue:name=q1|sid=12345|user=u_q1|passwd=p_q1|subscribe=*
+        if (0 == step){//queue:name=q1|sid=12345|user=u_q1|passwd=p_q1|subscribe=*
 			line = line.substr(strQueuePrex.length());
 			if (0 != parseQueue(line, queue)){
 				return -1;
@@ -247,13 +236,10 @@ int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue,
             step = 1;
 			continue; ///读取下一行
         }
-        if (1 == step)
-        {//uncommit:sid=1
-            if (strUncommitPrex == line.substr(0, strUncommitPrex.length()))
-            {
+        if (1 == step){//uncommit:sid=1
+            if (strUncommitPrex == line.substr(0, strUncommitPrex.length())){
                 line = line.substr(strUncommitPrex.length());
-                if (0 != parseSid(line, ullSid))
-                {
+                if (0 != parseSid(line, ullSid)){
                     return -1;
                 }
 				uncommitSets.insert(ullSid);
@@ -261,19 +247,15 @@ int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue,
             }
             step = 2;
         }
-        if (2 == step)
-        {//commit:sid=1
-            if (strCommitPrex == line.substr(0, strCommitPrex.length()))
-            {
+        if (2 == step){//commit:sid=1
+            if (strCommitPrex == line.substr(0, strCommitPrex.length())){
                 line = line.substr(strCommitPrex.length());
-                if (0 != parseSid(line, ullSid))
-                {
+                if (0 != parseSid(line, ullSid)){
                     return -1;
                 }
                 commitSets.insert(ullSid);
                 //如果sid在uncommit set中存在，则需要删除
-				if (uncommitSets.find(ullSid) != uncommitSets.end())
-				{
+				if (uncommitSets.find(ullSid) != uncommitSets.end()){
 					uncommitSets.erase(ullSid);
                 }
                 m_uiTotalLogCount++;
@@ -286,8 +268,7 @@ int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue,
             return -1;
         }
     }
-    if (!bRet)
-    {
+    if (!bRet){
         CwxCommon::snprintf(m_szErr2K, 2047, "Failure to read sys file[%s], errno=%d",
             m_strFileName.c_str(),
             errno);
@@ -298,14 +279,12 @@ int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue,
 }
 
 
-int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
-{
+int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue){
     list<pair<string, string> > items;
     pair<string, string> item;
     CwxCommon::split(line, items, '|');
     //get name
-    if (!CwxCommon::findKey(items, CWX_MQ_NAME, item))
-    {
+    if (!CwxCommon::findKey(items, CWX_MQ_NAME, item)){
         CwxCommon::snprintf(m_szErr2K, 2047, "queue has no [%s] key, line:%u", 
             CWX_MQ_NAME,
             m_uiLine);
@@ -313,8 +292,7 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
     }
     queue.m_strName = item.second;
     //get sid
-    if (!CwxCommon::findKey(items, CWX_MQ_SID, item))
-    {
+    if (!CwxCommon::findKey(items, CWX_MQ_SID, item)){
         CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] has no [%s] key, line:%u",
             queue.m_strName.c_str(),
             CWX_MQ_SID,
@@ -323,8 +301,7 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
     }
     queue.m_ullCursorSid = strtoull(item.second.c_str(), NULL, 10);
     //get user
-    if (!CwxCommon::findKey(items, CWX_MQ_U, item))
-    {
+    if (!CwxCommon::findKey(items, CWX_MQ_U, item)){
         CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] has no [%s] key, line:%u",
             queue.m_strName.c_str(),
             CWX_MQ_U,
@@ -333,8 +310,7 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
     }
     queue.m_strUser = item.second;
     //get passwd
-    if (!CwxCommon::findKey(items, CWX_MQ_P, item))
-    {
+    if (!CwxCommon::findKey(items, CWX_MQ_P, item)){
         CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] has no [%s] key, line:%u",
             queue.m_strName.c_str(),
             CWX_MQ_P,
@@ -343,8 +319,7 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
     }
     queue.m_strPasswd = item.second;
     //get scribe
-    if (!CwxCommon::findKey(items, CWX_MQ_SUBSCRIBE, item))
-    {
+    if (!CwxCommon::findKey(items, CWX_MQ_SUBSCRIBE, item)){
         CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] has no [%s] key, line:%u",
             queue.m_strName.c_str(),
             CWX_MQ_SUBSCRIBE,
@@ -353,8 +328,7 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
     }
     queue.m_strSubScribe = item.second;
     string errMsg;
-    if (!CwxMqPoco::isValidSubscribe(queue.m_strSubScribe, errMsg))
-    {
+    if (!CwxMqPoco::isValidSubscribe(queue.m_strSubScribe, errMsg)){
         CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s]'s subscribe[%s] is invalid, err=%s line:%u",
             queue.m_strName.c_str(),
             queue.m_strSubScribe.c_str(),
@@ -366,18 +340,15 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue)
     return 0;
 }
 
-int CwxMqQueueLogFile::parseSid(string const& line, CWX_UINT64& ullSid)
-{
+int CwxMqQueueLogFile::parseSid(string const& line, CWX_UINT64& ullSid){
     pair<string, string> item;
-    if (!CwxCommon::keyValue(line, item))
-	{
+    if (!CwxCommon::keyValue(line, item)){
 		CwxCommon::snprintf(m_szErr2K, 2047, "Not find [%s] key, line:%u", 
 			CWX_MQ_SID,
 			m_uiLine);
 		return -1;
 	}
-	if (item.first != CWX_MQ_SID)
-	{
+	if (item.first != CWX_MQ_SID){
 		CwxCommon::snprintf(m_szErr2K, 2047, "Not find [%s] key, line:%u", 
 			CWX_MQ_SID,
 			m_uiLine);
@@ -389,14 +360,12 @@ int CwxMqQueueLogFile::parseSid(string const& line, CWX_UINT64& ullSid)
 }
 
 
-int CwxMqQueueLogFile::prepare()
-{
+int CwxMqQueueLogFile::prepare(){
     bool bExistOld = CwxFile::isFile(m_strOldFileName.c_str());
     bool bExistCur = CwxFile::isFile(m_strFileName.c_str());
     bool bExistNew = CwxFile::isFile(m_strNewFileName.c_str());
 
-    if (m_fd)
-    {
+    if (m_fd){
         closeFile(true);
     }
     m_fd = NULL;
@@ -404,23 +373,17 @@ int CwxMqQueueLogFile::prepare()
     m_uiTotalLogCount = 0; ///<当前文件log的数量
     strcpy(m_szErr2K, "No init");
 
-    if (!bExistCur)
-    {
-        if (bExistOld)
-        {//采用旧文件
-            if (!CwxFile::moveFile(m_strOldFileName.c_str(), m_strFileName.c_str()))
-            {
+    if (!bExistCur){
+        if (bExistOld){//采用旧文件
+            if (!CwxFile::moveFile(m_strOldFileName.c_str(), m_strFileName.c_str())){
                 CwxCommon::snprintf(m_szErr2K, 2047, "Failure to move old sys file[%s] to cur sys file:[%s], errno=%d",
                     m_strOldFileName.c_str(),
                     m_strFileName.c_str(),
                     errno);
                 return -1;
             }
-        }
-        else if(bExistNew)
-        {//采用新文件
-            if (!CwxFile::moveFile(m_strNewFileName.c_str(), m_strFileName.c_str()))
-            {
+        }else if(bExistNew){//采用新文件
+            if (!CwxFile::moveFile(m_strNewFileName.c_str(), m_strFileName.c_str())){
                 CwxCommon::snprintf(m_szErr2K, 2047, "Failure to move new sys file[%s] to cur sys file:[%s], errno=%d",
                     2047,
                     m_strNewFileName.c_str(),
@@ -428,12 +391,9 @@ int CwxMqQueueLogFile::prepare()
                     errno);
                 return -1;
             }
-        }
-        else
-        {//创建空的当前文件
+        }else{//创建空的当前文件
             int fd = ::open(m_strFileName.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-            if (-1 == fd)
-            {
+            if (-1 == fd){
                 CwxCommon::snprintf(m_szErr2K, 2047, "Failure to create cur sys file:[%s], errno=%d",
                     m_strFileName.c_str(),
                     errno);
@@ -444,15 +404,13 @@ int CwxMqQueueLogFile::prepare()
     }
     //open file
     m_fd = ::fopen(m_strFileName.c_str(), "a+");
-    if (!m_fd)
-    {
+    if (!m_fd){
         CwxCommon::snprintf(m_szErr2K, 2047, "Failure to open sys file:[%s], errno=%d",
             m_strFileName.c_str(),
             errno);
         return -1;
     }
-    if (!CwxFile::lock(fileno(m_fd)))
-    {
+    if (!CwxFile::lock(fileno(m_fd))){
         CwxCommon::snprintf(m_szErr2K, 2047, "Failure to lock sys file:[%s], errno=%d",
             m_strFileName.c_str(),
             errno);
