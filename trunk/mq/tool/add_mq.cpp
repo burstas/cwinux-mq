@@ -231,14 +231,12 @@ int main(int argc ,char** argv)
             break;
         }
         iRet = 0;
-        printf("success to create queue[%s],user=%s,passwd=%s,subscribe=%s,sid=%s,def_timeout=%us,max_timeout=%us\n",
+        printf("success to create queue[%s],user=%s,passwd=%s,subscribe=%s,sid=%s\n",
             g_queue.c_str(),
             g_user.c_str(),
             g_passwd.c_str(),
             g_subscribe.c_str(),
-            CwxCommon::toString(g_sid, szErr2K, 10),
-            g_def_timeout,
-            g_max_timeout);
+            CwxCommon::toString(g_sid, szErr2K, 10));
     } while(0);
     if (block) CwxMsgBlockAlloc::free(block);
     CwxMqPoco::destory();
