@@ -29,8 +29,7 @@ int CwxMqApp::init(int argc, char** argv){
     ///首先调用架构的init api
     if (CwxAppFramework::init(argc, argv) == -1) return -1;
     ///检查是否通过-f指定了配置文件，若没有，则采用默认的配置文件
-    if ((NULL == this->getConfFile()) || (strlen(this->getConfFile()) == 0))
-    {
+    if ((NULL == this->getConfFile()) || (strlen(this->getConfFile()) == 0)){
         this->setConfFile("mq.conf");
     }
     ///加载配置文件，若失败则退出
@@ -45,8 +44,8 @@ int CwxMqApp::init(int argc, char** argv){
 
 ///配置运行环境信息
 int CwxMqApp::initRunEnv(){
-    ///设置系统的时钟间隔，最小刻度为1ms，此为1s。
-    this->setClick(1000);//1s
+    ///设置系统的时钟间隔，最小刻度为1ms，此为0.1s。
+    this->setClick(100);//0.1s
     ///设置工作目录
     this->setWorkDir(m_config.getCommon().m_strWorkDir.c_str());
     ///设置循环运行日志的数量
@@ -86,7 +85,7 @@ int CwxMqApp::initRunEnv(){
 
     //启动binlog管理器
     if (0 != startBinLogMgr()) return -1;
-
+    ///初始化协议
     CwxMqPoco::init(NULL);
 
     if (m_config.getCommon().m_bMaster){
@@ -119,6 +118,7 @@ int CwxMqApp::initRunEnv(){
         CWX_ERROR(("Failure to start recv thread pool"));
         return -1;
     }
+
     //创建分发线程池
     if (m_config.getCommon().m_bMaster){
         if (m_config.getMaster().m_async.getHostName().length()){
@@ -127,7 +127,7 @@ int CwxMqApp::initRunEnv(){
                 1,
                 getThreadPoolMgr(),
                 &getCommander(),
-                CwxMqApp::DispatchThreadMain,
+                CwxMqApp::dispatchThreadMain,
                 this);
             ///启动线程
             pTss = new CwxTss*[1];
@@ -145,7 +145,7 @@ int CwxMqApp::initRunEnv(){
                 1,
                 getThreadPoolMgr(),
                 &getCommander(),
-                CwxMqApp::DispatchThreadMain,
+                CwxMqApp::dispatchThreadMain,
                 this);
             ///启动线程
             pTss = new CwxTss*[1];
@@ -167,7 +167,7 @@ int CwxMqApp::initRunEnv(){
             1,
             getThreadPoolMgr(),
             &getCommander(),
-            CwxMqApp::MqThreadMain,
+            CwxMqApp::mqFetchThreadMain,
             this);
         ///启动线程
         pTss = new CwxTss*[1];
@@ -186,8 +186,8 @@ void CwxMqApp::onTime(CwxTimeValue const& current){
     ///调用基类的onTime函数
     CwxAppFramework::onTime(current);
     ///检查超时
-    static CWX_UINT32 ttTimeBase = 0;
-    static CWX_UINT32 ttLastTime = time(NULL);
+    static CWX_UINT32 ttTimeBase = 0; ///<时钟回跳的base时钟
+    static CWX_UINT32 ttLastTime = time(NULL); ///<上一次检查的时间
     CWX_UINT32 uiNow = time(NULL);
     bool bClockBack = isClockBack(ttTimeBase, uiNow);
     if (bClockBack || (uiNow >= ttLastTime + 1)){
@@ -237,13 +237,9 @@ int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
     msg->event().setEvent(CwxEventInfo::CONN_CREATED);
     ///将消息放到线程池队列中，有内部的线程调用其处理handle来处理
     if (SVR_TYPE_ASYNC == uiSvrId){
-        if (m_pAsyncDispThreadPool->append(msg) <= 1){
-            m_asyncDispChannel->notice();
-        }
+        if (m_pAsyncDispThreadPool->append(msg) <= 1) m_asyncDispChannel->notice();
     }else if (SVR_TYPE_FETCH == uiSvrId){
-        if (m_pMqThreadPool->append(msg) <= 1){
-            m_mqChannel->notice();
-        }
+        if (m_pMqThreadPool->append(msg) <= 1) m_mqChannel->notice();
     }else{
         CWX_ASSERT(SVR_TYPE_MONITOR == uiSvrId);
     }
@@ -426,8 +422,7 @@ int CwxMqApp::startBinLogMgr(){
         if (m_queueMgr) delete m_queueMgr;
         m_queueMgr = new CwxMqQueueMgr(m_config.getMq().m_strLogFilePath,
             m_config.getMq().m_uiFlushNum);
-        if (0 != m_queueMgr->init(m_pBinLogMgr))
-        {
+        if (0 != m_queueMgr->init(m_pBinLogMgr)){
             CWX_ERROR(("Failure to init mq queue manager, err=%s", m_queueMgr->getErrMsg().c_str()));
             return -1;
         }
@@ -436,8 +431,7 @@ int CwxMqApp::startBinLogMgr(){
     return 0;
 }
 
-int CwxMqApp::startNetwork()
-{
+int CwxMqApp::startNetwork(){
     ///打开监听的服务器端口号
     if (m_config.getCommon().m_monitor.getHostName().length()){
         if (0 > this->noticeTcpListen(SVR_TYPE_MONITOR,
@@ -524,8 +518,7 @@ int CwxMqApp::startNetwork()
     return 0;
 }
 
-int CwxMqApp::commit_mq()
-{
+int CwxMqApp::commit_mq(){
     if (getMqLastCommitTime() + m_config.getMq().m_uiFlushSecond < (CWX_UINT32)time(NULL))
     {
         CWX_INFO(("Begin flush mq queue log file......."));
@@ -537,7 +530,9 @@ int CwxMqApp::commit_mq()
 }
 
 
-int CwxMqApp::monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHandler4Msg& conn)
+int CwxMqApp::monitorStats(char const* buf,
+                           CWX_UINT32 uiDataLen,
+                           CwxAppHandler4Msg& conn)
 {
     string* strCmd = (string*)conn.getConnInfo().getUserData();
     strCmd->append(buf, uiDataLen);
@@ -694,7 +689,7 @@ CWX_UINT32 CwxMqApp::packMonitorInfo(){
 }
 
 ///分发channel的线程函数，arg为app对象
-void* CwxMqApp::DispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg)
+void* CwxMqApp::dispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg)
 {
     CwxMqApp* app = (CwxMqApp*) arg;
     if (0 != app->getAsyncDispChannel()->open()){
@@ -703,7 +698,7 @@ void* CwxMqApp::DispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg)
     }
     while(1){
         //获取队列中的消息并处理
-        if (0 != DispatchThreadDoQueue(tss, queue, app, app->getAsyncDispChannel())) break;
+        if (0 != dealDispatchThreadQueueMsg(tss, queue, app, app->getAsyncDispChannel())) break;
         if (-1 == app->getAsyncDispChannel()->dispatch(1)){
             CWX_ERROR(("Failure to invoke async dispatch channel CwxAppChannel::dispatch()"));
             sleep(1);
@@ -723,7 +718,7 @@ void* CwxMqApp::DispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg)
     return NULL;
 }
 ///分发channel的队列消息函数。返回值：0：正常；-1：队列停止
-int CwxMqApp::DispatchThreadDoQueue(CwxTss* tss,
+int CwxMqApp::dealDispatchThreadQueueMsg(CwxTss* tss,
                                     CwxMsgQueue* queue,
                                     CwxMqApp* app,
                                     CwxAppChannel* )
@@ -742,8 +737,7 @@ int CwxMqApp::DispatchThreadDoQueue(CwxTss* tss,
 }
 
 ///分发mq channel的线程函数，arg为app对象
-void* CwxMqApp::MqThreadMain(CwxTss* , CwxMsgQueue* queue, void* arg)
-{
+void* CwxMqApp::mqFetchThreadMain(CwxTss* , CwxMsgQueue* queue, void* arg){
     CwxMqApp* app = (CwxMqApp*) arg;
     if (0 != app->getMqChannel()->open()){
         CWX_ERROR(("Failure to open mq channel"));
@@ -751,7 +745,7 @@ void* CwxMqApp::MqThreadMain(CwxTss* , CwxMsgQueue* queue, void* arg)
     }
     while(1){
         //获取队列中的消息并处理
-        if (0 != MqThreadDoQueue(queue, app,  app->getMqChannel())) break;
+        if (0 != dealMqFetchThreadQueueMsg(queue, app,  app->getMqChannel())) break;
         if (-1 == app->getMqChannel()->dispatch(1)){
             CWX_ERROR(("Failure to invoke mq channel CwxAppChannel::dispatch()"));
             sleep(1);
@@ -767,7 +761,9 @@ void* CwxMqApp::MqThreadMain(CwxTss* , CwxMsgQueue* queue, void* arg)
 
 }
 ///分发mq channel的队列消息函数。返回值：0：正常；-1：队列停止
-int CwxMqApp::MqThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel)
+int CwxMqApp::dealMqFetchThreadQueueMsg(CwxMsgQueue* queue,
+                                        CwxMqApp* app,
+                                        CwxAppChannel* channel)
 {
     int iRet = 0;
     CwxMsgBlock* block = NULL;
@@ -809,8 +805,7 @@ int CwxMqApp::MqThreadDoQueue(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* 
 }
 
 ///设置master recv连接的属性
-int CwxMqApp::setMasterRecvSockAttr(CWX_HANDLE handle, void* arg)
-{
+int CwxMqApp::setMasterRecvSockAttr(CWX_HANDLE handle, void* arg){
     CwxMqApp* app = (CwxMqApp*)arg;
     if (app->getConfig().getMaster().m_recv.isKeepAlive()){
         if (0 != CwxSocket::setKeepalive(handle,
