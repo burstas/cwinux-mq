@@ -571,8 +571,6 @@ public:
     CwxBinLogMgr(char const* szLogPath,
         char const* szFilePrex,
         CWX_UINT32 uiMaxFileSize,
-        CWX_UINT32 uiBinlogFlushNum,
-        CWX_UINT32 uiBinlogFlushSecond,
         bool       bDelOutManageLogFile = false
         );
     ///析构函数
@@ -821,11 +819,6 @@ private:
     CWX_UINT32                m_ttMinTimestamp; ///<binlog文件的log开始时间
     CWX_UINT32                m_ttMaxTimestamp; ///<binlog文件的log结束时间
     CWX_UINT64                m_ullNextSid; ///<一下一个sid的值
-    CWX_UINT32                m_uiFlushBinLogNum; ///<多少binlog自动flush
-    CWX_UINT32                m_uiFlushBinLogTime; ///<多少时间自动flush
-    CWX_UINT32				  m_uiUnFlushBinlog; ///<未flush的binlog数量。
-    CWX_UINT32				  m_ttLastFlushBinlogTime; ///<上一次flushbinlog的时间
-
 };
 
 
