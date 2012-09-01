@@ -1060,8 +1060,6 @@ int CwxBinLogFile::createIndex(char* szErr2K)
 CwxBinLogMgr::CwxBinLogMgr(char const* szLogPath,
                            char const* szFilePrex,
                            CWX_UINT32 uiMaxFileSize,
-                           CWX_UINT32 uiBinlogFlushNum,
-                           CWX_UINT32 uiBinlogFlushSecond,
                            bool bDelOutManageLogFile)
 {
     m_bValid = false;
@@ -1082,10 +1080,6 @@ CwxBinLogMgr::CwxBinLogMgr(char const* szLogPath,
     m_ttMinTimestamp = 0; ///<binlog文件的log开始时间
     m_ttMaxTimestamp = 0; ///<binlog文件的log结束时间
     m_ullNextSid = 0;
-    m_uiFlushBinLogNum = (uiBinlogFlushNum==0?1:uiBinlogFlushNum);
-    m_uiFlushBinLogTime = (uiBinlogFlushSecond==0?1:uiBinlogFlushSecond); ///<多少时间自动flush
-    m_uiUnFlushBinlog = 0;
-    m_ttLastFlushBinlogTime = time(NULL);
 }
 
 CwxBinLogMgr::~CwxBinLogMgr()
@@ -1256,33 +1250,18 @@ int CwxBinLogMgr::append(CWX_UINT64& ullSid,
                          CWX_UINT32 uiDataLen,
                          char* szErr2K)
 {
-    bool bNeedFlush = false;
-    {
-        ///写锁保护
-        CwxWriteLockGuard<CwxRwLock> lock(&m_rwLock);
-        if(!m_bValid){
-            if (szErr2K) strcpy(szErr2K, m_szErr2K);
-            return -1;
-        }
-        if (0 == ullSid){
-            m_ullNextSid ++;
-            ullSid = m_ullNextSid;
-        }
-        int ret = _append(ullSid, ttTimestamp, uiGroup, szData, uiDataLen, szErr2K);
-        if (0 != ret) return -1;
-        m_uiUnFlushBinlog++;
-        CWX_UINT32 uiNow = time(NULL);
-        if ((m_uiUnFlushBinlog > m_uiFlushBinLogNum) ||
-            (m_ttLastFlushBinlogTime + m_uiFlushBinLogTime <= uiNow))
-        {
-            bNeedFlush = true;
-            m_uiUnFlushBinlog = 0;
-            m_ttLastFlushBinlogTime = uiNow;
-        }
+    ///写锁保护
+    CwxWriteLockGuard<CwxRwLock> lock(&m_rwLock);
+    if(!m_bValid){
+        if (szErr2K) strcpy(szErr2K, m_szErr2K);
+        return -1;
     }
-    if (bNeedFlush){
-        return commit(true, szErr2K);
+    if (0 == ullSid){
+        m_ullNextSid ++;
+        ullSid = m_ullNextSid;
     }
+    int ret = _append(ullSid, ttTimestamp, uiGroup, szData, uiDataLen, szErr2K);
+    if (0 != ret) return -1;
     return 0;
 
 }

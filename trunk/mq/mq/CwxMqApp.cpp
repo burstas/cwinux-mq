@@ -401,6 +401,7 @@ int CwxMqApp::startBinLogMgr(){
             ullBinLogSize,
             m_config.getBinLog().m_bDelOutdayLogFile);
         if (0 != m_pBinLogMgr->init(m_config.getBinLog().m_uiMgrFileNum,
+            true,
             CWX_TSS_2K_BUF))
         {///<如果失败，则返回-1
             CWX_ERROR(("Failure to init binlog manager, error:%s", CWX_TSS_2K_BUF));
