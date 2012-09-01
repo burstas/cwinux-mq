@@ -494,6 +494,17 @@ int CwxMqQueueMgr::endSendMsg(string const& strQueue,
 			return -1;
 		}
        iter->second.first->endSendMsg(ullSid, bSend);
+       int num = iter->second.second->log(ullSid);
+       if (-1 == num){
+           if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
+           return -1;
+       }
+       if (num >= MQ_SWITCH_LOG_NUM){
+           if (!_save(iter->second.first, iter->second.second)){
+               if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
+               return -1;
+           }
+       }
        return 0;
     }
     if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
