@@ -1495,8 +1495,6 @@ int CwxBinLogMgr::commit(bool bAlL, char* szErr2K){
             if (szErr2K) strcpy(szErr2K, m_szErr2K);
             return iRet;
         }
-        m_uiUnFlushBinlog = 0;
-        m_ttLastFlushBinlogTime = time(NULL);
         pCurBinLog = m_pCurBinlog;
     }
 	iRet = pCurBinLog->fsync(bAlL, m_szErr2K); 
@@ -1551,9 +1549,6 @@ void CwxBinLogMgr::removeAllBinlog(){
     m_ttMinTimestamp = 0; ///<binlog文件的log开始时间
     m_ttMaxTimestamp = 0; ///<binlog文件的log结束时间
     m_ullNextSid = 1; ///<一下一个sid的值
-    m_uiUnFlushBinlog = 0; ///<未flush的binlog数量。
-    m_ttLastFlushBinlogTime = time(NULL); ///<上一次flushbinlog的时间
-
 }
 
 
