@@ -64,10 +64,10 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
     char line[1024];
     char szSid[64];
     ssize_t len = 0;
-    //queue:name=q1|sid=12345|user=u_q1|passwd=p_q1|subscribe=*
+    //queue:name=q1|sid=12345|u=u_q1|p=p_q1|subscribe=*
 	len = CwxCommon::snprintf(line, 
             1023,
-            "%s:name=%s|sid=%s|user=%s|passwd=%s|subscribe=%s\n",
+            "%s:name=%s|sid=%s|u=%s|p=%s|subscribe=%s\n",
             CWX_MQ_Q,
             queue.m_strName.c_str(),
             CwxCommon::toString(queue.m_ullCursorSid, szSid, 10),
@@ -228,7 +228,7 @@ int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue,
     while((bRet = CwxFile::readTxtLine(m_fd, line))){
         if (line.empty()) break;
         m_uiLine++;
-        if (0 == step){//queue:name=q1|sid=12345|user=u_q1|passwd=p_q1|subscribe=*
+        if (0 == step){//queue:name=q1|sid=12345|u=u_q1|p=p_q1|subscribe=*
 			line = line.substr(strQueuePrex.length());
 			if (0 != parseQueue(line, queue)){
 				return -1;
