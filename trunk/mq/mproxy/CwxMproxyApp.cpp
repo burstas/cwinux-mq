@@ -24,7 +24,7 @@ int CwxMproxyApp::init(int argc, char** argv)
     ///若没有通过-f指定配置文件，则采用默认的配置文件
     if ((NULL == this->getConfFile()) || (strlen(this->getConfFile()) == 0))
     {
-        this->setConfFile("svr_conf.xml");
+        this->setConfFile("mq_proxy.conf");
     }
     ///加载配置文件
     if (0 != m_config.loadConfig(getConfFile()))
