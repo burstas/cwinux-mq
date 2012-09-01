@@ -237,6 +237,7 @@ private:
 	//读取一页
 	bool preadPage(int fildes, CWX_UINT32 uiBlockNo, CWX_UINT32 uiOffset);
 private:
+    friend class CwxBinLogMgr;
     string             m_strFileName; ///<文件的名字
     int                m_fd;///<文件的handle
     CwxBinLogHeader     m_curLogHeader; ///<当前log的header
@@ -250,6 +251,62 @@ private:
     //由CwxBinLogMgr使用的状态值
     CWX_UINT64          m_ullSeekSid; ///<seek的sid
     CWX_UINT8           m_ucSeekState; ///<seek的状态
+};
+
+
+
+/**
+@class CwxBinLogIndexWriteCache
+@brief BinLog文件的写cache对象，实现对binlog索引的写cache。
+*/
+class CwxBinLogIndexWriteCache
+{
+public:
+    enum
+    {
+        BINLOG_WRITE_INDEX_CACHE_RECORD_NUM = 16384 ///<写索引的320K， 20 * 16K=320K
+    };
+public:
+    /**
+    @brief 构造函数
+    @param [in] indexFd 索引文件的fd handle。
+    @param [in] ullIndexOffset 索引文件当前的大小。
+    @param [in] ullSid  数据文件当前的最大sid。
+    */
+    CwxBinLogIndexWriteCache(int indexFd,
+        CWX_UINT32 uiIndexOffset,
+        CWX_UINT64 ullSid);
+    ///析构函数
+    ~CwxBinLogIndexWriteCache();
+
+public:
+    /**
+    @brief 将cache的索引刷新到索引文件。
+    @param [out] szErr2K 出错时的错误信息。
+    @return 0:成功；-1：失败。此时索引文件写错误。
+    */
+    int flushIndex(char* szErr2K=NULL);
+    /**
+    @brief 将数据文件写到cache中。
+    @param [int] header 消息的header。
+    @param [out] szErr2K 出错时的错误信息。
+    @return 0:成功；-1：写索引失败。
+    */
+    int append(CwxBinLogHeader const& header, char* szErr2K=NULL);
+
+    friend class CwxBinLogFile;
+    friend class CwxBinLogMgr;
+
+private:
+    int					m_indexFd;///<cache对应于索引文件的fd
+    //binlog 写cache的信息
+    CWX_UINT64			m_ullPrevIndexSid; ///<前一个sid，此是对应的索引文件最大的sid，若为0，表示全部在内存。
+    CWX_UINT64			m_ullMinIndexSid; ///<索引cache的最小sid，若为0表示没有cache
+    CWX_UINT32          m_uiIndexFileOffset; ///<索引的文件写入偏移
+    unsigned char*		m_indexBuf;  ///<索引cache的buf。
+    CWX_UINT32			m_uiIndexLen;  ///<索引buf的长度
+    map<CWX_UINT64/*sid*/, unsigned char*>  m_indexSidMap; ///<index数据的sid索引
+    CWX_UINT64			m_ullMaxSid;   ///<当前最大的sid
 };
 
 /**
@@ -311,6 +368,12 @@ public:
         CWX_UINT32 uiDataLen,
         char* szErr2K=NULL);
     /**
+    @brief 确保将cache的数据写入到硬盘
+    @param [in] szErr2K 错误信息buf，若为NULL则不返回错误消息。
+    @return -1：失败；0：成功。
+    */
+    int flush_cache(char* szErr2K=NULL);
+    /**
     @brief 确保写入的日志保存到硬盘
 	@param [in] bFlushAll true:索引数据也需要fsync到硬盘；false：只数据fsync到硬盘。
     @param [in] szErr2K 错误信息buf，若为NULL则不返回错误消息。
@@ -354,6 +417,13 @@ public:
     static void remove(char const* szPathFileName);
     //关闭
     void close();
+    /**
+    @brief 获取最新的第N个记录的sid值
+    @param [in] uiNo 记录号
+    @param [out] ullSid sid的值
+    @return true：成功；false：失败。
+    */
+    bool getLastSidByNo(CWX_UINT32 uiNo, CWX_UINT64& ullSid, char* szErr2K);
 public:
     ///获取最小的sid
     inline CWX_UINT64 getMinSid() const;
@@ -445,6 +515,7 @@ private:
     volatile CWX_UINT32     m_uiPrevLogOffset; ///<前一个binlog的偏移
     CWX_UINT32				m_ttDay; ///日志文件的日期
     CWX_UINT32				m_uiFileNo; ///<日志编号。
+    CwxBinLogIndexWriteCache*  m_writeCache; ///<write 模式下的写cache。
 };
 
 
@@ -483,7 +554,8 @@ public:
         MAX_MANAGE_FILE_NUM = 2048, ///<管理binlog的最大小时数
 		START_FILE_NUM = 1, ///<开始的文件序号
         MIN_SID_NO = 1, ///<最小的sid序号
-		MAX_BINLOG_FILE_SIZE = 0X7FFFFFFF ///<2G
+		MAX_BINLOG_FILE_SIZE = 0X7FFFFFFF, ///<2G
+        SKIP_SID_NUM = 10000 ///<当next sid小于最大值时，跳跃的数量
     };
 public:
     /**
@@ -491,12 +563,16 @@ public:
     @param [in] szLogPath binlog文件所在的目录。
     @param [in] szFilePrex binlog文件的前缀，形成的文件名为szFilePrex_xxxxxxxxxx，xxxxxxxxxx为文件序号。
     @param [in] uiMaxFileSize binlog文件的最大大小。
+    @param [in] uiBinlogFlushNum binlog写多少条，自动flush
+    @param [in] uiBinlogFlushSecond binlog多少时间，自动flush
     @param [in] bDelOutManageLogFile 是否删除不再管理范围内的文件。
     @return 无。
     */
     CwxBinLogMgr(char const* szLogPath,
         char const* szFilePrex,
         CWX_UINT32 uiMaxFileSize,
+        CWX_UINT32 uiBinlogFlushNum,
+        CWX_UINT32 uiBinlogFlushSecond,
         bool       bDelOutManageLogFile = false
         );
     ///析构函数
@@ -505,10 +581,11 @@ public:
     /**
     @brief 初始化binlog管理器对象。
     @param [in] uiMaxFileNum 管理的binlog的最多数量。
+	@param [in] bCache 是否对写入的数据进行cache。
     @param [out] szErr2K 若初始化失败，返回失败的错误信息；若为NULL，即便失败也不返回错误的原因。
     @return -1：失败；0：成功。
     */
-    int init(CWX_UINT32 uiMaxFileNum, char* szErr2K=NULL);
+    int init(CWX_UINT32 uiMaxFileNum, bool bCache, char* szErr2K=NULL);
     /**
     @brief 添加一条binlog。
     @param [in] ullSid binlog的sid，其值必须大于当前已有的最大值。
@@ -520,7 +597,7 @@ public:
     @param [in] szErr2K 若添加失败，则为失败的原因信息。
     @return -1：失败；0：成功。
     */
-    int append(CWX_UINT64 ullSid,
+    int append(CWX_UINT64& ullSid,
         CWX_UINT32 ttTimestamp,
         CWX_UINT32 uiGroup,
         char const* szData,
@@ -535,6 +612,8 @@ public:
     int commit(bool bAll= false, char* szErr2K=NULL);
     ///清空binlog管理器
     void clear();
+    ///清空数据
+    void removeAllBinlog();
 	///将数据trim到指定的sid，0：成功；-1：失败
 //	int trim(CWX_UINT64 ullSid, char* szErr2K=NULL);
 public:
@@ -622,8 +701,26 @@ public:
     @return 返回sid。
     */
     CWX_UINT64 getFileStartSid(CWX_UINT32 ttTimestamp);
+    /**
+    @brief 获取最新的第N个记录的sid值
+    @param [in] uiNo 记录号
+    @param [out] ullSid sid的值
+    @return true：成功；false：失败。
+    */
+    bool getLastSidByNo(CWX_UINT32 uiNo, CWX_UINT64& ullSid, char* szErr2K);
+
 
 public:
+    ///设置初始化SID
+    inline void setNextSid(CWX_UINT64 ullSid) {
+        if (ullSid < getMaxSid())
+            ullSid = getMaxSid() + SKIP_SID_NUM;
+        m_ullNextSid = ullSid;
+    }
+    ///获取当前的sid
+    inline CWX_UINT64 getCurNextSid() const{
+        return m_ullNextSid;
+    }
     ///获取管理器是否有效
     inline bool isInvalid() const;
     ///cursor对应的文件，是否在管理的范围之外
@@ -695,6 +792,13 @@ private:
     inline CwxBinLogFile* _getMaxBinLogFile() ;
     ///输出管理的binlog文件信息
     void  _outputManageBinLog() ;
+    ///append数据
+    int _append(CWX_UINT64 ullSid,
+        CWX_UINT32 ttTimestamp,
+        CWX_UINT32 uiGroup,
+        char const* szData,
+        CWX_UINT32 uiDataLen,
+        char* szErr2K=NULL);
 
 private:
     string					  m_strLogPath; ///<binlog文件的根目录
@@ -703,6 +807,7 @@ private:
     bool                      m_bDelOutManageLogFile; ///<是否删除不在管理内的文件
     CWX_UINT32                m_uiMaxFileSize; ///<binlog文件的最大大小
     CWX_UINT32                m_uiMaxFileNum; ///<管理的binlog的最大数量
+	bool					  m_bCache;  ///<是否对写入的数据进行cache
     char                      m_szErr2K[2048]; ///<binlog 管理器无效的原因
     int                       m_fdLock; ///<系统锁文件句柄
     CwxRwLock                 m_rwLock; ///<binlog的读写锁
@@ -715,6 +820,12 @@ private:
     CWX_UINT64                m_ullMaxSid; ///<binlog文件的最大sid
     CWX_UINT32                m_ttMinTimestamp; ///<binlog文件的log开始时间
     CWX_UINT32                m_ttMaxTimestamp; ///<binlog文件的log结束时间
+    CWX_UINT64                m_ullNextSid; ///<一下一个sid的值
+    CWX_UINT32                m_uiFlushBinLogNum; ///<多少binlog自动flush
+    CWX_UINT32                m_uiFlushBinLogTime; ///<多少时间自动flush
+    CWX_UINT32				  m_uiUnFlushBinlog; ///<未flush的binlog数量。
+    CWX_UINT32				  m_ttLastFlushBinlogTime; ///<上一次flushbinlog的时间
+
 };
 
 
