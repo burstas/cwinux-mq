@@ -329,7 +329,7 @@ int CwxMqMasterHandler::dealSyncData(CwxMsgBlock*& msg, ///<收到的消息
         }
         iRet = saveBinlog(pTss, (char*)m_unzipBuf, ulUnzipLen);
     }else{
-        iRet = saveBinlog(pTss, msg->rd_ptr(), msg->length());
+        iRet = saveBinlog(pTss, msg->rd_ptr() + sizeof(ullSeq) , msg->length() - sizeof(ullSeq));
     }
     if (-1 == iRet){
         return -1;
@@ -393,7 +393,7 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
             return -1;
         }
     }else{
-        if (!m_reader.unpack(msg->rd_ptr(), msg->length(), false, true)){
+        if (!m_reader.unpack(msg->rd_ptr() + sizeof(ullSeq), msg->length() - sizeof(ullSeq), false, true)){
             CWX_ERROR(("Failure to unpack master multi-binlog, err:%s", m_reader.getErrMsg()));
             return -1;
         }
@@ -404,7 +404,7 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
         CwxKeyValueItem const* pItem = m_reader.getKey(m_pApp->getConfig().getSlave().m_strSign.c_str());
         if (pItem){//存在签名key
             if (!checkSign(m_reader.getMsg(),
-                pItem->m_szKey - CwxPackage::getKeyOffset() - m_reader.getMsg()  - sizeof(ullSeq),
+                pItem->m_szKey - CwxPackage::getKeyOffset() - m_reader.getMsg(),
                 pItem->m_szData,
                 m_pApp->getConfig().getSlave().m_strSign.c_str()))
             {
