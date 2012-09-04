@@ -879,7 +879,7 @@ int CwxMqPoco::packSyncDataReply(CwxPackageWriter* writer,
 {
     char szBuf[9];
     setSeq(szBuf, ullSeq);
-    CwxMsgHead head(0, 0, unMsgType, uiTaskId, writer->getMsgSize());
+    CwxMsgHead head(0, 0, unMsgType, uiTaskId, sizeof(ullSeq));
     msg = CwxMsgBlockAlloc::pack(head, szBuf, sizeof(ullSeq));
     if (!msg){
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
