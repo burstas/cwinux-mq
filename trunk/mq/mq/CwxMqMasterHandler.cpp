@@ -339,6 +339,7 @@ int CwxMqMasterHandler::dealSyncData(CwxMsgBlock*& msg, ///<收到的消息
     if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(pTss->m_pWriter,
         reply_block,
         msg->event().getMsgHeader().getTaskId(),
+        CwxMqPoco::MSG_TYPE_SYNC_DATA_REPLY,
         ullSeq,
         pTss->m_szBuf2K))
     {
@@ -432,6 +433,7 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
     if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(pTss->m_pWriter,
         reply_block,
         msg->event().getMsgHeader().getTaskId(),
+        CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK_REPLY,
         ullSeq,
         pTss->m_szBuf2K))
     {

@@ -873,12 +873,13 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
 int CwxMqPoco::packSyncDataReply(CwxPackageWriter* writer,
                             CwxMsgBlock*& msg,
                             CWX_UINT32 uiTaskId,
+                            CWX_UINT16 unMsgType,
                             CWX_UINT64 ullSeq,
                             char* szErr2K)
 {
     char szBuf[9];
     setSeq(szBuf, ullSeq);
-    CwxMsgHead head(0, 0, MSG_TYPE_SYNC_DATA_REPLY, uiTaskId, writer->getMsgSize());
+    CwxMsgHead head(0, 0, unMsgType, uiTaskId, writer->getMsgSize());
     msg = CwxMsgBlockAlloc::pack(head, szBuf, sizeof(ullSeq));
     if (!msg){
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No memory to alloc msg, size:%u", writer->getMsgSize());
