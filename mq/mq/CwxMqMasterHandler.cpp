@@ -301,7 +301,7 @@ int CwxMqMasterHandler::dealSyncData(CwxMsgBlock*& msg, ///<收到的消息
                  )
 {
     unsigned long ulUnzipLen = 0;
-    CWX_UINT32 ullSeq =  CwxMqPoco::getSeq(msg->rd_ptr());
+    CWX_UINT64 ullSeq =  CwxMqPoco::getSeq(msg->rd_ptr());
     bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
     if (!msg){
         CWX_ERROR(("received sync data is empty."));
@@ -362,7 +362,7 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
                       )
 {
     unsigned long ulUnzipLen = 0;
-    CWX_UINT32 ullSeq =  CwxMqPoco::getSeq(msg->rd_ptr());
+    CWX_UINT64 ullSeq =  CwxMqPoco::getSeq(msg->rd_ptr());
     bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
     if (!msg){
         CWX_ERROR(("received sync data is empty."));
