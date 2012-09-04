@@ -189,7 +189,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
         }
         ret = 0;
     }while(0);
-    if (-1 == ret){
+    if (0 != ret){
         closeSession();
     }
     return 1;
