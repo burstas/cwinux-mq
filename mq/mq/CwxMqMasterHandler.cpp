@@ -162,6 +162,8 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 }else{
                     ret = dealSyncChunkData(block, pTss);
                 }
+                msgs.pop_front();
+                msg_iter = msgs.begin();
                 if (block) CwxMsgBlockAlloc::free(block);
                 if (0 != ret) break;
                 msg_iter++;
