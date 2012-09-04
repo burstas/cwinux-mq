@@ -240,7 +240,7 @@ int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue,
             if (strUncommitPrex == line.substr(0, strUncommitPrex.length())){
                 line = line.substr(strUncommitPrex.length());
                 if (0 != parseSid(line, ullSid)){
-                    return -1;
+                    continue; ///数据可能不完整
                 }
 				uncommitSets.insert(ullSid);
                 continue;
@@ -251,7 +251,7 @@ int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue,
             if (strCommitPrex == line.substr(0, strCommitPrex.length())){
                 line = line.substr(strCommitPrex.length());
                 if (0 != parseSid(line, ullSid)){
-                    return -1;
+                    continue; ///<数据可能不完整
                 }
                 commitSets.insert(ullSid);
                 //如果sid在uncommit set中存在，则需要删除
