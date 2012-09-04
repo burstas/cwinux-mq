@@ -409,7 +409,7 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
                 m_pApp->getConfig().getSlave().m_strSign.c_str()))
             {
                 CWX_ERROR(("Failure to check %s sign", m_pApp->getConfig().getSlave().m_strSign.c_str()));
-                return -11;
+                return -1;
             }
             bSign = 1;
         }
