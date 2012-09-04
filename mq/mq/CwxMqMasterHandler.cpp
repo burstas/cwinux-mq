@@ -438,6 +438,7 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
         CWX_ERROR(("Failure to pack sync data reply, errno=%s", pTss->m_szBuf2K));
         return -1;
     }
+    CWX_INFO(("Reply master, seq=%s", CwxCommon::toString(ullSeq, pTss->m_szBuf2K, 10)));
     reply_block->send_ctrl().setConnId(msg->event().getConnId());
     reply_block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_MASTER);
     reply_block->send_ctrl().setHostId(0);
