@@ -110,6 +110,7 @@ int CwxMqMasterHandler::createSession(CwxMqTss* pTss){
 
 ///³¬Ê±¼ì²é
 int CwxMqMasterHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* pThrEnv){
+    CWX_INFO(("CwxMqMasterHandler::onTimeoutCheck"));
     if (!m_syncSession){
         createSession((CwxMqTss*)pThrEnv);
     }
