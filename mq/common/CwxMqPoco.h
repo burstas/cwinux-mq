@@ -321,6 +321,7 @@ public:
     static int packSyncDataReply(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
+        CWX_UINT16 unMsgType,
         CWX_UINT64 ullSeq,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败

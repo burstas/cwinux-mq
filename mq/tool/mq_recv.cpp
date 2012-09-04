@@ -336,6 +336,7 @@ int main(int argc ,char** argv)
                 if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(&writer,
                     block,
                     0,
+                    CwxMqPoco::MSG_TYPE_SYNC_DATA_REPLY,
                     ullSeq,
                     szErr2K))
                 {
@@ -420,6 +421,7 @@ int main(int argc ,char** argv)
                 if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(&writer,
                     block,
                     0,
+                    CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK_REPLY,
                     ullSeq,
                     szErr2K))
                 {
