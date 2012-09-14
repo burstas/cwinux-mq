@@ -1,13 +1,13 @@
-#ifndef __CWX_MQ_POCO_H__
+ï»¿#ifndef __CWX_MQ_POCO_H__
 #define __CWX_MQ_POCO_H__
 /*
-°æÈ¨ÉùÃ÷£º
-    ±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-    ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+    æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+    è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 /**
 @file CwxMqPoco.h
-@brief MQÏµÁĞ·şÎñµÄ½Ó¿ÚĞ­Òé¶¨Òå¶ÔÏó¡£
+@brief MQç³»åˆ—æœåŠ¡çš„æ¥å£åè®®å®šä¹‰å¯¹è±¡ã€‚
 @author cwinux@gmail.com
 @version 1.0
 @date 2010-09-23
@@ -22,7 +22,7 @@
 #include "CwxCrc32.h"
 #include "CwxMd5.h"
 
-///¶©ÔÄ¹æÔòµÄ¹æÔòĞÅÏ¢¶ÔÏó
+///è®¢é˜…è§„åˆ™çš„è§„åˆ™ä¿¡æ¯å¯¹è±¡
 class CwxMqSubscribeItem{
 public:
     CwxMqSubscribeItem(){
@@ -49,7 +49,7 @@ public:
         return *this;
     }
 public:
-    ///ÊÇ·ñ¶©ÔÄÖ¸¶¨µÄid
+    ///æ˜¯å¦è®¢é˜…æŒ‡å®šçš„id
     inline bool isSubscribe(CWX_UINT32 id) const{
         if (m_bAll) return true;
         if (m_bMod) return (id%m_uiModBase)==m_uiModIndex;
@@ -61,14 +61,14 @@ public:
         return false;
     }
 public:
-    bool    m_bAll; ///<ÊÇ·ñÈ«²¿¶©ÔÄ
-    bool    m_bMod; ///<ÊÇ·ñÎªÇóÓàÄ£Ê½
-    CWX_UINT32  m_uiModBase; ///<ÇóÓàµÄ»ùÊı
-    CWX_UINT32  m_uiModIndex; ///<ÓàÊıÖµ
-    list<pair<CWX_UINT32, CWX_UINT32> > m_set; ///<¶©ÔÄµÄgroup»òtypeµÄ·¶Î§ÁĞ±í
+    bool    m_bAll; ///<æ˜¯å¦å…¨éƒ¨è®¢é˜…
+    bool    m_bMod; ///<æ˜¯å¦ä¸ºæ±‚ä½™æ¨¡å¼
+    CWX_UINT32  m_uiModBase; ///<æ±‚ä½™çš„åŸºæ•°
+    CWX_UINT32  m_uiModIndex; ///<ä½™æ•°å€¼
+    list<pair<CWX_UINT32, CWX_UINT32> > m_set; ///<è®¢é˜…çš„groupæˆ–typeçš„èŒƒå›´åˆ—è¡¨
 };
 
-///¶©ÔÄ¹æÔò±í´ïÊ½¶ÔÏó
+///è®¢é˜…è§„åˆ™è¡¨è¾¾å¼å¯¹è±¡
 class CwxMqSubscribe{
 public:
     CwxMqSubscribe(){
@@ -89,7 +89,7 @@ public:
     }
 
 public:
-    ///ÊÇ·ñ¶©ÔÄÖ¸¶¨µÄgroup¡¢type¶Ô
+    ///æ˜¯å¦è®¢é˜…æŒ‡å®šçš„groupã€typeå¯¹
     inline bool isSubscribe(CWX_UINT32 uiGroup) const{
         if (!m_bAll){
             list<CwxMqSubscribeItem/*group*/>::const_iterator iter = m_subscribe.begin();
@@ -102,50 +102,50 @@ public:
         return true;
     }
 public:
-    bool    m_bAll; ///<ÊÇ·ñ¶©ÔÄÈ«²¿ÏûÏ¢
-    list<CwxMqSubscribeItem/*group*/ > m_subscribe; ///<¶©ÔÄ¹æÔòÁĞ±í
+    bool    m_bAll; ///<æ˜¯å¦è®¢é˜…å…¨éƒ¨æ¶ˆæ¯
+    list<CwxMqSubscribeItem/*group*/ > m_subscribe; ///<è®¢é˜…è§„åˆ™åˆ—è¡¨
 };
 
-//mqµÄĞ­Òé¶¨Òå¶ÔÏó
+//mqçš„åè®®å®šä¹‰å¯¹è±¡
 class CwxMqPoco{
 public:
-    enum ///<ÏûÏ¢ÀàĞÍ¶¨Òå
+    enum ///<æ¶ˆæ¯ç±»å‹å®šä¹‰
     {
-        ///RECV·şÎñÀàĞÍµÄÏûÏ¢ÀàĞÍ¶¨Òå
-        MSG_TYPE_RECV_DATA = 1, ///<Êı¾İÌá½»ÏûÏ¢
-        MSG_TYPE_RECV_DATA_REPLY = 2, ///<Êı¾İÌá½»ÏûÏ¢µÄ»Ø¸´
-        MSG_TYPE_RECV_COMMIT = 3, ///<Êı¾İcommitÏûÏ¢
-        MSG_TYPE_RECV_COMMIT_REPLY = 4, ///<commitÏûÏ¢µÄ»Ø¸´
-        ///·Ö·¢µÄÏûÏ¢ÀàĞÍ¶¨Òå
-        MSG_TYPE_SYNC_REPORT = 5, ///<Í¬²½SIDµã±¨¸æÏûÏ¢ÀàĞÍ
-        MSG_TYPE_SYNC_REPORT_REPLY = 6, ///<Ê§°Ü·µ»Ø
-        MSG_TYPE_SYNC_SESSION_REPORT = 7, ///<sessionµÄ±¨¸æ
-        MSG_TYPE_SYNC_SESSION_REPORT_REPLY = 8, ///<session±¨¸æµÄ»Ø¸´
-        MSG_TYPE_SYNC_DATA = 9,  ///<·¢ËÍÊı¾İ
-        MSG_TYPE_SYNC_DATA_REPLY = 10, ///<Êı¾İµÄ»Ø¸´
-        MSG_TYPE_SYNC_DATA_CHUNK = 11,  ///<·¢ËÍÊı¾İ
-        MSG_TYPE_SYNC_DATA_CHUNK_REPLY = 12, ///<Êı¾İµÄ»Ø¸´
-        ///MQ Fetch·şÎñÀàĞÍµÄÏûÏ¢ÀàĞÍ¶¨Òå
-        MSG_TYPE_FETCH_DATA = 13, ///<Êı¾İ»ñÈ¡ÏûÏ¢ÀàĞÍ
-        MSG_TYPE_FETCH_DATA_REPLY = 14, ///<»Ø¸´Êı¾İ»ñÈ¡ÏûÏ¢ÀàĞÍ
-        ///´´½¨mq queueÏûÏ¢
-        MSG_TYPE_CREATE_QUEUE = 101, ///<´´½¨MQ QUEUEµÄÏûÏ¢ÀàĞÍ
-        MSG_TYPE_CREATE_QUEUE_REPLY = 102, ///<»Ø¸´´´½¨MQ QUEUEµÄÏûÏ¢ÀàĞÍ
-        ///É¾³ımq queueÏûÏ¢
-        MSG_TYPE_DEL_QUEUE = 103, ///<É¾³ıMQ QUEUEµÄÏûÏ¢ÀàĞÍ
-        MSG_TYPE_DEL_QUEUE_REPLY = 104, ///<»Ø¸´É¾³ıMQ QUEUEµÄÏûÏ¢ÀàĞÍ
-        ///´íÎóÏûÏ¢
-        MSG_TYPE_SYNC_ERR = 105  ///<Êı¾İÍ¬²½´íÎóÏûÏ¢
+        ///RECVæœåŠ¡ç±»å‹çš„æ¶ˆæ¯ç±»å‹å®šä¹‰
+        MSG_TYPE_RECV_DATA = 1, ///<æ•°æ®æäº¤æ¶ˆæ¯
+        MSG_TYPE_RECV_DATA_REPLY = 2, ///<æ•°æ®æäº¤æ¶ˆæ¯çš„å›å¤
+        MSG_TYPE_RECV_COMMIT = 3, ///<æ•°æ®commitæ¶ˆæ¯
+        MSG_TYPE_RECV_COMMIT_REPLY = 4, ///<commitæ¶ˆæ¯çš„å›å¤
+        ///åˆ†å‘çš„æ¶ˆæ¯ç±»å‹å®šä¹‰
+        MSG_TYPE_SYNC_REPORT = 5, ///<åŒæ­¥SIDç‚¹æŠ¥å‘Šæ¶ˆæ¯ç±»å‹
+        MSG_TYPE_SYNC_REPORT_REPLY = 6, ///<å¤±è´¥è¿”å›
+        MSG_TYPE_SYNC_SESSION_REPORT = 7, ///<sessionçš„æŠ¥å‘Š
+        MSG_TYPE_SYNC_SESSION_REPORT_REPLY = 8, ///<sessionæŠ¥å‘Šçš„å›å¤
+        MSG_TYPE_SYNC_DATA = 9,  ///<å‘é€æ•°æ®
+        MSG_TYPE_SYNC_DATA_REPLY = 10, ///<æ•°æ®çš„å›å¤
+        MSG_TYPE_SYNC_DATA_CHUNK = 11,  ///<å‘é€æ•°æ®
+        MSG_TYPE_SYNC_DATA_CHUNK_REPLY = 12, ///<æ•°æ®çš„å›å¤
+        ///MQ FetchæœåŠ¡ç±»å‹çš„æ¶ˆæ¯ç±»å‹å®šä¹‰
+        MSG_TYPE_FETCH_DATA = 13, ///<æ•°æ®è·å–æ¶ˆæ¯ç±»å‹
+        MSG_TYPE_FETCH_DATA_REPLY = 14, ///<å›å¤æ•°æ®è·å–æ¶ˆæ¯ç±»å‹
+        ///åˆ›å»ºmq queueæ¶ˆæ¯
+        MSG_TYPE_CREATE_QUEUE = 101, ///<åˆ›å»ºMQ QUEUEçš„æ¶ˆæ¯ç±»å‹
+        MSG_TYPE_CREATE_QUEUE_REPLY = 102, ///<å›å¤åˆ›å»ºMQ QUEUEçš„æ¶ˆæ¯ç±»å‹
+        ///åˆ é™¤mq queueæ¶ˆæ¯
+        MSG_TYPE_DEL_QUEUE = 103, ///<åˆ é™¤MQ QUEUEçš„æ¶ˆæ¯ç±»å‹
+        MSG_TYPE_DEL_QUEUE_REPLY = 104, ///<å›å¤åˆ é™¤MQ QUEUEçš„æ¶ˆæ¯ç±»å‹
+        ///é”™è¯¯æ¶ˆæ¯
+        MSG_TYPE_SYNC_ERR = 105  ///<æ•°æ®åŒæ­¥é”™è¯¯æ¶ˆæ¯
     };
     enum{
         MAX_CONTINUE_SEEK_NUM = 8192
     };
 public:
-    ///³õÊ¼»¯Ğ­Òé¡£·µ»ØÖµ£¬CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///åˆå§‹åŒ–åè®®ã€‚è¿”å›å€¼ï¼ŒCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int init(char* szErr2K=NULL);
-    ///ÊÍ·ÅĞ­Òé¡£
+    ///é‡Šæ”¾åè®®ã€‚
     static void destory();
-    ///·µ»ØÖµ£¬CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼ŒCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int packRecvData(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
@@ -158,7 +158,7 @@ public:
         char* szErr2K=NULL
         );
 
-    ///·µ»ØÖµ£¬CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼ŒCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseRecvData(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         CwxKeyValueItem const*& data,
@@ -167,7 +167,7 @@ public:
         char const*& passwd,
         char* szErr2K=NULL);
 
-    ///·µ»ØÖµ£¬CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼ŒCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseRecvData(CwxPackageReader* reader,
         char const* msg,
         CWX_UINT32  msg_len,
@@ -177,7 +177,7 @@ public:
         char const*& passwd,
         char* szErr2K=NULL);
 
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int packRecvDataReply(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
@@ -185,7 +185,7 @@ public:
         CWX_UINT64 ullSid,
         char const* szErrMsg,
         char* szErr2K=NULL);
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseRecvDataReply(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         int& ret,
@@ -193,7 +193,7 @@ public:
         char const*& szErrMsg,
         char* szErr2K=NULL);
 
-    ///·µ»ØÖµ£¬CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼ŒCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int packCommit(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
@@ -201,27 +201,27 @@ public:
         char const* passwd=NULL,
         char* szErr2K=NULL
         );
-    ///·µ»ØÖµ£¬CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼ŒCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseCommit(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         char const*& user,
         char const*& passwd,
         char* szErr2K=NULL);
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int packCommitReply(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
         int ret,
         char const* szErrMsg,
         char* szErr2K=NULL);
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseCommitReply(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         int& ret,
         char const*& szErrMsg,
         char* szErr2K=NULL);
 
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int packReportData(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
@@ -234,7 +234,7 @@ public:
         char const* sign=NULL,
         bool        zip = false,
         char* szErr2K=NULL);
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseReportData(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         CWX_UINT64& ullSid,
@@ -247,30 +247,30 @@ public:
         bool&        zip,
         char* szErr2K=NULL);
 
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int packReportDataReply(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
         CWX_UINT64 ullSession,
         char* szErr2K=NULL);
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseReportDataReply(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         CWX_UINT64& ullSession,
         char* szErr2K=NULL);
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int packReportNewConn(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
         CWX_UINT64 ullSession,
         char* szErr2K=NULL);
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseReportNewConn(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         CWX_UINT64& ullSession,
         char* szErr2K=NULL);
 
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int packSyncData(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
@@ -282,7 +282,7 @@ public:
         bool       zip,
         CWX_UINT64 ullSeq,
         char* szErr2K=NULL);
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int packSyncDataItem(CwxPackageWriter* writer,
         CWX_UINT64 ullSid,
         CWX_UINT32 uiTimeStamp,
@@ -299,7 +299,7 @@ public:
         bool  zip = false,
         char* szErr2K=NULL
         );
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseSyncData(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         CWX_UINT64& ullSid,
@@ -307,7 +307,7 @@ public:
         CwxKeyValueItem const*& data,
         CWX_UINT32& group,
         char* szErr2K=NULL);
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseSyncData(CwxPackageReader* reader,
         char const* szData,
         CWX_UINT32 uiDataLen,
@@ -317,19 +317,19 @@ public:
         CWX_UINT32& group,
         char* szErr2K=NULL);
 
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int packSyncDataReply(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
         CWX_UINT16 unMsgType,
         CWX_UINT64 ullSeq,
         char* szErr2K=NULL);
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseSyncDataReply(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         CWX_UINT64& ullSeq,
         char* szErr2K=NULL);
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int packFetchMq(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         bool bBlock,
@@ -337,7 +337,7 @@ public:
         char const* user=NULL,
         char const* passwd=NULL,
         char* szErr2K=NULL);
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseFetchMq(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         bool& bBlock,
@@ -346,7 +346,7 @@ public:
         char const*& passwd,
         char* szErr2K=NULL);
 
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int packFetchMqReply(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         int  ret,
@@ -356,7 +356,7 @@ public:
         CwxKeyValueItem const& data,
         CWX_UINT32 group,
         char* szErr2K=NULL);
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseFetchMqReply(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         int&  ret,
@@ -368,7 +368,7 @@ public:
         char* szErr2K=NULL);
 
 
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseCreateQueue(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         char const*& name,
@@ -377,9 +377,9 @@ public:
         char const*& scribe,
         char const*& auth_user,
         char const*& auth_passwd,
-        CWX_UINT64&  ullSid,///< 0£ºµ±Ç°×î´óÖµ£¬ÈôĞ¡ÓÚµ±Ç°×îĞ¡Öµ£¬Ôò²ÉÓÃµ±Ç°×îĞ¡sidÖµ
+        CWX_UINT64&  ullSid,///< 0ï¼šå½“å‰æœ€å¤§å€¼ï¼Œè‹¥å°äºå½“å‰æœ€å°å€¼ï¼Œåˆ™é‡‡ç”¨å½“å‰æœ€å°sidå€¼
         char* szErr2K=NULL);
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int packCreateQueue(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         char const* name,
@@ -388,16 +388,16 @@ public:
         char const* scribe,
         char const* auth_user,
         char const* auth_passwd,
-        CWX_UINT64  ullSid=0,///< 0£ºµ±Ç°×î´óÖµ£¬ÈôĞ¡ÓÚµ±Ç°×îĞ¡Öµ£¬Ôò²ÉÓÃµ±Ç°×îĞ¡sidÖµ
+        CWX_UINT64  ullSid=0,///< 0ï¼šå½“å‰æœ€å¤§å€¼ï¼Œè‹¥å°äºå½“å‰æœ€å°å€¼ï¼Œåˆ™é‡‡ç”¨å½“å‰æœ€å°sidå€¼
         char* szErr2K=NULL);
 
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseCreateQueueReply(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         int&  ret,
         char const*& szErrMsg,
         char* szErr2K=NULL);
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int packCreateQueueReply(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         int  ret,
@@ -405,7 +405,7 @@ public:
         char* szErr2K=NULL);
 
 
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseDelQueue(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         char const*& name,
@@ -414,7 +414,7 @@ public:
         char const*& auth_user,
         char const*& auth_passwd,
         char* szErr2K=NULL);
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int packDelQueue(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         char const* name,
@@ -425,36 +425,36 @@ public:
         char* szErr2K=NULL);
 
 
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseDelQueueReply(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         int&  ret,
         char const*& szErrMsg,
         char* szErr2K=NULL);
 
-    ///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int packDelQueueReply(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         int  ret,
         char const* szErrMsg,
         char* szErr2K=NULL);
-    ///pack report»òsyncµÄ³ö´íÏûÏ¢°ü¡£·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
-    static int packSyncErr(CwxPackageWriter* writer, ///<ÓÃÓÚpackµÄwriter
-        CwxMsgBlock*& msg, ///<·µ»ØµÄÏûÏ¢°ü£¬¶ÔÏóÓÉÄÚ²¿·ÖÅä
-        CWX_UINT32 uiTaskId, ///<ÏûÏ¢°üµÄtask id
-        int ret, ///<´íÎó´úÂë
-        char const* szErrMsg, ///<´íÎóÏûÏ¢
-        char* szErr2K=NULL///<pack³ö´íÊ±µÄ´íÎóĞÅÏ¢
+    ///pack reportæˆ–syncçš„å‡ºé”™æ¶ˆæ¯åŒ…ã€‚è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
+    static int packSyncErr(CwxPackageWriter* writer, ///<ç”¨äºpackçš„writer
+        CwxMsgBlock*& msg, ///<è¿”å›çš„æ¶ˆæ¯åŒ…ï¼Œå¯¹è±¡ç”±å†…éƒ¨åˆ†é…
+        CWX_UINT32 uiTaskId, ///<æ¶ˆæ¯åŒ…çš„task id
+        int ret, ///<é”™è¯¯ä»£ç 
+        char const* szErrMsg, ///<é”™è¯¯æ¶ˆæ¯
+        char* szErr2K=NULL///<packå‡ºé”™æ—¶çš„é”™è¯¯ä¿¡æ¯
         );
 
-    ///parse report»òsyncµÄ³ö´íÊı¾İ°ü¡£·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///parse reportæˆ–syncçš„å‡ºé”™æ•°æ®åŒ…ã€‚è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
     static int parseSyncErr(CwxPackageReader* reader, ///<reader
-        CwxMsgBlock const* msg, ///<Êı¾İ°ü
-        int& ret,  ///<´íÎó´úÂë
-        char const*& szErrMsg,  ///<´íÎóÏûÏ¢
-        char* szErr2K=NULL ///<½â°üÊ±µÄ´íÎóĞÅÏ¢
+        CwxMsgBlock const* msg, ///<æ•°æ®åŒ…
+        int& ret,  ///<é”™è¯¯ä»£ç 
+        char const*& szErrMsg,  ///<é”™è¯¯æ¶ˆæ¯
+        char* szErr2K=NULL ///<è§£åŒ…æ—¶çš„é”™è¯¯ä¿¡æ¯
         );
-    ///ÉèÖÃÊı¾İÍ¬²½°üµÄseqºÅ
+    ///è®¾ç½®æ•°æ®åŒæ­¥åŒ…çš„seqå·
     inline static void setSeq(char* szBuf, CWX_UINT64 ullSeq){
         CWX_UINT32 byte4 = (CWX_UINT32)(ullSeq>>32);
         byte4 = CWX_HTONL(byte4);
@@ -464,7 +464,7 @@ public:
         memcpy(szBuf + 4, &byte4, 4);
 
     }    
-    ///»ñÈ¡Êı¾İÍ¬²½°üµÄseqºÅ
+    ///è·å–æ•°æ®åŒæ­¥åŒ…çš„seqå·
     inline static CWX_UINT64 getSeq(char const* szBuf) {
         CWX_UINT64 ullSeq = 0;
         CWX_UINT32 byte4;
@@ -476,42 +476,42 @@ public:
         return ullSeq;
     }
 
-    ///·µ»Øsync¼ÇÂ¼¡£
+    ///è¿”å›syncè®°å½•ã€‚
     inline static char const* getSyncRecordData(){
         return m_pWriter->getMsg();
     }
-    ///»ñÈ¡sync¼ÇÂ¼µÄ³¤¶È
+    ///è·å–syncè®°å½•çš„é•¿åº¦
     inline static CWX_UINT32 getSyncRecordDataLen(){
         return m_pWriter->getMsgSize();
     }
-    ///ÊÇ·ñ¼ÌĞø²éÕÒ¶©ÔÄµÄÏûÏ¢ÀàĞÍ
+    ///æ˜¯å¦ç»§ç»­æŸ¥æ‰¾è®¢é˜…çš„æ¶ˆæ¯ç±»å‹
     inline static bool isContinueSeek(CWX_UINT32 uiSeekedNum){
         return MAX_CONTINUE_SEEK_NUM>uiSeekedNum;
     }
-    ///ÊÇ·ñÎªÓĞĞ§µØÏûÏ¢¶©ÔÄÓï·¨
+    ///æ˜¯å¦ä¸ºæœ‰æ•ˆåœ°æ¶ˆæ¯è®¢é˜…è¯­æ³•
     static bool isValidSubscribe(string const& strSubscribe, string& strErrMsg);
-    ///½âÎö¶©ÔÄµÄÓï·¨
+    ///è§£æè®¢é˜…çš„è¯­æ³•
     /*
-    ±í´ïÊ½Îª
+    è¡¨è¾¾å¼ä¸º
     group_express;group_express...
-    ÆäÖĞ£º
+    å…¶ä¸­ï¼š
     group_express: [*]|[group_index%group_num]|[begin-end,begin-end,...]
-    *£ºÈ«²¿
-    group_index%group_num£º¶ÔgroupÒÔgroup_numÇóÓà£¬ÓàÊıÎªgroup_indexµÄ¡£
-    begin-end£ºgroup·¶Î§£¬¶à¸ö·¶Î§¿ÉÒÔÒÔ¡¾,¡¿·Ö¸î£¬Èôbegin==end£¬ÔòÖ»Ğ´begin¾Í¿ÉÒÔÁË
+    *ï¼šå…¨éƒ¨
+    group_index%group_numï¼šå¯¹groupä»¥group_numæ±‚ä½™ï¼Œä½™æ•°ä¸ºgroup_indexçš„ã€‚
+    begin-endï¼šgroupèŒƒå›´ï¼Œå¤šä¸ªèŒƒå›´å¯ä»¥ä»¥ã€,ã€‘åˆ†å‰²ï¼Œè‹¥begin==endï¼Œåˆ™åªå†™beginå°±å¯ä»¥äº†
     */
     static bool parseSubsribe(string const& strSubscribe, CwxMqSubscribe& subscribe, string& strErrMsg);
-    ///ÏûÏ¢ÊÇ·ñ¶©ÔÄ
+    ///æ¶ˆæ¯æ˜¯å¦è®¢é˜…
     inline static bool isSubscribe(CwxMqSubscribe const& subscribe, CWX_UINT32 uiGroup){
         return subscribe.isSubscribe(uiGroup);
     }
 private:
-    ///½ûÖ¹´´½¨¶ÔÏóÊµÀı
+    ///ç¦æ­¢åˆ›å»ºå¯¹è±¡å®ä¾‹
     CwxMqPoco(){
     }
-    ///Îö¹¹º¯Êı
+    ///ææ„å‡½æ•°
     ~CwxMqPoco();
-    ///½âÎöÒ»¸ö¶©ÔÄ±í´ïÊ½
+    ///è§£æä¸€ä¸ªè®¢é˜…è¡¨è¾¾å¼
     static bool parseSubsribeExpress(string const& strSubsribeExpress,
         CwxMqSubscribeItem& express,
         string& strErrMsg);

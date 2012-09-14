@@ -1,13 +1,13 @@
-#ifndef __CWX_MQ_POCO_H__
+ï»¿#ifndef __CWX_MQ_POCO_H__
 #define __CWX_MQ_POCO_H__
 /*
-°æÈ¨ÉùÃ÷£º
-    ±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-    ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+    æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+    è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 /**
 @file cwx_mq_poco.h
-@brief MQÏµÁĞ·şÎñµÄ½Ó¿ÚĞ­Òé¶¨Òå¡£
+@brief MQç³»åˆ—æœåŠ¡çš„æ¥å£åè®®å®šä¹‰ã€‚
 @author cwinux@gmail.com
 @version 1.0
 @date 2010-10-06
@@ -26,33 +26,33 @@ extern "C" {
 #include "cwx_crc32.h"
 
 
-///Ğ­ÒéµÄÏûÏ¢ÀàĞÍ¶¨Òå
-///RECV·şÎñÀàĞÍµÄÏûÏ¢ÀàĞÍ¶¨Òå
-#define CWX_MQ_MSG_TYPE_MQ  1 ///<Êı¾İÌá½»ÏûÏ¢
-#define CWX_MQ_MSG_TYPE_MQ_REPLY 2 ///<Êı¾İÌá½»ÏûÏ¢µÄ»Ø¸´
-#define CWX_MQ_MSG_TYPE_MQ_COMMIT 3 ///<Êı¾İcommitÏûÏ¢
-#define CWX_MQ_MSG_TYPE_MQ_COMMIT_REPLY 4 ///<commitÏûÏ¢µÄ»Ø¸´
-///·Ö·¢µÄÏûÏ¢ÀàĞÍ¶¨Òå
-#define CWX_MQ_MSG_TYPE_SYNC_REPORT 5 ///<Í¬²½SIDµã±¨¸æÏûÏ¢ÀàĞÍ
-#define CWX_MQ_MSG_TYPE_SYNC_REPORT_REPLY 6 ///<Ê§°Ü·µ»Ø
+///åè®®çš„æ¶ˆæ¯ç±»å‹å®šä¹‰
+///RECVæœåŠ¡ç±»å‹çš„æ¶ˆæ¯ç±»å‹å®šä¹‰
+#define CWX_MQ_MSG_TYPE_MQ  1 ///<æ•°æ®æäº¤æ¶ˆæ¯
+#define CWX_MQ_MSG_TYPE_MQ_REPLY 2 ///<æ•°æ®æäº¤æ¶ˆæ¯çš„å›å¤
+#define CWX_MQ_MSG_TYPE_MQ_COMMIT 3 ///<æ•°æ®commitæ¶ˆæ¯
+#define CWX_MQ_MSG_TYPE_MQ_COMMIT_REPLY 4 ///<commitæ¶ˆæ¯çš„å›å¤
+///åˆ†å‘çš„æ¶ˆæ¯ç±»å‹å®šä¹‰
+#define CWX_MQ_MSG_TYPE_SYNC_REPORT 5 ///<åŒæ­¥SIDç‚¹æŠ¥å‘Šæ¶ˆæ¯ç±»å‹
+#define CWX_MQ_MSG_TYPE_SYNC_REPORT_REPLY 6 ///<å¤±è´¥è¿”å›
 #define CWX_MQ_MSG_TYPE_SYNC_DATA 7
 #define CWX_MQ_MSG_TYPE_SYNC_DATA_REPLY 8
-///MQ Fetch·şÎñÀàĞÍµÄÏûÏ¢ÀàĞÍ¶¨Òå
-#define CWX_MQ_MSG_TYPE_FETCH_DATA 9 ///<Êı¾İ»ñÈ¡ÏûÏ¢ÀàĞÍ
-#define CWX_MQ_MSG_TYPE_FETCH_DATA_REPLY 10 ///<»Ø¸´Êı¾İ»ñÈ¡ÏûÏ¢ÀàĞÍ
-#define CWX_MQ_MSG_TYPE_FETCH_COMMIT  11 ///<commit »ñÈ¡µÄÏûÏ¢
-#define CWX_MQ_MSG_TYPE_FETCH_COMMIT_REPLY 12 ///<reply commitµÄÏûÏ¢
-///´´½¨mq queueÏûÏ¢
-#define CWX_MQ_MSG_TYPE_CREATE_QUEUE 100 ///<´´½¨MQ QUEUEµÄÏûÏ¢ÀàĞÍ
-#define CWX_MQ_MSG_TYPE_CREATE_QUEUE_REPLY 101 ///<»Ø¸´´´½¨MQ QUEUEµÄÏûÏ¢ÀàĞÍ
-///É¾³ımq queueÏûÏ¢
-#define CWX_MQ_MSG_TYPE_DEL_QUEUE  102 ///<É¾³ıMQ QUEUEµÄÏûÏ¢ÀàĞÍ
-#define CWX_MQ_MSG_TYPE_DEL_QUEUE_REPLY 103 ///<»Ø¸´É¾³ıMQ QUEUEµÄÏûÏ¢ÀàĞÍ
+///MQ FetchæœåŠ¡ç±»å‹çš„æ¶ˆæ¯ç±»å‹å®šä¹‰
+#define CWX_MQ_MSG_TYPE_FETCH_DATA 9 ///<æ•°æ®è·å–æ¶ˆæ¯ç±»å‹
+#define CWX_MQ_MSG_TYPE_FETCH_DATA_REPLY 10 ///<å›å¤æ•°æ®è·å–æ¶ˆæ¯ç±»å‹
+#define CWX_MQ_MSG_TYPE_FETCH_COMMIT  11 ///<commit è·å–çš„æ¶ˆæ¯
+#define CWX_MQ_MSG_TYPE_FETCH_COMMIT_REPLY 12 ///<reply commitçš„æ¶ˆæ¯
+///åˆ›å»ºmq queueæ¶ˆæ¯
+#define CWX_MQ_MSG_TYPE_CREATE_QUEUE 100 ///<åˆ›å»ºMQ QUEUEçš„æ¶ˆæ¯ç±»å‹
+#define CWX_MQ_MSG_TYPE_CREATE_QUEUE_REPLY 101 ///<å›å¤åˆ›å»ºMQ QUEUEçš„æ¶ˆæ¯ç±»å‹
+///åˆ é™¤mq queueæ¶ˆæ¯
+#define CWX_MQ_MSG_TYPE_DEL_QUEUE  102 ///<åˆ é™¤MQ QUEUEçš„æ¶ˆæ¯ç±»å‹
+#define CWX_MQ_MSG_TYPE_DEL_QUEUE_REPLY 103 ///<å›å¤åˆ é™¤MQ QUEUEçš„æ¶ˆæ¯ç±»å‹
 
-///binlogÄÚ²¿µÄsync binlogleixing
+///binlogå†…éƒ¨çš„sync binlogleixing
 #define CWX_MQ_GROUP_SYNC 0XFFFFFFFF 
 
-///Ğ­ÒéµÄkey¶¨Òå
+///åè®®çš„keyå®šä¹‰
 #define CWX_MQ_KEY_DATA "data"
 #define CWX_MQ_KEY_RET  "ret"
 #define CWX_MQ_KEY_SID  "sid"
@@ -83,53 +83,53 @@ extern "C" {
 #define CWX_MQ_KEY_DELAY   "delay"
 
 
-///Ğ­Òé´íÎó´úÂë¶¨Òå
-#define CWX_MQ_ERR_SUCCESS          0  ///<³É¹¦
-#define CWX_MQ_ERR_ERROR           1   ///<Ã»ÓĞÊı¾İ
-#define CWX_MQ_ERR_ERROR      2 ///<½ÓÊÕµ½µÄÊı¾İ°üÎŞĞ§£¬Ò²¾ÍÊÇ²»ÊÇkv½á¹¹
-#define CWX_MQ_ERR_ERROR   3///<½ÓÊÕµ½µÄbinlogÊı¾İÎŞĞ§
-#define CWX_MQ_ERR_ERROR       4 ///<½ÓÊÕµ½µÄbinlog£¬Ã»ÓĞ¡¾data¡¿µÄkey
-#define CWX_MQ_ERR_ERROR   5 ///<dataµÄ¿ÉÒÔÎªkey/value£¬µ«¸ñÊ½·Ç·¨
-#define CWX_MQ_ERR_ERROR            6 ///<½ÓÊÕµ½µÄreportÊı¾İ°üÖĞ£¬Ã»ÓĞ¡¾sid¡¿µÄkey
-#define CWX_MQ_ERR_ERROR            7 ///<½ÓÊÕµ½µÄÊı¾İ°üÖĞ£¬Ã»ÓĞ¡¾ret¡¿
-#define CWX_MQ_ERR_ERROR            8 ///<½ÓÊÕµ½µÄÊı¾İ°üÖĞ£¬Ã»ÓĞ¡¾err¡¿
-#define CWX_MQ_ERR_ERROR      9 ///<½ÓÊÕµ½µÄÊı¾İÖĞ£¬Ã»ÓĞ¡¾timestamp¡¿
-#define CWX_MQ_ERR_FAIL_AUTH         10 ///<¼øÈ¨Ê§°Ü
-#define CWX_MQ_ERR_ERROR 11 ///<binlogµÄtype´íÎó
-#define CWX_MQ_ERR_ERROR   12 ///<½ÓÊÕµ½µÄÏûÏ¢ÀàĞÍÎŞĞ§
-#define CWX_MQ_ERR_ERROR        13  ///<»Ø¸´µÄsidÎŞĞ§
-#define CWX_MQ_ERR_ERROR    14 ///<Íùbinglog mgrÖĞÌí¼ÓbinlogÊ§°Ü
-#define CWX_MQ_ERR_ERROR        15 ///<¶ÓÁĞ²»´æÔÚ
-#define CWX_MQ_ERR_ERROR 16 ///<ÎŞĞ§µÄÏûÏ¢¶©ÔÄÀàĞÍ
-#define CWX_MQ_ERR_ERROR        17 ///<ÆäËûÄÚ²¿´íÎó£¬Ò»°ãÎªÄÚ´æ
-#define CWX_MQ_ERR_ERROR      18 ///<MD5Ğ£ÑéÊ§°Ü
-#define CWX_MQ_ERR_ERROR    19 ///<CRC32Ğ£ÑéÊ§°Ü
-#define CWX_MQ_ERR_ERROR          20 ///<Ã»ÓĞname×Ö¶Î
-#define CWX_MQ_ERR_ERROR          21 ///<commit¶ÓÁĞÀàĞÍµÄÏûÏ¢commit³¬Ê±
-#define CWX_MQ_ERR_ERROR   22 ///<commitÃüÁîÎŞĞ§
-#define CWX_MQ_ERR_ERROR     23 ///<¶ÓÁĞµÄÓÃ»§ÃûÌ«³¤
-#define CWX_MQ_ERR_ERROR   24 ///<¶ÓÁĞµÄ¿ÚÁîÌ«³¤
-#define CWX_MQ_ERR_ERROR   25 ///<¶ÓÁĞÃû×ÖÌ«³¤
-#define CWX_MQ_ERR_ERROR   26 ///<¶ÓÁĞ¶©ÔÄ±í´ïÊ½Ì«³¤
-#define CWX_MQ_ERR_ERROR        27 ///<¶ÓÁĞµÄÃû×ÖÎª¿Õ
-#define CWX_MQ_ERR_ERROR       28 ///<¶ÓÁĞ´æÔÚ
+///åè®®é”™è¯¯ä»£ç å®šä¹‰
+#define CWX_MQ_ERR_SUCCESS          0  ///<æˆåŠŸ
+#define CWX_MQ_ERR_ERROR           1   ///<æ²¡æœ‰æ•°æ®
+#define CWX_MQ_ERR_ERROR      2 ///<æ¥æ”¶åˆ°çš„æ•°æ®åŒ…æ— æ•ˆï¼Œä¹Ÿå°±æ˜¯ä¸æ˜¯kvç»“æ„
+#define CWX_MQ_ERR_ERROR   3///<æ¥æ”¶åˆ°çš„binlogæ•°æ®æ— æ•ˆ
+#define CWX_MQ_ERR_ERROR       4 ///<æ¥æ”¶åˆ°çš„binlogï¼Œæ²¡æœ‰ã€dataã€‘çš„key
+#define CWX_MQ_ERR_ERROR   5 ///<dataçš„å¯ä»¥ä¸ºkey/valueï¼Œä½†æ ¼å¼éæ³•
+#define CWX_MQ_ERR_ERROR            6 ///<æ¥æ”¶åˆ°çš„reportæ•°æ®åŒ…ä¸­ï¼Œæ²¡æœ‰ã€sidã€‘çš„key
+#define CWX_MQ_ERR_ERROR            7 ///<æ¥æ”¶åˆ°çš„æ•°æ®åŒ…ä¸­ï¼Œæ²¡æœ‰ã€retã€‘
+#define CWX_MQ_ERR_ERROR            8 ///<æ¥æ”¶åˆ°çš„æ•°æ®åŒ…ä¸­ï¼Œæ²¡æœ‰ã€errã€‘
+#define CWX_MQ_ERR_ERROR      9 ///<æ¥æ”¶åˆ°çš„æ•°æ®ä¸­ï¼Œæ²¡æœ‰ã€timestampã€‘
+#define CWX_MQ_ERR_FAIL_AUTH         10 ///<é‰´æƒå¤±è´¥
+#define CWX_MQ_ERR_ERROR 11 ///<binlogçš„typeé”™è¯¯
+#define CWX_MQ_ERR_ERROR   12 ///<æ¥æ”¶åˆ°çš„æ¶ˆæ¯ç±»å‹æ— æ•ˆ
+#define CWX_MQ_ERR_ERROR        13  ///<å›å¤çš„sidæ— æ•ˆ
+#define CWX_MQ_ERR_ERROR    14 ///<å¾€binglog mgrä¸­æ·»åŠ binlogå¤±è´¥
+#define CWX_MQ_ERR_ERROR        15 ///<é˜Ÿåˆ—ä¸å­˜åœ¨
+#define CWX_MQ_ERR_ERROR 16 ///<æ— æ•ˆçš„æ¶ˆæ¯è®¢é˜…ç±»å‹
+#define CWX_MQ_ERR_ERROR        17 ///<å…¶ä»–å†…éƒ¨é”™è¯¯ï¼Œä¸€èˆ¬ä¸ºå†…å­˜
+#define CWX_MQ_ERR_ERROR      18 ///<MD5æ ¡éªŒå¤±è´¥
+#define CWX_MQ_ERR_ERROR    19 ///<CRC32æ ¡éªŒå¤±è´¥
+#define CWX_MQ_ERR_ERROR          20 ///<æ²¡æœ‰nameå­—æ®µ
+#define CWX_MQ_ERR_ERROR          21 ///<commité˜Ÿåˆ—ç±»å‹çš„æ¶ˆæ¯commitè¶…æ—¶
+#define CWX_MQ_ERR_ERROR   22 ///<commitå‘½ä»¤æ— æ•ˆ
+#define CWX_MQ_ERR_ERROR     23 ///<é˜Ÿåˆ—çš„ç”¨æˆ·åå¤ªé•¿
+#define CWX_MQ_ERR_ERROR   24 ///<é˜Ÿåˆ—çš„å£ä»¤å¤ªé•¿
+#define CWX_MQ_ERR_ERROR   25 ///<é˜Ÿåˆ—åå­—å¤ªé•¿
+#define CWX_MQ_ERR_ERROR   26 ///<é˜Ÿåˆ—è®¢é˜…è¡¨è¾¾å¼å¤ªé•¿
+#define CWX_MQ_ERR_ERROR        27 ///<é˜Ÿåˆ—çš„åå­—ä¸ºç©º
+#define CWX_MQ_ERR_ERROR       28 ///<é˜Ÿåˆ—å­˜åœ¨
 
 
 /**
-*@brief ĞÎ³ÉmqµÄÒ»¸öÏûÏ¢°ü
-*@param [in] writer packageµÄwriter¡£
-*@param [in] uiTaskId task-id,»Ø¸´µÄÊ±ºò»á·µ»Ø¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [in] data msgµÄdata¡£
-*@param [in] group msgµÄgroup¡£
-*@param [in] type msgµÄtype¡£
-*@param [in] user ½ÓÊÕmqµÄuser£¬ÈôÎª¿Õ£¬Ôò±íÊ¾Ã»ÓĞÓÃ»§¡£
-*@param [in] passwd ½ÓÊÕmqµÄpasswd£¬ÈôÎª¿Õ£¬Ôò±íÊ¾Ã»ÓĞ¿ÚÁî¡£
-*@param [in] sign  ½ÓÊÕµÄmqµÄÇ©ÃûÀàĞÍ£¬ÈôÎª¿Õ£¬Ôò±íÊ¾²»Ç©Ãû¡£
-*@param [in] zip  ÊÇ·ñ¶ÔÊı¾İÑ¹Ëõ£¬1£ºÑ¹Ëõ£»0£º²»Ñ¹Ëõ¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief å½¢æˆmqçš„ä¸€ä¸ªæ¶ˆæ¯åŒ…
+*@param [in] writer packageçš„writerã€‚
+*@param [in] uiTaskId task-id,å›å¤çš„æ—¶å€™ä¼šè¿”å›ã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [in] data msgçš„dataã€‚
+*@param [in] group msgçš„groupã€‚
+*@param [in] type msgçš„typeã€‚
+*@param [in] user æ¥æ”¶mqçš„userï¼Œè‹¥ä¸ºç©ºï¼Œåˆ™è¡¨ç¤ºæ²¡æœ‰ç”¨æˆ·ã€‚
+*@param [in] passwd æ¥æ”¶mqçš„passwdï¼Œè‹¥ä¸ºç©ºï¼Œåˆ™è¡¨ç¤ºæ²¡æœ‰å£ä»¤ã€‚
+*@param [in] sign  æ¥æ”¶çš„mqçš„ç­¾åç±»å‹ï¼Œè‹¥ä¸ºç©ºï¼Œåˆ™è¡¨ç¤ºä¸ç­¾åã€‚
+*@param [in] zip  æ˜¯å¦å¯¹æ•°æ®å‹ç¼©ï¼Œ1ï¼šå‹ç¼©ï¼›0ï¼šä¸å‹ç¼©ã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
         CWX_UINT32 uiTaskId,
@@ -144,16 +144,16 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
         char* szErr2K
         );
 /**
-*@brief ½âÎömqµÄÒ»¸öÏûÏ¢°ü
-*@param [in] reader packageµÄreader¡£
-*@param [in] msg ½ÓÊÕµ½µÄmqÏûÏ¢£¬²»°üÀ¨msg header¡£
-*@param [in] msg_len msgµÄ³¤¶È¡£
-*@param [out] data ·µ»ØmsgµÄdata¡£
-*@param [out] group msgµÄgroup¡£
-*@param [out] user ·µ»ØmsgÖĞµÄÓÃ»§£¬0±íÊ¾²»´æÔÚ¡£
-*@param [out] passwd ·µ»ØmsgÖĞµÄÓÃ»§¿ÚÁî£¬0±íÊ¾²»´æÔÚ¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief è§£æmqçš„ä¸€ä¸ªæ¶ˆæ¯åŒ…
+*@param [in] reader packageçš„readerã€‚
+*@param [in] msg æ¥æ”¶åˆ°çš„mqæ¶ˆæ¯ï¼Œä¸åŒ…æ‹¬msg headerã€‚
+*@param [in] msg_len msgçš„é•¿åº¦ã€‚
+*@param [out] data è¿”å›msgçš„dataã€‚
+*@param [out] group msgçš„groupã€‚
+*@param [out] user è¿”å›msgä¸­çš„ç”¨æˆ·ï¼Œ0è¡¨ç¤ºä¸å­˜åœ¨ã€‚
+*@param [out] passwd è¿”å›msgä¸­çš„ç”¨æˆ·å£ä»¤ï¼Œ0è¡¨ç¤ºä¸å­˜åœ¨ã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_parse_mq(struct CWX_PG_READER* reader,
         char const* msg,
@@ -165,16 +165,16 @@ int cwx_mq_parse_mq(struct CWX_PG_READER* reader,
         char* szErr2K);
 
 /**
-*@brief pack mqµÄÒ»¸öreplyÏûÏ¢°ü
-*@param [in] writer packageµÄwriter¡£
-*@param [in] uiTaskId ÊÕµ½ÏûÏ¢µÄtask-id£¬Ô­Ñù·µ»Ø¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [in] ret ´íÎó´úÂë¡£
-*@param [in] ullSid ÏûÏ¢³É¹¦½ÓÊÕÊ±µÄsid¡£
-*@param [in] szErrMsg ÏûÏ¢Ê§°ÜÊ±µÄ´íÎóÏûÏ¢¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief pack mqçš„ä¸€ä¸ªreplyæ¶ˆæ¯åŒ…
+*@param [in] writer packageçš„writerã€‚
+*@param [in] uiTaskId æ”¶åˆ°æ¶ˆæ¯çš„task-idï¼ŒåŸæ ·è¿”å›ã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [in] ret é”™è¯¯ä»£ç ã€‚
+*@param [in] ullSid æ¶ˆæ¯æˆåŠŸæ¥æ”¶æ—¶çš„sidã€‚
+*@param [in] szErrMsg æ¶ˆæ¯å¤±è´¥æ—¶çš„é”™è¯¯æ¶ˆæ¯ã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_pack_mq_reply(struct CWX_PG_WRITER * writer,
     CWX_UINT32 uiTaskId,
@@ -186,15 +186,15 @@ int cwx_mq_pack_mq_reply(struct CWX_PG_WRITER * writer,
     char* szErr2K);
 
 /**
-*@brief ½âÎömqµÄÒ»¸öreplyÏûÏ¢°ü
-*@param [in] reader packageµÄreader¡£
-*@param [in] msg ½ÓÊÕµ½µÄmqÏûÏ¢£¬²»°üÀ¨msg header¡£
-*@param [in] msg_len msgµÄ³¤¶È¡£
-*@param [out] ret ·µ»ØmsgµÄret¡£
-*@param [out] ullSid ·µ»ØmsgµÄsid¡£
-*@param [out] szErrMsg ·µ»ØmsgµÄerr-msg¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief è§£æmqçš„ä¸€ä¸ªreplyæ¶ˆæ¯åŒ…
+*@param [in] reader packageçš„readerã€‚
+*@param [in] msg æ¥æ”¶åˆ°çš„mqæ¶ˆæ¯ï¼Œä¸åŒ…æ‹¬msg headerã€‚
+*@param [in] msg_len msgçš„é•¿åº¦ã€‚
+*@param [out] ret è¿”å›msgçš„retã€‚
+*@param [out] ullSid è¿”å›msgçš„sidã€‚
+*@param [out] szErrMsg è¿”å›msgçš„err-msgã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_parse_mq_reply(struct CWX_PG_READER* reader,
     char const* msg,
@@ -205,15 +205,15 @@ int cwx_mq_parse_mq_reply(struct CWX_PG_READER* reader,
     char* szErr2K);
 
 /**
-*@brief pack mqµÄcommitÏûÏ¢°ü
-*@param [in] writer packageµÄwriter¡£
-*@param [in] uiTaskId ÏûÏ¢µÄtask-id¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [in] user ½ÓÊÕµÄmqµÄuser£¬ÈôÎª¿Õ£¬Ôò±íÊ¾Ã»ÓĞÓÃ»§¡£
-*@param [in] passwd ½ÓÊÕµÄmqµÄpasswd£¬ÈôÎª¿Õ£¬Ôò±íÊ¾Ã»ÓĞ¿ÚÁî¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief pack mqçš„commitæ¶ˆæ¯åŒ…
+*@param [in] writer packageçš„writerã€‚
+*@param [in] uiTaskId æ¶ˆæ¯çš„task-idã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [in] user æ¥æ”¶çš„mqçš„userï¼Œè‹¥ä¸ºç©ºï¼Œåˆ™è¡¨ç¤ºæ²¡æœ‰ç”¨æˆ·ã€‚
+*@param [in] passwd æ¥æ”¶çš„mqçš„passwdï¼Œè‹¥ä¸ºç©ºï¼Œåˆ™è¡¨ç¤ºæ²¡æœ‰å£ä»¤ã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_pack_commit(struct CWX_PG_WRITER * writer,
     CWX_UINT32 uiTaskId,
@@ -223,14 +223,14 @@ int cwx_mq_pack_commit(struct CWX_PG_WRITER * writer,
     char const* passwd,
     char* szErr2K);
 /**
-*@brief ½âÎömqµÄÒ»¸öcommitÏûÏ¢°ü
-*@param [in] reader packageµÄreader¡£
-*@param [in] msg ½ÓÊÕµ½µÄmqÏûÏ¢£¬²»°üÀ¨msg header¡£
-*@param [in] msg_len msgµÄ³¤¶È¡£
-*@param [out] user ·µ»ØmsgÖĞµÄÓÃ»§£¬0±íÊ¾²»´æÔÚ¡£
-*@param [out] passwd ·µ»ØmsgÖĞµÄÓÃ»§¿ÚÁî£¬0±íÊ¾²»´æÔÚ¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief è§£æmqçš„ä¸€ä¸ªcommitæ¶ˆæ¯åŒ…
+*@param [in] reader packageçš„readerã€‚
+*@param [in] msg æ¥æ”¶åˆ°çš„mqæ¶ˆæ¯ï¼Œä¸åŒ…æ‹¬msg headerã€‚
+*@param [in] msg_len msgçš„é•¿åº¦ã€‚
+*@param [out] user è¿”å›msgä¸­çš„ç”¨æˆ·ï¼Œ0è¡¨ç¤ºä¸å­˜åœ¨ã€‚
+*@param [out] passwd è¿”å›msgä¸­çš„ç”¨æˆ·å£ä»¤ï¼Œ0è¡¨ç¤ºä¸å­˜åœ¨ã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_parse_commit(struct CWX_PG_READER* reader,
     char const* msg,
@@ -241,15 +241,15 @@ int cwx_mq_parse_commit(struct CWX_PG_READER* reader,
 
 
 /**
-*@brief pack mqµÄcommit replyµÄÏûÏ¢°ü
-*@param [in] writer packageµÄwriter¡£
-*@param [in] uiTaskId ÊÕµ½ÏûÏ¢µÄtask-id£¬Ô­Ñù·µ»Ø¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [in] ret Ö´ĞĞ×´Ì¬Âë¡£
-*@param [in] szErrMsg Ö´ĞĞÊ§°ÜÊ±µÄ´íÎóÏûÏ¢¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief pack mqçš„commit replyçš„æ¶ˆæ¯åŒ…
+*@param [in] writer packageçš„writerã€‚
+*@param [in] uiTaskId æ”¶åˆ°æ¶ˆæ¯çš„task-idï¼ŒåŸæ ·è¿”å›ã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [in] ret æ‰§è¡ŒçŠ¶æ€ç ã€‚
+*@param [in] szErrMsg æ‰§è¡Œå¤±è´¥æ—¶çš„é”™è¯¯æ¶ˆæ¯ã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_pack_commit_reply(struct CWX_PG_WRITER * writer,
     CWX_UINT32 uiTaskId,
@@ -260,14 +260,14 @@ int cwx_mq_pack_commit_reply(struct CWX_PG_WRITER * writer,
     char* szErr2K);
 
 /**
-*@brief ½âÎömqµÄÒ»¸öcommit replyÏûÏ¢°ü
-*@param [in] reader packageµÄreader¡£
-*@param [in] msg ½ÓÊÕµ½µÄmqÏûÏ¢£¬²»°üÀ¨msg header¡£
-*@param [in] msg_len msgµÄ³¤¶È¡£
-*@param [out] ret Ö´ĞĞ×´Ì¬Âë¡£
-*@param [out] szErrMsg Ö´ĞĞÊ§°ÜÊ±µÄ´íÎóÏûÏ¢¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief è§£æmqçš„ä¸€ä¸ªcommit replyæ¶ˆæ¯åŒ…
+*@param [in] reader packageçš„readerã€‚
+*@param [in] msg æ¥æ”¶åˆ°çš„mqæ¶ˆæ¯ï¼Œä¸åŒ…æ‹¬msg headerã€‚
+*@param [in] msg_len msgçš„é•¿åº¦ã€‚
+*@param [out] ret æ‰§è¡ŒçŠ¶æ€ç ã€‚
+*@param [out] szErrMsg æ‰§è¡Œå¤±è´¥æ—¶çš„é”™è¯¯æ¶ˆæ¯ã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_parse_commit_reply(struct CWX_PG_READER* reader,
     char const* msg,
@@ -277,21 +277,21 @@ int cwx_mq_parse_commit_reply(struct CWX_PG_READER* reader,
     char* szErr2K);
 
 /**
-*@brief pack mqµÄreportÏûÏ¢°ü
-*@param [in] writer packageµÄwriter¡£
-*@param [in] uiTaskId task-id¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [in] ullSid Í¬²½µÄsid¡£
-*@param [in] bNewly ÊÇ·ñ´Óµ±Ç°binlog¿ªÊ¼½ÓÊÕ¡£
-*@param [in] uiChunk chunkµÄ´óĞ¡£¬ÈôÊÇ0±íÊ¾²»Ö§³Öchunk£¬µ¥Î»Îªkbyte¡£
-*@param [in] subscribe ¶©ÔÄµÄÏûÏ¢ÀàĞÍ¡£
-*@param [in] user ½ÓÊÕµÄmqµÄuser£¬ÈôÎª¿Õ£¬Ôò±íÊ¾Ã»ÓĞÓÃ»§¡£
-*@param [in] passwd ½ÓÊÕµÄmqµÄpasswd£¬ÈôÎª¿Õ£¬Ôò±íÊ¾Ã»ÓĞ¿ÚÁî¡£
-*@param [in] sign  ½ÓÊÕµÄmqµÄÇ©ÃûÀàĞÍ£¬ÈôÎª¿Õ£¬Ôò±íÊ¾²»Ç©Ãû¡£
-*@param [in] zip  ½ÓÊÕµÄmqÊÇ·ñÑ¹Ëõ£¬1Ñ¹Ëõ£»0²»Ñ¹Ëõ¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief pack mqçš„reportæ¶ˆæ¯åŒ…
+*@param [in] writer packageçš„writerã€‚
+*@param [in] uiTaskId task-idã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [in] ullSid åŒæ­¥çš„sidã€‚
+*@param [in] bNewly æ˜¯å¦ä»å½“å‰binlogå¼€å§‹æ¥æ”¶ã€‚
+*@param [in] uiChunk chunkçš„å¤§å°ï¼Œè‹¥æ˜¯0è¡¨ç¤ºä¸æ”¯æŒchunkï¼Œå•ä½ä¸ºkbyteã€‚
+*@param [in] subscribe è®¢é˜…çš„æ¶ˆæ¯ç±»å‹ã€‚
+*@param [in] user æ¥æ”¶çš„mqçš„userï¼Œè‹¥ä¸ºç©ºï¼Œåˆ™è¡¨ç¤ºæ²¡æœ‰ç”¨æˆ·ã€‚
+*@param [in] passwd æ¥æ”¶çš„mqçš„passwdï¼Œè‹¥ä¸ºç©ºï¼Œåˆ™è¡¨ç¤ºæ²¡æœ‰å£ä»¤ã€‚
+*@param [in] sign  æ¥æ”¶çš„mqçš„ç­¾åç±»å‹ï¼Œè‹¥ä¸ºç©ºï¼Œåˆ™è¡¨ç¤ºä¸ç­¾åã€‚
+*@param [in] zip  æ¥æ”¶çš„mqæ˜¯å¦å‹ç¼©ï¼Œ1å‹ç¼©ï¼›0ä¸å‹ç¼©ã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
     CWX_UINT32 uiTaskId,
@@ -307,20 +307,20 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
     int        zip,
     char* szErr2K);
 /**
-*@brief parse mqµÄreportÏûÏ¢°ü
-*@param [in] reader packageµÄreader¡£
-*@param [in] msg ½ÓÊÕµ½µÄmqÏûÏ¢£¬²»°üÀ¨msg header¡£
-*@param [in] msg_len msgµÄ³¤¶È¡£
-*@param [in] ullSid Í¬²½µÄsid¡£
-*@param [in] bNewly ÊÇ·ñ´Óµ±Ç°binlog¿ªÊ¼½ÓÊÕ¡£
-*@param [in] uiChunk chunkµÄ´óĞ¡£¬ÈôÊÇ0±íÊ¾²»Ö§³Öchunk£¬µ¥Î»Îªkbyte¡£
-*@param [in] subscribe ¶©ÔÄµÄÏûÏ¢ÀàĞÍ¡£
-*@param [in] user ½ÓÊÕµÄmqµÄuser£¬ÈôÎª¿Õ£¬Ôò±íÊ¾Ã»ÓĞÓÃ»§¡£
-*@param [in] passwd ½ÓÊÕµÄmqµÄpasswd£¬ÈôÎª¿Õ£¬Ôò±íÊ¾Ã»ÓĞ¿ÚÁî¡£
-*@param [in] sign  ½ÓÊÕµÄmqµÄÇ©ÃûÀàĞÍ£¬ÈôÎª¿Õ£¬Ôò±íÊ¾²»Ç©Ãû¡£
-*@param [in] zip  ½ÓÊÕµÄmqÊÇ·ñÑ¹Ëõ£¬1Ñ¹Ëõ£»0²»Ñ¹Ëõ¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief parse mqçš„reportæ¶ˆæ¯åŒ…
+*@param [in] reader packageçš„readerã€‚
+*@param [in] msg æ¥æ”¶åˆ°çš„mqæ¶ˆæ¯ï¼Œä¸åŒ…æ‹¬msg headerã€‚
+*@param [in] msg_len msgçš„é•¿åº¦ã€‚
+*@param [in] ullSid åŒæ­¥çš„sidã€‚
+*@param [in] bNewly æ˜¯å¦ä»å½“å‰binlogå¼€å§‹æ¥æ”¶ã€‚
+*@param [in] uiChunk chunkçš„å¤§å°ï¼Œè‹¥æ˜¯0è¡¨ç¤ºä¸æ”¯æŒchunkï¼Œå•ä½ä¸ºkbyteã€‚
+*@param [in] subscribe è®¢é˜…çš„æ¶ˆæ¯ç±»å‹ã€‚
+*@param [in] user æ¥æ”¶çš„mqçš„userï¼Œè‹¥ä¸ºç©ºï¼Œåˆ™è¡¨ç¤ºæ²¡æœ‰ç”¨æˆ·ã€‚
+*@param [in] passwd æ¥æ”¶çš„mqçš„passwdï¼Œè‹¥ä¸ºç©ºï¼Œåˆ™è¡¨ç¤ºæ²¡æœ‰å£ä»¤ã€‚
+*@param [in] sign  æ¥æ”¶çš„mqçš„ç­¾åç±»å‹ï¼Œè‹¥ä¸ºç©ºï¼Œåˆ™è¡¨ç¤ºä¸ç­¾åã€‚
+*@param [in] zip  æ¥æ”¶çš„mqæ˜¯å¦å‹ç¼©ï¼Œ1å‹ç¼©ï¼›0ä¸å‹ç¼©ã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_parse_sync_report(struct CWX_PG_READER* reader,
     char const* msg,
@@ -336,16 +336,16 @@ int cwx_mq_parse_sync_report(struct CWX_PG_READER* reader,
     char* szErr2K);
 
 /**
-*@brief pack mqµÄreportÊ§°ÜÊ±µÄreplyÏûÏ¢°ü
-*@param [in] writer packageµÄwriter¡£
-*@param [in] uiTaskId ÊÕµ½reportµÄtask-id¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [in] ret reportÊ§°ÜµÄ´íÎó´úÂë¡£
-*@param [in] ullSid reportµÄsid¡£
-*@param [in] szErrMsg reportÊ§°ÜµÄÔ­Òò¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief pack mqçš„reportå¤±è´¥æ—¶çš„replyæ¶ˆæ¯åŒ…
+*@param [in] writer packageçš„writerã€‚
+*@param [in] uiTaskId æ”¶åˆ°reportçš„task-idã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [in] ret reportå¤±è´¥çš„é”™è¯¯ä»£ç ã€‚
+*@param [in] ullSid reportçš„sidã€‚
+*@param [in] szErrMsg reportå¤±è´¥çš„åŸå› ã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_pack_sync_report_reply(struct CWX_PG_WRITER * writer,
         CWX_UINT32 uiTaskId,
@@ -356,15 +356,15 @@ int cwx_mq_pack_sync_report_reply(struct CWX_PG_WRITER * writer,
         char const* szErrMsg,
         char* szErr2K);
 /**
-*@brief parse mqµÄreportÊ§°ÜÊ±µÄreplyÏûÏ¢°ü
-*@param [in] reader packageµÄreader¡£
-*@param [in] msg ½ÓÊÕµ½µÄmqÏûÏ¢£¬²»°üÀ¨msg header¡£
-*@param [in] msg_len msgµÄ³¤¶È¡£
-*@param [in] ret reportÊ§°ÜµÄ´íÎó´úÂë¡£
-*@param [in] ullSid reportµÄsid¡£
-*@param [in] szErrMsg reportÊ§°ÜµÄÔ­Òò¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief parse mqçš„reportå¤±è´¥æ—¶çš„replyæ¶ˆæ¯åŒ…
+*@param [in] reader packageçš„readerã€‚
+*@param [in] msg æ¥æ”¶åˆ°çš„mqæ¶ˆæ¯ï¼Œä¸åŒ…æ‹¬msg headerã€‚
+*@param [in] msg_len msgçš„é•¿åº¦ã€‚
+*@param [in] ret reportå¤±è´¥çš„é”™è¯¯ä»£ç ã€‚
+*@param [in] ullSid reportçš„sidã€‚
+*@param [in] szErrMsg reportå¤±è´¥çš„åŸå› ã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_parse_sync_report_reply(struct CWX_PG_READER* reader,
         char const* msg,
@@ -375,19 +375,19 @@ int cwx_mq_parse_sync_report_reply(struct CWX_PG_READER* reader,
         char* szErr2K);
 
 /**
-*@brief pack mqµÄsync msgµÄÏûÏ¢°ü
-*@param [in] writer packageµÄwriter¡£
-*@param [in] uiTaskId task-id¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [in] ullSid ÏûÏ¢µÄsid¡£
-*@param [in] uiTimeStamp ÏûÏ¢½ÓÊÕÊ±µÄÊ±¼ä¡£
-*@param [in] data ÏûÏ¢µÄdata¡£
-*@param [in] group ÏûÏ¢µÄgroup¡£
-*@param [in] sign  ½ÓÊÕµÄmqµÄÇ©ÃûÀàĞÍ£¬ÈôÎª¿Õ£¬Ôò±íÊ¾²»Ç©Ãû¡£
-*@param [in] zip  ½ÓÊÕµÄmqÊÇ·ñÑ¹Ëõ£¬1Ñ¹Ëõ£»0²»Ñ¹Ëõ¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief pack mqçš„sync msgçš„æ¶ˆæ¯åŒ…
+*@param [in] writer packageçš„writerã€‚
+*@param [in] uiTaskId task-idã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [in] ullSid æ¶ˆæ¯çš„sidã€‚
+*@param [in] uiTimeStamp æ¶ˆæ¯æ¥æ”¶æ—¶çš„æ—¶é—´ã€‚
+*@param [in] data æ¶ˆæ¯çš„dataã€‚
+*@param [in] group æ¶ˆæ¯çš„groupã€‚
+*@param [in] sign  æ¥æ”¶çš„mqçš„ç­¾åç±»å‹ï¼Œè‹¥ä¸ºç©ºï¼Œåˆ™è¡¨ç¤ºä¸ç­¾åã€‚
+*@param [in] zip  æ¥æ”¶çš„mqæ˜¯å¦å‹ç¼©ï¼Œ1å‹ç¼©ï¼›0ä¸å‹ç¼©ã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
         CWX_UINT32 uiTaskId,
@@ -401,16 +401,16 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
         int       zip,
         char* szErr2K);
 /**
-*@brief parse mqµÄsync msgµÄÏûÏ¢°ü
-*@param [in] reader packageµÄreader¡£
-*@param [in] msg ½ÓÊÕµ½µÄmqÏûÏ¢£¬²»°üÀ¨msg header¡£
-*@param [in out] msg_len msgµÄ³¤¶È¡£
-*@param [out] ullSid ÏûÏ¢µÄsid¡£
-*@param [out] uiTimeStamp ÏûÏ¢½ÓÊÕÊ±µÄÊ±¼ä¡£
-*@param [out] data ÏûÏ¢µÄdata¡£
-*@param [out] group ÏûÏ¢µÄgroup¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief parse mqçš„sync msgçš„æ¶ˆæ¯åŒ…
+*@param [in] reader packageçš„readerã€‚
+*@param [in] msg æ¥æ”¶åˆ°çš„mqæ¶ˆæ¯ï¼Œä¸åŒ…æ‹¬msg headerã€‚
+*@param [in out] msg_len msgçš„é•¿åº¦ã€‚
+*@param [out] ullSid æ¶ˆæ¯çš„sidã€‚
+*@param [out] uiTimeStamp æ¶ˆæ¯æ¥æ”¶æ—¶çš„æ—¶é—´ã€‚
+*@param [out] data æ¶ˆæ¯çš„dataã€‚
+*@param [out] group æ¶ˆæ¯çš„groupã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_parse_sync_data(struct CWX_PG_READER* reader,
         char const* msg,
@@ -422,14 +422,14 @@ int cwx_mq_parse_sync_data(struct CWX_PG_READER* reader,
         char* szErr2K);
 
 /**
-*@brief pack mqµÄsync msgµÄÏûÏ¢°üµÄ»Ø¸´
-*@param [in] writer packageµÄwriter¡£
-*@param [in] uiTaskId task-id¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [in] ullSid ÏûÏ¢µÄsid¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief pack mqçš„sync msgçš„æ¶ˆæ¯åŒ…çš„å›å¤
+*@param [in] writer packageçš„writerã€‚
+*@param [in] uiTaskId task-idã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [in] ullSid æ¶ˆæ¯çš„sidã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_pack_sync_data_reply(struct CWX_PG_WRITER * writer,
         CWX_UINT32 uiTaskId,
@@ -438,13 +438,13 @@ int cwx_mq_pack_sync_data_reply(struct CWX_PG_WRITER * writer,
         CWX_UINT64 ullSid,
         char* szErr2K);
 /**
-*@brief parse mqµÄsync msgµÄÏûÏ¢°üµÄ»Ø¸´
-*@param [in] reader packageµÄreader¡£
-*@param [in] msg ½ÓÊÕµ½µÄmqÏûÏ¢£¬²»°üÀ¨msg header¡£
-*@param [in] msg_len msgµÄ³¤¶È¡£
-*@param [in] ullSid ÏûÏ¢µÄsid¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief parse mqçš„sync msgçš„æ¶ˆæ¯åŒ…çš„å›å¤
+*@param [in] reader packageçš„readerã€‚
+*@param [in] msg æ¥æ”¶åˆ°çš„mqæ¶ˆæ¯ï¼Œä¸åŒ…æ‹¬msg headerã€‚
+*@param [in] msg_len msgçš„é•¿åº¦ã€‚
+*@param [in] ullSid æ¶ˆæ¯çš„sidã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_parse_sync_data_reply(struct CWX_PG_READER* reader,
         char const* msg,
@@ -453,17 +453,17 @@ int cwx_mq_parse_sync_data_reply(struct CWX_PG_READER* reader,
         char* szErr2K);
 
 /**
-*@brief pack mqµÄfetch msgµÄÏûÏ¢°ü
-*@param [in] writer packageµÄwriter¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [in] bBlock ÔÚÃ»ÓĞÏûÏ¢µÄÊ±ºòÊÇ·ñblock£¬1£ºÊÇ£»0£º²»ÊÇ¡£
-*@param [in] queue_name ¶ÓÁĞµÄÃû×Ö¡£
-*@param [in] user ½ÓÊÕµÄmqµÄuser£¬ÈôÎª¿Õ£¬Ôò±íÊ¾Ã»ÓĞÓÃ»§¡£
-*@param [in] passwd ½ÓÊÕµÄmqµÄpasswd£¬ÈôÎª¿Õ£¬Ôò±íÊ¾Ã»ÓĞ¿ÚÁî¡£
-*@param [in] timeout commit¶ÓÁĞµÄ³¬Ê±Ê±¼ä£¬ÈôÎª0±íÊ¾²ÉÓÃÄ¬ÈÏ³¬Ê±Ê±¼ä£¬µ¥Î»Îªs¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief pack mqçš„fetch msgçš„æ¶ˆæ¯åŒ…
+*@param [in] writer packageçš„writerã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [in] bBlock åœ¨æ²¡æœ‰æ¶ˆæ¯çš„æ—¶å€™æ˜¯å¦blockï¼Œ1ï¼šæ˜¯ï¼›0ï¼šä¸æ˜¯ã€‚
+*@param [in] queue_name é˜Ÿåˆ—çš„åå­—ã€‚
+*@param [in] user æ¥æ”¶çš„mqçš„userï¼Œè‹¥ä¸ºç©ºï¼Œåˆ™è¡¨ç¤ºæ²¡æœ‰ç”¨æˆ·ã€‚
+*@param [in] passwd æ¥æ”¶çš„mqçš„passwdï¼Œè‹¥ä¸ºç©ºï¼Œåˆ™è¡¨ç¤ºæ²¡æœ‰å£ä»¤ã€‚
+*@param [in] timeout commité˜Ÿåˆ—çš„è¶…æ—¶æ—¶é—´ï¼Œè‹¥ä¸º0è¡¨ç¤ºé‡‡ç”¨é»˜è®¤è¶…æ—¶æ—¶é—´ï¼Œå•ä½ä¸ºsã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_pack_fetch_mq(struct CWX_PG_WRITER * writer,
         char* buf,
@@ -475,17 +475,17 @@ int cwx_mq_pack_fetch_mq(struct CWX_PG_WRITER * writer,
         CWX_UINT32  timeout,
         char* szErr2K);
 /**
-*@brief parse  mqµÄfetch msgµÄÏûÏ¢°ü
-*@param [in] reader packageµÄreader¡£
-*@param [in] msg ½ÓÊÕµ½µÄmqÏûÏ¢£¬²»°üÀ¨msg header¡£
-*@param [in] msg_len msgµÄ³¤¶È¡£
-*@param [in] bBlock ÔÚÃ»ÓĞÏûÏ¢µÄÊ±ºòÊÇ·ñblock£¬1£ºÊÇ£»0£º²»ÊÇ¡£
-*@param [in] queue_name ¶ÓÁĞµÄÃû×Ö¡£
-*@param [in] user ½ÓÊÕµÄmqµÄuser£¬ÈôÎª¿Õ£¬Ôò±íÊ¾Ã»ÓĞÓÃ»§¡£
-*@param [in] passwd ½ÓÊÕµÄmqµÄpasswd£¬ÈôÎª¿Õ£¬Ôò±íÊ¾Ã»ÓĞ¿ÚÁî¡£
-*@param [in] timeout commit¶ÓÁĞµÄ³¬Ê±Ê±¼ä£¬ÈôÎª0±íÊ¾²ÉÓÃÄ¬ÈÏ³¬Ê±Ê±¼ä£¬µ¥Î»Îªs¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief parse  mqçš„fetch msgçš„æ¶ˆæ¯åŒ…
+*@param [in] reader packageçš„readerã€‚
+*@param [in] msg æ¥æ”¶åˆ°çš„mqæ¶ˆæ¯ï¼Œä¸åŒ…æ‹¬msg headerã€‚
+*@param [in] msg_len msgçš„é•¿åº¦ã€‚
+*@param [in] bBlock åœ¨æ²¡æœ‰æ¶ˆæ¯çš„æ—¶å€™æ˜¯å¦blockï¼Œ1ï¼šæ˜¯ï¼›0ï¼šä¸æ˜¯ã€‚
+*@param [in] queue_name é˜Ÿåˆ—çš„åå­—ã€‚
+*@param [in] user æ¥æ”¶çš„mqçš„userï¼Œè‹¥ä¸ºç©ºï¼Œåˆ™è¡¨ç¤ºæ²¡æœ‰ç”¨æˆ·ã€‚
+*@param [in] passwd æ¥æ”¶çš„mqçš„passwdï¼Œè‹¥ä¸ºç©ºï¼Œåˆ™è¡¨ç¤ºæ²¡æœ‰å£ä»¤ã€‚
+*@param [in] timeout commité˜Ÿåˆ—çš„è¶…æ—¶æ—¶é—´ï¼Œè‹¥ä¸º0è¡¨ç¤ºé‡‡ç”¨é»˜è®¤è¶…æ—¶æ—¶é—´ï¼Œå•ä½ä¸ºsã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_parse_fetch_mq(struct CWX_PG_READER* reader,
         char const* msg,
@@ -498,18 +498,18 @@ int cwx_mq_parse_fetch_mq(struct CWX_PG_READER* reader,
         char* szErr2K);
 
 /**
-*@brief pack mqµÄfetch msgµÄreplyÏûÏ¢°ü
-*@param [in] writer packageµÄwriter¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [in] ret »ñÈ¡mqÏûÏ¢µÄ×´Ì¬Âë¡£
-*@param [in] szErrMsg ×´Ì¬²»ÊÇCWX_MQ_ERR_SUCCESSµÄ´íÎóÏûÏ¢¡£
-*@param [in] ullSid ³É¹¦Ê±£¬·µ»ØÏûÏ¢µÄsid¡£
-*@param [in] uiTimeStamp ³É¹¦Ê±£¬·µ»ØÏûÏ¢µÄÊ±¼ä´Á¡£
-*@param [in] data ³É¹¦Ê±£¬·µ»ØÏûÏ¢µÄdata¡£
-*@param [in] group ³É¹¦Ê±£¬·µ»ØÏûÏ¢µÄgroup¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief pack mqçš„fetch msgçš„replyæ¶ˆæ¯åŒ…
+*@param [in] writer packageçš„writerã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [in] ret è·å–mqæ¶ˆæ¯çš„çŠ¶æ€ç ã€‚
+*@param [in] szErrMsg çŠ¶æ€ä¸æ˜¯CWX_MQ_ERR_SUCCESSçš„é”™è¯¯æ¶ˆæ¯ã€‚
+*@param [in] ullSid æˆåŠŸæ—¶ï¼Œè¿”å›æ¶ˆæ¯çš„sidã€‚
+*@param [in] uiTimeStamp æˆåŠŸæ—¶ï¼Œè¿”å›æ¶ˆæ¯çš„æ—¶é—´æˆ³ã€‚
+*@param [in] data æˆåŠŸæ—¶ï¼Œè¿”å›æ¶ˆæ¯çš„dataã€‚
+*@param [in] group æˆåŠŸæ—¶ï¼Œè¿”å›æ¶ˆæ¯çš„groupã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_pack_fetch_mq_reply(struct CWX_PG_WRITER * writer,
         char* buf,
@@ -522,18 +522,18 @@ int cwx_mq_pack_fetch_mq_reply(struct CWX_PG_WRITER * writer,
         CWX_UINT32 group,
         char* szErr2K);
 /**
-*@brief parse  mqµÄfetch msgµÄreplyÏûÏ¢°ü
-*@param [in] reader packageµÄreader¡£
-*@param [in] msg ½ÓÊÕµ½µÄmqÏûÏ¢£¬²»°üÀ¨msg header¡£
-*@param [in] msg_len msgµÄ³¤¶È¡£
-*@param [in] ret »ñÈ¡mqÏûÏ¢µÄ×´Ì¬Âë¡£
-*@param [in] szErrMsg ×´Ì¬²»ÊÇCWX_MQ_ERR_SUCCESSµÄ´íÎóÏûÏ¢¡£
-*@param [in] ullSid ³É¹¦Ê±£¬·µ»ØÏûÏ¢µÄsid¡£
-*@param [in] uiTimeStamp ³É¹¦Ê±£¬·µ»ØÏûÏ¢µÄÊ±¼ä´Á¡£
-*@param [in] data ³É¹¦Ê±£¬·µ»ØÏûÏ¢µÄdata¡£
-*@param [in] group ³É¹¦Ê±£¬·µ»ØÏûÏ¢µÄgroup¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief parse  mqçš„fetch msgçš„replyæ¶ˆæ¯åŒ…
+*@param [in] reader packageçš„readerã€‚
+*@param [in] msg æ¥æ”¶åˆ°çš„mqæ¶ˆæ¯ï¼Œä¸åŒ…æ‹¬msg headerã€‚
+*@param [in] msg_len msgçš„é•¿åº¦ã€‚
+*@param [in] ret è·å–mqæ¶ˆæ¯çš„çŠ¶æ€ç ã€‚
+*@param [in] szErrMsg çŠ¶æ€ä¸æ˜¯CWX_MQ_ERR_SUCCESSçš„é”™è¯¯æ¶ˆæ¯ã€‚
+*@param [in] ullSid æˆåŠŸæ—¶ï¼Œè¿”å›æ¶ˆæ¯çš„sidã€‚
+*@param [in] uiTimeStamp æˆåŠŸæ—¶ï¼Œè¿”å›æ¶ˆæ¯çš„æ—¶é—´æˆ³ã€‚
+*@param [in] data æˆåŠŸæ—¶ï¼Œè¿”å›æ¶ˆæ¯çš„dataã€‚
+*@param [in] group æˆåŠŸæ—¶ï¼Œè¿”å›æ¶ˆæ¯çš„groupã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_parse_fetch_mq_reply(struct CWX_PG_READER* reader,
         char const* msg,
@@ -547,14 +547,14 @@ int cwx_mq_parse_fetch_mq_reply(struct CWX_PG_READER* reader,
         char* szErr2K);
 
 /**
-*@brief pack commitÀàĞÍ¶ÓÁĞµÄcommitÏûÏ¢
-*@param [in] writer packageµÄwriter¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [in] commit ÊÇ·ñcommit¡£1£ºcommit£»0£ºÈ¡Ïûcommit
-*@param [in] delay uncommitÊÇ£¬delayµÄÃëÊı¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief pack commitç±»å‹é˜Ÿåˆ—çš„commitæ¶ˆæ¯
+*@param [in] writer packageçš„writerã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [in] commit æ˜¯å¦commitã€‚1ï¼šcommitï¼›0ï¼šå–æ¶ˆcommit
+*@param [in] delay uncommitæ˜¯ï¼Œdelayçš„ç§’æ•°ã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_pack_fetch_mq_commit(struct CWX_PG_WRITER * writer,
         char* buf,
@@ -564,14 +564,14 @@ int cwx_mq_pack_fetch_mq_commit(struct CWX_PG_WRITER * writer,
         char* szErr2K);
 
 /**
-*@brief parse  commitÀàĞÍ¶ÓÁĞµÄcommitÏûÏ¢
-*@param [in] reader packageµÄreader¡£
-*@param [in] msg ½ÓÊÕµ½µÄmqÏûÏ¢£¬²»°üÀ¨msg header¡£
-*@param [in] msg_len msgµÄ³¤¶È¡£
-*@param [out] commit ÊÇ·ñcommit¡£1£ºcommit£»0£ºÈ¡Ïûcommit
-*@param [out] delay uncommitÊÇ£¬delayµÄÃëÊı¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief parse  commitç±»å‹é˜Ÿåˆ—çš„commitæ¶ˆæ¯
+*@param [in] reader packageçš„readerã€‚
+*@param [in] msg æ¥æ”¶åˆ°çš„mqæ¶ˆæ¯ï¼Œä¸åŒ…æ‹¬msg headerã€‚
+*@param [in] msg_len msgçš„é•¿åº¦ã€‚
+*@param [out] commit æ˜¯å¦commitã€‚1ï¼šcommitï¼›0ï¼šå–æ¶ˆcommit
+*@param [out] delay uncommitæ˜¯ï¼Œdelayçš„ç§’æ•°ã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_parse_fetch_mq_commit(struct CWX_PG_READER* reader,
                                  char const* msg,
@@ -581,14 +581,14 @@ int cwx_mq_parse_fetch_mq_commit(struct CWX_PG_READER* reader,
                                  char* szErr2K);
 
 /**
-*@brief pack commitÀàĞÍ¶ÓÁĞµÄcommit replyÏûÏ¢
-*@param [in] writer packageµÄwriter¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [in] ret ´íÎó´úÂë
-*@param [in] szErrMsg ´íÎóÏûÏ¢
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief pack commitç±»å‹é˜Ÿåˆ—çš„commit replyæ¶ˆæ¯
+*@param [in] writer packageçš„writerã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [in] ret é”™è¯¯ä»£ç 
+*@param [in] szErrMsg é”™è¯¯æ¶ˆæ¯
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_pack_fetch_mq_commit_reply(struct CWX_PG_WRITER * writer,
                                   char* buf,
@@ -597,14 +597,14 @@ int cwx_mq_pack_fetch_mq_commit_reply(struct CWX_PG_WRITER * writer,
                                   char const* szErrMsg,
                                   char* szErr2K);
 /**
-*@brief parse  commitÀàĞÍ¶ÓÁĞµÄcommit replyÏûÏ¢
-*@param [in] reader packageµÄreader¡£
-*@param [in] msg ½ÓÊÕµ½µÄmqÏûÏ¢£¬²»°üÀ¨msg header¡£
-*@param [in] msg_len msgµÄ³¤¶È¡£
-*@param [out] ret commitµÄ·µ»Øcode
-*@param [out] szErrMsg commitÊ§°ÜÊ±µÄ´íÎóÏûÏ¢
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief parse  commitç±»å‹é˜Ÿåˆ—çš„commit replyæ¶ˆæ¯
+*@param [in] reader packageçš„readerã€‚
+*@param [in] msg æ¥æ”¶åˆ°çš„mqæ¶ˆæ¯ï¼Œä¸åŒ…æ‹¬msg headerã€‚
+*@param [in] msg_len msgçš„é•¿åº¦ã€‚
+*@param [out] ret commitçš„è¿”å›code
+*@param [out] szErrMsg commitå¤±è´¥æ—¶çš„é”™è¯¯æ¶ˆæ¯
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_parse_fetch_mq_commit_reply(struct CWX_PG_READER* reader,
                                        char const* msg,
@@ -613,22 +613,22 @@ int cwx_mq_parse_fetch_mq_commit_reply(struct CWX_PG_READER* reader,
                                        char const** szErrMsg,
                                        char* szErr2K);
 /**
-*@brief pack create queueµÄÏûÏ¢
-*@param [in] writer packageµÄwriter¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [in] name ¶ÓÁĞµÄÃû×Ö
-*@param [in] user ¶ÓÁĞµÄÓÃ»§Ãû
-*@param [in] passwd ¶ÓÁĞµÄÓÃ»§¿ÚÁî
-*@param [in] scribe ¶ÓÁĞµÄÏûÏ¢¶©ÔÄ¹æÔò
-*@param [in] auth_user mq¼àÌıµÄÓÃ»§Ãû
-*@param [in] auth_passwd mq¼àÌıµÄÓÃ»§¿ÚÁî
-*@param [in] ullSid ¶ÓÁĞ¿ªÊ¼µÄsid£¬ÈôÎª0,Ôò²ÉÓÃµ±Ç°×î´óµÄsid
-*@param [in] commit ÊÇ·ñÎªcommitÀàĞÍµÄ¶ÓÁĞ£¬1£ºÊÇ£¬0£º²»ÊÇ¡£
-*@param [in] uiDefTimeout ÏûÏ¢¶ÓÁĞµÄÈ±Ê¡³¬Ê±Ê±¼ä£¬ÈôÊÇ0£¬Ôò²ÉÓÃÏµÍ³Ä¬ÈÏÈ±Ê¡³¬Ê±Ê±¼ä¡£µ¥Î»Îªs¡£
-*@param [in] uiMaxTimeout ÏûÏ¢¶ÓÁĞµÄ×î´ó³¬Ê±Ê±¼ä£¬ÈôÊÇ0£¬Ôò²ÉÓÃÏµÍ³Ä¬ÈÏ×î´ó³¬Ê±Ê±¼ä¡£µ¥Î»Îªs¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief pack create queueçš„æ¶ˆæ¯
+*@param [in] writer packageçš„writerã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [in] name é˜Ÿåˆ—çš„åå­—
+*@param [in] user é˜Ÿåˆ—çš„ç”¨æˆ·å
+*@param [in] passwd é˜Ÿåˆ—çš„ç”¨æˆ·å£ä»¤
+*@param [in] scribe é˜Ÿåˆ—çš„æ¶ˆæ¯è®¢é˜…è§„åˆ™
+*@param [in] auth_user mqç›‘å¬çš„ç”¨æˆ·å
+*@param [in] auth_passwd mqç›‘å¬çš„ç”¨æˆ·å£ä»¤
+*@param [in] ullSid é˜Ÿåˆ—å¼€å§‹çš„sidï¼Œè‹¥ä¸º0,åˆ™é‡‡ç”¨å½“å‰æœ€å¤§çš„sid
+*@param [in] commit æ˜¯å¦ä¸ºcommitç±»å‹çš„é˜Ÿåˆ—ï¼Œ1ï¼šæ˜¯ï¼Œ0ï¼šä¸æ˜¯ã€‚
+*@param [in] uiDefTimeout æ¶ˆæ¯é˜Ÿåˆ—çš„ç¼ºçœè¶…æ—¶æ—¶é—´ï¼Œè‹¥æ˜¯0ï¼Œåˆ™é‡‡ç”¨ç³»ç»Ÿé»˜è®¤ç¼ºçœè¶…æ—¶æ—¶é—´ã€‚å•ä½ä¸ºsã€‚
+*@param [in] uiMaxTimeout æ¶ˆæ¯é˜Ÿåˆ—çš„æœ€å¤§è¶…æ—¶æ—¶é—´ï¼Œè‹¥æ˜¯0ï¼Œåˆ™é‡‡ç”¨ç³»ç»Ÿé»˜è®¤æœ€å¤§è¶…æ—¶æ—¶é—´ã€‚å•ä½ä¸ºsã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_pack_create_queue(struct CWX_PG_WRITER * writer,
                              char* buf,
@@ -646,21 +646,21 @@ int cwx_mq_pack_create_queue(struct CWX_PG_WRITER * writer,
                              char* szErr2K);
 
 /**
-*@brief parse create¶ÓÁĞµÄ replyÏûÏ¢
-*@param [in] writer packageµÄwriter¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [out] name ¶ÓÁĞµÄÃû×Ö
-*@param [out] user ¶ÓÁĞµÄÓÃ»§Ãû
-*@param [out] passwd ¶ÓÁĞµÄÓÃ»§¿ÚÁî
-*@param [out] scribe ¶ÓÁĞµÄÏûÏ¢¶©ÔÄ¹æÔò
-*@param [out] auth_user mq¼àÌıµÄÓÃ»§Ãû
-*@param [out] auth_passwd mq¼àÌıµÄÓÃ»§¿ÚÁî
-*@param [out] ullSid ¶ÓÁĞ¿ªÊ¼µÄsid£¬ÈôÎª0,Ôò²ÉÓÃµ±Ç°×î´óµÄsid
-*@param [out] commit ÊÇ·ñÎªcommitÀàĞÍµÄ¶ÓÁĞ£¬1£ºÊÇ£¬0£º²»ÊÇ¡£
-*@param [out] uiDefTimeout ÏûÏ¢¶ÓÁĞµÄÈ±Ê¡³¬Ê±Ê±¼ä£¬ÈôÊÇ0£¬Ôò²ÉÓÃÏµÍ³Ä¬ÈÏÈ±Ê¡³¬Ê±Ê±¼ä¡£µ¥Î»Îªs¡£
-*@param [out] uiMaxTimeout ÏûÏ¢¶ÓÁĞµÄ×î´ó³¬Ê±Ê±¼ä£¬ÈôÊÇ0£¬Ôò²ÉÓÃÏµÍ³Ä¬ÈÏ×î´ó³¬Ê±Ê±¼ä¡£µ¥Î»Îªs¡£
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
+*@brief parse createé˜Ÿåˆ—çš„ replyæ¶ˆæ¯
+*@param [in] writer packageçš„writerã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [out] name é˜Ÿåˆ—çš„åå­—
+*@param [out] user é˜Ÿåˆ—çš„ç”¨æˆ·å
+*@param [out] passwd é˜Ÿåˆ—çš„ç”¨æˆ·å£ä»¤
+*@param [out] scribe é˜Ÿåˆ—çš„æ¶ˆæ¯è®¢é˜…è§„åˆ™
+*@param [out] auth_user mqç›‘å¬çš„ç”¨æˆ·å
+*@param [out] auth_passwd mqç›‘å¬çš„ç”¨æˆ·å£ä»¤
+*@param [out] ullSid é˜Ÿåˆ—å¼€å§‹çš„sidï¼Œè‹¥ä¸º0,åˆ™é‡‡ç”¨å½“å‰æœ€å¤§çš„sid
+*@param [out] commit æ˜¯å¦ä¸ºcommitç±»å‹çš„é˜Ÿåˆ—ï¼Œ1ï¼šæ˜¯ï¼Œ0ï¼šä¸æ˜¯ã€‚
+*@param [out] uiDefTimeout æ¶ˆæ¯é˜Ÿåˆ—çš„ç¼ºçœè¶…æ—¶æ—¶é—´ï¼Œè‹¥æ˜¯0ï¼Œåˆ™é‡‡ç”¨ç³»ç»Ÿé»˜è®¤ç¼ºçœè¶…æ—¶æ—¶é—´ã€‚å•ä½ä¸ºsã€‚
+*@param [out] uiMaxTimeout æ¶ˆæ¯é˜Ÿåˆ—çš„æœ€å¤§è¶…æ—¶æ—¶é—´ï¼Œè‹¥æ˜¯0ï¼Œåˆ™é‡‡ç”¨ç³»ç»Ÿé»˜è®¤æœ€å¤§è¶…æ—¶æ—¶é—´ã€‚å•ä½ä¸ºsã€‚
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
 **/
 int cwx_mq_parse_create_queue(struct CWX_PG_READER* reader,
                               char const* msg,
@@ -679,14 +679,14 @@ int cwx_mq_parse_create_queue(struct CWX_PG_READER* reader,
 
 
 /**
-*@brief pack create¶ÓÁĞµÄreplyÏûÏ¢
-*@param [in] writer packageµÄwriter¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [in] ret ´íÎó´úÂë
-*@param [in] szErrMsg ´íÎóÏûÏ¢
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief pack createé˜Ÿåˆ—çš„replyæ¶ˆæ¯
+*@param [in] writer packageçš„writerã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [in] ret é”™è¯¯ä»£ç 
+*@param [in] szErrMsg é”™è¯¯æ¶ˆæ¯
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_pack_create_queue_reply(struct CWX_PG_WRITER * writer,
                          char* buf,
@@ -696,14 +696,14 @@ int cwx_mq_pack_create_queue_reply(struct CWX_PG_WRITER * writer,
                          char* szErr2K);
 
 /**
-*@brief parse create¶ÓÁĞµÄreplyÏûÏ¢
-*@param [in] reader packageµÄreader¡£
-*@param [in] msg ½ÓÊÕµ½µÄmqÏûÏ¢£¬²»°üÀ¨msg header¡£
-*@param [in] msg_len msgµÄ³¤¶È¡£
-*@param [out] ret create¶ÓÁĞµÄ·µ»Øcode
-*@param [out] szErrMsg create¶ÓÁĞÊ§°ÜÊ±µÄ´íÎóÏûÏ¢
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief parse createé˜Ÿåˆ—çš„replyæ¶ˆæ¯
+*@param [in] reader packageçš„readerã€‚
+*@param [in] msg æ¥æ”¶åˆ°çš„mqæ¶ˆæ¯ï¼Œä¸åŒ…æ‹¬msg headerã€‚
+*@param [in] msg_len msgçš„é•¿åº¦ã€‚
+*@param [out] ret createé˜Ÿåˆ—çš„è¿”å›code
+*@param [out] szErrMsg createé˜Ÿåˆ—å¤±è´¥æ—¶çš„é”™è¯¯æ¶ˆæ¯
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_parse_create_queue_reply(struct CWX_PG_READER* reader,
                           char const* msg,
@@ -714,17 +714,17 @@ int cwx_mq_parse_create_queue_reply(struct CWX_PG_READER* reader,
 
 
 /**
-*@brief pack delete queueµÄÏûÏ¢
-*@param [in] writer packageµÄwriter¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [in] name ¶ÓÁĞµÄÃû×Ö
-*@param [in] user ¶ÓÁĞµÄÓÃ»§Ãû
-*@param [in] passwd ¶ÓÁĞµÄÓÃ»§¿ÚÁî
-*@param [in] auth_user mq¼àÌıµÄÓÃ»§Ãû
-*@param [in] auth_passwd mq¼àÌıµÄÓÃ»§¿ÚÁî
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief pack delete queueçš„æ¶ˆæ¯
+*@param [in] writer packageçš„writerã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [in] name é˜Ÿåˆ—çš„åå­—
+*@param [in] user é˜Ÿåˆ—çš„ç”¨æˆ·å
+*@param [in] passwd é˜Ÿåˆ—çš„ç”¨æˆ·å£ä»¤
+*@param [in] auth_user mqç›‘å¬çš„ç”¨æˆ·å
+*@param [in] auth_passwd mqç›‘å¬çš„ç”¨æˆ·å£ä»¤
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_pack_del_queue(struct CWX_PG_WRITER * writer,
                  char* buf,
@@ -737,16 +737,16 @@ int cwx_mq_pack_del_queue(struct CWX_PG_WRITER * writer,
                  char* szErr2K);
 
 /**
-*@brief parse  delete¶ÓÁĞµÄreplyÏûÏ¢
-*@param [in] writer packageµÄwriter¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [out] name ¶ÓÁĞµÄÃû×Ö
-*@param [out] user ¶ÓÁĞµÄÓÃ»§Ãû
-*@param [out] passwd ¶ÓÁĞµÄÓÃ»§¿ÚÁî
-*@param [out] auth_user mq¼àÌıµÄÓÃ»§Ãû
-*@param [out] auth_passwd mq¼àÌıµÄÓÃ»§¿ÚÁî
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
+*@brief parse  deleteé˜Ÿåˆ—çš„replyæ¶ˆæ¯
+*@param [in] writer packageçš„writerã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [out] name é˜Ÿåˆ—çš„åå­—
+*@param [out] user é˜Ÿåˆ—çš„ç”¨æˆ·å
+*@param [out] passwd é˜Ÿåˆ—çš„ç”¨æˆ·å£ä»¤
+*@param [out] auth_user mqç›‘å¬çš„ç”¨æˆ·å
+*@param [out] auth_passwd mqç›‘å¬çš„ç”¨æˆ·å£ä»¤
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
 **/
 int cwx_mq_parse_del_queue(struct CWX_PG_READER* reader,
                               char const* msg,
@@ -760,14 +760,14 @@ int cwx_mq_parse_del_queue(struct CWX_PG_READER* reader,
 
 
 /**
-*@brief pack delete¶ÓÁĞµÄreplyÏûÏ¢
-*@param [in] writer packageµÄwriter¡£
-*@param [out] buf Êä³öĞÎ³ÉµÄÊı¾İ°ü¡£
-*@param [in out] buf_len ´«ÈëbufµÄ¿Õ¼ä´óĞ¡£¬·µ»ØĞÎ³ÉµÄÊı¾İ°üµÄ´óĞ¡¡£
-*@param [in] ret ´íÎó´úÂë
-*@param [in] szErrMsg ´íÎóÏûÏ¢
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief pack deleteé˜Ÿåˆ—çš„replyæ¶ˆæ¯
+*@param [in] writer packageçš„writerã€‚
+*@param [out] buf è¾“å‡ºå½¢æˆçš„æ•°æ®åŒ…ã€‚
+*@param [in out] buf_len ä¼ å…¥bufçš„ç©ºé—´å¤§å°ï¼Œè¿”å›å½¢æˆçš„æ•°æ®åŒ…çš„å¤§å°ã€‚
+*@param [in] ret é”™è¯¯ä»£ç 
+*@param [in] szErrMsg é”™è¯¯æ¶ˆæ¯
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_pack_del_queue_reply(struct CWX_PG_WRITER * writer,
                          char* buf,
@@ -777,14 +777,14 @@ int cwx_mq_pack_del_queue_reply(struct CWX_PG_WRITER * writer,
                          char* szErr2K);
 
 /**
-*@brief parse delete¶ÓÁĞµÄreplyÏûÏ¢
-*@param [in] reader packageµÄreader¡£
-*@param [in] msg ½ÓÊÕµ½µÄmqÏûÏ¢£¬²»°üÀ¨msg header¡£
-*@param [in] msg_len msgµÄ³¤¶È¡£
-*@param [out] ret delete¶ÓÁĞµÄ·µ»Øcode
-*@param [out] szErrMsg delete¶ÓÁĞÊ§°ÜÊ±µÄ´íÎóÏûÏ¢
-*@param [out] szErr2K ³ö´íÊ±µÄ´íÎóÏûÏ¢£¬ÈôÎª¿ÕÔò±íÊ¾²»»ñÈ¡´íÎóÏûÏ¢¡£
-*@return CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+*@brief parse deleteé˜Ÿåˆ—çš„replyæ¶ˆæ¯
+*@param [in] reader packageçš„readerã€‚
+*@param [in] msg æ¥æ”¶åˆ°çš„mqæ¶ˆæ¯ï¼Œä¸åŒ…æ‹¬msg headerã€‚
+*@param [in] msg_len msgçš„é•¿åº¦ã€‚
+*@param [out] ret deleteé˜Ÿåˆ—çš„è¿”å›code
+*@param [out] szErrMsg deleteé˜Ÿåˆ—å¤±è´¥æ—¶çš„é”™è¯¯æ¶ˆæ¯
+*@param [out] szErr2K å‡ºé”™æ—¶çš„é”™è¯¯æ¶ˆæ¯ï¼Œè‹¥ä¸ºç©ºåˆ™è¡¨ç¤ºä¸è·å–é”™è¯¯æ¶ˆæ¯ã€‚
+*@return CWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 */
 int cwx_mq_parse_del_queue_reply(struct CWX_PG_READER* reader,
                           char const* msg,

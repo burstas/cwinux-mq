@@ -1,6 +1,6 @@
-#include "CwxMproxyApp.h"
+ï»¿#include "CwxMproxyApp.h"
 
-///¹¹Ôìº¯Êı£¬³õÊ¼»¯·¢ËÍµÄechoÊı¾İÄÚÈİ
+///æ„é€ å‡½æ•°ï¼Œåˆå§‹åŒ–å‘é€çš„echoæ•°æ®å†…å®¹
 CwxMproxyApp::CwxMproxyApp()
 :CwxAppFramework(CwxAppFramework::APP_MODE_TWIN, 1024 * 64)
 {
@@ -10,29 +10,29 @@ CwxMproxyApp::CwxMproxyApp()
     m_pMqHandle = NULL;
     m_uiMqConnId = CWX_APP_INVALID_CONN_ID;
 }
-///Îö¹¹º¯Êı
+///ææ„å‡½æ•°
 CwxMproxyApp::~CwxMproxyApp()
 {
 }
 
-///³õÊ¼»¯APP£¬¼ÓÔØÅäÖÃÎÄ¼ş
+///åˆå§‹åŒ–APPï¼ŒåŠ è½½é…ç½®æ–‡ä»¶
 int CwxMproxyApp::init(int argc, char** argv)
 {
     string strErrMsg;
-    ///Ê×ÏÈµ÷ÓÃ¼Ü¹¹µÄinit
+    ///é¦–å…ˆè°ƒç”¨æ¶æ„çš„init
     if (CwxAppFramework::init(argc, argv) == -1) return -1;
-    ///ÈôÃ»ÓĞÍ¨¹ı-fÖ¸¶¨ÅäÖÃÎÄ¼ş£¬Ôò²ÉÓÃÄ¬ÈÏµÄÅäÖÃÎÄ¼ş
+    ///è‹¥æ²¡æœ‰é€šè¿‡-fæŒ‡å®šé…ç½®æ–‡ä»¶ï¼Œåˆ™é‡‡ç”¨é»˜è®¤çš„é…ç½®æ–‡ä»¶
     if ((NULL == this->getConfFile()) || (strlen(this->getConfFile()) == 0))
     {
         this->setConfFile("mq_proxy.conf");
     }
-    ///¼ÓÔØÅäÖÃÎÄ¼ş
+    ///åŠ è½½é…ç½®æ–‡ä»¶
     if (0 != m_config.loadConfig(getConfFile()))
     {
         CWX_ERROR((m_config.getError()));
         return -1;
     }
-    ///ÉèÖÃÊä³öÔËĞĞÈÕÖ¾µÄlevel
+    ///è®¾ç½®è¾“å‡ºè¿è¡Œæ—¥å¿—çš„level
     setLogLevel(CwxLogger::LEVEL_ERROR|CwxLogger::LEVEL_INFO|CwxLogger::LEVEL_WARNING);
     return 0;
 }
@@ -40,14 +40,14 @@ int CwxMproxyApp::init(int argc, char** argv)
 //init the Enviroment before run.0:success, -1:failure.
 int CwxMproxyApp::initRunEnv()
 {
-    ///ÉèÖÃÊ±ÖÓµÄ¿Ì¶È£¬×îĞ¡Îª1ms£¬´ËÎª1s¡£
+    ///è®¾ç½®æ—¶é’Ÿçš„åˆ»åº¦ï¼Œæœ€å°ä¸º1msï¼Œæ­¤ä¸º1sã€‚
     this->setClick(1000);//1s
     //set work dir
     this->setWorkDir(this->m_config.m_strWorkDir.c_str());
     //Set log file
     this->setLogFileNum(LOG_FILE_NUM);
     this->setLogFileSize(LOG_FILE_SIZE*1024*1024);
-    ///µ÷ÓÃ¼Ü¹¹µÄinitRunEnv£¬Ê¹ÉèÖÃµÄ²ÎÊıÉúĞ§
+    ///è°ƒç”¨æ¶æ„çš„initRunEnvï¼Œä½¿è®¾ç½®çš„å‚æ•°ç”Ÿæ•ˆ
     if (CwxAppFramework::initRunEnv() == -1 ) return -1;
     //set version
     this->setAppVersion(CWX_MPROXY_APP_VERSION);
@@ -55,22 +55,22 @@ int CwxMproxyApp::initRunEnv()
     this->setLastModifyDatetime(CWX_MPROXY_MODIFY_DATE);
     //set compile date
     this->setLastCompileDatetime(CWX_COMPILE_DATE(_BUILD_DATE));
-    ///ÉèÖÃÆô¶¯Ê±¼ä
+    ///è®¾ç½®å¯åŠ¨æ—¶é—´
     CwxDate::getDateY4MDHMS2(time(NULL), m_strStartTime);
 
     //output config
     m_config.outputConfig();
-    ///´´½¨´úÀíÏûÏ¢µÄ´¦Àíhandle
+    ///åˆ›å»ºä»£ç†æ¶ˆæ¯çš„å¤„ç†handle
     m_pRecvHandle = new CwxMproxyRecvHandler(this);
-    ///×¢²áhandle
+    ///æ³¨å†Œhandle
     getCommander().regHandle(SVR_TYPE_RECV, m_pRecvHandle);
-    ///´´½¨mqÏûÏ¢µÄ´¦Àíhandle
+    ///åˆ›å»ºmqæ¶ˆæ¯çš„å¤„ç†handle
     m_pMqHandle = new CwxMproxyMqHandler(this);
     getCommander().regHandle(SVR_TYPE_MQ, m_pMqHandle);
-    ///´ò¿ªmonitor¼àÌı¶Ë¿Ú
+    ///æ‰“å¼€monitorç›‘å¬ç«¯å£
     if (m_config.m_monitor.getHostName().length())
     {
-        ///´ò¿ª¼àÌıµÄ·şÎñÆ÷¶Ë¿ÚºÅ
+        ///æ‰“å¼€ç›‘å¬çš„æœåŠ¡å™¨ç«¯å£å·
         if (0 > this->noticeTcpListen(SVR_TYPE_MONITOR,
             m_config.m_monitor.getHostName().c_str(),
             m_config.m_monitor.getPort(),
@@ -82,7 +82,7 @@ int CwxMproxyApp::initRunEnv()
             return -1;
         }
     }
-    //´ò¿ª´úÀíÏûÏ¢µÄ¼àÌı¶Ë¿Ú
+    //æ‰“å¼€ä»£ç†æ¶ˆæ¯çš„ç›‘å¬ç«¯å£
     if (m_config.m_recv.getHostName().length())
     {
         if (-1 == noticeTcpListen(SVR_TYPE_RECV,
@@ -110,7 +110,7 @@ int CwxMproxyApp::initRunEnv()
             return -1;
         }
     }
-    //Á¬½Ómq
+    //è¿æ¥mq
     if (m_config.m_mq.getUnixDomain().length())
     {
         if (0 > noticeLsockConnect(SVR_TYPE_MQ,
@@ -150,16 +150,16 @@ int CwxMproxyApp::initRunEnv()
     }
     m_uiMqConnId = CWX_APP_INVALID_CONN_ID;
 
-    ///´´½¨Ïß³Ì³Ø¶ÔÏó£¬´ËÏß³Ì³ØÖĞÏß³ÌµÄgroup-idÎªTHREAD_GROUP_USER_START
+    ///åˆ›å»ºçº¿ç¨‹æ± å¯¹è±¡ï¼Œæ­¤çº¿ç¨‹æ± ä¸­çº¿ç¨‹çš„group-idä¸ºTHREAD_GROUP_USER_START
     m_threadPool = new CwxThreadPoolEx(CwxAppFramework::THREAD_GROUP_USER_START,
         1,
         getThreadPoolMgr(),
         &getCommander());
-    ///´´½¨Ïß³ÌµÄtss¶ÔÏó
+    ///åˆ›å»ºçº¿ç¨‹çš„tsså¯¹è±¡
     CwxTss** pTss = new CwxTss*[1];
     pTss[0] = new CwxMqTss();
     ((CwxMqTss*)pTss[0])->init();
-    ///Æô¶¯Ïß³Ì¡£
+    ///å¯åŠ¨çº¿ç¨‹ã€‚
     if ( 0 != m_threadPool->start(pTss))
     {
         CWX_ERROR(("Failure to start thread pool"));
@@ -168,14 +168,14 @@ int CwxMproxyApp::initRunEnv()
     return 0;
 }
 
-///Ê±ÖÓÏìÓ¦º¯Êı£¬Ê²Ã´Ò²Ã»ÓĞ×ö
+///æ—¶é’Ÿå“åº”å‡½æ•°ï¼Œä»€ä¹ˆä¹Ÿæ²¡æœ‰åš
 void CwxMproxyApp::onTime(CwxTimeValue const& current)
 {
     static CWX_UINT64 ullLastTime = CwxDate::getTimestamp();
     CwxAppFramework::onTime(current);
     if (current.to_usec() > ullLastTime + 1000000)
     {//1s
-        ///ĞÎ³É³¬Ê±¼ì²éÊÂ¼ş£¬ÓÉCwmCenterUiQueryµÄonTimeoutCheckµÄÏìÓ¦
+        ///å½¢æˆè¶…æ—¶æ£€æŸ¥äº‹ä»¶ï¼Œç”±CwmCenterUiQueryçš„onTimeoutCheckçš„å“åº”
         ullLastTime = current.to_usec();
         CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
         pBlock->event().setSvrId(SVR_TYPE_RECV);
@@ -186,7 +186,7 @@ void CwxMproxyApp::onTime(CwxTimeValue const& current)
     }
 }
 
-///ĞÅºÅ´¦Àíº¯Êı
+///ä¿¡å·å¤„ç†å‡½æ•°
 void CwxMproxyApp::onSignal(int signum)
 {
     switch(signum)
@@ -196,12 +196,12 @@ void CwxMproxyApp::onSignal(int signum)
         this->stop();
         break;
     default:
-        ///ÆäËûĞÅºÅ£¬ºöÂÔ
+        ///å…¶ä»–ä¿¡å·ï¼Œå¿½ç•¥
         CWX_INFO(("Recv signal=%d, ignore it.", signum));
         break;
     }
 }
-//Á¬½Ó½¨Á¢º¯Êı
+//è¿æ¥å»ºç«‹å‡½æ•°
 int CwxMproxyApp::onConnCreated(CwxAppHandler4Msg& conn, bool& , bool& )
 {
     if (SVR_TYPE_RECV == conn.getConnInfo().getSvrId())
@@ -235,7 +235,7 @@ int CwxMproxyApp::onRecvMsg(CwxMsgBlock* msg, CwxAppHandler4Msg & conn, CwxMsgHe
     m_threadPool->append(msg, conn.getConnInfo().getConnId());
     return 0;
 }
-///ÊÕµ½ÏûÏ¢µÄÏìÓ¦º¯Êı
+///æ”¶åˆ°æ¶ˆæ¯çš„å“åº”å‡½æ•°
 int CwxMproxyApp::onRecvMsg(CwxAppHandler4Msg& conn,
                       bool& )
 {
@@ -256,7 +256,7 @@ int CwxMproxyApp::onRecvMsg(CwxAppHandler4Msg& conn,
                 return 0;
             }
         }
-        ///¼à¿ØÏûÏ¢
+        ///ç›‘æ§æ¶ˆæ¯
         return monitorStats(szBuf, (CWX_UINT32)recv_size, conn);
     }
     else
@@ -344,7 +344,7 @@ void CwxMproxyApp::destroy()
 }
 
 
-///ÉèÖÃrecvÁ¬½ÓµÄÊôĞÔ
+///è®¾ç½®recvè¿æ¥çš„å±æ€§
 int CwxMproxyApp::setRecvSockAttr(CWX_HANDLE handle, void* arg)
 {
     CwxMproxyApp* app = (CwxMproxyApp*)arg;
@@ -385,7 +385,7 @@ int CwxMproxyApp::setRecvSockAttr(CWX_HANDLE handle, void* arg)
     }
     return 0;
 }
-///ÉèÖÃmqÁ¬½ÓµÄÊôĞÔ
+///è®¾ç½®mqè¿æ¥çš„å±æ€§
 int CwxMproxyApp::setMqSockAttr(CWX_HANDLE handle, void* arg)
 {
     CwxMproxyApp* app = (CwxMproxyApp*)arg;
@@ -427,7 +427,7 @@ int CwxMproxyApp::setMqSockAttr(CWX_HANDLE handle, void* arg)
     return 0;
 }
 
-///statsÃüÁî£¬-1£ºÒòÎª´íÎó¹Ø±ÕÁ¬½Ó£»0£º²»¹Ø±ÕÁ¬½Ó
+///statså‘½ä»¤ï¼Œ-1ï¼šå› ä¸ºé”™è¯¯å…³é—­è¿æ¥ï¼›0ï¼šä¸å…³é—­è¿æ¥
 int CwxMproxyApp::monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHandler4Msg& conn)
 {
     string* strCmd = (string*)conn.getConnInfo().getUserData();
@@ -441,9 +441,9 @@ int CwxMproxyApp::monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHand
         if (string::npos == end)
         {
             if (strCmd->length() > 10)
-            {//ÎŞĞ§µÄÃüÁî
-                strCmd->erase(); ///Çå¿Õ½ÓÊÜµ½µÄÃüÁî
-                ///»Ø¸´ĞÅÏ¢
+            {//æ— æ•ˆçš„å‘½ä»¤
+                strCmd->erase(); ///æ¸…ç©ºæ¥å—åˆ°çš„å‘½ä»¤
+                ///å›å¤ä¿¡æ¯
                 msg = CwxMsgBlockAlloc::malloc(1024);
                 strcpy(msg->wr_ptr(), "ERROR\r\n");
                 msg->wr_ptr(strlen(msg->wr_ptr()));
@@ -458,7 +458,7 @@ int CwxMproxyApp::monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHand
         {
             if (memcmp(strCmd->c_str(), "stats", 5) == 0)
             {
-                strCmd->erase(); ///Çå¿Õ½ÓÊÜµ½µÄÃüÁî
+                strCmd->erase(); ///æ¸…ç©ºæ¥å—åˆ°çš„å‘½ä»¤
                 CWX_UINT32 uiLen = packMonitorInfo();
                 msg = CwxMsgBlockAlloc::malloc(uiLen);
                 memcpy(msg->wr_ptr(), m_szBuf, uiLen);
@@ -469,9 +469,9 @@ int CwxMproxyApp::monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHand
                 return -1;
             }  
             else
-            {//ÎŞĞ§µÄÃüÁî
-                strCmd->erase(); ///Çå¿Õ½ÓÊÜµ½µÄÃüÁî
-                ///»Ø¸´ĞÅÏ¢
+            {//æ— æ•ˆçš„å‘½ä»¤
+                strCmd->erase(); ///æ¸…ç©ºæ¥å—åˆ°çš„å‘½ä»¤
+                ///å›å¤ä¿¡æ¯
                 msg = CwxMsgBlockAlloc::malloc(1024);
                 strcpy(msg->wr_ptr(), "ERROR\r\n");
                 msg->wr_ptr(strlen(msg->wr_ptr()));
@@ -499,7 +499,7 @@ int CwxMproxyApp::monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHand
     memcpy(m_szBuf + uiPos, szLine, uiLen);\
     uiPos += uiLen; \
 
-///ĞÎ³É¼à¿ØÄÚÈİ£¬·µ»Ø¼à¿ØÄÚÈİµÄ³¤¶È
+///å½¢æˆç›‘æ§å†…å®¹ï¼Œè¿”å›ç›‘æ§å†…å®¹çš„é•¿åº¦
 CWX_UINT32 CwxMproxyApp::packMonitorInfo()
 {
     string strValue;
@@ -508,22 +508,22 @@ CWX_UINT32 CwxMproxyApp::packMonitorInfo()
     CWX_UINT32 uiPos = 0;
     do
     {
-        //Êä³ö½ø³Ìpid
+        //è¾“å‡ºè¿›ç¨‹pid
         CwxCommon::snprintf(szLine, 4096, "STAT pid %d\r\n", getpid());
         MQ_MONITOR_APPEND();
-        //Êä³ö¸¸½ø³Ìpid
+        //è¾“å‡ºçˆ¶è¿›ç¨‹pid
         CwxCommon::snprintf(szLine, 4096, "STAT ppid %d\r\n", getppid());
         MQ_MONITOR_APPEND();
-        //°æ±¾ºÅ
+        //ç‰ˆæœ¬å·
         CwxCommon::snprintf(szLine, 4096, "STAT version %s\r\n", this->getAppVersion().c_str());
         MQ_MONITOR_APPEND();
-        //ĞŞ¸ÄÊ±¼ä
+        //ä¿®æ”¹æ—¶é—´
         CwxCommon::snprintf(szLine, 4096, "STAT modify %s\r\n", this->getLastModifyDatetime().c_str());
         MQ_MONITOR_APPEND();
-        //±àÒëÊ±¼ä
+        //ç¼–è¯‘æ—¶é—´
         CwxCommon::snprintf(szLine, 4096, "STAT compile %s\r\n", this->getLastCompileDatetime().c_str());
         MQ_MONITOR_APPEND();
-        //Æô¶¯Ê±¼ä
+        //å¯åŠ¨æ—¶é—´
         CwxCommon::snprintf(szLine, 4096, "STAT start %s\r\n", m_strStartTime.c_str());
         MQ_MONITOR_APPEND();
         //state

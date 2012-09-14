@@ -1,9 +1,9 @@
-#ifndef __CWX_MQ_CONFIG_H__
+ï»¿#ifndef __CWX_MQ_CONFIG_H__
 #define __CWX_MQ_CONFIG_H__
 /*
-°æÈ¨ÉùÃ÷£º
-    ±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-    ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+    æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+    è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 
 #include "CwxMqMacro.h"
@@ -18,7 +18,7 @@
 
 CWINUX_USING_NAMESPACE
 
-///ÅäÖÃÎÄ¼şµÄcommon²ÎÊı¶ÔÏó
+///é…ç½®æ–‡ä»¶çš„commonå‚æ•°å¯¹è±¡
 class CwxMqConfigCmn{
 public:
     enum{
@@ -40,21 +40,21 @@ public:
         m_uiSyncConnNum = DEF_SYNC_CONN_NUM;
     };
 public:
-    string              m_strWorkDir;///<¹¤×÷Ä¿Â¼
-    bool                m_bMaster; ///<ÊÇ·ñÊÇmaster dispatch
-    CWX_UINT32          m_uiSockBufSize; ///<·Ö·¢µÄsocketÁ¬½ÓµÄbuf´óĞ¡
-    CWX_UINT32          m_uiChunkSize; ///<TrunkµÄ´óĞ¡
-    CWX_UINT32          m_uiSyncConnNum;   ///<Í¬²½Á¬½ÓÊıÁ¿
-    CwxHostInfo         m_monitor; ///<¼à¿Ø¼àÌı
+    string              m_strWorkDir;///<å·¥ä½œç›®å½•
+    bool                m_bMaster; ///<æ˜¯å¦æ˜¯master dispatch
+    CWX_UINT32          m_uiSockBufSize; ///<åˆ†å‘çš„socketè¿æ¥çš„bufå¤§å°
+    CWX_UINT32          m_uiChunkSize; ///<Trunkçš„å¤§å°
+    CWX_UINT32          m_uiSyncConnNum;   ///<åŒæ­¥è¿æ¥æ•°é‡
+    CwxHostInfo         m_monitor; ///<ç›‘æ§ç›‘å¬
 };
 
-///ÅäÖÃÎÄ¼şµÄbinlog²ÎÊı¶ÔÏó
+///é…ç½®æ–‡ä»¶çš„binlogå‚æ•°å¯¹è±¡
 class CwxMqConfigBinLog{
 public:
     enum{
-        DEF_BINLOG_MSIZE = 1024, ///<È±Ê¡µÄbinlog´óĞ¡
-        MIN_BINLOG_MSIZE = 64, ///<×îĞ¡µÄbinlog´óĞ¡
-        MAX_BINLOG_MSIZE = 2048 ///<×î´óµÄbinlog´óĞ¡
+        DEF_BINLOG_MSIZE = 1024, ///<ç¼ºçœçš„binlogå¤§å°
+        MIN_BINLOG_MSIZE = 64, ///<æœ€å°çš„binlogå¤§å°
+        MAX_BINLOG_MSIZE = 2048 ///<æœ€å¤§çš„binlogå¤§å°
     };
 public:
     CwxMqConfigBinLog(){
@@ -65,40 +65,40 @@ public:
         m_uiFlushSecond = 30;
     }
 public:
-    string              m_strBinlogPath; ///<binlogµÄÄ¿Â¼
-    string              m_strBinlogPrex; ///<binlogµÄÎÄ¼şµÄÇ°×º
-    CWX_UINT32          m_uiBinLogMSize; ///<binlogÎÄ¼şµÄ×î´ó´óĞ¡£¬µ¥Î»ÎªM
-    CWX_UINT32          m_uiMgrFileNum; ///<¹ÜÀíµÄbinglogµÄ×î´óÎÄ¼şÊı
-    bool                m_bDelOutdayLogFile; ///<ÊÇ·ñÉ¾³ı²»¹ÜÀíµÄÏûÏ¢ÎÄ¼ş
-    CWX_UINT32          m_uiFlushNum; ///<½ÓÊÕ¶àÉÙÌõ¼ÇÂ¼ºó£¬flush binlogÎÄ¼ş
-    CWX_UINT32          m_uiFlushSecond; ///<¼ä¸ô¶àÉÙÃë£¬±ØĞëflush binlogÎÄ¼ş
+    string              m_strBinlogPath; ///<binlogçš„ç›®å½•
+    string              m_strBinlogPrex; ///<binlogçš„æ–‡ä»¶çš„å‰ç¼€
+    CWX_UINT32          m_uiBinLogMSize; ///<binlogæ–‡ä»¶çš„æœ€å¤§å¤§å°ï¼Œå•ä½ä¸ºM
+    CWX_UINT32          m_uiMgrFileNum; ///<ç®¡ç†çš„binglogçš„æœ€å¤§æ–‡ä»¶æ•°
+    bool                m_bDelOutdayLogFile; ///<æ˜¯å¦åˆ é™¤ä¸ç®¡ç†çš„æ¶ˆæ¯æ–‡ä»¶
+    CWX_UINT32          m_uiFlushNum; ///<æ¥æ”¶å¤šå°‘æ¡è®°å½•åï¼Œflush binlogæ–‡ä»¶
+    CWX_UINT32          m_uiFlushSecond; ///<é—´éš”å¤šå°‘ç§’ï¼Œå¿…é¡»flush binlogæ–‡ä»¶
 };
 
-///ÅäÖÃÎÄ¼şµÄmaster²ÎÊı¶ÔÏó
+///é…ç½®æ–‡ä»¶çš„masterå‚æ•°å¯¹è±¡
 class CwxMqConfigMaster{
 public:
     CwxMqConfigMaster(){
     }
 public:
-    CwxHostInfo     m_recv; ///<masterµÄbinĞ­Òé¶Ë¿ÚĞÅÏ¢
-    CwxHostInfo     m_async; ///<master binĞ­ÒéÒì²½·Ö·¢¶Ë¿ÚĞÅÏ¢
+    CwxHostInfo     m_recv; ///<masterçš„binåè®®ç«¯å£ä¿¡æ¯
+    CwxHostInfo     m_async; ///<master binåè®®å¼‚æ­¥åˆ†å‘ç«¯å£ä¿¡æ¯
 };
 
-///ÅäÖÃÎÄ¼şµÄslave²ÎÊı¶ÔÏó
+///é…ç½®æ–‡ä»¶çš„slaveå‚æ•°å¯¹è±¡
 class CwxMqConfigSlave{
 public:
     CwxMqConfigSlave(){
         m_bzip = false;
     }
 public:
-    CwxHostInfo     m_master; ///<slaveµÄmasterµÄÁ¬½ÓĞÅÏ¢
-    string          m_strSubScribe;///<ÏûÏ¢¶©ÔÄ±í´ïÊ½
-    bool            m_bzip; ///<ÊÇ·ñzipÑ¹Ëõ
-    string          m_strSign; ///<Ç©ÃûÀàĞÍ
-    CwxHostInfo     m_async; ///<slave binĞ­ÒéÒì²½·Ö·¢µÄ¶Ë¿ÚĞÅÏ¢
+    CwxHostInfo     m_master; ///<slaveçš„masterçš„è¿æ¥ä¿¡æ¯
+    string          m_strSubScribe;///<æ¶ˆæ¯è®¢é˜…è¡¨è¾¾å¼
+    bool            m_bzip; ///<æ˜¯å¦zipå‹ç¼©
+    string          m_strSign; ///<ç­¾åç±»å‹
+    CwxHostInfo     m_async; ///<slave binåè®®å¼‚æ­¥åˆ†å‘çš„ç«¯å£ä¿¡æ¯
 };
 
-///ÅäÖÃÎÄ¼şµÄmq¶ÔÏó
+///é…ç½®æ–‡ä»¶çš„mqå¯¹è±¡
 class CwxMqConfigMq{
 public:
     CwxMqConfigMq(){
@@ -106,49 +106,49 @@ public:
         m_uiFlushSecond = 30;
     }
 public:
-    CwxHostInfo          m_mq; ///<mqµÄfetchµÄÅäÖÃĞÅÏ¢
-    string               m_strLogFilePath; ///<mqµÄlogÎÄ¼şµÄÄ¿Â¼
-    CWX_UINT32          m_uiFlushNum; ///<fetch¶àÉÙÌõÈÕÖ¾£¬±ØĞëflush»ñÈ¡µã
-    CWX_UINT32          m_uiFlushSecond; ///<¶àÉÙÃë±ØĞëflush»ñÈ¡µã
+    CwxHostInfo          m_mq; ///<mqçš„fetchçš„é…ç½®ä¿¡æ¯
+    string               m_strLogFilePath; ///<mqçš„logæ–‡ä»¶çš„ç›®å½•
+    CWX_UINT32          m_uiFlushNum; ///<fetchå¤šå°‘æ¡æ—¥å¿—ï¼Œå¿…é¡»flushè·å–ç‚¹
+    CWX_UINT32          m_uiFlushSecond; ///<å¤šå°‘ç§’å¿…é¡»flushè·å–ç‚¹
 
 };
 
-///ÅäÖÃÎÄ¼ş¼ÓÔØ¶ÔÏó
+///é…ç½®æ–‡ä»¶åŠ è½½å¯¹è±¡
 class CwxMqConfig{
 public:
-    ///¹¹Ôìº¯Êı
+    ///æ„é€ å‡½æ•°
     CwxMqConfig(){
         m_szErrMsg[0] = 0x00;
     }
-    ///Îö¹¹º¯Êı
+    ///ææ„å‡½æ•°
     ~CwxMqConfig(){
     }
 public:
-    //¼ÓÔØÅäÖÃÎÄ¼ş.-1:failure, 0:success
+    //åŠ è½½é…ç½®æ–‡ä»¶.-1:failure, 0:success
     int loadConfig(string const & strConfFile);
-    //Êä³ö¼ÓÔØµÄÅäÖÃÎÄ¼şĞÅÏ¢
+    //è¾“å‡ºåŠ è½½çš„é…ç½®æ–‡ä»¶ä¿¡æ¯
     void outputConfig() const;
 public:
-    ///»ñÈ¡commonÅäÖÃĞÅÏ¢
+    ///è·å–commoné…ç½®ä¿¡æ¯
     inline CwxMqConfigCmn const& getCommon() const{
         return  m_common;
     }
-    ///»ñÈ¡binlogÅäÖÃĞÅÏ¢
+    ///è·å–binlogé…ç½®ä¿¡æ¯
     inline CwxMqConfigBinLog const& getBinLog() const{
         return m_binlog;
     }
-    ///»ñÈ¡masterÅäÖÃĞÅÏ¢
+    ///è·å–masteré…ç½®ä¿¡æ¯
     inline CwxMqConfigMaster const& getMaster() const{
         return m_master;
     }
-    ///»ñÈ¡slaveÅäÖÃĞÅÏ¢
+    ///è·å–slaveé…ç½®ä¿¡æ¯
     inline CwxMqConfigSlave const& getSlave() const {
         return m_slave;
     }
     inline CwxMqConfigMq const& getMq() const{
         return m_mq;
     }
-    ///»ñÈ¡ÅäÖÃÎÄ¼ş¼ÓÔØµÄÊ§°ÜÔ­Òò
+    ///è·å–é…ç½®æ–‡ä»¶åŠ è½½çš„å¤±è´¥åŸå› 
     inline char const* getErrMsg() const {
         return m_szErrMsg;
     };
@@ -157,12 +157,12 @@ private:
         string const& node,
         CwxHostInfo& host);
 private:
-    CwxMqConfigCmn      m_common; ///<commonµÄÅäÖÃĞÅÏ¢
-    CwxMqConfigBinLog   m_binlog; ///<binlogµÄÅäÖÃĞÅÏ¢
-    CwxMqConfigMaster   m_master; ///<masterµÄÅäÖÃĞÅÏ¢
-    CwxMqConfigSlave    m_slave; ///<slaveµÄÅäÖÃĞÅÏ¢
-    CwxMqConfigMq       m_mq; ///<mqµÄfetchµÄÅäÖÃĞÅÏ¢
-    char                m_szErrMsg[2048];///<´íÎóÏûÏ¢µÄbuf
+    CwxMqConfigCmn      m_common; ///<commonçš„é…ç½®ä¿¡æ¯
+    CwxMqConfigBinLog   m_binlog; ///<binlogçš„é…ç½®ä¿¡æ¯
+    CwxMqConfigMaster   m_master; ///<masterçš„é…ç½®ä¿¡æ¯
+    CwxMqConfigSlave    m_slave; ///<slaveçš„é…ç½®ä¿¡æ¯
+    CwxMqConfigMq       m_mq; ///<mqçš„fetchçš„é…ç½®ä¿¡æ¯
+    char                m_szErrMsg[2048];///<é”™è¯¯æ¶ˆæ¯çš„buf
 };
 
 #endif

@@ -1,9 +1,9 @@
-#ifndef __CWX_MQ_BIN_RECV_HANDLER_H__
+ï»¿#ifndef __CWX_MQ_BIN_RECV_HANDLER_H__
 #define __CWX_MQ_BIN_RECV_HANDLER_H__
 /*
-°æÈ¨ÉùÃ÷£º
-    ±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-    ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+    æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+    è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 #include "CwxCommander.h"
 #include "CwxMqMacro.h"
@@ -11,37 +11,37 @@
 class CwxMqApp;
 
 
-///Dispatch master´¦ÀíÊÕµ½µÄbinĞ­ÒéµÄbinlog handler
+///Dispatch masterå¤„ç†æ”¶åˆ°çš„binåè®®çš„binlog handler
 class CwxMqBinRecvHandler: public CwxCmdOp{
 public:
-    ///¹¹Ôìº¯Êı
+    ///æ„é€ å‡½æ•°
     CwxMqBinRecvHandler(CwxMqApp* pApp):m_pApp(pApp){
         m_unzipBuf = NULL;
         m_uiBufLen = 0;
     }
-    ///Îö¹¹º¯Êı
+    ///ææ„å‡½æ•°
     virtual ~CwxMqBinRecvHandler(){
         if (m_unzipBuf) delete [] m_unzipBuf;
     }
 public:
-    ///Á¬½Ó½¨Á¢ºó£¬ĞèÒªÎ¬»¤Á¬½ÓÉÏÊı¾İµÄ·Ö·¢
+    ///è¿æ¥å»ºç«‹åï¼Œéœ€è¦ç»´æŠ¤è¿æ¥ä¸Šæ•°æ®çš„åˆ†å‘
     virtual int onConnCreated(CwxMsgBlock*& msg, CwxTss* pThrEnv);
-    ///Á¬½Ó¹Ø±Õºó£¬ĞèÒªÇåÀí»·¾³
+    ///è¿æ¥å…³é—­åï¼Œéœ€è¦æ¸…ç†ç¯å¢ƒ
     virtual int onConnClosed(CwxMsgBlock*& msg, CwxTss* pThrEnv);
-    ///´¦ÀíÊÕµ½binlogµÄÊÂ¼ş
+    ///å¤„ç†æ”¶åˆ°binlogçš„äº‹ä»¶
     virtual int onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
-    ///¶ÔÓÚÍ¬²½dispatch£¬ĞèÒª¼ì²éÍ¬²½µÄ³¬Ê±
+    ///å¯¹äºåŒæ­¥dispatchï¼Œéœ€è¦æ£€æŸ¥åŒæ­¥çš„è¶…æ—¶
     virtual int onTimeoutCheck(CwxMsgBlock*& msg, CwxTss* pThrEnv);
 private:
-    ///-1:Ê§°Ü£»0£º³É¹¦
+    ///-1:å¤±è´¥ï¼›0ï¼šæˆåŠŸ
     int commit(char* szErr2K);
-    //»ñÈ¡unzipµÄbuf
+    //è·å–unzipçš„buf
     bool prepareUnzipBuf();
 private:
-    map<CWX_UINT32, bool>   m_clientMap; ///<Á¬½ÓÈÏÖ¤µÄmap
-    CwxMqApp*       m_pApp;  ///<app¶ÔÏó
-    unsigned char*          m_unzipBuf; ///<½âÑ¹µÄbuffer
-    CWX_UINT32              m_uiBufLen; ///<½âÑ¹bufferµÄ´óĞ¡£¬ÆäÎªtrunkµÄ20±¶£¬×îĞ¡Îª20M¡£
+    map<CWX_UINT32, bool>   m_clientMap; ///<è¿æ¥è®¤è¯çš„map
+    CwxMqApp*       m_pApp;  ///<appå¯¹è±¡
+    unsigned char*          m_unzipBuf; ///<è§£å‹çš„buffer
+    CWX_UINT32              m_uiBufLen; ///<è§£å‹bufferçš„å¤§å°ï¼Œå…¶ä¸ºtrunkçš„20å€ï¼Œæœ€å°ä¸º20Mã€‚
 };
 
 #endif 

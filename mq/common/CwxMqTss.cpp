@@ -1,6 +1,6 @@
-#include "CwxMqTss.h"
+ï»¿#include "CwxMqTss.h"
 
-///¹¹Ôìº¯Êý
+///æž„é€ å‡½æ•°
 CwxMqTss::~CwxMqTss(){
     if (m_pReader) delete m_pReader;
     if (m_pWriter) delete m_pWriter;

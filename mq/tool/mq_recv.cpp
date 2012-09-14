@@ -1,4 +1,4 @@
-#include "CwxSocket.h"
+ï»¿#include "CwxSocket.h"
 #include "CwxINetAddr.h"
 #include "CwxSockStream.h"
 #include "CwxSockConnector.h"
@@ -20,7 +20,7 @@ CWX_UINT32 g_chunk = 0;
 unsigned char g_unzip[CWX_MQ_MAX_CHUNK_KSIZE * 1024 * 2];
 CWX_UINT32 const g_unzip_buf_len = CWX_MQ_MAX_CHUNK_KSIZE * 1024 * 2;
 unsigned long g_unzip_len = 0;
-///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
+///-1ï¼šå¤±è´¥ï¼›0ï¼šhelpï¼›1ï¼šæˆåŠŸ
 int parseArg(int argc, char**argv)
 {
 	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:s:w:n:m:S:c:zh");
@@ -202,13 +202,13 @@ static bool checkSign(char const* data,
                                    char const* sign)
 {
     if (!sign) return true;
-    if (strcmp(sign, CWX_MQ_CRC32) == 0)//CRC32Ç©Ãû
+    if (strcmp(sign, CWX_MQ_CRC32) == 0)//CRC32ç­¾å
     {
         CWX_UINT32 uiCrc32 = CwxCrc32::value(data, uiDateLen);
         if (memcmp(&uiCrc32, szSign, sizeof(uiCrc32)) == 0) return true;
         return false;
     }
-    else if (strcmp(sign, CWX_MQ_MD5)==0)//md5Ç©Ãû
+    else if (strcmp(sign, CWX_MQ_MD5)==0)//md5ç­¾å
     {
         CwxMd5 md5;
         unsigned char szMd5[16];
@@ -382,7 +382,7 @@ int main(int argc ,char** argv)
                 if (g_sign.length()){
                     CwxKeyValueItem const* pItem = reader_chunk.getKey(g_sign.c_str());
                     if (pItem)
-                    {//´æÔÚÇ©Ãûkey
+                    {//å­˜åœ¨ç­¾åkey
                         if (!checkSign(reader_chunk.getMsg(),
                             pItem->m_szKey - CwxPackage::getKeyOffset() - reader_chunk.getMsg() - sizeof(ullSeq),
                             pItem->m_szData ,

@@ -1,11 +1,11 @@
-#include "CwxMqConfig.h"
+ï»¿#include "CwxMqConfig.h"
 #include "CwxMqApp.h"
 
 int CwxMqConfig::loadConfig(string const & strConfFile){
     CwxIniParse	 cnf;
     string value;
     string strErrMsg;
-    //½âÎöÅäÖÃÎÄ¼ş
+    //è§£æé…ç½®æ–‡ä»¶
     if (false == cnf.load(strConfFile)){
         CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to Load conf file:%s. err:%s", strConfFile.c_str(), cnf.getErrMsg());
         return -1;

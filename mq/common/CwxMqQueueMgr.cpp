@@ -1,4 +1,4 @@
-#include "CwxMqQueueMgr.h"
+ï»¿#include "CwxMqQueueMgr.h"
 
 CwxMqQueue::CwxMqQueue(string strName,
                        string strUser,
@@ -60,10 +60,10 @@ int CwxMqQueue::init(CWX_UINT64 ullLastCommitSid,
         return -1;
     }
 
-    m_ullLastCommitSid = ullLastCommitSid; ///<ÈÕÖ¾ÎÄ¼ş¼ÇÂ¼µÄcursorµÄsid
-    m_lastUncommitSid = uncommitSid; ///<m_ullLastCommitSidÖ®Ç°Î´commitµÄbinlog
+    m_ullLastCommitSid = ullLastCommitSid; ///<æ—¥å¿—æ–‡ä»¶è®°å½•çš„cursorçš„sid
+    m_lastUncommitSid = uncommitSid; ///<m_ullLastCommitSidä¹‹å‰æœªcommitçš„binlog
     m_lastCommitSid = commitSid;
-	//´´½¨cursor
+	//åˆ›å»ºcursor
 	{
 		m_cursor = m_binLog->createCurser(getStartSid());
 		if (!m_cursor){
@@ -74,10 +74,10 @@ int CwxMqQueue::init(CWX_UINT64 ullLastCommitSid,
     return 0;
 }
 
-///0£ºÃ»ÓĞÏûÏ¢£»
-///1£º»ñÈ¡Ò»¸öÏûÏ¢£»
-///2£º´ïµ½ÁËËÑË÷µã£¬µ«Ã»ÓĞ·¢ÏÖÏûÏ¢£»
-///-1£ºÊ§°Ü£»
+///0ï¼šæ²¡æœ‰æ¶ˆæ¯ï¼›
+///1ï¼šè·å–ä¸€ä¸ªæ¶ˆæ¯ï¼›
+///2ï¼šè¾¾åˆ°äº†æœç´¢ç‚¹ï¼Œä½†æ²¡æœ‰å‘ç°æ¶ˆæ¯ï¼›
+///-1ï¼šå¤±è´¥ï¼›
 int CwxMqQueue::getNextBinlog(CwxMqTss* pTss,
                               CwxMsgBlock*&msg,
                               int& err_num,
@@ -96,24 +96,24 @@ int CwxMqQueue::getNextBinlog(CwxMqTss* pTss,
     return 1;
 }
 
-///ÏûÏ¢·¢ËÍÍê±Ï£¬bSend=true±íÊ¾ÒÑ¾­·¢ËÍ³É¹¦£»false±íÊ¾·¢ËÍÊ§°Ü
+///æ¶ˆæ¯å‘é€å®Œæ¯•ï¼ŒbSend=trueè¡¨ç¤ºå·²ç»å‘é€æˆåŠŸï¼›falseè¡¨ç¤ºå‘é€å¤±è´¥
 void CwxMqQueue::endSendMsg(CWX_UINT64 ullSid, bool bSend){
     map<CWX_UINT64, CwxMsgBlock*>::iterator iter=m_uncommitMap.find(ullSid);
     CWX_ASSERT(iter != m_uncommitMap.end());
     CwxMsgBlock* msg = (CwxMsgBlock*)iter->second;
-    if (bSend){///·¢ËÍ³É¹¦
+    if (bSend){///å‘é€æˆåŠŸ
         CwxMsgBlockAlloc::free(msg);
-    }else{///·¢ËÍÊ§°Ü£¬ĞèÒªÖØĞÂÏû·ÑÏûÏ¢
+    }else{///å‘é€å¤±è´¥ï¼Œéœ€è¦é‡æ–°æ¶ˆè´¹æ¶ˆæ¯
         m_memMsgMap[ullSid] = msg;
     }
-    ///´ÓÎ´commitµÄmapÖĞÉ¾³ı
+    ///ä»æœªcommitçš„mapä¸­åˆ é™¤
     m_uncommitMap.erase(iter);
 }
 
-///0£ºÃ»ÓĞÏûÏ¢£»
-///1£º»ñÈ¡Ò»¸öÏûÏ¢£»
-///2£º´ïµ½ÁËËÑË÷µã£¬µ«Ã»ÓĞ·¢ÏÖÏûÏ¢£»
-///-1£ºÊ§°Ü£»
+///0ï¼šæ²¡æœ‰æ¶ˆæ¯ï¼›
+///1ï¼šè·å–ä¸€ä¸ªæ¶ˆæ¯ï¼›
+///2ï¼šè¾¾åˆ°äº†æœç´¢ç‚¹ï¼Œä½†æ²¡æœ‰å‘ç°æ¶ˆæ¯ï¼›
+///-1ï¼šå¤±è´¥ï¼›
 int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
                     CwxMsgBlock*&msg,
                     int& err_num,
@@ -148,8 +148,8 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
             }
             if (ullStartSid ==m_cursor->getHeader().getSid()){
                 iRet = m_binLog->next(m_cursor);
-                if (0 == iRet) return 0; ///<µ½ÁËÎ²²¿
-                if (-1 == iRet){///<Ê§°Ü
+                if (0 == iRet) return 0; ///<åˆ°äº†å°¾éƒ¨
+                if (-1 == iRet){///<å¤±è´¥
                     strcpy(szErr2K, m_cursor->getErrMsg());
                     err_num = CWX_MQ_ERR_ERROR;
                     return -1;
@@ -160,8 +160,8 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
         }
     }else{
         iRet = m_binLog->next(m_cursor);
-        if (0 == iRet) return 0; ///<µ½ÁËÎ²²¿
-        if (-1 == iRet){///<Ê§°Ü
+        if (0 == iRet) return 0; ///<åˆ°äº†å°¾éƒ¨
+        if (-1 == iRet){///<å¤±è´¥
             strcpy(szErr2K, m_cursor->getErrMsg());
             err_num = CWX_MQ_ERR_ERROR;
             return -1;
@@ -174,8 +174,8 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
             m_cursor->getHeader().getGroup()))
         {
             iRet = m_binLog->next(m_cursor);
-            if (0 == iRet) return 0; ///<µ½ÁËÎ²²¿
-            if (-1 == iRet){///<Ê§°Ü
+            if (0 == iRet) return 0; ///<åˆ°äº†å°¾éƒ¨
+            if (-1 == iRet){///<å¤±è´¥
                 strcpy(szErr2K, m_cursor->getErrMsg());
                 err_num = CWX_MQ_ERR_ERROR;
                 return -1;
@@ -186,14 +186,14 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
         }
         bFetch = false;
         if (m_cursor->getHeader().getSid() <= m_ullLastCommitSid)
-        {//Ö»È¡m_lastUncommitSidÖĞµÄÊı¾İ
+        {//åªå–m_lastUncommitSidä¸­çš„æ•°æ®
             if (m_lastUncommitSid.size() && 
                 (m_lastUncommitSid.find(m_cursor->getHeader().getSid()) != m_lastUncommitSid.end()))
             {
                 bFetch = true;
                 m_lastUncommitSid.erase(m_lastUncommitSid.find(m_cursor->getHeader().getSid()));
             }
-        }else{//²»È¡m_lastCommitSidÖĞÒÑ¾­commitµÄÊı¾İ
+        }else{//ä¸å–m_lastCommitSidä¸­å·²ç»commitçš„æ•°æ®
             if (!m_lastCommitSid.size()||
                 (m_lastCommitSid.find(m_cursor->getHeader().getSid()) == m_lastCommitSid.end()))
             {
@@ -204,23 +204,23 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
         }
         if (bFetch){
             //fetch data
-            ///»ñÈ¡binlogµÄdata³¤¶È
+            ///è·å–binlogçš„dataé•¿åº¦
             CWX_UINT32 uiDataLen = m_cursor->getHeader().getLogLen();
-            ///×¼±¸data¶ÁÈ¡µÄbuf
+            ///å‡†å¤‡dataè¯»å–çš„buf
             char* pBuf = pTss->getBuf(uiDataLen);        
-            ///¶ÁÈ¡data
+            ///è¯»å–data
             iRet = m_binLog->fetch(m_cursor, pBuf, uiDataLen);
-            if (-1 == iRet){//¶ÁÈ¡Ê§°Ü
+            if (-1 == iRet){//è¯»å–å¤±è´¥
                 strcpy(szErr2K, m_cursor->getErrMsg());
                 err_num = CWX_MQ_ERR_ERROR;
                 return -1;
             }
-            ///unpack dataµÄÊı¾İ°ü
+            ///unpack dataçš„æ•°æ®åŒ…
             if (pTss->m_pReader->unpack(pBuf, uiDataLen, false, true)){
-                ///»ñÈ¡CWX_MQ_DµÄkey£¬´ËÎªÕæÕıdataÊı¾İ
+                ///è·å–CWX_MQ_Dçš„keyï¼Œæ­¤ä¸ºçœŸæ­£dataæ•°æ®
                 CwxKeyValueItem const* pItem = pTss->m_pReader->getKey(CWX_MQ_D);
                 if (pItem){
-                    ///ĞÎ³Ébinlog·¢ËÍµÄÊı¾İ°ü
+                    ///å½¢æˆbinlogå‘é€çš„æ•°æ®åŒ…
                     if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packFetchMqReply(pTss->m_pWriter,
                         msg,
                         CWX_MQ_ERR_SUCCESS,
@@ -231,7 +231,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
                         m_cursor->getHeader().getGroup(),
                         pTss->m_szBuf2K))
                     {
-                        ///ĞÎ³ÉÊı¾İ°üÊ§°Ü
+                        ///å½¢æˆæ•°æ®åŒ…å¤±è´¥
                         err_num = CWX_MQ_ERR_ERROR;
                         return -1;
                     }else{
@@ -239,12 +239,12 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
                         err_num = CWX_MQ_ERR_SUCCESS;
                         return 1;
                     }
-                }else{///¶ÁÈ¡µÄÊı¾İÎŞĞ§
+                }else{///è¯»å–çš„æ•°æ®æ— æ•ˆ
                     char szBuf[64];
                     CWX_ERROR(("Can't find key[%s] in binlog, sid=%s", CWX_MQ_D,
                         CwxCommon::toString(m_cursor->getHeader().getSid(), szBuf)));
                 }            
-            }else{///binlogµÄÊı¾İ¸ñÊ½´íÎó£¬²»ÊÇkv
+            }else{///binlogçš„æ•°æ®æ ¼å¼é”™è¯¯ï¼Œä¸æ˜¯kv
                 char szBuf[64];
                 CWX_ERROR(("Can't unpack binlog, sid=%s",
                     CwxCommon::toString(m_cursor->getHeader().getSid(), szBuf)));
@@ -253,8 +253,8 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
         uiSkipNum ++;
         if (!CwxMqPoco::isContinueSeek(uiSkipNum)) return 2;
         iRet = m_binLog->next(m_cursor);
-        if (0 == iRet) return 0; ///<µ½ÁËÎ²²¿
-        if (-1 == iRet){///<Ê§°Ü
+        if (0 == iRet) return 0; ///<åˆ°äº†å°¾éƒ¨
+        if (-1 == iRet){///<å¤±è´¥
             strcpy(szErr2K, m_cursor->getErrMsg());
             err_num = CWX_MQ_ERR_ERROR;
             return -1;
@@ -292,16 +292,16 @@ void CwxMqQueue::getQueueDumpInfo(CWX_UINT64& ullLastCommitSid,
                       set<CWX_UINT64>& commitSid)
 {
     if (m_cursor && (CwxBinLogCursor::CURSOR_STATE_READY == m_cursor->getSeekState()))
-    {///cursorÓĞĞ§£¬´ËÊ±£¬m_lastUncommitSidÖĞĞ¡ÓÚcursor sidµÄ¼ÇÂ¼Ó¦¸ÃÉ¾³ı
-        ///Ô­ÒòÊÇ£º1¡¢ÒÑÓĞ¼ÇÂ¼ÒÑ¾­Ê§Ğ§£»2¡¢²ÅÄÚ´æ»òuncommitÖĞ¼ÇÂ¼¡£
+    {///cursoræœ‰æ•ˆï¼Œæ­¤æ—¶ï¼Œm_lastUncommitSidä¸­å°äºcursor sidçš„è®°å½•åº”è¯¥åˆ é™¤
+        ///åŸå› æ˜¯ï¼š1ã€å·²æœ‰è®°å½•å·²ç»å¤±æ•ˆï¼›2ã€æ‰å†…å­˜æˆ–uncommitä¸­è®°å½•ã€‚
         set<CWX_UINT64>::iterator iter = m_lastUncommitSid.begin();
         while(iter != m_lastUncommitSid.end()){
             if (*iter >= m_cursor->getHeader().getSid()) break;
             m_lastUncommitSid.erase(iter);
             iter = m_lastUncommitSid.begin();
         }
-        ///m_lastCommitSidÖĞ£¬Ğ¡ÓÚcursor sidµÄ¼ÇÂ¼Ó¦¸ÃÉ¾³ı
-        ///ÒòÎªÆä¼ÇÂ¼µÄÊÇcursor sidºóµÄcommit¼ÇÂ¼¡£
+        ///m_lastCommitSidä¸­ï¼Œå°äºcursor sidçš„è®°å½•åº”è¯¥åˆ é™¤
+        ///å› ä¸ºå…¶è®°å½•çš„æ˜¯cursor sidåçš„commitè®°å½•ã€‚
         iter = m_lastCommitSid.begin();
         while(iter != m_lastCommitSid.end()){
             if (*iter >= m_cursor->getHeader().getSid()) break;
@@ -309,17 +309,17 @@ void CwxMqQueue::getQueueDumpInfo(CWX_UINT64& ullLastCommitSid,
             iter = m_lastCommitSid.begin();
         }
         ullLastCommitSid = m_cursor->getHeader().getSid();
-        ///Èç¹ûµ±Ç°cursorÃ»ÓĞÒÆµ½m_ullLastCommitSidµÄÎ»ÖÃ£¬
-        ///ÒÀÈ»²ÉÓÃm_ullLastCommitSidÎªcursorµÄÎ»ÖÃ¡£
+        ///å¦‚æœå½“å‰cursoræ²¡æœ‰ç§»åˆ°m_ullLastCommitSidçš„ä½ç½®ï¼Œ
+        ///ä¾ç„¶é‡‡ç”¨m_ullLastCommitSidä¸ºcursorçš„ä½ç½®ã€‚
         if (ullLastCommitSid < m_ullLastCommitSid) ullLastCommitSid = m_ullLastCommitSid;
     }else{
         ullLastCommitSid = m_ullLastCommitSid;
     }
-    {//ĞÎ³ÉÎ´commitµÄsid
+    {//å½¢æˆæœªcommitçš„sid
         uncommitSid.clear();
-        //Ìí¼Óm_lastUncommitSidÖĞµÄ¼ÇÂ¼
+        //æ·»åŠ m_lastUncommitSidä¸­çš„è®°å½•
         uncommitSid = m_lastUncommitSid;
-        //Ìí¼Óm_uncommitMapÖĞµÄ¼ÇÂ¼
+        //æ·»åŠ m_uncommitMapä¸­çš„è®°å½•
         {
             map<CWX_UINT64, CwxMsgBlock*>::iterator iter = m_uncommitMap.begin();
             while(iter != m_uncommitMap.end()){
@@ -327,7 +327,7 @@ void CwxMqQueue::getQueueDumpInfo(CWX_UINT64& ullLastCommitSid,
                 iter++;
             }
         }
-        //Ìí¼Óm_memMsgMapÖĞµÄ¼ÇÂ¼
+        //æ·»åŠ m_memMsgMapä¸­çš„è®°å½•
         {
             map<CWX_UINT64, CwxMsgBlock*>::iterator iter = m_memMsgMap.begin();
             while(iter != m_memMsgMap.end()){
@@ -336,7 +336,7 @@ void CwxMqQueue::getQueueDumpInfo(CWX_UINT64& ullLastCommitSid,
             }
         }
     }
-    {///ĞÎ³ÉcommitµÄ¼ÇÂ¼
+    {///å½¢æˆcommitçš„è®°å½•
         commitSid.clear();
         commitSid = m_lastCommitSid;
     }
@@ -370,7 +370,7 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog){
     m_binLog = binLog;
 	m_bValid = false;
 
-	//Çå¿ÕÊı¾İ
+	//æ¸…ç©ºæ•°æ®
 	{
 		map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter =  m_queues.begin();
 		while(iter != m_queues.end()){
@@ -381,7 +381,7 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog){
 		m_queues.clear();
 	}
 
-	//³õÊ¼»¯¶ÓÁĞ
+	//åˆå§‹åŒ–é˜Ÿåˆ—
 	{
 		pair<CwxMqQueue*, CwxMqQueueLogFile*> mq_pair;
 		CwxMqQueueInfo queue;
@@ -409,7 +409,7 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog){
 				delete mqLogFile;
 				return -1;
 			}
-			if (queue.m_strName.empty()){//¿Õ¶ÓÁĞÎÄ¼ş£¬É¾³ı
+			if (queue.m_strName.empty()){//ç©ºé˜Ÿåˆ—æ–‡ä»¶ï¼Œåˆ é™¤
 				delete mqLogFile;
 				CwxMqQueueLogFile::removeFile(strQueuePathFile);
 				iter++;
@@ -453,11 +453,11 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog){
 }
 
 
-///0£ºÃ»ÓĞÏûÏ¢£»
-///1£º»ñÈ¡Ò»¸öÏûÏ¢£»
-///2£º´ïµ½ÁËËÑË÷µã£¬µ«Ã»ÓĞ·¢ÏÖÏûÏ¢£»
-///-1£ºÊ§°Ü£»
-///-2£º¶ÓÁĞ²»´æÔÚ
+///0ï¼šæ²¡æœ‰æ¶ˆæ¯ï¼›
+///1ï¼šè·å–ä¸€ä¸ªæ¶ˆæ¯ï¼›
+///2ï¼šè¾¾åˆ°äº†æœç´¢ç‚¹ï¼Œä½†æ²¡æœ‰å‘ç°æ¶ˆæ¯ï¼›
+///-1ï¼šå¤±è´¥ï¼›
+///-2ï¼šé˜Ÿåˆ—ä¸å­˜åœ¨
 int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss,
                   string const& strQueue,
                   CwxMsgBlock*&msg,
@@ -478,8 +478,8 @@ int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss,
     return -1;
 }
 
-///ÏûÏ¢·¢ËÍÍê±Ï£¬bSend=true±íÊ¾ÒÑ¾­·¢ËÍ³É¹¦£»false±íÊ¾·¢ËÍÊ§°Ü
-///·µ»ØÖµ£º0£º³É¹¦£¬-1£ºÊ§°Ü£¬-2£º¶ÓÁĞ²»´æÔÚ
+///æ¶ˆæ¯å‘é€å®Œæ¯•ï¼ŒbSend=trueè¡¨ç¤ºå·²ç»å‘é€æˆåŠŸï¼›falseè¡¨ç¤ºå‘é€å¤±è´¥
+///è¿”å›å€¼ï¼š0ï¼šæˆåŠŸï¼Œ-1ï¼šå¤±è´¥ï¼Œ-2ï¼šé˜Ÿåˆ—ä¸å­˜åœ¨
 int CwxMqQueueMgr::endSendMsg(string const& strQueue,
                CWX_UINT64 ullSid,
                bool bSend,
@@ -512,7 +512,7 @@ int CwxMqQueueMgr::endSendMsg(string const& strQueue,
 }
 
 
-///Ç¿ĞĞflush mqµÄlogÎÄ¼ş
+///å¼ºè¡Œflush mqçš„logæ–‡ä»¶
 void CwxMqQueueMgr::commit(){
 	if (m_bValid){
 		map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter = m_queues.begin();
@@ -523,9 +523,9 @@ void CwxMqQueueMgr::commit(){
 	}
 }
 
-///1£º³É¹¦
-///0£º´æÔÚ
-///-1£ºÆäËû´íÎó
+///1ï¼šæˆåŠŸ
+///0ï¼šå­˜åœ¨
+///-1ï¼šå…¶ä»–é”™è¯¯
 int CwxMqQueueMgr::addQueue(string const& strQueue,
                             CWX_UINT64 ullSid,
                             string const& strUser,
@@ -586,9 +586,9 @@ int CwxMqQueueMgr::addQueue(string const& strQueue,
     if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
     return -1;
 }
-///1£º³É¹¦
-///0£º²»´æÔÚ
-///-1£ºÆäËû´íÎó
+///1ï¼šæˆåŠŸ
+///0ï¼šä¸å­˜åœ¨
+///-1ï¼šå…¶ä»–é”™è¯¯
 int CwxMqQueueMgr::delQueue(string const& strQueue,
              char* szErr2K)
 {
@@ -654,7 +654,7 @@ bool CwxMqQueueMgr::_save(CwxMqQueue* queue, CwxMqQueueLogFile* logFile){
 	queueInfo.m_strSubScribe = queue->getSubscribeRule();
 	queueInfo.m_ullCursorSid = queue->getCursorSid();
 	queue->getQueueDumpInfo(queueInfo.m_ullCursorSid, uncommitSets, commitSets);
-	//±£´æµ½logÖĞ
+	//ä¿å­˜åˆ°logä¸­
 	if (0 != logFile->save(queueInfo, uncommitSets, commitSets)){
 		return false;
 	}
@@ -662,7 +662,7 @@ bool CwxMqQueueMgr::_save(CwxMqQueue* queue, CwxMqQueueLogFile* logFile){
 }
 
 bool CwxMqQueueMgr::_fetchLogFile(set<string/*queue name*/> & queues){
-	//Èç¹ûbinlogµÄÄ¿Â¼²»´æÔÚ£¬Ôò´´½¨´ËÄ¿Â¼
+	//å¦‚æœbinlogçš„ç›®å½•ä¸å­˜åœ¨ï¼Œåˆ™åˆ›å»ºæ­¤ç›®å½•
 	if (!CwxFile::isDir(m_strQueueLogFilePath.c_str())){
 		if (!CwxFile::createDir(m_strQueueLogFilePath.c_str())){
 			char szBuf[2048];
@@ -672,7 +672,7 @@ bool CwxMqQueueMgr::_fetchLogFile(set<string/*queue name*/> & queues){
 			return false;
 		}
 	}
-	//»ñÈ¡Ä¿Â¼ÏÂµÄËùÓĞÎÄ¼ş
+	//è·å–ç›®å½•ä¸‹çš„æ‰€æœ‰æ–‡ä»¶
 	list<string> pathfiles;
 	if (!CwxFile::getDirFile(m_strQueueLogFilePath, pathfiles)){
 		char szBuf[2048];
@@ -681,7 +681,7 @@ bool CwxMqQueueMgr::_fetchLogFile(set<string/*queue name*/> & queues){
 		m_bValid = false;
 		return false;
 	}
-	//ÌáÈ¡Ä¿Â¼ÏÂµÄËùÓĞbinlogÎÄ¼ş£¬²¢·Åµ½mapÖĞ£¬ÀûÓÃmapµÄÅÅĞò£¬ÄæĞò´ò¿ªÎÄ¼ş
+	//æå–ç›®å½•ä¸‹çš„æ‰€æœ‰binlogæ–‡ä»¶ï¼Œå¹¶æ”¾åˆ°mapä¸­ï¼Œåˆ©ç”¨mapçš„æ’åºï¼Œé€†åºæ‰“å¼€æ–‡ä»¶
 	string strQueue;
 	list<string>::iterator iter=pathfiles.begin();
 	queues.clear();

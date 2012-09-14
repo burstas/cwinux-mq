@@ -1,7 +1,7 @@
-#include "CwxMproxyMqHandler.h"
+ï»¿#include "CwxMproxyMqHandler.h"
 #include "CwxMproxyApp.h"
 
-///echoÇëÇóµÄ´¦Àíº¯Êı
+///echoè¯·æ±‚çš„å¤„ç†å‡½æ•°
 int CwxMproxyMqHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
     CwxTaskBoardTask* pTask = NULL;

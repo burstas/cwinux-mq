@@ -1,27 +1,27 @@
-#include "CwxMqBinRecvHandler.h"
+ï»¿#include "CwxMqBinRecvHandler.h"
 #include "CwxMqApp.h"
 #include "CwxZlib.h"
 
-///Á¬½Ó½¨Á¢ºó£¬ĞèÒªÎ¬»¤Á¬½ÓÉÏÊı¾İµÄ·Ö·¢
+///è¿æ¥å»ºç«‹åï¼Œéœ€è¦ç»´æŠ¤è¿æ¥ä¸Šæ•°æ®çš„åˆ†å‘
 int CwxMqBinRecvHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss* ){
-    ///Á¬½Ó±ØĞë±ØĞë²»´æÔÚ
+    ///è¿æ¥å¿…é¡»å¿…é¡»ä¸å­˜åœ¨
     CWX_ASSERT(m_clientMap.find(msg->event().getConnId()) == m_clientMap.end());
     m_clientMap[msg->event().getConnId()] = false;
     CWX_DEBUG(("Add recv conn for conn-id[%u]", msg->event().getConnId()));
     return 1;
 }
 
-///Á¬½Ó¹Ø±Õºó£¬ĞèÒªÇåÀí»·¾³
+///è¿æ¥å…³é—­åï¼Œéœ€è¦æ¸…ç†ç¯å¢ƒ
 int CwxMqBinRecvHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss* ){
     map<CWX_UINT32, bool>::iterator iter = m_clientMap.find(msg->event().getConnId());
-    ///Á¬½Ó±ØĞë´æÔÚ
+    ///è¿æ¥å¿…é¡»å­˜åœ¨
     CWX_ASSERT(iter != m_clientMap.end());
     m_clientMap.erase(iter);
     CWX_DEBUG(("remove recv conn for conn-id[%u]", msg->event().getConnId()));
     return 1;
 }
 
-///echoÇëÇóµÄ´¦Àíº¯Êı
+///echoè¯·æ±‚çš„å¤„ç†å‡½æ•°
 int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     int iRet = CWX_MQ_ERR_SUCCESS;
@@ -32,13 +32,13 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
     bool bAuth = conn_iter->second;
     CWX_UINT64 ullSid = 0;
     do{
-        ///binlogÊı¾İ½ÓÊÕÏûÏ¢
+        ///binlogæ•°æ®æ¥æ”¶æ¶ˆæ¯
         if (CwxMqPoco::MSG_TYPE_RECV_DATA == msg->event().getMsgHeader().getMsgType())
         {
             CWX_UINT32 uiGroup;
             CwxKeyValueItem const* pData;
             if (m_pApp->getBinLogMgr()->isInvalid()){
-                ///Èç¹ûbinlog mgrÎŞĞ§£¬ÔòÍ£Ö¹½ÓÊÕ
+                ///å¦‚æœbinlog mgræ— æ•ˆï¼Œåˆ™åœæ­¢æ¥æ”¶
                 iRet = CWX_MQ_ERR_ERROR;
                 strcpy(pTss->m_szBuf2K, m_pApp->getBinLogMgr()->getInvalidMsg());
                 break;
@@ -52,9 +52,9 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
 
             unsigned long ulUnzipLen = 0;
             bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
-            //ÅĞ¶ÏÊÇ·ñÑ¹ËõÊı¾İ
-            if (bZip){//Ñ¹ËõÊı¾İ£¬ĞèÒª½âÑ¹
-                //Ê×ÏÈ×¼±¸½âÑ¹µÄbuf
+            //åˆ¤æ–­æ˜¯å¦å‹ç¼©æ•°æ®
+            if (bZip){//å‹ç¼©æ•°æ®ï¼Œéœ€è¦è§£å‹
+                //é¦–å…ˆå‡†å¤‡è§£å‹çš„buf
                 if (!prepareUnzipBuf()){
                     iRet = CWX_MQ_ERR_ERROR;
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Failure to prepare unzip buf, size:%u", m_uiBufLen);
@@ -62,7 +62,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
                     break;
                 }
                 ulUnzipLen = m_uiBufLen;
-                //½âÑ¹
+                //è§£å‹
                 if (!CwxZlib::unzip(m_unzipBuf, ulUnzipLen, (const unsigned char*)msg->rd_ptr(), msg->length())){
                     iRet = CWX_MQ_ERR_ERROR;
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Failure to unzip recv msg, msg size:%u, buf size:%u", msg->length(), m_uiBufLen);
@@ -80,7 +80,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
                 passwd,
                 pTss->m_szBuf2K)))
             {
-                //Èç¹ûÊÇÎŞĞ§Êı¾İ£¬·µ»Ø
+                //å¦‚æœæ˜¯æ— æ•ˆæ•°æ®ï¼Œè¿”å›
                 CWX_DEBUG(("Failure to parse the recieve msg, err=%s", pTss->m_szBuf2K));
                 break;
             }
@@ -110,14 +110,14 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
                 iRet = CWX_MQ_ERR_ERROR;
                 break;
             }
-            ///Ôö¼ÓÎ´Ìá½»µÄbinlogÊıÁ¿
+            ///å¢åŠ æœªæäº¤çš„binlogæ•°é‡
             m_pApp->incUnCommitLogNum();
             ///auto commit
             if (m_pApp->isFirstBinLog() ||
                 (m_pApp->getUnCommitLogNum() >= m_pApp->getConfig().getBinLog().m_uiFlushNum)||
                 (time(NULL) > (time_t)(m_pApp->getLastCommitTime() + m_pApp->getConfig().getBinLog().m_uiFlushSecond)))
             {
-                ///Èô´ïµ½Ìá½»µÄÊıÁ¿»òµÚÒ»´ÎÌá½»£¬ÔòÌá½»
+                ///è‹¥è¾¾åˆ°æäº¤çš„æ•°é‡æˆ–ç¬¬ä¸€æ¬¡æäº¤ï¼Œåˆ™æäº¤
                 if (0 != commit(pTss->m_szBuf2K)){
                     CWX_ERROR((pTss->m_szBuf2K));
                     iRet = CWX_MQ_ERR_ERROR;
@@ -135,7 +135,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
                     passwd,
                     pTss->m_szBuf2K)))
                 {
-                    //Èç¹ûÊÇÎŞĞ§Êı¾İ£¬·µ»Ø
+                    //å¦‚æœæ˜¯æ— æ•ˆæ•°æ®ï¼Œè¿”å›
                     CWX_DEBUG(("Failure to parse the commit msg, err=%s", pTss->m_szBuf2K));
                     //iRet = CWX_MQ_ERR_ERROR;
                     break;
@@ -203,7 +203,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
     return 1;
 }
 
-///¶ÔÓÚÍ¬²½dispatch£¬ĞèÒª¼ì²éÍ¬²½µÄ³¬Ê±
+///å¯¹äºåŒæ­¥dispatchï¼Œéœ€è¦æ£€æŸ¥åŒæ­¥çš„è¶…æ—¶
 int CwxMqBinRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* pThrEnv){
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
     ///flush binlog

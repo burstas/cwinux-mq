@@ -1,9 +1,9 @@
-#include "CwxMqMasterHandler.h"
+Ôªø#include "CwxMqMasterHandler.h"
 #include "CwxMqApp.h"
 #include "CwxZlib.h"
 #include "CwxMqConnector.h"
 
-//πÿ±’“—”–¡¨Ω”
+//ÂÖ≥Èó≠Â∑≤ÊúâËøûÊé•
 void CwxMqMasterHandler::closeSession(){
     CWX_INFO(("UnistorHandler4Master: Close sync session"));
     if (m_syncSession){
@@ -16,10 +16,10 @@ void CwxMqMasterHandler::closeSession(){
         m_syncSession = NULL;
     }
 }
-///¥¥Ω®”ÎmasterÕ¨≤Ωµƒ¡¨Ω”°£∑µªÿ÷µ£∫0£∫≥…π¶£ª-1£∫ ß∞‹
+///ÂàõÂª∫‰∏émasterÂêåÊ≠•ÁöÑËøûÊé•„ÄÇËøîÂõûÂÄºÔºö0ÔºöÊàêÂäüÔºõ-1ÔºöÂ§±Ë¥•
 int CwxMqMasterHandler::createSession(CwxMqTss* pTss){
     if (m_syncSession) closeSession();
-    ///÷ÿΩ®À˘”–¡¨Ω”
+    ///ÈáçÂª∫ÊâÄÊúâËøûÊé•
     CwxINetAddr addr;
     if (0 != addr.set(m_pApp->getConfig().getSlave().m_master.getPort(),
         m_pApp->getConfig().getSlave().m_master.getHostName().c_str()))
@@ -54,7 +54,7 @@ int CwxMqMasterHandler::createSession(CwxMqTss* pTss){
     m_uiCurHostId++;
     if (0 == m_uiCurHostId) m_uiCurHostId = 1;
     m_syncSession = new CwxMqSyncSession(m_uiCurHostId);
-    ///◊¢≤·¡¨Ω”id
+    ///Ê≥®ÂÜåËøûÊé•id
     int ret = 0;
     for (i=0; i<unConnNum; i++){
         if ((ret = m_pApp->noticeHandle4Msg(CwxMqApp::SVR_TYPE_MASTER,
@@ -66,15 +66,15 @@ int CwxMqMasterHandler::createSession(CwxMqTss* pTss){
         }
         m_syncSession->m_conns[(CWX_UINT32)ret] = false;
     }
-    if (i != unConnNum){/// ß∞‹
+    if (i != unConnNum){///Â§±Ë¥•
         for (; i<unConnNum; i++){
             ::close(fds[i]);
         }
         closeSession();
         return -1;
     }
-    ///∑¢ÀÕreportµƒœ˚œ¢
-    ///¥¥Ω®Õ˘master±®∏ÊsidµƒÕ®–≈ ˝æ›∞¸
+    ///ÂèëÈÄÅreportÁöÑÊ∂àÊÅØ
+    ///ÂàõÂª∫ÂæÄmasterÊä•ÂëäsidÁöÑÈÄö‰ø°Êï∞ÊçÆÂåÖ
     CwxMsgBlock* pBlock = NULL;
     ret = CwxMqPoco::packReportData(pTss->m_pWriter,
         pBlock,
@@ -88,12 +88,12 @@ int CwxMqMasterHandler::createSession(CwxMqTss* pTss){
         m_pApp->getConfig().getSlave().m_strSign.c_str(),
         m_pApp->getConfig().getSlave().m_bzip,
         pTss->m_szBuf2K);
-    if (ret != CWX_MQ_ERR_SUCCESS){/// ˝æ›∞¸¥¥Ω® ß∞‹
+    if (ret != CWX_MQ_ERR_SUCCESS){///Êï∞ÊçÆÂåÖÂàõÂª∫Â§±Ë¥•
         CWX_ERROR(("Failure to create report package, err:%s", pTss->m_szBuf2K));
         closeSession();
         return -1;
     }else{
-        ///∑¢ÀÕœ˚œ¢
+        ///ÂèëÈÄÅÊ∂àÊÅØ
         pBlock->send_ctrl().setConnId(m_syncSession->m_conns.begin()->first);
         pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_MASTER);
         pBlock->send_ctrl().setHostId(0);
@@ -108,7 +108,7 @@ int CwxMqMasterHandler::createSession(CwxMqTss* pTss){
     return 0;
 }
 
-///≥¨ ±ºÏ≤È
+///Ë∂ÖÊó∂Ê£ÄÊü•
 int CwxMqMasterHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* pThrEnv){
     CWX_INFO(("CwxMqMasterHandler::onTimeoutCheck"));
     if (!m_syncSession){
@@ -117,10 +117,10 @@ int CwxMqMasterHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* pThrEnv){
     return 0;
 }
 
-///masterµƒ¡¨Ω”πÿ±’∫Û£¨–Ë“™«Â¿Ìª∑æ≥
+///masterÁöÑËøûÊé•ÂÖ≥Èó≠ÂêéÔºåÈúÄË¶ÅÊ∏ÖÁêÜÁéØÂ¢É
 int CwxMqMasterHandler::onConnClosed(CwxMsgBlock*&, CwxTss* ){
     CWX_ERROR(("Master is closed."));
-	//À¢–¬π‹¿Ì∆˜±£¥Ê ˝æ›
+	//Âà∑Êñ∞ÁÆ°ÁêÜÂô®‰øùÂ≠òÊï∞ÊçÆ
 	char szErr2K[2048];
 	if (0 != m_pApp->getBinLogMgr()->commit(true, szErr2K)){
 		CWX_ERROR(("Failure to commit binlog data, err:%s", szErr2K));
@@ -129,15 +129,15 @@ int CwxMqMasterHandler::onConnClosed(CwxMsgBlock*&, CwxTss* ){
     return 1;
 }
 
-///Ω” ’¿¥◊‘masterµƒœ˚œ¢
+///Êé•Êî∂Êù•Ëá™masterÁöÑÊ∂àÊÅØ
 int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
     CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
-    if (!m_syncSession){///πÿ±’¡¨Ω”
+    if (!m_syncSession){///ÂÖ≥Èó≠ËøûÊé•
         m_pApp->noticeCloseConn(msg->event().getConnId());
         return 1;
     }
-    if (msg->event().getHostId() != m_syncSession->m_uiHostId){///πÿ±’¡¨Ω”
+    if (msg->event().getHostId() != m_syncSession->m_uiHostId){///ÂÖ≥Èó≠ËøûÊé•
         m_pApp->noticeCloseConn(msg->event().getConnId());
         return 1;
     }
@@ -147,7 +147,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
             CWX_ERROR(("Receive empty msg from master"));
             break;
         }
-        //SID±®∏Êµƒªÿ∏¥£¨¥À ±£¨“ª∂® «±®∏Ê ß∞‹
+        //SIDÊä•ÂëäÁöÑÂõûÂ§çÔºåÊ≠§Êó∂Ôºå‰∏ÄÂÆöÊòØÊä•ÂëäÂ§±Ë¥•
         if (CwxMqPoco::MSG_TYPE_SYNC_DATA == msg->event().getMsgHeader().getMsgType() ||
             CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK == msg->event().getMsgHeader().getMsgType())
         {
@@ -205,7 +205,7 @@ int CwxMqMasterHandler::recvMsg(CwxMsgBlock*& msg, list<CwxMsgBlock*>& msgs){
         CWX_ERROR(("sync data's size[%u] is invalid, min-size=%u", msg->length(), sizeof(ullSeq)));
         return -1;
     }
-    map<CWX_UINT32,  bool/* «∑Ò“—æ≠report*/>::iterator conn_iter = m_syncSession->m_conns.find(msg->event().getConnId());
+    map<CWX_UINT32,  bool/*ÊòØÂê¶Â∑≤Áªèreport*/>::iterator conn_iter = m_syncSession->m_conns.find(msg->event().getConnId());
     if (conn_iter == m_syncSession->m_conns.end()){
         CWX_ERROR(("Conn-id[%u] doesn't exist.", msg->event().getConnId()));
         return -1;
@@ -237,13 +237,13 @@ int CwxMqMasterHandler::dealErrMsg(CwxMsgBlock*& msg, CwxMqTss* pTss){
     return 0;
 }
 
-///¥¶¿ÌSync reportµƒreplyœ˚œ¢°£∑µªÿ÷µ£∫0£∫≥…π¶£ª-1£∫ ß∞‹
-int CwxMqMasterHandler::dealSyncReportReply(CwxMsgBlock*& msg, ///< ’µΩµƒœ˚œ¢
-                        CwxMqTss* pTss ///<tss∂‘œÛ
+///Â§ÑÁêÜSync reportÁöÑreplyÊ∂àÊÅØ„ÄÇËøîÂõûÂÄºÔºö0ÔºöÊàêÂäüÔºõ-1ÔºöÂ§±Ë¥•
+int CwxMqMasterHandler::dealSyncReportReply(CwxMsgBlock*& msg, ///<Êî∂Âà∞ÁöÑÊ∂àÊÅØ
+                        CwxMqTss* pTss ///<tssÂØπË±°
                         )
 {
     char szTmp[64];
-    ///¥À ±£¨∂‘∂Àª·πÿ±’¡¨Ω”
+    ///Ê≠§Êó∂ÔºåÂØπÁ´Ø‰ºöÂÖ≥Èó≠ËøûÊé•
     CWX_UINT64 ullSessionId = 0;
     if (m_syncSession->m_ullSessionId){
         CWX_ERROR(("Session id is replied, session id:%s", CwxCommon::toString(m_syncSession->m_ullSessionId, szTmp, 10)));
@@ -264,8 +264,8 @@ int CwxMqMasterHandler::dealSyncReportReply(CwxMsgBlock*& msg, ///< ’µΩµƒœ˚œ¢
     }
     m_syncSession->m_ullSessionId = ullSessionId;
     m_syncSession->m_conns[msg->event().getConnId()] = true;
-    ///∆‰À˚¡¨Ω”±®∏Ê
-    map<CWX_UINT32,  bool/* «∑Ò“—æ≠report*/>::iterator iter = m_syncSession->m_conns.begin();
+    ///ÂÖ∂‰ªñËøûÊé•Êä•Âëä
+    map<CWX_UINT32,  bool/*ÊòØÂê¶Â∑≤Áªèreport*/>::iterator iter = m_syncSession->m_conns.begin();
     while(iter != m_syncSession->m_conns.end()){
         if (iter->first != msg->event().getConnId()){
             CwxMsgBlock* pBlock = NULL;
@@ -274,11 +274,11 @@ int CwxMqMasterHandler::dealSyncReportReply(CwxMsgBlock*& msg, ///< ’µΩµƒœ˚œ¢
                 0,
                 ullSessionId,
                 pTss->m_szBuf2K);
-            if (ret != CWX_MQ_ERR_SUCCESS)    {/// ˝æ›∞¸¥¥Ω® ß∞‹
+            if (ret != CWX_MQ_ERR_SUCCESS)    {///Êï∞ÊçÆÂåÖÂàõÂª∫Â§±Ë¥•
                 CWX_ERROR(("Failure to create report package, err:%s", pTss->m_szBuf2K));
                 return -1;
             } else {
-                ///∑¢ÀÕœ˚œ¢
+                ///ÂèëÈÄÅÊ∂àÊÅØ
                 pBlock->send_ctrl().setConnId(iter->first);
                 pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_MASTER);
                 pBlock->send_ctrl().setHostId(m_syncSession->m_uiHostId);
@@ -296,9 +296,9 @@ int CwxMqMasterHandler::dealSyncReportReply(CwxMsgBlock*& msg, ///< ’µΩµƒœ˚œ¢
     return 0;
 }
 
-///¥¶¿Ì ’µΩµƒsync data°£∑µªÿ÷µ£∫0£∫≥…π¶£ª-1£∫ ß∞‹
-int CwxMqMasterHandler::dealSyncData(CwxMsgBlock*& msg, ///< ’µΩµƒœ˚œ¢
-                 CwxMqTss* pTss ///<tss∂‘œÛ
+///Â§ÑÁêÜÊî∂Âà∞ÁöÑsync data„ÄÇËøîÂõûÂÄºÔºö0ÔºöÊàêÂäüÔºõ-1ÔºöÂ§±Ë¥•
+int CwxMqMasterHandler::dealSyncData(CwxMsgBlock*& msg, ///<Êî∂Âà∞ÁöÑÊ∂àÊÅØ
+                 CwxMqTss* pTss ///<tssÂØπË±°
                  )
 {
     unsigned long ulUnzipLen = 0;
@@ -309,15 +309,15 @@ int CwxMqMasterHandler::dealSyncData(CwxMsgBlock*& msg, ///< ’µΩµƒœ˚œ¢
         return -1;
     }
     int iRet = 0;
-    //≈–∂œ «∑Ò—πÀı ˝æ›
-    if (bZip){//—πÀı ˝æ›£¨–Ë“™Ω‚—π
-        // ◊œ»◊º±∏Ω‚—πµƒbuf
+    //Âà§Êñ≠ÊòØÂê¶ÂéãÁº©Êï∞ÊçÆ
+    if (bZip){//ÂéãÁº©Êï∞ÊçÆÔºåÈúÄË¶ÅËß£Âéã
+        //È¶ñÂÖàÂáÜÂ§áËß£ÂéãÁöÑbuf
         if (!prepareUnzipBuf()){
             CWX_ERROR(("Failure to prepare unzip buf, size:%u", m_uiBufLen));
             return -1;
         }
         ulUnzipLen = m_uiBufLen;
-        //Ω‚—π
+        //Ëß£Âéã
         if (!CwxZlib::unzip(m_unzipBuf,
             ulUnzipLen,
             (const unsigned char*)(msg->rd_ptr() + sizeof(ullSeq)),
@@ -334,7 +334,7 @@ int CwxMqMasterHandler::dealSyncData(CwxMsgBlock*& msg, ///< ’µΩµƒœ˚œ¢
     if (-1 == iRet){
         return -1;
     }
-    //ªÿ∏¥∑¢ÀÕ’ﬂ
+    //ÂõûÂ§çÂèëÈÄÅËÄÖ
     CwxMsgBlock* reply_block = NULL;
     if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(pTss->m_pWriter,
         reply_block,
@@ -358,9 +358,9 @@ int CwxMqMasterHandler::dealSyncData(CwxMsgBlock*& msg, ///< ’µΩµƒœ˚œ¢
     return 0;
 }
 
-//¥¶¿Ì ’µΩµƒchunkƒ£ Ωœ¬µƒsync data°£∑µªÿ÷µ£∫0£∫≥…π¶£ª-1£∫ ß∞‹
-int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///< ’µΩµƒœ˚œ¢
-                      CwxMqTss* pTss ///<tss∂‘œÛ
+//Â§ÑÁêÜÊî∂Âà∞ÁöÑchunkÊ®°Âºè‰∏ãÁöÑsync data„ÄÇËøîÂõûÂÄºÔºö0ÔºöÊàêÂäüÔºõ-1ÔºöÂ§±Ë¥•
+int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<Êî∂Âà∞ÁöÑÊ∂àÊÅØ
+                      CwxMqTss* pTss ///<tssÂØπË±°
                       )
 {
     unsigned long ulUnzipLen = 0;
@@ -371,15 +371,15 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///< ’µΩµƒœ˚œ¢
         return -1;
     }
 
-    //≈–∂œ «∑Ò—πÀı ˝æ›
-    if (bZip){//—πÀı ˝æ›£¨–Ë“™Ω‚—π
-        // ◊œ»◊º±∏Ω‚—πµƒbuf
+    //Âà§Êñ≠ÊòØÂê¶ÂéãÁº©Êï∞ÊçÆ
+    if (bZip){//ÂéãÁº©Êï∞ÊçÆÔºåÈúÄË¶ÅËß£Âéã
+        //È¶ñÂÖàÂáÜÂ§áËß£ÂéãÁöÑbuf
         if (!prepareUnzipBuf()){
             CWX_ERROR(("Failure to prepare unzip buf, size:%u", m_uiBufLen));
             return -1;
         }
         ulUnzipLen = m_uiBufLen;
-        //Ω‚—π
+        //Ëß£Âéã
         if (!CwxZlib::unzip(m_unzipBuf,
             ulUnzipLen,
             (const unsigned char*)(msg->rd_ptr() + sizeof(ullSeq)),
@@ -399,11 +399,11 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///< ’µΩµƒœ˚œ¢
             return -1;
         }
     }
-    //ºÏ≤‚«©√˚
+    //Ê£ÄÊµãÁ≠æÂêç
     int bSign = 0;
     if (m_pApp->getConfig().getSlave().m_strSign.length()){
         CwxKeyValueItem const* pItem = m_reader.getKey(m_pApp->getConfig().getSlave().m_strSign.c_str());
-        if (pItem){//¥Ê‘⁄«©√˚key
+        if (pItem){//Â≠òÂú®Á≠æÂêçkey
             if (!checkSign(m_reader.getMsg(),
                 pItem->m_szKey - CwxPackage::getKeyOffset() - m_reader.getMsg(),
                 pItem->m_szData,
@@ -428,7 +428,7 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///< ’µΩµƒœ˚œ¢
         }
     }
 
-    //ªÿ∏¥∑¢ÀÕ’ﬂ
+    //ÂõûÂ§çÂèëÈÄÅËÄÖ
     CwxMsgBlock* reply_block = NULL;
     if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(pTss->m_pWriter,
         reply_block,
@@ -452,7 +452,7 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///< ’µΩµƒœ˚œ¢
     return 0;
 }
 
-//0£∫≥…π¶£ª-1£∫ ß∞‹
+//0ÔºöÊàêÂäüÔºõ-1ÔºöÂ§±Ë¥•
 int CwxMqMasterHandler::saveBinlog(CwxMqTss* pTss,
                                    char const* szBinLog,
                                    CWX_UINT32 uiLen)
@@ -461,7 +461,7 @@ int CwxMqMasterHandler::saveBinlog(CwxMqTss* pTss,
     CWX_UINT32 uiGroup;
     CWX_UINT64 ullSid;
     CwxKeyValueItem const* data;
-    ///ªÒ»°binlogµƒ ˝æ›
+    ///Ëé∑ÂèñbinlogÁöÑÊï∞ÊçÆ
     if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseSyncData(pTss->m_pReader, 
         szBinLog,
         uiLen,
@@ -497,11 +497,11 @@ bool CwxMqMasterHandler::checkSign(char const* data,
                char const* sign)
 {
     if (!sign) return true;
-    if (strcmp(sign, CWX_MQ_CRC32) == 0){//CRC32«©√˚
+    if (strcmp(sign, CWX_MQ_CRC32) == 0){//CRC32Á≠æÂêç
         CWX_UINT32 uiCrc32 = CwxCrc32::value(data, uiDateLen);
         if (memcmp(&uiCrc32, szSign, sizeof(uiCrc32)) == 0) return true;
         return false;
-    }else if (strcmp(sign, CWX_MQ_MD5)==0){//md5«©√˚
+    }else if (strcmp(sign, CWX_MQ_MD5)==0){//md5Á≠æÂêç
         CwxMd5 md5;
         unsigned char szMd5[16];
         md5.update((const unsigned char*)data, uiDateLen);

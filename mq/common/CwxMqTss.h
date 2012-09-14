@@ -1,13 +1,13 @@
-#ifndef __CWX_MQ_TSS_H__
+ï»¿#ifndef __CWX_MQ_TSS_H__
 #define __CWX_MQ_TSS_H__
 /*
-°æÈ¨ÉùÃ÷£º
-    ±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-    ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+    æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+    è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 /**
 @file CwxMqTss.h
-@brief MQÏµÁĞ·şÎñµÄTSS¶¨ÒåÎÄ¼ş¡£
+@brief MQç³»åˆ—æœåŠ¡çš„TSSå®šä¹‰æ–‡ä»¶ã€‚
 @author cwinux@gmail.com
 @version 0.1
 @date 2010-09-15
@@ -22,14 +22,14 @@
 #include "CwxPackageWriter.h"
 #include "CwxBinLogMgr.h"
 
-//mqµÄtss
+//mqçš„tss
 class CwxMqTss:public CwxTss{
 public:
     enum{
-        MAX_PACKAGE_SIZE = CWX_MQ_MAX_MSG_SIZE ///<·Ö·¢Êı¾İ°üµÄ×î´ó³¤¶È
+        MAX_PACKAGE_SIZE = CWX_MQ_MAX_MSG_SIZE ///<åˆ†å‘æ•°æ®åŒ…çš„æœ€å¤§é•¿åº¦
     };
 public:
-    ///¹¹Ôìº¯Êı
+    ///æ„é€ å‡½æ•°
     CwxMqTss():CwxTss(){
         m_pReader = NULL;
         m_pWriter = NULL;
@@ -37,12 +37,12 @@ public:
         m_uiDataBufLen = 0;
         m_pBinlogData = NULL;
     }
-    ///Îö¹¹º¯Êı
+    ///ææ„å‡½æ•°
     ~CwxMqTss();
 public:
-    ///tssµÄ³õÊ¼»¯£¬0£º³É¹¦£»-1£ºÊ§°Ü
+    ///tssçš„åˆå§‹åŒ–ï¼Œ0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     int init();
-    ///»ñÈ¡packageµÄbuf£¬·µ»ØNULL±íÊ¾Ê§°Ü
+    ///è·å–packageçš„bufï¼Œè¿”å›NULLè¡¨ç¤ºå¤±è´¥
     inline char* getBuf(CWX_UINT32 uiSize){
         if (m_uiDataBufLen < uiSize){
             delete [] m_szDataBuf;
@@ -52,15 +52,15 @@ public:
         return m_szDataBuf;
     }
 public:
-    CwxPackageReader*      m_pReader; ///<Êı¾İ°üµÄ½â°ü¶ÔÏó
-    CwxPackageWriter*      m_pWriter; ///<Êı¾İ°üµÄpack¶ÔÏó
-    CwxPackageWriter*      m_pItemWriter; ///<chunkÊ±µÄÒ»¸öÏûÏ¢µÄÊı¾İ°üµÄpack¶ÔÏó
-    CwxBinLogHeader        m_header; ///<mq fetchÊ±£¬·¢ËÍÊ§°ÜÏûÏ¢µÄheader
-    CwxKeyValueItem        m_kvData; ///<mq fetchÊ±£¬·¢ËÍÊ§°ÜÏûÏ¢µÄÊı¾İ
-    CwxKeyValueItem const*  m_pBinlogData; ///<binlogµÄdata£¬ÓÃÓÚbinglogµÄ·Ö·¢
+    CwxPackageReader*      m_pReader; ///<æ•°æ®åŒ…çš„è§£åŒ…å¯¹è±¡
+    CwxPackageWriter*      m_pWriter; ///<æ•°æ®åŒ…çš„packå¯¹è±¡
+    CwxPackageWriter*      m_pItemWriter; ///<chunkæ—¶çš„ä¸€ä¸ªæ¶ˆæ¯çš„æ•°æ®åŒ…çš„packå¯¹è±¡
+    CwxBinLogHeader        m_header; ///<mq fetchæ—¶ï¼Œå‘é€å¤±è´¥æ¶ˆæ¯çš„header
+    CwxKeyValueItem        m_kvData; ///<mq fetchæ—¶ï¼Œå‘é€å¤±è´¥æ¶ˆæ¯çš„æ•°æ®
+    CwxKeyValueItem const*  m_pBinlogData; ///<binlogçš„dataï¼Œç”¨äºbinglogçš„åˆ†å‘
 private:
-    char*                  m_szDataBuf; ///<Êı¾İbuf
-    CWX_UINT32             m_uiDataBufLen; ///<Êı¾İbufµÄ¿Õ¼ä´óĞ¡
+    char*                  m_szDataBuf; ///<æ•°æ®buf
+    CWX_UINT32             m_uiDataBufLen; ///<æ•°æ®bufçš„ç©ºé—´å¤§å°
 };
 
 #endif

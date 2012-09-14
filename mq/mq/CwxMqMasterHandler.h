@@ -1,9 +1,9 @@
-#ifndef __CWX_MQ_MASTER_HANDLER_H__
+ï»¿#ifndef __CWX_MQ_MASTER_HANDLER_H__
 #define __CWX_MQ_MASTER_HANDLER_H__
 /*
-°æÈ¨ÉùÃ÷£º
-±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 #include "CwxCommander.h"
 #include "CwxMqMacro.h"
@@ -14,10 +14,10 @@
 
 class CwxMqApp;
 
-///binlogÍ¬²½µÄsession
+///binlogåŒæ­¥çš„session
 class CwxMqSyncSession{
 public:
-    ///¹¹Ôìº¯Êı
+    ///æ„é€ å‡½æ•°
     CwxMqSyncSession(CWX_UINT32 uiHostId){
         m_ullSessionId = 0;
         m_ullNextSeq = 0;
@@ -32,7 +32,7 @@ public:
         }
     }
 public:
-    ///½ÓÊÕĞÂÏûÏ¢£¬·µ»ØÒÑ¾­ÊÕµ½µÄÏûÏ¢ÁĞ±í
+    ///æ¥æ”¶æ–°æ¶ˆæ¯ï¼Œè¿”å›å·²ç»æ”¶åˆ°çš„æ¶ˆæ¯åˆ—è¡¨
     bool recv(CWX_UINT64 ullSeq, CwxMsgBlock* msg, list<CwxMsgBlock*>& finished){
         map<CWX_UINT32,  bool>::iterator iter = m_conns.find(msg->event().getConnId());
         if ( (iter == m_conns.end()) || !iter->second ) return false;
@@ -58,7 +58,7 @@ public:
         return true;
     }
 
-    //¼ì²âÊÇ·ñ³¬Ê±
+    //æ£€æµ‹æ˜¯å¦è¶…æ—¶
     bool isTimeout(CWX_UINT32 uiTimeout) const{
         if (!m_msg.size()) return false;
         CWX_UINT32 uiNow = time(NULL);
@@ -66,66 +66,66 @@ public:
     }
 public:
     CWX_UINT64              m_ullSessionId; ///<session id
-    CWX_UINT64              m_ullNextSeq; ///<ÏÂÒ»¸ö´ı½ÓÊÕµÄsid
+    CWX_UINT64              m_ullNextSeq; ///<ä¸‹ä¸€ä¸ªå¾…æ¥æ”¶çš„sid
     CWX_UINT32              m_uiHostId; ///<host id
-    map<CWX_UINT64/*seq*/, CwxMsgBlock*>  m_msg;   ///<µÈ´ıÅÅĞòµÄÏûÏ¢
-    map<CWX_UINT32,  bool/*ÊÇ·ñÒÑ¾­report*/>  m_conns; ///<½¨Á¢µÄÁ¬½Ó
-    CWX_UINT32              m_uiReportDatetime; ///<±¨¸æµÄÊ±¼ä´Á£¬Èô¹ıÁËÖ¸¶¨µÄÊ±¼äÃ»ÓĞ»Ø¸´£¬Ôò¹Ø±Õ
+    map<CWX_UINT64/*seq*/, CwxMsgBlock*>  m_msg;   ///<ç­‰å¾…æ’åºçš„æ¶ˆæ¯
+    map<CWX_UINT32,  bool/*æ˜¯å¦å·²ç»report*/>  m_conns; ///<å»ºç«‹çš„è¿æ¥
+    CWX_UINT32              m_uiReportDatetime; ///<æŠ¥å‘Šçš„æ—¶é—´æˆ³ï¼Œè‹¥è¿‡äº†æŒ‡å®šçš„æ—¶é—´æ²¡æœ‰å›å¤ï¼Œåˆ™å…³é—­
 };
 
-///slave´Ómaster½ÓÊÕbinlogµÄ´¦Àíhandle
+///slaveä»masteræ¥æ”¶binlogçš„å¤„ç†handle
 class CwxMqMasterHandler : public CwxCmdOp{
 public:
-    ///¹¹Ôìº¯Êı
+    ///æ„é€ å‡½æ•°
     CwxMqMasterHandler(CwxMqApp* pApp):m_pApp(pApp){
         m_unzipBuf = NULL;
         m_uiBufLen = 0;
         m_uiCurHostId = 0;
         m_syncSession = NULL;
     }
-    ///Îö¹¹º¯Êı
+    ///ææ„å‡½æ•°
     virtual ~CwxMqMasterHandler(){
         if (m_unzipBuf) delete [] m_unzipBuf;
     }
 public:
-    ///masterµÄÁ¬½Ó¹Ø±Õºó£¬ĞèÒªÇåÀí»·¾³
+    ///masterçš„è¿æ¥å…³é—­åï¼Œéœ€è¦æ¸…ç†ç¯å¢ƒ
     virtual int onConnClosed(CwxMsgBlock*& msg, CwxTss* pThrEnv);
-    ///½ÓÊÕÀ´×ÔmasterµÄÏûÏ¢
+    ///æ¥æ”¶æ¥è‡ªmasterçš„æ¶ˆæ¯
     virtual int onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
-    ///³¬Ê±¼ì²é
+    ///è¶…æ—¶æ£€æŸ¥
     virtual int onTimeoutCheck(CwxMsgBlock*& msg, CwxTss* pThrEnv);
 public:
-    ///»ñÈ¡session
+    ///è·å–session
     CwxMqSyncSession*  getSession(){
-        return m_syncSession; ///<Êı¾İÍ¬²½µÄsession
+        return m_syncSession; ///<æ•°æ®åŒæ­¥çš„session
     }
 
 private:
-    //¹Ø±ÕÒÑÓĞÁ¬½Ó
+    //å…³é—­å·²æœ‰è¿æ¥
     void closeSession();
-    ///´´½¨ÓëmasterÍ¬²½µÄÁ¬½Ó¡£·µ»ØÖµ£º0£º³É¹¦£»-1£ºÊ§°Ü
-    int createSession(CwxMqTss* pTss); ///<tss¶ÔÏó
-    ///ÊÕµ½Ò»ÌõÏûÏ¢µÄ´¦Àíº¯Êı¡£·µ»ØÖµ£º0:³É¹¦£»-1£ºÊ§°Ü
-    int recvMsg(CwxMsgBlock*& msg, ///<ÊÕµ½µÄÏûÏ¢
-        list<CwxMsgBlock*>& msgs ///<½ÓÊÕ³ØÖĞ·µ»ØµÄ¿É´¦ÀíµÄÏûÏ¢¡£ÔÚlist°´ÕÕÏÈºó´ÎĞòÅÅĞò
+    ///åˆ›å»ºä¸masteråŒæ­¥çš„è¿æ¥ã€‚è¿”å›å€¼ï¼š0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
+    int createSession(CwxMqTss* pTss); ///<tsså¯¹è±¡
+    ///æ”¶åˆ°ä¸€æ¡æ¶ˆæ¯çš„å¤„ç†å‡½æ•°ã€‚è¿”å›å€¼ï¼š0:æˆåŠŸï¼›-1ï¼šå¤±è´¥
+    int recvMsg(CwxMsgBlock*& msg, ///<æ”¶åˆ°çš„æ¶ˆæ¯
+        list<CwxMsgBlock*>& msgs ///<æ¥æ”¶æ± ä¸­è¿”å›çš„å¯å¤„ç†çš„æ¶ˆæ¯ã€‚åœ¨listæŒ‰ç…§å…ˆåæ¬¡åºæ’åº
         );
-    ///´¦ÀíSync reportµÄreplyÏûÏ¢¡£·µ»ØÖµ£º0£º³É¹¦£»-1£ºÊ§°Ü
-    int dealSyncReportReply(CwxMsgBlock*& msg, ///<ÊÕµ½µÄÏûÏ¢
-        CwxMqTss* pTss ///<tss¶ÔÏó
+    ///å¤„ç†Sync reportçš„replyæ¶ˆæ¯ã€‚è¿”å›å€¼ï¼š0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
+    int dealSyncReportReply(CwxMsgBlock*& msg, ///<æ”¶åˆ°çš„æ¶ˆæ¯
+        CwxMqTss* pTss ///<tsså¯¹è±¡
         );
-    ///´¦ÀíÊÕµ½µÄsync data¡£·µ»ØÖµ£º0£º³É¹¦£»-1£ºÊ§°Ü
-    int dealSyncData(CwxMsgBlock*& msg, ///<ÊÕµ½µÄÏûÏ¢
-        CwxMqTss* pTss ///<tss¶ÔÏó
+    ///å¤„ç†æ”¶åˆ°çš„sync dataã€‚è¿”å›å€¼ï¼š0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
+    int dealSyncData(CwxMsgBlock*& msg, ///<æ”¶åˆ°çš„æ¶ˆæ¯
+        CwxMqTss* pTss ///<tsså¯¹è±¡
         );
-    //´¦ÀíÊÕµ½µÄchunkÄ£Ê½ÏÂµÄsync data¡£·µ»ØÖµ£º0£º³É¹¦£»-1£ºÊ§°Ü
-    int dealSyncChunkData(CwxMsgBlock*& msg, ///<ÊÕµ½µÄÏûÏ¢
-        CwxMqTss* pTss ///<tss¶ÔÏó
+    //å¤„ç†æ”¶åˆ°çš„chunkæ¨¡å¼ä¸‹çš„sync dataã€‚è¿”å›å€¼ï¼š0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
+    int dealSyncChunkData(CwxMsgBlock*& msg, ///<æ”¶åˆ°çš„æ¶ˆæ¯
+        CwxMqTss* pTss ///<tsså¯¹è±¡
         );
-    //´¦Àí´íÎóÏûÏ¢¡£·µ»ØÖµ£º0£º³É¹¦£»-1£ºÊ§°Ü
-    int dealErrMsg(CwxMsgBlock*& msg,  ///<ÊÕµ½µÄÏûÏ¢
-        CwxMqTss* pTss ///<tss¶ÔÏó
+    //å¤„ç†é”™è¯¯æ¶ˆæ¯ã€‚è¿”å›å€¼ï¼š0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
+    int dealErrMsg(CwxMsgBlock*& msg,  ///<æ”¶åˆ°çš„æ¶ˆæ¯
+        CwxMqTss* pTss ///<tsså¯¹è±¡
         );
-    //0£º³É¹¦£»-1£ºÊ§°Ü
+    //0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     int saveBinlog(CwxMqTss* pTss,
         char const* szBinLog,
         CWX_UINT32 uiLen);
@@ -133,15 +133,15 @@ private:
         CWX_UINT32 uiDateLen,
         char const* szSign,
         char const* sign);
-    //»ñÈ¡unzipµÄbuf
+    //è·å–unzipçš„buf
     bool prepareUnzipBuf();
 private:
-    CwxMqApp*                m_pApp;  ///<app¶ÔÏó
-    CwxPackageReader         m_reader; ///<½â°üµÄreader
-    unsigned char*           m_unzipBuf; ///<½âÑ¹µÄbuffer
-    CWX_UINT32               m_uiBufLen; ///<½âÑ¹bufferµÄ´óĞ¡£¬ÆäÎªtrunkµÄ20±¶£¬×îĞ¡Îª20M¡£
-    CwxMqSyncSession*        m_syncSession; ///<Êı¾İÍ¬²½µÄsession
-    CWX_UINT32               m_uiCurHostId; ///<µ±Ç°µÄhost id
+    CwxMqApp*                m_pApp;  ///<appå¯¹è±¡
+    CwxPackageReader         m_reader; ///<è§£åŒ…çš„reader
+    unsigned char*           m_unzipBuf; ///<è§£å‹çš„buffer
+    CWX_UINT32               m_uiBufLen; ///<è§£å‹bufferçš„å¤§å°ï¼Œå…¶ä¸ºtrunkçš„20å€ï¼Œæœ€å°ä¸º20Mã€‚
+    CwxMqSyncSession*        m_syncSession; ///<æ•°æ®åŒæ­¥çš„session
+    CWX_UINT32               m_uiCurHostId; ///<å½“å‰çš„host id
 };
 
 #endif 

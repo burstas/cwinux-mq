@@ -1,13 +1,13 @@
-#ifndef __CWX_MQ_DEF_H__
+ï»¿#ifndef __CWX_MQ_DEF_H__
 #define __CWX_MQ_DEF_H__
 /*
-°æÈ¨ÉùÃ÷£º
-    ±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-    ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+    æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+    è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 /**
 @file CwxMqDef.h
-@brief MQÏµÁĞ·şÎñµÄÍ¨ÓÃ¶ÔÏó¶¨ÒåÎÄ¼ş¡£
+@brief MQç³»åˆ—æœåŠ¡çš„é€šç”¨å¯¹è±¡å®šä¹‰æ–‡ä»¶ã€‚
 @author cwinux@gmail.com
 @version 0.1
 @date 2010-09-15
@@ -27,7 +27,7 @@
 
 class CwxMqQueue;
 
-///mqµÄfetchÁ¬½ÓµÄsession¶ÔÏó
+///mqçš„fetchè¿æ¥çš„sessionå¯¹è±¡
 class CwxMqFetchConn{
 public:
     CwxMqFetchConn();
@@ -35,13 +35,13 @@ public:
 public:
     void reset();
 public:
-    bool            m_bWaiting; ///<ÊÇ·ñÕıÔÚµÈÔÚ·¢ËÍĞÅÏ¢
-    bool            m_bBlock; ///<ÊÇ·ñÎªblockÁ¬½Ó
-    CWX_UINT32      m_uiTaskId; ///<Á¬½ÓµÄtaskid
-    string          m_strQueueName; ///<¶ÓÁĞµÄÃû×Ö
+    bool            m_bWaiting; ///<æ˜¯å¦æ­£åœ¨ç­‰åœ¨å‘é€ä¿¡æ¯
+    bool            m_bBlock; ///<æ˜¯å¦ä¸ºblockè¿æ¥
+    CWX_UINT32      m_uiTaskId; ///<è¿æ¥çš„taskid
+    string          m_strQueueName; ///<é˜Ÿåˆ—çš„åå­—
 };
 
-///mqĞÅÏ¢¶ÔÏó
+///mqä¿¡æ¯å¯¹è±¡
 class CwxMqConfigQueue{
 public:
     CwxMqConfigQueue(){
@@ -68,14 +68,14 @@ public:
         return m_strName == item.m_strName;
     };
 public:
-    string  m_strName; ///<¶ÓÁĞµÄÃû×Ö
-    string  m_strUser; ///<¶ÓÁĞµÄÓÃ»§Ãû
-    string  m_strPasswd; ///<¶ÓÁĞµÄ¿ÚÁî
-    string  m_strSubScribe; ///<¶ÓÁĞµÄÏûÏ¢¶©ÔÄ
-    bool    m_bCommit; ///<ÊÇ·ñcommitÀàĞÍ
+    string  m_strName; ///<é˜Ÿåˆ—çš„åå­—
+    string  m_strUser; ///<é˜Ÿåˆ—çš„ç”¨æˆ·å
+    string  m_strPasswd; ///<é˜Ÿåˆ—çš„å£ä»¤
+    string  m_strSubScribe; ///<é˜Ÿåˆ—çš„æ¶ˆæ¯è®¢é˜…
+    bool    m_bCommit; ///<æ˜¯å¦commitç±»å‹
 };
 
-///id ·¶Î§µÄ±È½Ï¶ÔÏó
+///id èŒƒå›´çš„æ¯”è¾ƒå¯¹è±¡
 class CwxMqIdRange{
 public:
     CwxMqIdRange(CWX_UINT32 uiBegin, CWX_UINT32 uiEnd):m_uiBegin(uiBegin),m_uiEnd(uiEnd){
@@ -91,7 +91,7 @@ public:
         }
         return *this;
     }
-    ///ÓĞÖØµş¾ÍÏàµÈ
+    ///æœ‰é‡å å°±ç›¸ç­‰
     bool operator == (CwxMqIdRange const& item) const{
          if (((m_uiBegin>=item.m_uiBegin)&&(m_uiBegin<=item.m_uiEnd)) ||
              ((m_uiEnd >= item.m_uiBegin)&&(m_uiEnd<=item.m_uiEnd)))
@@ -101,7 +101,7 @@ public:
              return true;
          return false;
     }
-    ///ÒÔbeginÎªÒÀ¾İ±È½Ï´óĞ¡
+    ///ä»¥beginä¸ºä¾æ®æ¯”è¾ƒå¤§å°
     bool operator < (CwxMqIdRange const& item) const{
         if (*this == item) return false;
         return m_uiBegin<item.m_uiBegin;
@@ -120,7 +120,7 @@ private:
 };
 
 
-///mq queueµÄĞÅÏ¢¶ÔÏó
+///mq queueçš„ä¿¡æ¯å¯¹è±¡
 class CwxMqQueueInfo{
 public:
     CwxMqQueueInfo(){
@@ -134,50 +134,50 @@ public:
     }
 public:
     CwxMqQueueInfo(CwxMqQueueInfo const& item){
-        m_strName = item.m_strName; ///<¶ÓÁĞµÄÃû×Ö
-        m_strUser = item.m_strUser; ///<¶ÓÁĞ¼øÈ¨µÄÓÃ»§Ãû
-        m_strPasswd = item.m_strPasswd; ///<¶ÓÁĞµÄÓÃ»§¿ÚÁî
-        m_strSubScribe = item.m_strSubScribe; ///<¶©ÔÄ¹æÔò
+        m_strName = item.m_strName; ///<é˜Ÿåˆ—çš„åå­—
+        m_strUser = item.m_strUser; ///<é˜Ÿåˆ—é‰´æƒçš„ç”¨æˆ·å
+        m_strPasswd = item.m_strPasswd; ///<é˜Ÿåˆ—çš„ç”¨æˆ·å£ä»¤
+        m_strSubScribe = item.m_strSubScribe; ///<è®¢é˜…è§„åˆ™
         m_ullCursorSid = item.m_ullCursorSid;
-        m_ullLeftNum = item.m_ullLeftNum; ///<Ê£ÓàÏûÏ¢µÄÊıÁ¿
-        m_uiWaitCommitNum = item.m_uiWaitCommitNum; ///<µÈ´ıcommitµÄÏûÏ¢ÊıÁ¿
+        m_ullLeftNum = item.m_ullLeftNum; ///<å‰©ä½™æ¶ˆæ¯çš„æ•°é‡
+        m_uiWaitCommitNum = item.m_uiWaitCommitNum; ///<ç­‰å¾…commitçš„æ¶ˆæ¯æ•°é‡
         m_uiMemLogNum = item.m_uiMemLogNum;
         m_ucQueueState = item.m_ucQueueState;
         m_strQueueErrMsg = item.m_strQueueErrMsg;
-		m_bQueueLogFileValid = item.m_bQueueLogFileValid;///¶ÓÁĞlog fileÊÇ·ñÓĞĞ§
-		m_strQueueLogFileErrMsg = item.m_strQueueLogFileErrMsg; ///<¶ÓÁĞlog file´íÎóĞÅÏ¢
+		m_bQueueLogFileValid = item.m_bQueueLogFileValid;///é˜Ÿåˆ—log fileæ˜¯å¦æœ‰æ•ˆ
+		m_strQueueLogFileErrMsg = item.m_strQueueLogFileErrMsg; ///<é˜Ÿåˆ—log fileé”™è¯¯ä¿¡æ¯
     }
 
     CwxMqQueueInfo& operator=(CwxMqQueueInfo const& item){
         if (this != &item){
-            m_strName = item.m_strName; ///<¶ÓÁĞµÄÃû×Ö
-            m_strUser = item.m_strUser; ///<¶ÓÁĞ¼øÈ¨µÄÓÃ»§Ãû
-            m_strPasswd = item.m_strPasswd; ///<¶ÓÁĞµÄÓÃ»§¿ÚÁî
-            m_strSubScribe = item.m_strSubScribe; ///<¶©ÔÄ¹æÔò
+            m_strName = item.m_strName; ///<é˜Ÿåˆ—çš„åå­—
+            m_strUser = item.m_strUser; ///<é˜Ÿåˆ—é‰´æƒçš„ç”¨æˆ·å
+            m_strPasswd = item.m_strPasswd; ///<é˜Ÿåˆ—çš„ç”¨æˆ·å£ä»¤
+            m_strSubScribe = item.m_strSubScribe; ///<è®¢é˜…è§„åˆ™
             m_ullCursorSid = item.m_ullCursorSid;
-            m_ullLeftNum = item.m_ullLeftNum; ///<Ê£ÓàÏûÏ¢µÄÊıÁ¿
-            m_uiWaitCommitNum = item.m_uiWaitCommitNum; ///<µÈ´ıcommitµÄÏûÏ¢ÊıÁ¿
+            m_ullLeftNum = item.m_ullLeftNum; ///<å‰©ä½™æ¶ˆæ¯çš„æ•°é‡
+            m_uiWaitCommitNum = item.m_uiWaitCommitNum; ///<ç­‰å¾…commitçš„æ¶ˆæ¯æ•°é‡
             m_uiMemLogNum = item.m_uiMemLogNum;
             m_ucQueueState = item.m_ucQueueState;
             m_strQueueErrMsg = item.m_strQueueErrMsg;
-			m_bQueueLogFileValid = item.m_bQueueLogFileValid;///¶ÓÁĞlog fileÊÇ·ñÓĞĞ§
-			m_strQueueLogFileErrMsg = item.m_strQueueLogFileErrMsg; ///<¶ÓÁĞlog file´íÎóĞÅÏ¢
+			m_bQueueLogFileValid = item.m_bQueueLogFileValid;///é˜Ÿåˆ—log fileæ˜¯å¦æœ‰æ•ˆ
+			m_strQueueLogFileErrMsg = item.m_strQueueLogFileErrMsg; ///<é˜Ÿåˆ—log fileé”™è¯¯ä¿¡æ¯
         }
         return *this;
     }
 public:
-    string                           m_strName; ///<¶ÓÁĞµÄÃû×Ö
-    string                           m_strUser; ///<¶ÓÁĞ¼øÈ¨µÄÓÃ»§Ãû
-    string                           m_strPasswd; ///<¶ÓÁĞµÄÓÃ»§¿ÚÁî
-    string                           m_strSubScribe; ///<¶©ÔÄ¹æÔò
-    CWX_UINT64                       m_ullCursorSid; ///<µ±Ç°cursorµÄsid
-    CWX_UINT64                       m_ullLeftNum; ///<Ê£ÓàÏûÏ¢µÄÊıÁ¿
-    CWX_UINT32                       m_uiWaitCommitNum; ///<µÈ´ıcommitµÄÏûÏ¢ÊıÁ¿
-    CWX_UINT32                       m_uiMemLogNum; ///<ÄÚ´æÖĞÏûÏ¢µÄÊıÁ¿
-    CWX_UINT8                        m_ucQueueState; ///<¶ÓÁĞ×´Ì¬
-    string                           m_strQueueErrMsg; //<¶ÓÁĞµÄ´íÎóĞÅÏ¢
-	bool                             m_bQueueLogFileValid;///¶ÓÁĞlog fileÊÇ·ñÓĞĞ§
-	string                           m_strQueueLogFileErrMsg; ///<¶ÓÁĞlog file´íÎóĞÅÏ¢
+    string                           m_strName; ///<é˜Ÿåˆ—çš„åå­—
+    string                           m_strUser; ///<é˜Ÿåˆ—é‰´æƒçš„ç”¨æˆ·å
+    string                           m_strPasswd; ///<é˜Ÿåˆ—çš„ç”¨æˆ·å£ä»¤
+    string                           m_strSubScribe; ///<è®¢é˜…è§„åˆ™
+    CWX_UINT64                       m_ullCursorSid; ///<å½“å‰cursorçš„sid
+    CWX_UINT64                       m_ullLeftNum; ///<å‰©ä½™æ¶ˆæ¯çš„æ•°é‡
+    CWX_UINT32                       m_uiWaitCommitNum; ///<ç­‰å¾…commitçš„æ¶ˆæ¯æ•°é‡
+    CWX_UINT32                       m_uiMemLogNum; ///<å†…å­˜ä¸­æ¶ˆæ¯çš„æ•°é‡
+    CWX_UINT8                        m_ucQueueState; ///<é˜Ÿåˆ—çŠ¶æ€
+    string                           m_strQueueErrMsg; //<é˜Ÿåˆ—çš„é”™è¯¯ä¿¡æ¯
+	bool                             m_bQueueLogFileValid;///é˜Ÿåˆ—log fileæ˜¯å¦æœ‰æ•ˆ
+	string                           m_strQueueLogFileErrMsg; ///<é˜Ÿåˆ—log fileé”™è¯¯ä¿¡æ¯
 };
 
 bool mqParseHostPort(string const& strHostPort, CwxHostInfo& host);

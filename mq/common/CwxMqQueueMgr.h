@@ -1,13 +1,13 @@
-#ifndef __CWX_MQ_QUEUE_MGR_H__
+ï»¿#ifndef __CWX_MQ_QUEUE_MGR_H__
 #define __CWX_MQ_QUEUE_MGR_H__
 /*
-°æÈ¨ÉùÃ÷£º
-    ±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-    ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+    æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+    è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 /**
 @file CwxMqMgr.h
-@brief MQÏµÁĞ·şÎñµÄMQ¹ÜÀíÆ÷¶ÔÏó¶¨ÒåÎÄ¼ş¡£
+@brief MQç³»åˆ—æœåŠ¡çš„MQç®¡ç†å™¨å¯¹è±¡å®šä¹‰æ–‡ä»¶ã€‚
 @author cwinux@gmail.com
 @version 0.1
 @date 2010-09-15
@@ -33,21 +33,21 @@ public:
         CwxBinLogMgr* pBinlog);
     ~CwxMqQueue();
 public:
-    ///0:³É¹¦;-1£ºÊ§°Ü
+    ///0:æˆåŠŸ;-1ï¼šå¤±è´¥
     int init(CWX_UINT64 ullLastCommitSid,
         set<CWX_UINT64> const& uncommitSid,
         set<CWX_UINT64> const& commitSid,
         string& strErrMsg);
-    ///0£ºÃ»ÓĞÏûÏ¢£»
-    ///1£º»ñÈ¡Ò»¸öÏûÏ¢£»
-    ///2£º´ïµ½ÁËËÑË÷µã£¬µ«Ã»ÓĞ·¢ÏÖÏûÏ¢£»
-    ///-1£ºÊ§°Ü£»
+    ///0ï¼šæ²¡æœ‰æ¶ˆæ¯ï¼›
+    ///1ï¼šè·å–ä¸€ä¸ªæ¶ˆæ¯ï¼›
+    ///2ï¼šè¾¾åˆ°äº†æœç´¢ç‚¹ï¼Œä½†æ²¡æœ‰å‘ç°æ¶ˆæ¯ï¼›
+    ///-1ï¼šå¤±è´¥ï¼›
     int getNextBinlog(CwxMqTss* pTss,
         CwxMsgBlock*&msg,
         int& err_num,
         char* szErr2K);
 
-    ///ÏûÏ¢·¢ËÍÍê±Ï£¬bSend=true±íÊ¾ÒÑ¾­·¢ËÍ³É¹¦£»false±íÊ¾·¢ËÍÊ§°Ü
+    ///æ¶ˆæ¯å‘é€å®Œæ¯•ï¼ŒbSend=trueè¡¨ç¤ºå·²ç»å‘é€æˆåŠŸï¼›falseè¡¨ç¤ºå‘é€å¤±è´¥
     void endSendMsg(CWX_UINT64 ullSid, bool bSend=true);
 
     inline string const& getName() const{
@@ -75,7 +75,7 @@ public:
         return m_uncommitMap;
     }
     inline map<CWX_UINT64, CwxMsgBlock*>& getMemMsgMap(){
-        return m_memMsgMap;///<·¢ËÍÊ§°ÜÏûÏ¢¶ÓÁĞ
+        return m_memMsgMap;///<å‘é€å¤±è´¥æ¶ˆæ¯é˜Ÿåˆ—
     }
     inline CwxBinLogCursor* getCursor() {
         return m_cursor;
@@ -87,16 +87,16 @@ public:
         return m_uncommitMap.size();
     }
     inline CWX_UINT64 getCursorSid() const{
-        ///Èç¹ûcursorÓĞĞ§£¬Ôò·µ»ØcursorµÄsid
+        ///å¦‚æœcursoræœ‰æ•ˆï¼Œåˆ™è¿”å›cursorçš„sid
         if (m_cursor && (CwxBinLogCursor::CURSOR_STATE_READY == m_cursor->getSeekState()))
             return m_cursor->getHeader().getSid();
-        ///·ñÔò·µ»Ø³õÊ¼sid¡£
+        ///å¦åˆ™è¿”å›åˆå§‹sidã€‚
         return getStartSid();
     }
-    ///»ñÈ¡cursorµÄÆğÊ¼sid
+    ///è·å–cursorçš„èµ·å§‹sid
     inline CWX_UINT64 getStartSid() const{
         CWX_UINT64 ullSid = 0;
-        //Èç¹û´æÔÚÀúÊ·Î´commitµÄÊı¾İ£¬Ôò´ÓÀúÊ·Î´commitµÄÊı¾İÖĞ»ñÈ¡×îĞ¡µÄsid
+        //å¦‚æœå­˜åœ¨å†å²æœªcommitçš„æ•°æ®ï¼Œåˆ™ä»å†å²æœªcommitçš„æ•°æ®ä¸­è·å–æœ€å°çš„sid
         if (m_lastUncommitSid.size()){
            ullSid =  *m_lastUncommitSid.begin();
            if (ullSid) ullSid --;
@@ -105,33 +105,33 @@ public:
         }
         return m_ullLastCommitSid;
     }
-    ///»ñÈ¡dumpĞÅÏ¢
+    ///è·å–dumpä¿¡æ¯
     void getQueueDumpInfo(CWX_UINT64& ullLastCommitSid,
         set<CWX_UINT64>& uncommitSid,
         set<CWX_UINT64>& commitSid);
     CWX_UINT64 getMqNum();
 private:
-    ///0£ºÃ»ÓĞÏûÏ¢£»
-    ///1£º»ñÈ¡Ò»¸öÏûÏ¢£»
-    ///2£º´ïµ½ÁËËÑË÷µã£¬µ«Ã»ÓĞ·¢ÏÖÏûÏ¢£»
-    ///-1£ºÊ§°Ü£»
+    ///0ï¼šæ²¡æœ‰æ¶ˆæ¯ï¼›
+    ///1ï¼šè·å–ä¸€ä¸ªæ¶ˆæ¯ï¼›
+    ///2ï¼šè¾¾åˆ°äº†æœç´¢ç‚¹ï¼Œä½†æ²¡æœ‰å‘ç°æ¶ˆæ¯ï¼›
+    ///-1ï¼šå¤±è´¥ï¼›
     int fetchNextBinlog(CwxMqTss* pTss,
         CwxMsgBlock*&msg,
         int& err_num,
         char* szErr2K);
 private:
-    string                           m_strName; ///<¶ÓÁĞµÄÃû×Ö
-    string                           m_strUser; ///<¶ÓÁĞ¼øÈ¨µÄÓÃ»§Ãû
-    string                           m_strPasswd; ///<¶ÓÁĞ¼øÈ¨µÄ¿ÚÁî
-    string                           m_strSubScribe; ///<¶©ÔÄ¹æÔò
+    string                           m_strName; ///<é˜Ÿåˆ—çš„åå­—
+    string                           m_strUser; ///<é˜Ÿåˆ—é‰´æƒçš„ç”¨æˆ·å
+    string                           m_strPasswd; ///<é˜Ÿåˆ—é‰´æƒçš„å£ä»¤
+    string                           m_strSubScribe; ///<è®¢é˜…è§„åˆ™
     CwxBinLogMgr*                    m_binLog; ///<binlog
-    map<CWX_UINT64, CwxMsgBlock*>     m_uncommitMap; ///<commit¶ÓÁĞÖĞÎ´commitµÄÏûÏ¢sidË÷Òı
-    map<CWX_UINT64, CwxMsgBlock*>     m_memMsgMap;///<·¢ËÍÊ§°ÜÏûÏ¢¶ÓÁĞ
-    CwxBinLogCursor*                 m_cursor; ///<¶ÓÁĞµÄÓÎ±ê
-    CwxMqSubscribe                   m_subscribe; ///<¶©ÔÄ
-    CWX_UINT64                       m_ullLastCommitSid; ///<ÈÕÖ¾ÎÄ¼ş¼ÇÂ¼µÄcursorµÄsid
-    set<CWX_UINT64>                  m_lastUncommitSid; ///<m_ullLastCommitSidÖ®Ç°Î´commitµÄbinlog
-    set<CWX_UINT64>                  m_lastCommitSid; ///<m_ullLastCommitSidÖ®ºócommitµÄbinlog
+    map<CWX_UINT64, CwxMsgBlock*>     m_uncommitMap; ///<commité˜Ÿåˆ—ä¸­æœªcommitçš„æ¶ˆæ¯sidç´¢å¼•
+    map<CWX_UINT64, CwxMsgBlock*>     m_memMsgMap;///<å‘é€å¤±è´¥æ¶ˆæ¯é˜Ÿåˆ—
+    CwxBinLogCursor*                 m_cursor; ///<é˜Ÿåˆ—çš„æ¸¸æ ‡
+    CwxMqSubscribe                   m_subscribe; ///<è®¢é˜…
+    CWX_UINT64                       m_ullLastCommitSid; ///<æ—¥å¿—æ–‡ä»¶è®°å½•çš„cursorçš„sid
+    set<CWX_UINT64>                  m_lastUncommitSid; ///<m_ullLastCommitSidä¹‹å‰æœªcommitçš„binlog
+    set<CWX_UINT64>                  m_lastCommitSid; ///<m_ullLastCommitSidä¹‹åcommitçš„binlog
 };
 
 
@@ -146,28 +146,28 @@ public:
         CWX_UINT32 uiMaxFsyncNum);
     ~CwxMqQueueMgr();
 public:
-    //0:³É¹¦£»-1£ºÊ§°Ü
+    //0:æˆåŠŸï¼›-1ï¼šå¤±è´¥
     int init(CwxBinLogMgr* binLog);
 public:
-    ///0£ºÃ»ÓĞÏûÏ¢£»
-    ///1£º»ñÈ¡Ò»¸öÏûÏ¢£»
-    ///2£º´ïµ½ÁËËÑË÷µã£¬µ«Ã»ÓĞ·¢ÏÖÏûÏ¢£»
-    ///-1£ºÊ§°Ü£»
-    ///-2£º¶ÓÁĞ²»´æÔÚ
-    int getNextBinlog(CwxMqTss* pTss, ///<tss±äÁ¿
-        string const& strQueue, ///<¶ÓÁĞµÄÃû×Ö
-        CwxMsgBlock*&msg, ///<ÏûÏ¢
-        int& err_num, ///<´íÎóÏûÏ¢
+    ///0ï¼šæ²¡æœ‰æ¶ˆæ¯ï¼›
+    ///1ï¼šè·å–ä¸€ä¸ªæ¶ˆæ¯ï¼›
+    ///2ï¼šè¾¾åˆ°äº†æœç´¢ç‚¹ï¼Œä½†æ²¡æœ‰å‘ç°æ¶ˆæ¯ï¼›
+    ///-1ï¼šå¤±è´¥ï¼›
+    ///-2ï¼šé˜Ÿåˆ—ä¸å­˜åœ¨
+    int getNextBinlog(CwxMqTss* pTss, ///<tsså˜é‡
+        string const& strQueue, ///<é˜Ÿåˆ—çš„åå­—
+        CwxMsgBlock*&msg, ///<æ¶ˆæ¯
+        int& err_num, ///<é”™è¯¯æ¶ˆæ¯
         char* szErr2K=NULL);
 
-    ///ÏûÏ¢·¢ËÍÍê±Ï£¬bSend=true±íÊ¾ÒÑ¾­·¢ËÍ³É¹¦£»false±íÊ¾·¢ËÍÊ§°Ü
-    ///·µ»ØÖµ£º0£º³É¹¦£¬-1£ºÊ§°Ü£¬-2£º¶ÓÁĞ²»´æÔÚ
+    ///æ¶ˆæ¯å‘é€å®Œæ¯•ï¼ŒbSend=trueè¡¨ç¤ºå·²ç»å‘é€æˆåŠŸï¼›falseè¡¨ç¤ºå‘é€å¤±è´¥
+    ///è¿”å›å€¼ï¼š0ï¼šæˆåŠŸï¼Œ-1ï¼šå¤±è´¥ï¼Œ-2ï¼šé˜Ÿåˆ—ä¸å­˜åœ¨
     int endSendMsg(string const& strQueue,
         CWX_UINT64 ullSid,
         bool bSend=true,
         char* szErr2K=NULL);
 
-    ///Ç¿ĞĞflush mqµÄlogÎÄ¼ş
+    ///å¼ºè¡Œflush mqçš„logæ–‡ä»¶
     void commit();
     int addQueue(string const& strQueue,
         CWX_UINT64 ullSid,
@@ -175,9 +175,9 @@ public:
         string const& strPasswd,
         string const& strScribe,
         char* szErr2K=NULL);
-    ///1£º³É¹¦
-    ///0£º²»´æÔÚ
-    ///-1£ºÆäËû´íÎó
+    ///1ï¼šæˆåŠŸ
+    ///0ï¼šä¸å­˜åœ¨
+    ///-1ï¼šå…¶ä»–é”™è¯¯
     int delQueue(string const& strQueue,
         char* szErr2K=NULL);
 
@@ -187,7 +187,7 @@ public:
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
         return m_queues.find(strQueue) != m_queues.end();
     }
-    //-1£ºÈ¨ÏŞÊ§°Ü£»0£º¶ÓÁĞ²»´æÔÚ£»1£º³É¹¦
+    //-1ï¼šæƒé™å¤±è´¥ï¼›0ï¼šé˜Ÿåˆ—ä¸å­˜åœ¨ï¼›1ï¼šæˆåŠŸ
     inline int authQueue(string const& strQueue,
         string const& user,
         string const& passwd)
@@ -226,19 +226,19 @@ public:
 	}
 
 private:
-    ///±£´æÊı¾İ
+    ///ä¿å­˜æ•°æ®
     bool _save(CwxMqQueue* queue, CwxMqQueueLogFile* logFile);
 	bool _fetchLogFile(set<string/*queue name*/> & queues);
 	bool _isQueueLogFile(string const& file, string& queue);
 	string& _getQueueLogFile(string const& queue, string& strFile);
 private:
-    map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >   m_queues; ///<¶ÓÁĞ
-    CwxRwLock                  m_lock; ///<¶ÁĞ´Ëù
-    string                     m_strQueueLogFilePath; ///<queue logÎÄ¼şµÄÂ·¾¶
-    CWX_UINT32                 m_uiMaxFsyncNum; ///<flushÓ²ÅÌµÄ´ÎÊı¼ä¸ô
+    map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >   m_queues; ///<é˜Ÿåˆ—
+    CwxRwLock                  m_lock; ///<è¯»å†™æ‰€
+    string                     m_strQueueLogFilePath; ///<queue logæ–‡ä»¶çš„è·¯å¾„
+    CWX_UINT32                 m_uiMaxFsyncNum; ///<flushç¡¬ç›˜çš„æ¬¡æ•°é—´éš”
     CwxBinLogMgr*              m_binLog; ///<binlog driver
-    string                     m_strErrMsg; ///<ÎŞĞ§Ê±µÄ´íÎóÏûÏ¢
-	bool					    m_bValid; ///<ÊÇ·ñÓĞĞ§
+    string                     m_strErrMsg; ///<æ— æ•ˆæ—¶çš„é”™è¯¯æ¶ˆæ¯
+	bool					    m_bValid; ///<æ˜¯å¦æœ‰æ•ˆ
 };
 
 

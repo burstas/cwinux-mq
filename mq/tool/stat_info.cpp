@@ -1,4 +1,4 @@
-#include "CwxSocket.h"
+ï»¿#include "CwxSocket.h"
 #include "CwxINetAddr.h"
 #include "CwxSockStream.h"
 #include "CwxSockConnector.h"
@@ -7,7 +7,7 @@ using namespace cwinux;
 
 string g_strHost;
 CWX_UINT16 g_unPort = 0;
-///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
+///-1ï¼šå¤±è´¥ï¼›0ï¼šhelpï¼›1ï¼šæˆåŠŸ
 int parseArg(int argc, char**argv)
 {
     CwxGetOpt cmd_option(argc, argv, "H:P:h");
@@ -84,7 +84,7 @@ int main(int argc ,char** argv)
         printf("failure to connect ip:port: %s:%u, errno=%d\n", g_strHost.c_str(), g_unPort, errno);
         return 1;
     }
-    //Ğ´statsÊı¾İ
+    //å†™statsæ•°æ®
     char const* szStats = "stats\r\n";
     if (strlen(szStats) != (CWX_UINT32)CwxSocket::write_n(stream.getHandle(), szStats, strlen(szStats)))
     {

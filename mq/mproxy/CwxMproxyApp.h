@@ -1,9 +1,9 @@
-#ifndef __CWX_MPROXY_APP_H__
+ï»¿#ifndef __CWX_MPROXY_APP_H__
 #define __CWX_MPROXY_APP_H__
 /*
-°æÈ¨ÉùÃ÷£º
-    ±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-    ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+    æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+    è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 #include "CwxAppFramework.h"
 #include "CwxMproxyConfig.h"
@@ -17,43 +17,43 @@
 
 CWINUX_USING_NAMESPACE;
 
-///echoµÄÑ¹Á¦²âÊÔapp
+///echoçš„å‹åŠ›æµ‹è¯•app
 class CwxMproxyApp : public CwxAppFramework
 {
 public:
     enum
     {
         MAX_MONITOR_REPLY_SIZE = 1024 * 1024,
-        LOG_FILE_SIZE = 30, ///<Ã¿¸öÑ­»·ÔËĞĞÈÕÖ¾ÎÄ¼şµÄMBTYE
-        LOG_FILE_NUM = 7,///<Ñ­»·ÈÕÖ¾ÎÄ¼şµÄÊıÁ¿
-        SVR_TYPE_RECV = CwxAppFramework::SVR_TYPE_USER_START, ///<´úÀíÏûÏ¢µÄ½ÓÊÜ
-        SVR_TYPE_MQ = SVR_TYPE_RECV + 1,///<´úÀíÏûÏ¢´ÓmqµÄ»Ø¸´
+        LOG_FILE_SIZE = 30, ///<æ¯ä¸ªå¾ªç¯è¿è¡Œæ—¥å¿—æ–‡ä»¶çš„MBTYE
+        LOG_FILE_NUM = 7,///<å¾ªç¯æ—¥å¿—æ–‡ä»¶çš„æ•°é‡
+        SVR_TYPE_RECV = CwxAppFramework::SVR_TYPE_USER_START, ///<ä»£ç†æ¶ˆæ¯çš„æ¥å—
+        SVR_TYPE_MQ = SVR_TYPE_RECV + 1,///<ä»£ç†æ¶ˆæ¯ä»mqçš„å›å¤
         SVR_TYPE_MONITOR = SVR_TYPE_RECV + 2
     };
-    ///¹¹Ôìº¯Êı
+    ///æ„é€ å‡½æ•°
 	CwxMproxyApp();
-    ///Îö¹¹º¯Êı
+    ///ææ„å‡½æ•°
 	virtual ~CwxMproxyApp();
-    //³õÊ¼»¯app, -1:failure, 0 success;
+    //åˆå§‹åŒ–app, -1:failure, 0 success;
     virtual int init(int argc, char** argv);
 public:
-    //Ê±ÖÓÏìÓ¦º¯Êı
+    //æ—¶é’Ÿå“åº”å‡½æ•°
     virtual void onTime(CwxTimeValue const& current);
-    //ĞÅºÅÏìÓ¦º¯Êı
+    //ä¿¡å·å“åº”å‡½æ•°
     virtual void onSignal(int signum);
-    //Á¬½Ó½¨Á¢º¯Êı
+    //è¿æ¥å»ºç«‹å‡½æ•°
     virtual int onConnCreated(CwxAppHandler4Msg& conn, bool& bSuspendConn, bool& bSuspendListen);
-    //ÊÕµ½ÏûÏ¢µÄÏìÓ¦º¯Êı
+    //æ”¶åˆ°æ¶ˆæ¯çš„å“åº”å‡½æ•°
     virtual int onRecvMsg(CwxMsgBlock* msg, CwxAppHandler4Msg& conn, CwxMsgHead const& header, bool& bSuspendConn);
-    ///ÊÕµ½ÏûÏ¢µÄÏìÓ¦º¯Êı
+    ///æ”¶åˆ°æ¶ˆæ¯çš„å“åº”å‡½æ•°
     virtual int onRecvMsg(CwxAppHandler4Msg& conn,
         bool& bSuspendConn);
-    //Á¬½Ó¹Ø±Õ
+    //è¿æ¥å…³é—­
     virtual int onConnClosed(CwxAppHandler4Msg& conn);
-    //ÏûÏ¢·¢ËÍÍê±Ï
+    //æ¶ˆæ¯å‘é€å®Œæ¯•
     virtual CWX_UINT32 onEndSendMsg(CwxMsgBlock*& msg,
         CwxAppHandler4Msg& conn);
-    //ÏûÏ¢·¢ËÍÊ§°Ü
+    //æ¶ˆæ¯å‘é€å¤±è´¥
     virtual void onFailSendMsg(CwxMsgBlock*& msg);
 public:
     CwxMproxyConfig const& getConfig() const
@@ -75,25 +75,25 @@ protected:
     //init the Enviroment before run.0:success, -1:failure.
 	virtual int initRunEnv();
     virtual void destroy();
-    ///ÉèÖÃrecvÁ¬½ÓµÄÊôĞÔ
+    ///è®¾ç½®recvè¿æ¥çš„å±æ€§
     static int setRecvSockAttr(CWX_HANDLE handle, void* arg);
-    ///ÉèÖÃmqÁ¬½ÓµÄÊôĞÔ
+    ///è®¾ç½®mqè¿æ¥çš„å±æ€§
     static int setMqSockAttr(CWX_HANDLE handle, void* arg);
 private:
-    ///statsÃüÁî£¬-1£ºÒòÎª´íÎó¹Ø±ÕÁ¬½Ó£»0£º²»¹Ø±ÕÁ¬½Ó
+    ///statså‘½ä»¤ï¼Œ-1ï¼šå› ä¸ºé”™è¯¯å…³é—­è¿æ¥ï¼›0ï¼šä¸å…³é—­è¿æ¥
     int monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHandler4Msg& conn);
-    ///ĞÎ³É¼à¿ØÄÚÈİ£¬·µ»Ø¼à¿ØÄÚÈİµÄ³¤¶È
+    ///å½¢æˆç›‘æ§å†…å®¹ï¼Œè¿”å›ç›‘æ§å†…å®¹çš„é•¿åº¦
     CWX_UINT32 packMonitorInfo();
 private:
-    CwxMproxyConfig                m_config; ///<ÅäÖÃÎÄ¼ş¶ÔÏó
-    CwxMproxyRecvHandler*          m_pRecvHandle; ///´¦Àí½ÓÊÜÏûÏ¢µÄhandler
-    CwxMproxyMqHandler*            m_pMqHandle; ///<´¦ÀímqÏûÏ¢µÄhandler
-    CWX_UINT32                     m_uiTaskId; ///<·¢ËÍ¸ømqµÄÏûÏ¢µÄtaskid
-    CwxMutexLock                   m_lock; ///<m_uiTaskIdµÄ±£»¤Ëø
-    CwxThreadPoolEx*               m_threadPool;///<Ïß³Ì³Ø¶ÔÏó
+    CwxMproxyConfig                m_config; ///<é…ç½®æ–‡ä»¶å¯¹è±¡
+    CwxMproxyRecvHandler*          m_pRecvHandle; ///å¤„ç†æ¥å—æ¶ˆæ¯çš„handler
+    CwxMproxyMqHandler*            m_pMqHandle; ///<å¤„ç†mqæ¶ˆæ¯çš„handler
+    CWX_UINT32                     m_uiTaskId; ///<å‘é€ç»™mqçš„æ¶ˆæ¯çš„taskid
+    CwxMutexLock                   m_lock; ///<m_uiTaskIdçš„ä¿æŠ¤é”
+    CwxThreadPoolEx*               m_threadPool;///<çº¿ç¨‹æ± å¯¹è±¡
     CWX_UINT32                     m_uiMqConnId;
-    char                           m_szBuf[MAX_MONITOR_REPLY_SIZE];///<¼à¿ØÏûÏ¢µÄ»Ø¸´buf
-    string                         m_strStartTime; ///<Æô¶¯Ê±¼ä
+    char                           m_szBuf[MAX_MONITOR_REPLY_SIZE];///<ç›‘æ§æ¶ˆæ¯çš„å›å¤buf
+    string                         m_strStartTime; ///<å¯åŠ¨æ—¶é—´
 };
 
 #endif

@@ -1,6 +1,6 @@
-#include "CwxMqFetchApp.h"
+ï»¿#include "CwxMqFetchApp.h"
 
-///¹¹Ôìº¯Êı£¬³õÊ¼»¯·¢ËÍµÄechoÊı¾İÄÚÈİ
+///æ„é€ å‡½æ•°ï¼Œåˆå§‹åŒ–å‘é€çš„echoæ•°æ®å†…å®¹
 CwxMqFetchApp::CwxMqFetchApp():m_uiSendNum(0)
 {
     CWX_UINT32 i=0;
@@ -11,30 +11,30 @@ CwxMqFetchApp::CwxMqFetchApp():m_uiSendNum(0)
     m_szBuf100K[i] = 0x00;
     m_uiRecvNum = 0;
 }
-///Îö¹¹º¯Êı
+///ææ„å‡½æ•°
 CwxMqFetchApp::~CwxMqFetchApp()
 {
 
 }
 
-///³õÊ¼»¯APP£¬¼ÓÔØÅäÖÃÎÄ¼ş
+///åˆå§‹åŒ–APPï¼ŒåŠ è½½é…ç½®æ–‡ä»¶
 int CwxMqFetchApp::init(int argc, char** argv)
 {
     string strErrMsg;
-    ///Ê×ÏÈµ÷ÓÃ¼Ü¹¹µÄinit
+    ///é¦–å…ˆè°ƒç”¨æ¶æ„çš„init
     if (CwxAppFramework::init(argc, argv) == -1) return -1;
-    ///ÈôÃ»ÓĞÍ¨¹ı-fÖ¸¶¨ÅäÖÃÎÄ¼ş£¬Ôò²ÉÓÃÄ¬ÈÏµÄÅäÖÃÎÄ¼ş
+    ///è‹¥æ²¡æœ‰é€šè¿‡-fæŒ‡å®šé…ç½®æ–‡ä»¶ï¼Œåˆ™é‡‡ç”¨é»˜è®¤çš„é…ç½®æ–‡ä»¶
     if ((NULL == this->getConfFile()) || (strlen(this->getConfFile()) == 0))
     {
         this->setConfFile("fetch.conf");
     }
-    ///¼ÓÔØÅäÖÃÎÄ¼ş
+    ///åŠ è½½é…ç½®æ–‡ä»¶
     if (0 != m_config.loadConfig(getConfFile()))
     {
         CWX_ERROR((m_config.getError()));
         return -1;
     }
-    ///ÉèÖÃÊä³öÔËĞĞÈÕÖ¾µÄlevel
+    ///è®¾ç½®è¾“å‡ºè¿è¡Œæ—¥å¿—çš„level
     setLogLevel(CwxLogger::LEVEL_ERROR|CwxLogger::LEVEL_INFO|CwxLogger::LEVEL_WARNING);
     return 0;
 }
@@ -42,14 +42,14 @@ int CwxMqFetchApp::init(int argc, char** argv)
 //init the Enviroment before run.0:success, -1:failure.
 int CwxMqFetchApp::initRunEnv()
 {
-    ///ÉèÖÃÊ±ÖÓµÄ¿Ì¶È£¬×îĞ¡Îª1ms£¬´ËÎª1s¡£
+    ///è®¾ç½®æ—¶é’Ÿçš„åˆ»åº¦ï¼Œæœ€å°ä¸º1msï¼Œæ­¤ä¸º1sã€‚
     this->setClick(1000);//1s
     //set work dir
     this->setWorkDir(this->m_config.m_strWorkDir.c_str());
     //Set log file
     this->setLogFileNum(LOG_FILE_NUM);
     this->setLogFileSize(LOG_FILE_SIZE*1024*1024);
-    ///µ÷ÓÃ¼Ü¹¹µÄinitRunEnv£¬Ê¹ÉèÖÃµÄ²ÎÊıÉúĞ§
+    ///è°ƒç”¨æ¶æ„çš„initRunEnvï¼Œä½¿è®¾ç½®çš„å‚æ•°ç”Ÿæ•ˆ
     if (CwxAppFramework::initRunEnv() == -1 ) return -1;
 
     //output config
@@ -57,7 +57,7 @@ int CwxMqFetchApp::initRunEnv()
 
 
     CWX_UINT16 i=0;
-    //½¨Á¢ÅäÖÃÎÄ¼şÖĞÉèÖÃµÄ¡¢Óëecho·şÎñµÄÁ¬½Ó
+    //å»ºç«‹é…ç½®æ–‡ä»¶ä¸­è®¾ç½®çš„ã€ä¸echoæœåŠ¡çš„è¿æ¥
     for (i=0; i<m_config.m_unConnNum; i++)
     {
         if (m_config.m_bTcp)
@@ -100,13 +100,13 @@ int CwxMqFetchApp::initRunEnv()
     return 0;
 }
 
-///Ê±ÖÓÏìÓ¦º¯Êı£¬Ê²Ã´Ò²Ã»ÓĞ×ö
+///æ—¶é’Ÿå“åº”å‡½æ•°ï¼Œä»€ä¹ˆä¹Ÿæ²¡æœ‰åš
 void CwxMqFetchApp::onTime(CwxTimeValue const& current)
 {
     CwxAppFramework::onTime(current);
 }
 
-///ĞÅºÅ´¦Àíº¯Êı
+///ä¿¡å·å¤„ç†å‡½æ•°
 void CwxMqFetchApp::onSignal(int signum)
 {
     switch(signum)
@@ -116,13 +116,13 @@ void CwxMqFetchApp::onSignal(int signum)
         this->stop();
         break;
     default:
-        ///ÆäËûĞÅºÅ£¬ºöÂÔ
+        ///å…¶ä»–ä¿¡å·ï¼Œå¿½ç•¥
         CWX_INFO(("Recv signal=%d, ignore it.", signum));
         break;
     }
 }
 
-///echo·şÎñµÄÁ¬½Ó½¨Á¢ÏìÓ¦º¯Êı
+///echoæœåŠ¡çš„è¿æ¥å»ºç«‹å“åº”å‡½æ•°
 int CwxMqFetchApp::onConnCreated(CwxAppHandler4Msg& conn, bool& , bool& )
 {
     int flags = 1;
@@ -136,14 +136,14 @@ int CwxMqFetchApp::onConnCreated(CwxAppHandler4Msg& conn, bool& , bool& )
     {
         CWX_ERROR(("Failure to set TCP_NODELAY"));
     }
-    ///·¢ËÍÒ»¸öechoÊı¾İ°ü
+    ///å‘é€ä¸€ä¸ªechoæ•°æ®åŒ…
     sendNextMsg(conn.getConnInfo().getSvrId(),
         conn.getConnInfo().getHostId(),
         conn.getConnInfo().getConnId());
     return 0;
 }
 
-///echo»Ø¸´µÄÏûÏ¢ÏìÓ¦º¯Êı
+///echoå›å¤çš„æ¶ˆæ¯å“åº”å‡½æ•°
 int CwxMqFetchApp::onRecvMsg(CwxMsgBlock* msg, CwxAppHandler4Msg& conn, CwxMsgHead const& header, bool& bSuspendConn)
 {
 
@@ -154,9 +154,9 @@ int CwxMqFetchApp::onRecvMsg(CwxMsgBlock* msg, CwxAppHandler4Msg& conn, CwxMsgHe
     msg->event().setMsgHeader(header);
     msg->event().setTimestamp(CwxDate::getTimestamp());
     bSuspendConn = false;
-    ///ÊÍ·ÅÊÕµ½µÄÊı¾İ°ü
+    ///é‡Šæ”¾æ”¶åˆ°çš„æ•°æ®åŒ…
     if (msg) CwxMsgBlockAlloc::free(msg);
-    if (m_config.m_bLasting){///Èç¹ûÊÇ³Ö¾ÃÁ¬½Ó£¬Ôò·¢ËÍÏÂÒ»¸öechoÇëÇóÊı¾İ°ü
+    if (m_config.m_bLasting){///å¦‚æœæ˜¯æŒä¹…è¿æ¥ï¼Œåˆ™å‘é€ä¸‹ä¸€ä¸ªechoè¯·æ±‚æ•°æ®åŒ…
         sendNextMsg(conn.getConnInfo().getSvrId(),
             conn.getConnInfo().getHostId(),
             conn.getConnInfo().getConnId());
@@ -165,9 +165,9 @@ int CwxMqFetchApp::onRecvMsg(CwxMsgBlock* msg, CwxAppHandler4Msg& conn, CwxMsgHe
     {
         noticeReconnect(conn.getConnInfo().getConnId());
     }
-    ///ÊÕµ½µÄechoÊı¾İ¼Ó1
+    ///æ”¶åˆ°çš„echoæ•°æ®åŠ 1
     m_uiRecvNum++;
-    ///ÈôÊÕµ½10000¸öÊı¾İ°ü£¬ÔòÊä³öÒ»ÌõÈÕÖ¾
+    ///è‹¥æ”¶åˆ°10000ä¸ªæ•°æ®åŒ…ï¼Œåˆ™è¾“å‡ºä¸€æ¡æ—¥å¿—
     if (!(m_uiRecvNum%10000)){
         CWX_INFO(("Finish num=%u\n", m_uiRecvNum));
     }
@@ -181,7 +181,7 @@ CwxTss* CwxMqFetchApp::onTssEnv()
     return pTss;
 }
 
-///·¢ËÍecho²éÑ¯
+///å‘é€echoæŸ¥è¯¢
 void CwxMqFetchApp::sendNextMsg(CWX_UINT32 uiSvrId, CWX_UINT32 uiHostId, CWX_UINT32 uiConnId){
     CwxMqTss* pTss = (CwxMqTss*)getAppTss();
     CwxMsgBlock* pBlock=NULL;
@@ -197,28 +197,28 @@ void CwxMqFetchApp::sendNextMsg(CWX_UINT32 uiSvrId, CWX_UINT32 uiHostId, CWX_UIN
         this->stop();
         return;
     }
-    ///ÉèÖÃÏûÏ¢µÄ·¢ËÍ·½Ê½
-    ///ÉèÖÃÏûÏ¢µÄsvr-id
+    ///è®¾ç½®æ¶ˆæ¯çš„å‘é€æ–¹å¼
+    ///è®¾ç½®æ¶ˆæ¯çš„svr-id
     pBlock->send_ctrl().setSvrId(uiSvrId);
-    ///ÉèÖÃÏûÏ¢µÄhost-id
+    ///è®¾ç½®æ¶ˆæ¯çš„host-id
     pBlock->send_ctrl().setHostId(uiHostId);
-    ///ÉèÖÃÏûÏ¢·¢ËÍµÄÁ¬½Óid
+    ///è®¾ç½®æ¶ˆæ¯å‘é€çš„è¿æ¥id
     pBlock->send_ctrl().setConnId(uiConnId);
-    ///ÉèÖÃÏûÏ¢·¢ËÍµÄuser-data
+    ///è®¾ç½®æ¶ˆæ¯å‘é€çš„user-data
     pBlock->send_ctrl().setUserData(NULL);
-    ///ÉèÖÃÏûÏ¢·¢ËÍ½×¶ÎµÄĞĞÎª£¬°üÀ¨¿ªÊ¼·¢ËÍÊÇ·ñÍ¨Öª¡¢·¢ËÍÍê³ÉÊÇ·ñÍ¨Öª¡¢·¢ËÍÊ§°ÜÊÇ·ñÍ¨Öª
+    ///è®¾ç½®æ¶ˆæ¯å‘é€é˜¶æ®µçš„è¡Œä¸ºï¼ŒåŒ…æ‹¬å¼€å§‹å‘é€æ˜¯å¦é€šçŸ¥ã€å‘é€å®Œæˆæ˜¯å¦é€šçŸ¥ã€å‘é€å¤±è´¥æ˜¯å¦é€šçŸ¥
     pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
-    ///·¢ËÍechoÇëÇó
+    ///å‘é€echoè¯·æ±‚
     if (0 != this->sendMsgByConn(pBlock)){
         CWX_ERROR(("Failure to send msg"));
         noticeCloseConn(uiConnId);
         return ;
     }
-    ///·¢ËÍÊı¾İÊıÁ¿+1
+    ///å‘é€æ•°æ®æ•°é‡+1
     m_uiSendNum++;
 }
 
-///ÉèÖÃÁ¬½ÓµÄÊôĞÔ
+///è®¾ç½®è¿æ¥çš„å±æ€§
 int CwxMqFetchApp::setSockAttr(CWX_HANDLE handle, void* arg)
 {
     CwxMqFetchApp* app = (CwxMqFetchApp*)arg;

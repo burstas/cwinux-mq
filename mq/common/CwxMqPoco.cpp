@@ -1,8 +1,8 @@
-#include "CwxMqPoco.h"
+ï»¿#include "CwxMqPoco.h"
 #include "CwxZlib.h"
 
 CwxPackageWriter* CwxMqPoco::m_pWriter =NULL;
-///³õÊ¼»¯Ğ­Òé¡£·µ»ØÖµ£¬CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///åˆå§‹åŒ–åè®®ã€‚è¿”å›å€¼ï¼ŒCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::init(char* ){
     char const* data="This is binlog sync record.";
     if (!m_pWriter) m_pWriter = new CwxPackageWriter();
@@ -12,13 +12,13 @@ int CwxMqPoco::init(char* ){
     return CWX_MQ_ERR_SUCCESS;
 }
 
-///ÊÍ·ÅĞ­Òé¡£
+///é‡Šæ”¾åè®®ã€‚
 void CwxMqPoco::destory(){
     if (m_pWriter) delete m_pWriter;
     m_pWriter = NULL;
 }
 
-///·µ»ØÖµ£¬CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼ŒCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
                         CwxMsgBlock*& msg,
                         CWX_UINT32 uiTaskId,
@@ -49,13 +49,13 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
         return CWX_MQ_ERR_ERROR;
     }
     if (sign){
-        if (strcmp(sign, CWX_MQ_CRC32) == 0){//CRC32Ç©Ãû
+        if (strcmp(sign, CWX_MQ_CRC32) == 0){//CRC32ç­¾å
             CWX_UINT32 uiCrc32 = CwxCrc32::value(writer->getMsg(), writer->getMsgSize());
             if (!writer->addKeyValue(CWX_MQ_CRC32, (char*)&uiCrc32, sizeof(uiCrc32))){
                 if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
                 return CWX_MQ_ERR_ERROR;
             }
-        }else if (strcmp(sign, CWX_MQ_MD5) == 0){//md5Ç©Ãû
+        }else if (strcmp(sign, CWX_MQ_MD5) == 0){//md5ç­¾å
             CwxMd5 md5;
             unsigned char szMd5[16];
             md5.update((unsigned char*)writer->getMsg(), writer->getMsgSize());
@@ -96,7 +96,7 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
 }
 
 
-///·µ»ØÖµ£¬CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼ŒCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
                          CwxMsgBlock const* msg,
                          CwxKeyValueItem const*& data,
@@ -115,7 +115,7 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
         szErr2K);
 }
 
-///·µ»ØÖµ£¬CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼ŒCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
         char const* msg,
         CWX_UINT32  msg_len,
@@ -191,7 +191,7 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
     return CWX_MQ_ERR_SUCCESS;
 }
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::packRecvDataReply(CwxPackageWriter* writer,
                              CwxMsgBlock*& msg,
                              CWX_UINT32 uiTaskId,
@@ -231,7 +231,7 @@ int CwxMqPoco::packRecvDataReply(CwxPackageWriter* writer,
     return CWX_MQ_ERR_SUCCESS;
 }
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::parseRecvDataReply(CwxPackageReader* reader,
                                   CwxMsgBlock const* msg,
                                   int& ret,
@@ -267,7 +267,7 @@ int CwxMqPoco::parseRecvDataReply(CwxPackageReader* reader,
     return CWX_MQ_ERR_SUCCESS;
 }
 
-///·µ»ØÖµ£¬CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼ŒCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::packCommit(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
@@ -301,7 +301,7 @@ int CwxMqPoco::packCommit(CwxPackageWriter* writer,
     }
     return CWX_MQ_ERR_SUCCESS;
 }
-    ///·µ»ØÖµ£¬CWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+    ///è¿”å›å€¼ï¼ŒCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::parseCommit(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         char const*& user,
@@ -328,7 +328,7 @@ int CwxMqPoco::parseCommit(CwxPackageReader* reader,
     return CWX_MQ_ERR_SUCCESS;
 }
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::packCommitReply(CwxPackageWriter* writer,
                            CwxMsgBlock*& msg,
                            CWX_UINT32 uiTaskId,
@@ -363,7 +363,7 @@ int CwxMqPoco::packCommitReply(CwxPackageWriter* writer,
     return CWX_MQ_ERR_SUCCESS;
 }
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::parseCommitReply(CwxPackageReader* reader,
                             CwxMsgBlock const* msg,
                             int& ret,
@@ -456,7 +456,7 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
     return CWX_MQ_ERR_SUCCESS;
 }
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::parseReportData(CwxPackageReader* reader,
                            CwxMsgBlock const* msg,
                            CWX_UINT64& ullSid,
@@ -522,7 +522,7 @@ int CwxMqPoco::parseReportData(CwxPackageReader* reader,
     return CWX_MQ_ERR_SUCCESS;
 }
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::packReportDataReply(CwxPackageWriter* writer,
                                CwxMsgBlock*& msg,
                                CWX_UINT32 uiTaskId,
@@ -548,7 +548,7 @@ int CwxMqPoco::packReportDataReply(CwxPackageWriter* writer,
 }
 
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::parseReportDataReply(CwxPackageReader* reader,
                                 CwxMsgBlock const* msg,
                                 CWX_UINT64& ullSession,
@@ -567,7 +567,7 @@ int CwxMqPoco::parseReportDataReply(CwxPackageReader* reader,
 }
 
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::packReportNewConn(CwxPackageWriter* writer,
                              CwxMsgBlock*& msg,
                              CWX_UINT32 uiTaskId,
@@ -592,7 +592,7 @@ int CwxMqPoco::packReportNewConn(CwxPackageWriter* writer,
     return CWX_MQ_ERR_SUCCESS;
 
 }
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::parseReportNewConn(CwxPackageReader* reader,
                               CwxMsgBlock const* msg,
                               CWX_UINT64& ullSession,
@@ -610,7 +610,7 @@ int CwxMqPoco::parseReportNewConn(CwxPackageReader* reader,
     return CWX_MQ_ERR_SUCCESS;
 }
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
                         CwxMsgBlock*& msg,
                         CWX_UINT32 uiTaskId,
@@ -701,7 +701,7 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
     }
     if (sign)
     {
-        if (strcmp(sign, CWX_MQ_CRC32) == 0)//CRC32Ç©Ãû
+        if (strcmp(sign, CWX_MQ_CRC32) == 0)//CRC32ç­¾å
         {
             CWX_UINT32 uiCrc32 = CwxCrc32::value(writer->getMsg(), writer->getMsgSize());
             if (!writer->addKeyValue(CWX_MQ_CRC32, (char*)&uiCrc32, sizeof(uiCrc32)))
@@ -710,7 +710,7 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
                 return CWX_MQ_ERR_ERROR;
             }
         }
-        else if (strcmp(sign, CWX_MQ_MD5) == 0)//md5Ç©Ãû
+        else if (strcmp(sign, CWX_MQ_MD5) == 0)//md5ç­¾å
         {
             CwxMd5 md5;
             unsigned char szMd5[16];
@@ -788,7 +788,7 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
         szErr2K);
 }
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
                          char const* szData,
                          CWX_UINT32 uiDataLen,
@@ -869,7 +869,7 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
 }
 
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::packSyncDataReply(CwxPackageWriter* writer,
                             CwxMsgBlock*& msg,
                             CWX_UINT32 uiTaskId,
@@ -902,7 +902,7 @@ int CwxMqPoco::parseSyncDataReply(CwxPackageReader* ,
     return CWX_MQ_ERR_SUCCESS;
 }
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::packFetchMq(CwxPackageWriter* writer,
                        CwxMsgBlock*& msg,
                        bool bBlock,
@@ -943,7 +943,7 @@ int CwxMqPoco::packFetchMq(CwxPackageWriter* writer,
 
 }
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::parseFetchMq(CwxPackageReader* reader,
                         CwxMsgBlock const* msg,
                         bool& bBlock,
@@ -1090,7 +1090,7 @@ int CwxMqPoco::parseFetchMqReply(CwxPackageReader* reader,
 }
 
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::parseCreateQueue(CwxPackageReader* reader,
                             CwxMsgBlock const* msg,
                             char const*& name,
@@ -1099,7 +1099,7 @@ int CwxMqPoco::parseCreateQueue(CwxPackageReader* reader,
                             char const*& scribe,
                             char const*& auth_user,
                             char const*& auth_passwd,
-                            CWX_UINT64&  ullSid,///< 0£ºµ±Ç°×î´óÖµ£¬ÈôĞ¡ÓÚµ±Ç°×îĞ¡Öµ£¬Ôò²ÉÓÃµ±Ç°×îĞ¡sidÖµ
+                            CWX_UINT64&  ullSid,///< 0ï¼šå½“å‰æœ€å¤§å€¼ï¼Œè‹¥å°äºå½“å‰æœ€å°å€¼ï¼Œåˆ™é‡‡ç”¨å½“å‰æœ€å°sidå€¼
                             char* szErr2K)
 {
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true))
@@ -1155,7 +1155,7 @@ int CwxMqPoco::parseCreateQueue(CwxPackageReader* reader,
         ullSid = 0;
     return CWX_MQ_ERR_SUCCESS;
 }
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::packCreateQueue(CwxPackageWriter* writer,
                            CwxMsgBlock*& msg,
                            char const* name,
@@ -1164,7 +1164,7 @@ int CwxMqPoco::packCreateQueue(CwxPackageWriter* writer,
                            char const* scribe,
                            char const* auth_user,
                            char const* auth_passwd,
-                           CWX_UINT64  ullSid,///< 0£ºµ±Ç°×î´óÖµ£¬ÈôĞ¡ÓÚµ±Ç°×îĞ¡Öµ£¬Ôò²ÉÓÃµ±Ç°×îĞ¡sidÖµ
+                           CWX_UINT64  ullSid,///< 0ï¼šå½“å‰æœ€å¤§å€¼ï¼Œè‹¥å°äºå½“å‰æœ€å°å€¼ï¼Œåˆ™é‡‡ç”¨å½“å‰æœ€å°sidå€¼
                            char* szErr2K)
 {
     writer->beginPack();
@@ -1215,7 +1215,7 @@ int CwxMqPoco::packCreateQueue(CwxPackageWriter* writer,
     return CWX_MQ_ERR_SUCCESS;
 }
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::parseCreateQueueReply(CwxPackageReader* reader,
                                  CwxMsgBlock const* msg,
                                  int&  ret,
@@ -1245,7 +1245,7 @@ int CwxMqPoco::parseCreateQueueReply(CwxPackageReader* reader,
     return CWX_MQ_ERR_SUCCESS;
 }
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::packCreateQueueReply(CwxPackageWriter* writer,
                                 CwxMsgBlock*& msg,
                                 int  ret,
@@ -1278,7 +1278,7 @@ int CwxMqPoco::packCreateQueueReply(CwxPackageWriter* writer,
     return CWX_MQ_ERR_SUCCESS;
 }
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::parseDelQueue(CwxPackageReader* reader,
                          CwxMsgBlock const* msg,
                          char const*& name,
@@ -1330,7 +1330,7 @@ int CwxMqPoco::parseDelQueue(CwxPackageReader* reader,
     }
     return CWX_MQ_ERR_SUCCESS;
 }
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::packDelQueue(CwxPackageWriter* writer,
                         CwxMsgBlock*& msg,
                         char const* name,
@@ -1379,7 +1379,7 @@ int CwxMqPoco::packDelQueue(CwxPackageWriter* writer,
 }
 
 
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::parseDelQueueReply(CwxPackageReader* reader,
                               CwxMsgBlock const* msg,
                               int&  ret,
@@ -1408,7 +1408,7 @@ int CwxMqPoco::parseDelQueueReply(CwxPackageReader* reader,
     }
     return CWX_MQ_ERR_SUCCESS;
 }
-///·µ»ØÖµ£ºCWX_MQ_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šCWX_MQ_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::packDelQueueReply(CwxPackageWriter* writer,
                              CwxMsgBlock*& msg,
                              int  ret,
@@ -1441,7 +1441,7 @@ int CwxMqPoco::packDelQueueReply(CwxPackageWriter* writer,
     return CWX_MQ_ERR_SUCCESS;
 }
 
-///·µ»ØÖµ£ºUNISTOR_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šUNISTOR_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::packSyncErr(CwxPackageWriter* writer,
                              CwxMsgBlock*& msg,
                              CWX_UINT32 uiTaskId,
@@ -1471,7 +1471,7 @@ int CwxMqPoco::packSyncErr(CwxPackageWriter* writer,
     return CWX_MQ_ERR_SUCCESS;
 
 }
-///·µ»ØÖµ£ºUNISTOR_ERR_SUCCESS£º³É¹¦£»ÆäËû¶¼ÊÇÊ§°Ü
+///è¿”å›å€¼ï¼šUNISTOR_ERR_SUCCESSï¼šæˆåŠŸï¼›å…¶ä»–éƒ½æ˜¯å¤±è´¥
 int CwxMqPoco::parseSyncErr(CwxPackageReader* reader,
                               CwxMsgBlock const* msg,
                               int& ret,
@@ -1498,14 +1498,14 @@ int CwxMqPoco::parseSyncErr(CwxPackageReader* reader,
 }
 
 
-///ÊÇ·ñÎªÓĞĞ§µØÏûÏ¢¶©ÔÄÓï·¨
+///æ˜¯å¦ä¸ºæœ‰æ•ˆåœ°æ¶ˆæ¯è®¢é˜…è¯­æ³•
 bool CwxMqPoco::isValidSubscribe(string const& strSubscribe, string& strErrMsg)
 {
     CwxMqSubscribe subscribe;
     return parseSubsribe(strSubscribe, subscribe, strErrMsg);
 }
 
-///½âÎö¶©ÔÄµÄÓï·¨
+///è§£æè®¢é˜…çš„è¯­æ³•
 bool CwxMqPoco::parseSubsribe(string const& strSubscribe,
                               CwxMqSubscribe& subscribe, string& strErrMsg)
 {
@@ -1541,7 +1541,7 @@ bool CwxMqPoco::parseSubsribe(string const& strSubscribe,
 }
 
 
-///½âÎöÒ»¸ö¶©ÔÄ±í´ïÊ½£» [*]|[type_index%typte_num]|[begin-end,begin-group,...]
+///è§£æä¸€ä¸ªè®¢é˜…è¡¨è¾¾å¼ï¼› [*]|[type_index%typte_num]|[begin-end,begin-group,...]
 bool CwxMqPoco::parseSubsribeExpress(string const& strSubsribeExpress,
                                  CwxMqSubscribeItem& express,
                                  string& strErrMsg)
@@ -1557,7 +1557,7 @@ bool CwxMqPoco::parseSubsribeExpress(string const& strSubsribeExpress,
         return true;
     }
     if (strSubsribeExpress.find('%') != string::npos)
-    {//mod±í´ïÊ½
+    {//modè¡¨è¾¾å¼
         express.m_bMod = true;
         express.m_uiModIndex = strtoul(strSubsribeExpress.c_str(), NULL, 10);
         express.m_uiModBase = strtoul(strSubsribeExpress.c_str() + strSubsribeExpress.find('%') + 1, NULL, 10);
@@ -1575,7 +1575,7 @@ bool CwxMqPoco::parseSubsribeExpress(string const& strSubsribeExpress,
         }
         return true;
     }
-    //set±í´ïÊ½ begin-end,begin-end,..
+    //setè¡¨è¾¾å¼ begin-end,begin-end,..
     {
         list<string> items;
         list<string>::iterator iter;

@@ -1,9 +1,9 @@
-#ifndef __CWX_MQ_BIN_FETCH_HANDLER_H__
+ï»¿#ifndef __CWX_MQ_BIN_FETCH_HANDLER_H__
 #define __CWX_MQ_BIN_FETCH_HANDLER_H__
 /*
-°æÈ¨ÉùÃ÷£º
-    ±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-    ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+    æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+    è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 #include "CwxMqMacro.h"
 #include "CwxMqTss.h"
@@ -20,7 +20,7 @@ class CwxMqApp;
 
 class CwxMqBinFetchHandler: public CwxAppHandler4Channel{
 public:
-    ///¹¹Ôìº¯Êı
+    ///æ„é€ å‡½æ•°
     CwxMqBinFetchHandler(CwxMqApp* pApp, CwxAppChannel* channel):CwxAppHandler4Channel(channel)
     {
         m_pApp = pApp;
@@ -29,73 +29,73 @@ public:
         m_recvMsgData = NULL;
 
     }
-    ///Îö¹¹º¯Êı
+    ///ææ„å‡½æ•°
     virtual ~CwxMqBinFetchHandler(){
         if (m_recvMsgData) CwxMsgBlockAlloc::free(m_recvMsgData);
     }
 public:
     /**
-    @brief Á¬½Ó¿É¶ÁÊÂ¼ş£¬·µ»Ø-1£¬close()»á±»µ÷ÓÃ
-    @return -1£º´¦ÀíÊ§°Ü£¬»áµ÷ÓÃclose()£» 0£º´¦Àí³É¹¦
+    @brief è¿æ¥å¯è¯»äº‹ä»¶ï¼Œè¿”å›-1ï¼Œclose()ä¼šè¢«è°ƒç”¨
+    @return -1ï¼šå¤„ç†å¤±è´¥ï¼Œä¼šè°ƒç”¨close()ï¼› 0ï¼šå¤„ç†æˆåŠŸ
     */
     virtual int onInput();
     /**
-    @brief Í¨ÖªÁ¬½Ó¹Ø±Õ¡£
-    @return 1£º²»´ÓengineÖĞÒÆ³ı×¢²á£»0£º´ÓengineÖĞÒÆ³ı×¢²áµ«²»É¾³ıhandler£»-1£º´ÓengineÖĞ½«handleÒÆ³ı²¢É¾³ı¡£
+    @brief é€šçŸ¥è¿æ¥å…³é—­ã€‚
+    @return 1ï¼šä¸ä»engineä¸­ç§»é™¤æ³¨å†Œï¼›0ï¼šä»engineä¸­ç§»é™¤æ³¨å†Œä½†ä¸åˆ é™¤handlerï¼›-1ï¼šä»engineä¸­å°†handleç§»é™¤å¹¶åˆ é™¤ã€‚
     */
     virtual int onConnClosed();
     /**
-    @brief HandlerµÄredoÊÂ¼ş£¬ÔÚÃ¿´ÎdispatchÊ±Ö´ĞĞ¡£
-    @return -1£º´¦ÀíÊ§°Ü£¬»áµ÷ÓÃclose()£» 0£º´¦Àí³É¹¦
+    @brief Handlerçš„redoäº‹ä»¶ï¼Œåœ¨æ¯æ¬¡dispatchæ—¶æ‰§è¡Œã€‚
+    @return -1ï¼šå¤„ç†å¤±è´¥ï¼Œä¼šè°ƒç”¨close()ï¼› 0ï¼šå¤„ç†æˆåŠŸ
     */
     virtual int onRedo();
     /**
-    @brief Í¨ÖªÁ¬½ÓÍê³ÉÒ»¸öÏûÏ¢µÄ·¢ËÍ¡£<br>
-    Ö»ÓĞÔÚMsgÖ¸¶¨FINISH_NOTICEµÄÊ±ºò²Åµ÷ÓÃ.
-    @param [in,out] msg ´«Èë·¢ËÍÍê±ÏµÄÏûÏ¢£¬Èô·µ»ØNULL£¬ÔòmsgÓĞÉÏ²ãÊÍ·Å£¬·ñÔòµ×²ãÊÍ·Å¡£
+    @brief é€šçŸ¥è¿æ¥å®Œæˆä¸€ä¸ªæ¶ˆæ¯çš„å‘é€ã€‚<br>
+    åªæœ‰åœ¨MsgæŒ‡å®šFINISH_NOTICEçš„æ—¶å€™æ‰è°ƒç”¨.
+    @param [in,out] msg ä¼ å…¥å‘é€å®Œæ¯•çš„æ¶ˆæ¯ï¼Œè‹¥è¿”å›NULLï¼Œåˆ™msgæœ‰ä¸Šå±‚é‡Šæ”¾ï¼Œå¦åˆ™åº•å±‚é‡Šæ”¾ã€‚
     @return 
-    CwxMsgSendCtrl::UNDO_CONN£º²»ĞŞ¸ÄÁ¬½ÓµÄ½ÓÊÕ×´Ì¬
-    CwxMsgSendCtrl::RESUME_CONN£ºÈÃÁ¬½Ó´Ósuspend×´Ì¬±äÎªÊı¾İ½ÓÊÕ×´Ì¬¡£
-    CwxMsgSendCtrl::SUSPEND_CONN£ºÈÃÁ¬½Ó´ÓÊı¾İ½ÓÊÕ×´Ì¬±äÎªsuspend×´Ì¬
+    CwxMsgSendCtrl::UNDO_CONNï¼šä¸ä¿®æ”¹è¿æ¥çš„æ¥æ”¶çŠ¶æ€
+    CwxMsgSendCtrl::RESUME_CONNï¼šè®©è¿æ¥ä»suspendçŠ¶æ€å˜ä¸ºæ•°æ®æ¥æ”¶çŠ¶æ€ã€‚
+    CwxMsgSendCtrl::SUSPEND_CONNï¼šè®©è¿æ¥ä»æ•°æ®æ¥æ”¶çŠ¶æ€å˜ä¸ºsuspendçŠ¶æ€
     */
     virtual CWX_UINT32 onEndSendMsg(CwxMsgBlock*& msg);
 
     /**
-    @brief Í¨ÖªÁ¬½ÓÉÏ£¬Ò»¸öÏûÏ¢·¢ËÍÊ§°Ü¡£<br>
-    Ö»ÓĞÔÚMsgÖ¸¶¨FAIL_NOTICEµÄÊ±ºò²Åµ÷ÓÃ.
-    @param [in,out] msg ·¢ËÍÊ§°ÜµÄÏûÏ¢£¬Èô·µ»ØNULL£¬ÔòmsgÓĞÉÏ²ãÊÍ·Å£¬·ñÔòµ×²ãÊÍ·Å¡£
-    @return void¡£
+    @brief é€šçŸ¥è¿æ¥ä¸Šï¼Œä¸€ä¸ªæ¶ˆæ¯å‘é€å¤±è´¥ã€‚<br>
+    åªæœ‰åœ¨MsgæŒ‡å®šFAIL_NOTICEçš„æ—¶å€™æ‰è°ƒç”¨.
+    @param [in,out] msg å‘é€å¤±è´¥çš„æ¶ˆæ¯ï¼Œè‹¥è¿”å›NULLï¼Œåˆ™msgæœ‰ä¸Šå±‚é‡Šæ”¾ï¼Œå¦åˆ™åº•å±‚é‡Šæ”¾ã€‚
+    @return voidã€‚
     */
     virtual void onFailSendMsg(CwxMsgBlock*& msg);
 private:
-    ///½ÓÊÕÏûÏ¢£¬0£º³É¹¦£»-1£ºÊ§°Ü
+    ///æ¥æ”¶æ¶ˆæ¯ï¼Œ0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     int recvMessage(CwxMqTss* pTss);
-    ///packÒ»¸ö²»°üº¬mqÏûÏ¢ÌåµÄÏûÏ¢°ü¡£
+    ///packä¸€ä¸ªä¸åŒ…å«mqæ¶ˆæ¯ä½“çš„æ¶ˆæ¯åŒ…ã€‚
     CwxMsgBlock* packEmptyFetchMsg(CwxMqTss* pTss,
-        int iRet, ///<×´Ì¬Âë
-        char const* szErrMsg ///<´íÎóÏûÏ¢
+        int iRet, ///<çŠ¶æ€ç 
+        char const* szErrMsg ///<é”™è¯¯æ¶ˆæ¯
         );
-    ///·¢ËÍÏûÏ¢£¬0£º³É¹¦£»-1£º·¢ËÍÊ§°Ü
+    ///å‘é€æ¶ˆæ¯ï¼Œ0ï¼šæˆåŠŸï¼›-1ï¼šå‘é€å¤±è´¥
     int replyFetchMq(CwxMqTss* pTss,
-        CwxMsgBlock* msg,  ///<ÏûÏ¢°ü
-        bool bBinlog = true, ///<msgÊÇ·ñÎªbinlog£¬ÈôÊÇÔÚÊ§°ÜÊ±ĞèÒª»ØÊÕ
-        bool bClose=false ///<ÊÇ·ñ·¢ËÍÍê±ÏĞèÒª¹Ø±ÕÁ¬½Ó
+        CwxMsgBlock* msg,  ///<æ¶ˆæ¯åŒ…
+        bool bBinlog = true, ///<msgæ˜¯å¦ä¸ºbinlogï¼Œè‹¥æ˜¯åœ¨å¤±è´¥æ—¶éœ€è¦å›æ”¶
+        bool bClose=false ///<æ˜¯å¦å‘é€å®Œæ¯•éœ€è¦å…³é—­è¿æ¥
         );
-    //½«Ò»¸ö·¢ËÍÊ§°ÜµÄÏûÏ¢£¬·µ»¹ÏûÏ¢¶ÓÁĞ
+    //å°†ä¸€ä¸ªå‘é€å¤±è´¥çš„æ¶ˆæ¯ï¼Œè¿”è¿˜æ¶ˆæ¯é˜Ÿåˆ—
     void backMq(CWX_UINT64 ullSid, CwxMqTss* pTss);
-    ///·¢ËÍÏûÏ¢£¬0£ºÃ»ÓĞÏûÏ¢·¢ËÍ£»1£º·¢ËÍÒ»¸ö£»-1£º·¢ËÍÊ§°Ü
+    ///å‘é€æ¶ˆæ¯ï¼Œ0ï¼šæ²¡æœ‰æ¶ˆæ¯å‘é€ï¼›1ï¼šå‘é€ä¸€ä¸ªï¼›-1ï¼šå‘é€å¤±è´¥
     int sentBinlog(CwxMqTss* pTss);
-    ///fetch mq,·µ»ØÖµ,0£º³É¹¦£»-1£ºÊ§°Ü
+    ///fetch mq,è¿”å›å€¼,0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     int fetchMq(CwxMqTss* pTss);
-    ///create queue,·µ»ØÖµ,0£º³É¹¦£»-1£ºÊ§°Ü
+    ///create queue,è¿”å›å€¼,0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     int createQueue(CwxMqTss* pTss);
-    ///del queue,·µ»ØÖµ,0£º³É¹¦£»-1£ºÊ§°Ü
+    ///del queue,è¿”å›å€¼,0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     int delQueue(CwxMqTss* pTss);
 private:
-    CwxMqApp*              m_pApp;  ///<app¶ÔÏó
-    CwxMqFetchConn         m_conn; ///<mq fetchµÄÁ¬½Ó
-    CwxMsgHead             m_header; ///<ÏûÏ¢Í·
-    char                   m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN + 1]; ///<ÏûÏ¢Í·µÄbuf
+    CwxMqApp*              m_pApp;  ///<appå¯¹è±¡
+    CwxMqFetchConn         m_conn; ///<mq fetchçš„è¿æ¥
+    CwxMsgHead             m_header; ///<æ¶ˆæ¯å¤´
+    char                   m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN + 1]; ///<æ¶ˆæ¯å¤´çš„buf
     CWX_UINT32             m_uiRecvHeadLen; ///<received msg header's byte number.
     CWX_UINT32             m_uiRecvDataLen; ///<received data's byte number.
     CwxMsgBlock*           m_recvMsgData; ///<the received msg data
