@@ -1,13 +1,13 @@
-#ifndef __CWX_MPROXY_TASK_H__
+ï»¿#ifndef __CWX_MPROXY_TASK_H__
 #define __CWX_MPROXY_TASK_H__
 /*
-°æÈ¨ÉùÃ÷£º
-    ±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-    ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+    æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+    è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 /**
 @file CwxMproxyTask.h
-@brief proxy ·şÎñµÄtask¶ÔÏó¡£
+@brief proxy æœåŠ¡çš„taskå¯¹è±¡ã€‚
 @author cwinux@gmail.com
 @version 1.0
 @date 2010-11-04
@@ -29,7 +29,7 @@ public:
     {
         TASK_STATE_WAITING = TASK_STATE_USER
     };
-    ///¹¹Ôìº¯Êı
+    ///æ„é€ å‡½æ•°
     CwxMproxyTask(CwxMproxyApp* pApp, CwxTaskBoard* pTaskBoard):CwxTaskBoardTask(pTaskBoard),m_pApp(pApp)
     {
         m_uiReplyConnId = 0;
@@ -41,7 +41,7 @@ public:
         m_mqReply =NULL;
 		m_bCommit = false;
     }
-    ///Îö¹¹º¯Êı
+    ///ææ„å‡½æ•°
     ~CwxMproxyTask()
     {
         if (m_sndMsg) CwxMsgBlockAlloc::free(m_sndMsg);
@@ -49,73 +49,73 @@ public:
     }
 public:
     /**
-    @brief Í¨ÖªTaskÒÑ¾­³¬Ê±
-    @param [in] pThrEnv µ÷ÓÃÏß³ÌµÄThread-env
+    @brief é€šçŸ¥Taskå·²ç»è¶…æ—¶
+    @param [in] pThrEnv è°ƒç”¨çº¿ç¨‹çš„Thread-env
     @return void
     */
     virtual void noticeTimeout(CwxTss* pThrEnv);
     /**
-    @brief Í¨ÖªTaskµÄÊÕµ½Ò»¸öÊı¾İ°ü¡£
-    @param [in] msg ÊÕµ½µÄÏûÏ¢
-    @param [in] pThrEnv µ÷ÓÃÏß³ÌµÄThread-env
-    @param [out] bConnAppendMsg ÊÕµ½ÏûÏ¢µÄÁ¬½ÓÉÏ£¬ÊÇ·ñ»¹ÓĞ´ı½ÓÊÕµÄÆäËûÏûÏ¢¡£true£ºÊÇ£»false£ºÃ»ÓĞ
+    @brief é€šçŸ¥Taskçš„æ”¶åˆ°ä¸€ä¸ªæ•°æ®åŒ…ã€‚
+    @param [in] msg æ”¶åˆ°çš„æ¶ˆæ¯
+    @param [in] pThrEnv è°ƒç”¨çº¿ç¨‹çš„Thread-env
+    @param [out] bConnAppendMsg æ”¶åˆ°æ¶ˆæ¯çš„è¿æ¥ä¸Šï¼Œæ˜¯å¦è¿˜æœ‰å¾…æ¥æ”¶çš„å…¶ä»–æ¶ˆæ¯ã€‚trueï¼šæ˜¯ï¼›falseï¼šæ²¡æœ‰
     @return void
     */
     virtual void noticeRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv, bool& bConnAppendMsg);
     /**
-    @brief Í¨ÖªTaskÍùÍâ·¢ËÍµÄÒ»¸öÊı¾İ°ü·¢ËÍÊ§°Ü¡£
-    @param [in] msg ÊÕµ½µÄÏûÏ¢
-    @param [in] pThrEnv µ÷ÓÃÏß³ÌµÄThread-env
+    @brief é€šçŸ¥Taskå¾€å¤–å‘é€çš„ä¸€ä¸ªæ•°æ®åŒ…å‘é€å¤±è´¥ã€‚
+    @param [in] msg æ”¶åˆ°çš„æ¶ˆæ¯
+    @param [in] pThrEnv è°ƒç”¨çº¿ç¨‹çš„Thread-env
     @return void
     */
     virtual void noticeFailSendMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     /**
-    @brief Í¨ÖªTaskÍ¨¹ıÄ³ÌõÁ¬½Ó£¬·¢ËÍÁËÒ»¸öÊı¾İ°ü¡£
-    @param [in] msg ·¢ËÍµÄÊı¾İ°üµÄĞÅÏ¢
-    @param [in] pThrEnv µ÷ÓÃÏß³ÌµÄThread-env
-    @param [out] bConnAppendMsg ·¢ËÍÏûÏ¢µÄÁ¬½ÓÉÏ£¬ÊÇ·ñÓĞµÈ´ı»Ø¸´µÄÏûÏ¢¡£true£ºÊÇ£»false£ºÃ»ÓĞ
+    @brief é€šçŸ¥Taské€šè¿‡æŸæ¡è¿æ¥ï¼Œå‘é€äº†ä¸€ä¸ªæ•°æ®åŒ…ã€‚
+    @param [in] msg å‘é€çš„æ•°æ®åŒ…çš„ä¿¡æ¯
+    @param [in] pThrEnv è°ƒç”¨çº¿ç¨‹çš„Thread-env
+    @param [out] bConnAppendMsg å‘é€æ¶ˆæ¯çš„è¿æ¥ä¸Šï¼Œæ˜¯å¦æœ‰ç­‰å¾…å›å¤çš„æ¶ˆæ¯ã€‚trueï¼šæ˜¯ï¼›falseï¼šæ²¡æœ‰
     @return void
     */
     virtual void noticeEndSendMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv, bool& bConnAppendMsg);
     /**
-    @brief Í¨ÖªTaskµÈ´ı»Ø¸´ÏûÏ¢µÄÒ»ÌõÁ¬½Ó¹Ø±Õ¡£
-    @param [in] uiSvrId ¹Ø±ÕÁ¬½ÓµÄSVR-ID
-    @param [in] uiHostId ¹Ø±ÕÁ¬½ÓµÄHOST-ID
-    @param [in] uiConnId ¹Ø±ÕÁ¬½ÓµÄCONN-ID
-    @param [in] pThrEnv µ÷ÓÃÏß³ÌµÄThread-env
+    @brief é€šçŸ¥Taskç­‰å¾…å›å¤æ¶ˆæ¯çš„ä¸€æ¡è¿æ¥å…³é—­ã€‚
+    @param [in] uiSvrId å…³é—­è¿æ¥çš„SVR-ID
+    @param [in] uiHostId å…³é—­è¿æ¥çš„HOST-ID
+    @param [in] uiConnId å…³é—­è¿æ¥çš„CONN-ID
+    @param [in] pThrEnv è°ƒç”¨çº¿ç¨‹çš„Thread-env
     @return void
     */
     virtual void noticeConnClosed(CWX_UINT32 uiSvrId, CWX_UINT32 uiHostId, CWX_UINT32 uiConnId, CwxTss* pThrEnv);
     /**
-    @brief ¼¤»îTask¡£ÔÚTaskÆô¶¯Ç°£¬TaskÓĞTaskµÄ´´½¨Ïß³ÌËùÓµÓĞ¡£
-    ÔÚÆô¶¯Ç°£¬Task¿ÉÒÔ½ÓÊÜ×Ô¼ºµÄÒì²½ÏûÏ¢£¬µ«²»ÄÜ´¦Àí¡£
-    ´ËÊ±ÓĞTaskboardµÄnoticeActiveTask()½Ó¿Úµ÷ÓÃµÄ¡£
-    @param [in] pThrEnv µ÷ÓÃÏß³ÌµÄThread-env
-    @return 0£º³É¹¦£»-1£ºÊ§°Ü
+    @brief æ¿€æ´»Taskã€‚åœ¨Taskå¯åŠ¨å‰ï¼ŒTaskæœ‰Taskçš„åˆ›å»ºçº¿ç¨‹æ‰€æ‹¥æœ‰ã€‚
+    åœ¨å¯åŠ¨å‰ï¼ŒTaskå¯ä»¥æ¥å—è‡ªå·±çš„å¼‚æ­¥æ¶ˆæ¯ï¼Œä½†ä¸èƒ½å¤„ç†ã€‚
+    æ­¤æ—¶æœ‰Taskboardçš„noticeActiveTask()æ¥å£è°ƒç”¨çš„ã€‚
+    @param [in] pThrEnv è°ƒç”¨çº¿ç¨‹çš„Thread-env
+    @return 0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     */
     virtual int noticeActive(CwxTss* pThrEnv);
     /**
-    @brief Ö´ĞĞTask¡£ÔÚµ÷ÓÃ´ËAPIÇ°£¬TaskÔÚTaskboardÖĞ²»´æÔÚ£¬Ò²¾ÍÊÇËµ¶Ô±ğµÄÏß³Ì²»¿É¼û¡£
-    TaskÒªÃ´ÊÇ¸Õ´´½¨×´Ì¬£¬ÒªÃ´ÊÇÍê³ÉÁËÇ°Ò»¸ö½×¶ÎµÄ´¦Àí£¬´¦ÓÚÍê³É×´Ì¬¡£
-    Í¨¹ı´Ë½Ó¿Ú£¬ÓÉTask×Ô¼º¿ØÖÆ×Ô¼ºµÄstepµÄÌø×ª¶øÍâ½çÎŞĞè¹ØÏµTaskµÄÀàĞÍ¼°´¦Àí¹ı³Ì¡£
-    @param [in] pTaskBoard ¹ÜÀíTaskµÄTaskboard
-    @param [in] pThrEnv µ÷ÓÃÏß³ÌµÄThread-env
+    @brief æ‰§è¡ŒTaskã€‚åœ¨è°ƒç”¨æ­¤APIå‰ï¼ŒTaskåœ¨Taskboardä¸­ä¸å­˜åœ¨ï¼Œä¹Ÿå°±æ˜¯è¯´å¯¹åˆ«çš„çº¿ç¨‹ä¸å¯è§ã€‚
+    Taskè¦ä¹ˆæ˜¯åˆšåˆ›å»ºçŠ¶æ€ï¼Œè¦ä¹ˆæ˜¯å®Œæˆäº†å‰ä¸€ä¸ªé˜¶æ®µçš„å¤„ç†ï¼Œå¤„äºå®ŒæˆçŠ¶æ€ã€‚
+    é€šè¿‡æ­¤æ¥å£ï¼Œç”±Taskè‡ªå·±æ§åˆ¶è‡ªå·±çš„stepçš„è·³è½¬è€Œå¤–ç•Œæ— éœ€å…³ç³»Taskçš„ç±»å‹åŠå¤„ç†è¿‡ç¨‹ã€‚
+    @param [in] pTaskBoard ç®¡ç†Taskçš„Taskboard
+    @param [in] pThrEnv è°ƒç”¨çº¿ç¨‹çš„Thread-env
     @return void
     */
     virtual void execute(CwxTss* pThrEnv);
 private:
     void reply(CwxTss* pThrEnv);
 public:
-    CWX_UINT32     m_uiReplyConnId; ///<»Ø¸´µÄÁ¬½ÓID
-    CWX_UINT32     m_uiMsgTaskId; ///<½ÓÊÕµ½ÏûÏ¢µÄTaskId
-    CwxMsgBlock*   m_sndMsg; ///<·¢ËÍµÄmqÏûÏ¢
-	bool		   m_bCommit; ///<ÊÇ·ñcommitÏûÏ¢ÀàĞÍ
+    CWX_UINT32     m_uiReplyConnId; ///<å›å¤çš„è¿æ¥ID
+    CWX_UINT32     m_uiMsgTaskId; ///<æ¥æ”¶åˆ°æ¶ˆæ¯çš„TaskId
+    CwxMsgBlock*   m_sndMsg; ///<å‘é€çš„mqæ¶ˆæ¯
+	bool		   m_bCommit; ///<æ˜¯å¦commitæ¶ˆæ¯ç±»å‹
 private:
-    bool           m_bReplyTimeout; ///<ÊÇ·ñ»Ø¸´³¬Ê±
-    bool           m_bFailSend; ///<ÊÇ·ñ·¢ËÍÊ§°Ü
+    bool           m_bReplyTimeout; ///<æ˜¯å¦å›å¤è¶…æ—¶
+    bool           m_bFailSend; ///<æ˜¯å¦å‘é€å¤±è´¥
     CWX_UINT32     m_uiSendConnId;
     CwxMsgBlock*   m_mqReply;
-    CwxMproxyApp*  m_pApp; ///<app¶ÔÏó
+    CwxMproxyApp*  m_pApp; ///<appå¯¹è±¡
 };
 
 

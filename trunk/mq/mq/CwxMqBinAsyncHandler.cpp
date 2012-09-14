@@ -1,17 +1,17 @@
-#include "CwxMqBinAsyncHandler.h"
+ï»¿#include "CwxMqBinAsyncHandler.h"
 #include "CwxMqApp.h"
 
-map<CWX_UINT64, CwxMqBinAsyncHandlerSession* > CwxMqBinAsyncHandler::m_sessionMap;  ///<sessionµÄmap£¬keyÎªsession id
-list<CwxMqBinAsyncHandlerSession*>  CwxMqBinAsyncHandler::m_freeSession; ///<ĞèÒª¹Ø±ÕµÄsession
+map<CWX_UINT64, CwxMqBinAsyncHandlerSession* > CwxMqBinAsyncHandler::m_sessionMap;  ///<sessionçš„mapï¼Œkeyä¸ºsession id
+list<CwxMqBinAsyncHandlerSession*>  CwxMqBinAsyncHandler::m_freeSession; ///<éœ€è¦å…³é—­çš„session
 
 
-///Ìí¼ÓÒ»¸öĞÂÁ¬½Ó
+///æ·»åŠ ä¸€ä¸ªæ–°è¿æ¥
 void CwxMqBinAsyncHandlerSession::addConn(CwxMqBinAsyncHandler* conn){
     CWX_ASSERT(m_conns.find(conn->getConnId()) == m_conns.end());
     m_conns[conn->getConnId()] = conn;
 }
 
-///¹¹Ôìº¯Êı
+///æ„é€ å‡½æ•°
 CwxMqBinAsyncHandler::CwxMqBinAsyncHandler(CwxMqApp* pApp,
                                            CwxAppChannel* channel,
                                            CWX_UINT32 uiConnId):CwxAppHandler4Channel(channel)
@@ -28,13 +28,13 @@ CwxMqBinAsyncHandler::CwxMqBinAsyncHandler(CwxMqApp* pApp,
     m_tss = NULL;
 }
 
-///Îö¹¹º¯Êı
+///ææ„å‡½æ•°
 CwxMqBinAsyncHandler::~CwxMqBinAsyncHandler(){
     if (m_recvMsgData) CwxMsgBlockAlloc::free(m_recvMsgData);
     m_recvMsgData = NULL;
 }
 
-///ÊÍ·Å×ÊÔ´
+///é‡Šæ”¾èµ„æº
 void CwxMqBinAsyncHandler::destroy(CwxMqApp* app){
     map<CWX_UINT64, CwxMqBinAsyncHandlerSession* >::iterator iter = m_sessionMap.begin();
     while(iter != m_sessionMap.end()){
@@ -46,7 +46,7 @@ void CwxMqBinAsyncHandler::destroy(CwxMqApp* app){
 }
 
 void CwxMqBinAsyncHandler::doEvent(CwxMqApp* app, CwxMqTss* tss, CwxMsgBlock*& msg){
-    if (CwxEventInfo::CONN_CREATED == msg->event().getEvent()){///Á¬½Ó½¨Á¢
+    if (CwxEventInfo::CONN_CREATED == msg->event().getEvent()){///è¿æ¥å»ºç«‹
         CwxAppChannel* channel =app->getAsyncDispChannel();
         if (channel->isRegIoHandle(msg->event().getIoHandle())){
             CWX_ERROR(("Handler[%] is register, it's a big bug. exit....", msg->event().getIoHandle()));
@@ -54,7 +54,7 @@ void CwxMqBinAsyncHandler::doEvent(CwxMqApp* app, CwxMqTss* tss, CwxMsgBlock*& m
             return;
         }
         CwxMqBinAsyncHandler* pHandler = new CwxMqBinAsyncHandler(app, channel, app->reactor()->getNextConnId());
-        ///»ñÈ¡Á¬½ÓµÄÀ´Ô´ĞÅÏ¢
+        ///è·å–è¿æ¥çš„æ¥æºä¿¡æ¯
         CwxINetAddr  remoteAddr;
         CwxSockStream stream(msg->event().getIoHandle());
         stream.getRemoteAddr(remoteAddr);
@@ -62,14 +62,14 @@ void CwxMqBinAsyncHandler::doEvent(CwxMqApp* app, CwxMqTss* tss, CwxMsgBlock*& m
         if (remoteAddr.getHostIp(tss->m_szBuf2K, 2047)){
             pHandler->m_strPeerHost = tss->m_szBuf2K;
         }
-        ///ÉèÖÃhandleµÄioºó£¬open handler
+        ///è®¾ç½®handleçš„ioåï¼Œopen handler
         pHandler->setHandle(msg->event().getIoHandle());
         if (0 != pHandler->open()){
             CWX_ERROR(("Failure to register sync handler[%d], from:%s:%u", pHandler->getHandle(), pHandler->m_strPeerHost.c_str(), pHandler->m_unPeerPort));
             delete pHandler;
             return;
         }
-        ///ÉèÖÃ¶ÔÏóµÄtss¶ÔÏó
+        ///è®¾ç½®å¯¹è±¡çš„tsså¯¹è±¡
         pHandler->m_tss = (CwxMqTss*)CwxTss::instance();
         CWX_INFO(("Accept sync connection from %s:%u",  pHandler->m_strPeerHost.c_str(), pHandler->m_unPeerPort));
     }else{
@@ -77,28 +77,28 @@ void CwxMqBinAsyncHandler::doEvent(CwxMqApp* app, CwxMqTss* tss, CwxMsgBlock*& m
     }
 }
 
-///ÊÍ·Å¹Ø±ÕµÄsession
+///é‡Šæ”¾å…³é—­çš„session
 void CwxMqBinAsyncHandler::dealClosedSession(CwxMqApp* app, CwxMqTss* ){
     list<CwxMqBinAsyncHandlerSession*>::iterator iter;
     CwxMqBinAsyncHandler* handler;
-    ///»ñÈ¡ÓÃ»§object¶ÔÏó
+    ///è·å–ç”¨æˆ·objectå¯¹è±¡
     if (m_freeSession.begin() != m_freeSession.end()){
         iter = m_freeSession.begin();
         while(iter != m_freeSession.end()){
-            ///session±ØĞëÊÇclosed×´Ì¬
+            ///sessionå¿…é¡»æ˜¯closedçŠ¶æ€
             CWX_ASSERT((*iter)->m_bClosed);
             CWX_INFO(("Close sync session from host:%s", (*iter)->m_strHost.c_str()));
-            ///½«session´ÓsessionµÄmapÖĞÉ¾³ı
+            ///å°†sessionä»sessionçš„mapä¸­åˆ é™¤
             m_sessionMap.erase((*iter)->m_ullSessionId);
-            ///¿ªÊ¼¹Ø±ÕÁ¬½Ó
+            ///å¼€å§‹å…³é—­è¿æ¥
             map<CWX_UINT32, CwxMqBinAsyncHandler*>::iterator conn_iter = (*iter)->m_conns.begin();
             while(conn_iter != (*iter)->m_conns.end()){
                 handler = conn_iter->second;
                 (*iter)->m_conns.erase(handler->getConnId());
-                handler->close();///´ËÎªÍ¬²½µ÷ÓÃ
+                handler->close();///æ­¤ä¸ºåŒæ­¥è°ƒç”¨
                 conn_iter = (*iter)->m_conns.begin();
             }
-            ///ÊÍ·Å¶ÔÓ¦µÄcursor
+            ///é‡Šæ”¾å¯¹åº”çš„cursor
             if ((*iter)->m_pCursor){
                 app->getBinLogMgr()->destoryCurser((*iter)->m_pCursor);
             }
@@ -111,22 +111,22 @@ void CwxMqBinAsyncHandler::dealClosedSession(CwxMqApp* app, CwxMqTss* ){
 
 
 /**
-@brief Á¬½Ó¿É¶ÁÊÂ¼ş£¬·µ»Ø-1£¬close()»á±»µ÷ÓÃ
-@return -1£º´¦ÀíÊ§°Ü£¬»áµ÷ÓÃclose()£» 0£º´¦Àí³É¹¦
+@brief è¿æ¥å¯è¯»äº‹ä»¶ï¼Œè¿”å›-1ï¼Œclose()ä¼šè¢«è°ƒç”¨
+@return -1ï¼šå¤„ç†å¤±è´¥ï¼Œä¼šè°ƒç”¨close()ï¼› 0ï¼šå¤„ç†æˆåŠŸ
 */
 int CwxMqBinAsyncHandler::onInput(){
-    ///½ÓÊÜÏûÏ¢
+    ///æ¥å—æ¶ˆæ¯
     int ret = CwxAppHandler4Channel::recvPackage(getHandle(),
         m_uiRecvHeadLen,
         m_uiRecvDataLen,
         m_szHeadBuf,
         m_header,
         m_recvMsgData);
-    ///Èç¹ûÃ»ÓĞ½ÓÊÜÍê±Ï£¨0£©»òÊ§°Ü£¨-1£©£¬Ôò·µ»Ø
+    ///å¦‚æœæ²¡æœ‰æ¥å—å®Œæ¯•ï¼ˆ0ï¼‰æˆ–å¤±è´¥ï¼ˆ-1ï¼‰ï¼Œåˆ™è¿”å›
     if (1 != ret) return ret;
-    ///½ÓÊÕµ½Ò»¸öÍêÕûµÄÊı¾İ°ü£¬ÏûÏ¢´¦Àí
+    ///æ¥æ”¶åˆ°ä¸€ä¸ªå®Œæ•´çš„æ•°æ®åŒ…ï¼Œæ¶ˆæ¯å¤„ç†
     ret = recvMessage();
-    ///Èç¹ûÃ»ÓĞÊÍ·Å½ÓÊÕµÄÊı¾İ°ü£¬ÊÍ·Å
+    ///å¦‚æœæ²¡æœ‰é‡Šæ”¾æ¥æ”¶çš„æ•°æ®åŒ…ï¼Œé‡Šæ”¾
     if (m_recvMsgData) CwxMsgBlockAlloc::free(m_recvMsgData);
     this->m_recvMsgData = NULL;
     this->m_uiRecvHeadLen = 0;
@@ -134,28 +134,28 @@ int CwxMqBinAsyncHandler::onInput(){
     return ret;
 }
 
-//1£º²»´ÓengineÖĞÒÆ³ı×¢²á£»0£º´ÓengineÖĞÒÆ³ı×¢²áµ«²»É¾³ıhandler£»-1£º´ÓengineÖĞ½«handleÒÆ³ı²¢É¾³ı¡£
+//1ï¼šä¸ä»engineä¸­ç§»é™¤æ³¨å†Œï¼›0ï¼šä»engineä¸­ç§»é™¤æ³¨å†Œä½†ä¸åˆ é™¤handlerï¼›-1ï¼šä»engineä¸­å°†handleç§»é™¤å¹¶åˆ é™¤ã€‚
 int CwxMqBinAsyncHandler::onConnClosed(){
     CWX_INFO(("CwxMqBinAsyncHandler: conn closed, conn_id=%u", m_uiConnId));
-    ///Ò»ÌõÁ¬½Ó¹Ø±Õ£¬ÔòÕû¸ösessionÊ§Ğ§
+    ///ä¸€æ¡è¿æ¥å…³é—­ï¼Œåˆ™æ•´ä¸ªsessionå¤±æ•ˆ
     if (m_syncSession){
-        ///Èç¹ûÁ¬½Ó¶ÔÓ¦µÄsession´æÔÚ
+        ///å¦‚æœè¿æ¥å¯¹åº”çš„sessionå­˜åœ¨
         if (m_sessionMap.find(m_ullSessionId) != m_sessionMap.end()){
             CWX_INFO(("CwxMqBinAsyncHandler: conn closed, conn_id=%u", m_uiConnId));
             if (!m_syncSession->m_bClosed){
-                ///½«session±ê¼ÇÎªclose
+                ///å°†sessionæ ‡è®°ä¸ºclose
                 m_syncSession->m_bClosed = true;
-                ///½«session·Åµ½ĞèÒªÊÇ·ñµÄsessionÁĞ±í
+                ///å°†sessionæ”¾åˆ°éœ€è¦æ˜¯å¦çš„sessionåˆ—è¡¨
                 m_freeSession.push_back(m_syncSession);
             }
-            ///½«Á¬½Ó´ÓsessionµÄÁ¬½ÓÖĞÉ¾³ı£¬Òò´Ë´ËÁ¬½Ó½«±»delete
+            ///å°†è¿æ¥ä»sessionçš„è¿æ¥ä¸­åˆ é™¤ï¼Œå› æ­¤æ­¤è¿æ¥å°†è¢«delete
             m_syncSession->m_conns.erase(m_uiConnId);
         }
     }
     return -1;
 }
 
-///ÊÕµ½ÏûÏ¢
+///æ”¶åˆ°æ¶ˆæ¯
 int CwxMqBinAsyncHandler::recvMessage(){
     if (CwxMqPoco::MSG_TYPE_SYNC_REPORT == m_header.getMsgType()){
         return recvSyncReport(m_tss);
@@ -166,7 +166,7 @@ int CwxMqBinAsyncHandler::recvMessage(){
     }else if (CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK_REPLY == m_header.getMsgType()){
         return recvSyncChunkReply(m_tss);
     }
-    ///Ö±½Ó¹Ø±ÕÁ¬½Ó
+    ///ç›´æ¥å…³é—­è¿æ¥
     CWX_ERROR(("Recv invalid msg type:%u from host:%s:%u, close connection.", m_header.getMsgType(), m_strPeerHost.c_str(), m_unPeerPort));
     return -1;
 }
@@ -190,14 +190,14 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
             iRet = CWX_MQ_ERR_ERROR;
             break;
         }
-        ///½ûÖ¹ÖØ¸´report sid¡£Èôcursor´æÔÚ£¬±íÊ¾ÒÑ¾­±¨¸æ¹ıÒ»´Î
+        ///ç¦æ­¢é‡å¤report sidã€‚è‹¥cursorå­˜åœ¨ï¼Œè¡¨ç¤ºå·²ç»æŠ¥å‘Šè¿‡ä¸€æ¬¡
         if (m_syncSession){
             iRet = CWX_MQ_ERR_ERROR;
             CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Can't report sync sid duplicate.");
             CWX_ERROR(("Report is duplicate, from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
             break;
         }
-        ///ÈôÊÇÍ¬²½sidµÄ±¨¸æÏûÏ¢,Ôò»ñÈ¡±¨¸æµÄsid
+        ///è‹¥æ˜¯åŒæ­¥sidçš„æŠ¥å‘Šæ¶ˆæ¯,åˆ™è·å–æŠ¥å‘Šçš„sid
         iRet = CwxMqPoco::parseReportData(pTss->m_pReader,
             m_recvMsgData,
             ullSid,
@@ -267,7 +267,7 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
         m_syncSession->m_strSign = sign;
         if ((m_syncSession->m_strSign != CWX_MQ_CRC32) &&
             (m_syncSession->m_strSign != CWX_MQ_MD5))
-        {//Èç¹ûÇ©Ãû²»ÊÇCRC32»òMD5£¬ÔòºöÂÔ
+        {//å¦‚æœç­¾åä¸æ˜¯CRC32æˆ–MD5ï¼Œåˆ™å¿½ç•¥
             m_syncSession->m_strSign.erase();
         }
         if (m_syncSession->m_uiChunk){
@@ -275,21 +275,21 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
             if (m_syncSession->m_uiChunk < CwxMqConfigCmn::MIN_CHUNK_SIZE_KB) m_syncSession->m_uiChunk = CwxMqConfigCmn::MIN_CHUNK_SIZE_KB;
             m_syncSession->m_uiChunk *= 1024;
         }
-        if (bNewly){///²»sidÎª¿Õ£¬ÔòÈ¡µ±Ç°×î´ósid-1
+        if (bNewly){///ä¸sidä¸ºç©ºï¼Œåˆ™å–å½“å‰æœ€å¤§sid-1
             ullSid = m_pApp->getBinLogMgr()->getMaxSid();
             if (ullSid) ullSid--;
         }
         m_syncSession->reformSessionId();
-        ///½«session¼ÓÈëµ½sessionµÄmap
+        ///å°†sessionåŠ å…¥åˆ°sessionçš„map
         while(m_sessionMap.find(m_syncSession->m_ullSessionId) != m_sessionMap.end()){
             m_syncSession->reformSessionId();
         }
         m_sessionMap[m_syncSession->m_ullSessionId]=m_syncSession;
         m_ullSessionId = m_syncSession->m_ullSessionId;
         m_syncSession->addConn(this);
-        ///»Ø¸´iRetµÄÖµ
+        ///å›å¤iRetçš„å€¼
         iRet = CWX_MQ_ERR_SUCCESS;
-        ///´´½¨binlog¶ÁÈ¡µÄcursor
+        ///åˆ›å»ºbinlogè¯»å–çš„cursor
         CwxBinLogCursor* pCursor = m_pApp->getBinLogMgr()->createCurser(ullSid);
         if (!pCursor){
             iRet = CWX_MQ_ERR_ERROR;
@@ -309,11 +309,11 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
                 break;
             }
         }
-        ///ÉèÖÃcursor
+        ///è®¾ç½®cursor
         m_syncSession->m_pCursor = pCursor;
         m_syncSession->m_ullStartSid = ullSid;
 
-        ///·¢ËÍsession idµÄÏûÏ¢
+        ///å‘é€session idçš„æ¶ˆæ¯
         if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packReportDataReply(pTss->m_pWriter,
             msg,
             m_header.getTaskId(),
@@ -329,18 +329,18 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
             CWX_ERROR(("Failure push msg to send queue. from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
             return -1;
         }
-        ///·¢ËÍÏÂÒ»Ìõbinlog
+        ///å‘é€ä¸‹ä¸€æ¡binlog
         int iState = syncSendBinLog(pTss);
         if (-1 == iState){
             iRet = CWX_MQ_ERR_ERROR;
             CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
             break;
-        }else if (0 == iState){///²úÉúcontinueµÄÏûÏ¢
+        }else if (0 == iState){///äº§ç”Ÿcontinueçš„æ¶ˆæ¯
             channel()->regRedoHander(this);
         }
         return 0;
     }while(0);
-    ///µ½´ËÒ»¶¨´íÎó
+    ///åˆ°æ­¤ä¸€å®šé”™è¯¯
     CWX_ASSERT(CWX_MQ_ERR_SUCCESS != iRet);
     CwxMsgBlock* pBlock = NULL;
     if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncErr(pTss->m_pWriter,
@@ -373,14 +373,14 @@ int CwxMqBinAsyncHandler::recvSyncNewConnection(CwxMqTss* pTss){
             iRet = CWX_MQ_ERR_ERROR;
             break;
         }
-        ///½ûÖ¹ÖØ¸´report sid¡£Èôcursor´æÔÚ£¬±íÊ¾ÒÑ¾­±¨¸æ¹ıÒ»´Î
+        ///ç¦æ­¢é‡å¤report sidã€‚è‹¥cursorå­˜åœ¨ï¼Œè¡¨ç¤ºå·²ç»æŠ¥å‘Šè¿‡ä¸€æ¬¡
         if (m_syncSession){
             iRet = CWX_MQ_ERR_ERROR;
             CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Can't report sync sid duplicatly.");
             CWX_ERROR(("Session connect-report is duplicate, from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
             break;
         }
-        ///»ñÈ¡±¨¸æµÄsession id
+        ///è·å–æŠ¥å‘Šçš„session id
         iRet = CwxMqPoco::parseReportNewConn(pTss->m_pReader,
             m_recvMsgData,
             ullSession,
@@ -399,18 +399,18 @@ int CwxMqBinAsyncHandler::recvSyncNewConnection(CwxMqTss* pTss){
         m_syncSession = m_sessionMap.find(ullSession)->second;
         m_ullSessionId = m_syncSession->m_ullSessionId;
         m_syncSession->addConn(this);
-        ///·¢ËÍÏÂÒ»Ìõbinlog
+        ///å‘é€ä¸‹ä¸€æ¡binlog
         int iState = syncSendBinLog(pTss);
         if (-1 == iState){
             iRet = CWX_MQ_ERR_ERROR;
             CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
             break;
-        }else if (0 == iState){///²úÉúcontinueµÄÏûÏ¢
+        }else if (0 == iState){///äº§ç”Ÿcontinueçš„æ¶ˆæ¯
             channel()->regRedoHander(this);
         }
         return 0;
     }while(0);
-    ///µ½´ËÒ»¶¨´íÎó
+    ///åˆ°æ­¤ä¸€å®šé”™è¯¯
     CWX_ASSERT(CWX_MQ_ERR_SUCCESS != iRet);
     if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncErr(pTss->m_pWriter,
         msg,
@@ -436,7 +436,7 @@ int CwxMqBinAsyncHandler::recvSyncReply(CwxMqTss* pTss){
     CWX_UINT64 ullSeq = 0;
     CwxMsgBlock* msg = NULL;
     do {
-        if (!m_syncSession){ ///Èç¹ûÁ¬½Ó²»ÊÇÍ¬²½×´Ì¬£¬ÔòÊÇ´íÎó
+        if (!m_syncSession){ ///å¦‚æœè¿æ¥ä¸æ˜¯åŒæ­¥çŠ¶æ€ï¼Œåˆ™æ˜¯é”™è¯¯
             strcpy(pTss->m_szBuf2K, "Client no in sync state");
             CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
             iRet = CWX_MQ_ERR_ERROR;
@@ -448,7 +448,7 @@ int CwxMqBinAsyncHandler::recvSyncReply(CwxMqTss* pTss){
             iRet = CWX_MQ_ERR_ERROR;
             break;
         }
-        ///ÈôÊÇÍ¬²½sidµÄ±¨¸æÏûÏ¢,Ôò»ñÈ¡±¨¸æµÄsid
+        ///è‹¥æ˜¯åŒæ­¥sidçš„æŠ¥å‘Šæ¶ˆæ¯,åˆ™è·å–æŠ¥å‘Šçš„sid
         iRet = CwxMqPoco::parseSyncDataReply(pTss->m_pReader,
             m_recvMsgData,
             ullSeq,
@@ -468,17 +468,17 @@ int CwxMqBinAsyncHandler::recvSyncReply(CwxMqTss* pTss){
             CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
             break;
         }
-        ///·¢ËÍÏÂÒ»Ìõbinlog
+        ///å‘é€ä¸‹ä¸€æ¡binlog
         int iState = syncSendBinLog(pTss);
         if (-1 == iState){
             CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
-            return -1; ///¹Ø±ÕÁ¬½Ó
-        }else if (0 == iState){///²úÉúcontinueµÄÏûÏ¢
+            return -1; ///å…³é—­è¿æ¥
+        }else if (0 == iState){///äº§ç”Ÿcontinueçš„æ¶ˆæ¯
             channel()->regRedoHander(this);
         }
         return 0;
     } while(0);
-    ///µ½´ËÒ»¶¨´íÎó
+    ///åˆ°æ­¤ä¸€å®šé”™è¯¯
     CWX_ASSERT(CWX_MQ_ERR_SUCCESS != iRet);
     if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncErr(pTss->m_pWriter,
         msg,
@@ -505,13 +505,13 @@ int CwxMqBinAsyncHandler::recvSyncChunkReply(CwxMqTss* pTss){
 
 
 /**
-@brief HandlerµÄredoÊÂ¼ş£¬ÔÚÃ¿´ÎdispatchÊ±Ö´ĞĞ¡£
-@return -1£º´¦ÀíÊ§°Ü£¬»áµ÷ÓÃclose()£» 0£º´¦Àí³É¹¦
+@brief Handlerçš„redoäº‹ä»¶ï¼Œåœ¨æ¯æ¬¡dispatchæ—¶æ‰§è¡Œã€‚
+@return -1ï¼šå¤„ç†å¤±è´¥ï¼Œä¼šè°ƒç”¨close()ï¼› 0ï¼šå¤„ç†æˆåŠŸ
 */
 int CwxMqBinAsyncHandler::onRedo(){
-    ///ÅĞ¶ÏÊÇ·ñÓĞ¿É·¢ËÍµÄÏûÏ¢
+    ///åˆ¤æ–­æ˜¯å¦æœ‰å¯å‘é€çš„æ¶ˆæ¯
     if (m_syncSession->m_ullSid < m_pApp->getBinLogMgr()->getMaxSid()){
-        ///·¢ËÍÏÂÒ»Ìõbinlog
+        ///å‘é€ä¸‹ä¸€æ¡binlog
         int iState = syncSendBinLog(m_tss);
         if (-1 == iState){
             CWX_ERROR(("%s, from:%s:%u", m_tss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
@@ -532,21 +532,21 @@ int CwxMqBinAsyncHandler::onRedo(){
                 CWX_ERROR(("Failure push msg to send queue. from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
                 return -1;
             }
-        }else if (0 == iState){///²úÉúcontinueµÄÏûÏ¢
+        }else if (0 == iState){///äº§ç”Ÿcontinueçš„æ¶ˆæ¯
             channel()->regRedoHander(this);
         }
     }else{
-        ///ÖØĞÂ×¢²á
+        ///é‡æ–°æ³¨å†Œ
         channel()->regRedoHander(this);
     }
-    ///·µ»Ø
+    ///è¿”å›
     return 0;
 }
 
 
-///0£ºÎ´·¢ËÍÒ»Ìõbinlog£»
-///1£º·¢ËÍÁËÒ»Ìõbinlog£»
-///-1£ºÊ§°Ü£»
+///0ï¼šæœªå‘é€ä¸€æ¡binlogï¼›
+///1ï¼šå‘é€äº†ä¸€æ¡binlogï¼›
+///-1ï¼šå¤±è´¥ï¼›
 int CwxMqBinAsyncHandler::syncSendBinLog(CwxMqTss* pTss){
     int iRet = 0;
     CwxMsgBlock* pBlock = NULL;
@@ -554,14 +554,14 @@ int CwxMqBinAsyncHandler::syncSendBinLog(CwxMqTss* pTss){
     CWX_UINT32 uiKeyLen = 0;
     CWX_UINT32 uiTotalLen = 0;
     CWX_UINT64 ullSeq = m_syncSession->m_ullSeq;
-    if (m_syncSession->m_pCursor->isUnseek()){//ÈôbinlogµÄ¶ÁÈ¡cursorĞü¿Õ£¬Ôò¶¨Î»
+    if (m_syncSession->m_pCursor->isUnseek()){//è‹¥binlogçš„è¯»å–cursoræ‚¬ç©ºï¼Œåˆ™å®šä½
         if (1 != (iRet = syncSeekToReportSid(pTss))) return iRet;
     }
 
     if (m_syncSession->m_uiChunk)  pTss->m_pWriter->beginPack();
     while(1){
         if ( 1 != (iRet = syncSeekToBinlog(pTss, uiSkipNum))) break;
-        //ÉèÖÃÒÆµ½ÏÂÒ»¸ö¼ÇÂ¼Î»ÖÃ
+        //è®¾ç½®ç§»åˆ°ä¸‹ä¸€ä¸ªè®°å½•ä½ç½®
         m_syncSession->m_bNext = true;
         if (!m_syncSession->m_uiChunk){
             iRet = syncPackOneBinLog(pTss->m_pWriter,
@@ -587,20 +587,20 @@ int CwxMqBinAsyncHandler::syncSendBinLog(CwxMqTss* pTss){
 
     if (-1 == iRet) return -1;
 
-    if (!m_syncSession->m_uiChunk){ ///Èô²»ÊÇchunk
-        if (0 == iRet) return 0; ///Ã»ÓĞÊı¾İ
+    if (!m_syncSession->m_uiChunk){ ///è‹¥ä¸æ˜¯chunk
+        if (0 == iRet) return 0; ///æ²¡æœ‰æ•°æ®
     }else{
         if (0 == uiTotalLen) return 0;
         //add sign
         if (m_syncSession->m_strSign.length()){
-            if (m_syncSession->m_strSign == CWX_MQ_CRC32){//CRC32Ç©Ãû
+            if (m_syncSession->m_strSign == CWX_MQ_CRC32){//CRC32ç­¾å
                 CWX_UINT32 uiCrc32 = CwxCrc32::value(pTss->m_pWriter->getMsg(), pTss->m_pWriter->getMsgSize());
                 if (!pTss->m_pWriter->addKeyValue(CWX_MQ_CRC32, (char*)&uiCrc32, sizeof(uiCrc32))){
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Failure to add key value, err:%s", pTss->m_pWriter->getErrMsg());
                     CWX_ERROR((pTss->m_szBuf2K));
                     return -1;
                 }
-            } else if (m_syncSession->m_strSign == CWX_MQ_MD5){//md5Ç©Ãû
+            } else if (m_syncSession->m_strSign == CWX_MQ_MD5){//md5ç­¾å
                 CwxMd5 md5;
                 unsigned char szMd5[16];
                 md5.update((unsigned char*)pTss->m_pWriter->getMsg(), pTss->m_pWriter->getMsgSize());
@@ -624,7 +624,7 @@ int CwxMqBinAsyncHandler::syncSendBinLog(CwxMqTss* pTss){
             return -1;
         }
     }
-    ///¸ù¾İsvrÀàĞÍ£¬·¢ËÍÊı¾İ°ü
+    ///æ ¹æ®svrç±»å‹ï¼Œå‘é€æ•°æ®åŒ…
     pBlock->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
     pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_ASYNC);
     pBlock->send_ctrl().setHostId(0);
@@ -637,13 +637,13 @@ int CwxMqBinAsyncHandler::syncSendBinLog(CwxMqTss* pTss){
     }
     m_ullSentSeq = ullSeq;
     m_syncSession->m_ullSeq++;
-    return 1; ///·¢ËÍÁËÒ»ÌõÏûÏ¢
+    return 1; ///å‘é€äº†ä¸€æ¡æ¶ˆæ¯
 }
 
-//1£º³É¹¦£»0£ºÌ«´ó£»-1£º´íÎó
+//1ï¼šæˆåŠŸï¼›0ï¼šå¤ªå¤§ï¼›-1ï¼šé”™è¯¯
 int CwxMqBinAsyncHandler::syncSeekToReportSid(CwxMqTss* tss){
     int iRet = 0;
-    if (m_syncSession->m_pCursor->isUnseek()){//ÈôbinlogµÄ¶ÁÈ¡cursorĞü¿Õ£¬Ôò¶¨Î»
+    if (m_syncSession->m_pCursor->isUnseek()){//è‹¥binlogçš„è¯»å–cursoræ‚¬ç©ºï¼Œåˆ™å®šä½
         if (m_syncSession->m_ullStartSid < m_pApp->getBinLogMgr()->getMaxSid()){
             iRet = m_pApp->getBinLogMgr()->seek(m_syncSession->m_pCursor, m_syncSession->m_ullStartSid);
             if (-1 == iRet){
@@ -659,24 +659,24 @@ int CwxMqBinAsyncHandler::syncSeekToReportSid(CwxMqTss* tss){
                 CWX_ERROR((tss->m_szBuf2K));
                 return 0;
             }
-            ///Èô³É¹¦¶¨Î»£¬Ôò¶ÁÈ¡µ±Ç°¼ÇÂ¼
+            ///è‹¥æˆåŠŸå®šä½ï¼Œåˆ™è¯»å–å½“å‰è®°å½•
             m_syncSession->m_bNext = m_syncSession->m_ullStartSid == m_syncSession->m_pCursor->getHeader().getSid()?true:false;
-        }else{///ÈôĞèÒªÍ¬²½·¢ËÍµÄsid²»Ğ¡ÓÚµ±Ç°×îĞ¡µÄsid£¬ÔòÒÀ¾ÉÎªĞü¿Õ×´Ì¬
-            return 0;///Íê³É×´Ì¬
+        }else{///è‹¥éœ€è¦åŒæ­¥å‘é€çš„sidä¸å°äºå½“å‰æœ€å°çš„sidï¼Œåˆ™ä¾æ—§ä¸ºæ‚¬ç©ºçŠ¶æ€
+            return 0;///å®ŒæˆçŠ¶æ€
         }
     }
     return 1;
 }
 
 
-///-1£ºÊ§°Ü£¬1£º³É¹¦
+///-1ï¼šå¤±è´¥ï¼Œ1ï¼šæˆåŠŸ
 int CwxMqBinAsyncHandler::syncPackOneBinLog(CwxPackageWriter* writer,
                                             CwxMsgBlock*& block,
                                             CWX_UINT64 ullSeq,
                                             CwxKeyValueItem const* pData,
                                             char* szErr2K)
 {
-    ///ĞÎ³Ébinlog·¢ËÍµÄÊı¾İ°ü
+    ///å½¢æˆbinlogå‘é€çš„æ•°æ®åŒ…
     if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncData(writer,
         block,
         0,
@@ -689,21 +689,21 @@ int CwxMqBinAsyncHandler::syncPackOneBinLog(CwxPackageWriter* writer,
         ullSeq,
         szErr2K))
     {
-        ///ĞÎ³ÉÊı¾İ°üÊ§°Ü
+        ///å½¢æˆæ•°æ®åŒ…å¤±è´¥
         CWX_ERROR(("Failure to pack binlog package, err:%s", szErr2K));
         return -1;
     }
     return 1;
 }
 
-///-1£ºÊ§°Ü£¬·ñÔò·µ»ØÌí¼ÓÊı¾İµÄ³ß´ç
+///-1ï¼šå¤±è´¥ï¼Œå¦åˆ™è¿”å›æ·»åŠ æ•°æ®çš„å°ºå¯¸
 int CwxMqBinAsyncHandler::syncPackMultiBinLog(CwxPackageWriter* writer,
                                               CwxPackageWriter* writer_item,
                                               CwxKeyValueItem const* pData,
                                               CWX_UINT32&  uiLen,
                                               char* szErr2K)
 {
-    ///ĞÎ³Ébinlog·¢ËÍµÄÊı¾İ°ü
+    ///å½¢æˆbinlogå‘é€çš„æ•°æ®åŒ…
     if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataItem(writer_item,
         m_syncSession->m_pCursor->getHeader().getSid(),
         m_syncSession->m_pCursor->getHeader().getDatetime(),
@@ -712,12 +712,12 @@ int CwxMqBinAsyncHandler::syncPackMultiBinLog(CwxPackageWriter* writer,
         NULL,
         szErr2K))
     {
-        ///ĞÎ³ÉÊı¾İ°üÊ§°Ü
+        ///å½¢æˆæ•°æ®åŒ…å¤±è´¥
         CWX_ERROR(("Failure to pack binlog package, err:%s", szErr2K));
         return -1;
     }
     if (!writer->addKeyValue(CWX_MQ_M, writer_item->getMsg(), writer_item->getMsgSize(),true)){
-        ///ĞÎ³ÉÊı¾İ°üÊ§°Ü
+        ///å½¢æˆæ•°æ®åŒ…å¤±è´¥
         CwxCommon::snprintf(szErr2K, 2047, "Failure to pack binlog package, err:%s", writer->getErrMsg());
         CWX_ERROR((szErr2K));
         return -1;
@@ -726,13 +726,13 @@ int CwxMqBinAsyncHandler::syncPackMultiBinLog(CwxPackageWriter* writer,
     return 1;
 }
 
-//1£º·¢ÏÖ¼ÇÂ¼£»0£ºÃ»ÓĞ·¢ÏÖ£»-1£º´íÎó
+//1ï¼šå‘ç°è®°å½•ï¼›0ï¼šæ²¡æœ‰å‘ç°ï¼›-1ï¼šé”™è¯¯
 int CwxMqBinAsyncHandler::syncSeekToBinlog(CwxMqTss* tss, CWX_UINT32& uiSkipNum){
     int iRet = 0;
     if (m_syncSession->m_bNext){
         iRet = m_pApp->getBinLogMgr()->next(m_syncSession->m_pCursor);
-        if (0 == iRet) return 0; ///Íê³É×´Ì¬
-        if (-1 == iRet){///<Ê§°Ü
+        if (0 == iRet) return 0; ///å®ŒæˆçŠ¶æ€
+        if (-1 == iRet){///<å¤±è´¥
             CwxCommon::snprintf(tss->m_szBuf2K, 2047, "Failure to seek cursor, err:%s", m_syncSession->m_pCursor->getErrMsg());
             CWX_ERROR((tss->m_szBuf2K));
             return -1;
@@ -740,11 +740,11 @@ int CwxMqBinAsyncHandler::syncSeekToBinlog(CwxMqTss* tss, CWX_UINT32& uiSkipNum)
     }
     bool bFind = false;
     CWX_UINT32 uiDataLen = m_syncSession->m_pCursor->getHeader().getLogLen();
-    ///×¼±¸data¶ÁÈ¡µÄbuf
+    ///å‡†å¤‡dataè¯»å–çš„buf
     char* szData = tss->getBuf(uiDataLen);        
-    ///¶ÁÈ¡data
+    ///è¯»å–data
     iRet = m_pApp->getBinLogMgr()->fetch(m_syncSession->m_pCursor, szData, uiDataLen);
-    if (-1 == iRet){//¶ÁÈ¡Ê§°Ü
+    if (-1 == iRet){//è¯»å–å¤±è´¥
         CwxCommon::snprintf(tss->m_szBuf2K, 2047, "Failure to fetch data, err:%s", m_syncSession->m_pCursor->getErrMsg());
         CWX_ERROR((tss->m_szBuf2K));
         return -1;
@@ -758,7 +758,7 @@ int CwxMqBinAsyncHandler::syncSeekToBinlog(CwxMqTss* tss, CWX_UINT32& uiSkipNum)
                 CWX_ERROR(("Can't unpack binlog, sid=%s", CwxCommon::toString(m_syncSession->m_pCursor->getHeader().getSid(), tss->m_szBuf2K)));
                 break;
             }
-            ///»ñÈ¡CWX_MQ_DµÄkey£¬´ËÎªÕæÕıdataÊı¾İ
+            ///è·å–CWX_MQ_Dçš„keyï¼Œæ­¤ä¸ºçœŸæ­£dataæ•°æ®
             tss->m_pBinlogData = tss->m_pReader->getKey(CWX_MQ_D);
             if (!tss->m_pBinlogData){
                 CWX_ERROR(("Can't find key[%s] in binlog, sid=%s", CWX_MQ_D,
@@ -777,16 +777,16 @@ int CwxMqBinAsyncHandler::syncSeekToBinlog(CwxMqTss* tss, CWX_UINT32& uiSkipNum)
         iRet = m_pApp->getBinLogMgr()->next(m_syncSession->m_pCursor);
         if (0 == iRet){
             m_syncSession->m_bNext = true;
-            return 0; ///Íê³É×´Ì¬
+            return 0; ///å®ŒæˆçŠ¶æ€
         }
-        if (-1 == iRet){///<Ê§°Ü
+        if (-1 == iRet){///<å¤±è´¥
             CwxCommon::snprintf(tss->m_szBuf2K, 2047, "Failure to seek cursor, err:%s", m_syncSession->m_pCursor->getErrMsg());
             CWX_ERROR((tss->m_szBuf2K));
             return -1;
         }
         uiSkipNum ++;
         if (!CwxMqPoco::isContinueSeek(uiSkipNum)){
-            return 0;///Î´Íê³É×´Ì¬
+            return 0;///æœªå®ŒæˆçŠ¶æ€
         }
     };
     return 1;

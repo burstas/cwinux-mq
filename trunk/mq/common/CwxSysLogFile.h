@@ -1,4 +1,4 @@
-#ifndef __CWX_SYS_LOG_FILE_H__
+ï»¿#ifndef __CWX_SYS_LOG_FILE_H__
 #define __CWX_SYS_LOG_FILE_H__
 
 #include "CwxMqMacro.h"
@@ -8,7 +8,7 @@
 
 /**
 @file CwxSysLogFile.h
-@brief ÏµÍ³¼ÇÂ¼ÎÄ¼ş¹ÜÀí¶ÔÏó£¬È·±£ÏµÍ³ÎÄ¼şµÄÒ»ÖÂĞÔĞŞ¸Ä¡£
+@brief ç³»ç»Ÿè®°å½•æ–‡ä»¶ç®¡ç†å¯¹è±¡ï¼Œç¡®ä¿ç³»ç»Ÿæ–‡ä»¶çš„ä¸€è‡´æ€§ä¿®æ”¹ã€‚
 @author cwinux@gmail.com
 @version 1.0
 @date 2010-09-23
@@ -19,16 +19,16 @@
 class CwxSysLogFile{
 public:
     enum{
-        DEF_SWITCH_SYS_FILE_NUM = 100000 ///<Í¬Ò»¸öÏµÍ³ÎÄ¼ş£¬Ğ´¶àÉÙ´ÎÇĞ»»ÎÄ¼ş
+        DEF_SWITCH_SYS_FILE_NUM = 100000 ///<åŒä¸€ä¸ªç³»ç»Ÿæ–‡ä»¶ï¼Œå†™å¤šå°‘æ¬¡åˆ‡æ¢æ–‡ä»¶
     };
 public:
     CwxSysLogFile(char const* szFileName, CWX_UINT32 uiSwithFileNum=DEF_SWITCH_SYS_FILE_NUM);
     ~CwxSysLogFile();
 public:
-    ///³õÊ¼»¯ÏµÍ³ÎÄ¼ş£»0£º³É¹¦£»-1£ºÊ§°Ü
+    ///åˆå§‹åŒ–ç³»ç»Ÿæ–‡ä»¶ï¼›0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     int init();
 public:
-    ///Ìá½»ÏµÍ³ÎÄ¼ş£»0£º³É¹¦£»-1£ºÊ§°Ü
+    ///æäº¤ç³»ç»Ÿæ–‡ä»¶ï¼›0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     inline int commit(){
         if (-1 != m_fd){
             if (!m_bSaved){
@@ -50,7 +50,7 @@ public:
         }
         return -1;
     }
-    ///±£´æÏµÍ³ÎÄ¼ş
+    ///ä¿å­˜ç³»ç»Ÿæ–‡ä»¶
     inline int write(char const* szContent,
         CWX_UINT32 uiSize,
         bool bSaveFile=true)
@@ -80,41 +80,41 @@ public:
     inline char const* getFileContents() const{
         return m_szFileContentBuf;
     }
-    ///»ñÈ¡contentµÄ´óĞ¡
+    ///è·å–contentçš„å¤§å°
     inline CWX_UINT32 getFileContentSize() const{
         return m_uiContentSize;
     }
-    ///»ñÈ¡ÏµÍ³ÎÄ¼şµÄÃû×Ö
+    ///è·å–ç³»ç»Ÿæ–‡ä»¶çš„åå­—
     inline string const& getFileName() const{
         return m_strFileName;
     }
-    ///»ñÈ¡´íÎóĞÅÏ¢
+    ///è·å–é”™è¯¯ä¿¡æ¯
     inline char const* getErrMsg() const{
         return m_szErrMsg;
     }
-    ///ÊÇ·ñÓĞĞ§
+    ///æ˜¯å¦æœ‰æ•ˆ
     inline bool isValid() const{
         return -1 != m_fd;
     }
 private:
-    ///ÇĞ»»ÏµÍ³ÎÄ¼ş£»0£º³É¹¦£»-1£ºÊ§°Ü
+    ///åˆ‡æ¢ç³»ç»Ÿæ–‡ä»¶ï¼›0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     int switchSysFile();
-    ///½«µ±Ç°µÄÄÚÈİ±£´æµ½ÎÄ¼ş£»0£º³É¹¦£»-1£ºÊ§°Ü
+    ///å°†å½“å‰çš„å†…å®¹ä¿å­˜åˆ°æ–‡ä»¶ï¼›0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     int saveFile();
-    ///»ñÈ¡Ö¸¶¨´óĞ¡µÄÄÚ´æ£»true£º³É¹¦£»false£ºÊ§°Ü
+    ///è·å–æŒ‡å®šå¤§å°çš„å†…å­˜ï¼›trueï¼šæˆåŠŸï¼›falseï¼šå¤±è´¥
     bool prepareBuf(CWX_UINT32 uiSize);
 private:
-    string          m_strFileName; ///<ÏµÍ³ÎÄ¼şÃû×Ö
-    string          m_strOldFileName; ///<¾ÉÏµÍ³ÎÄ¼şÃû×Ö
-    string          m_strNewFileName; ///<ĞÂÏµÍ³ÎÄ¼şµÄÃû×Ö
-    char*           m_szFileContentBuf; ///<ÎÄ¼şÄÚÈİµÄbuf
-    CWX_UINT32      m_uiBufLen;  ///<ÎÄ¼şÄÚÈİbufµÄ³¤¶È
-    CWX_UINT32      m_uiFileSize; ///<µ±Ç°ÎÄ¼şµÄ×Ö½ÚÊı
-    CWX_UINT32      m_uiContentSize; ///<µ±Ç°bufÖĞÄÚÈİµÄ×Ö½ÚÊı
-    CWX_UINT32      m_uiSwitchLogFileCount; ///<ÇĞ»»ÏµÍ³ÎÄ¼şµÄĞ´´ÎÊı
-    int             m_fd; ///<µ±Ç°ÎÄ¼şhandle£¬ÈôÎª-1±íÊ¾ÎŞĞ§
-    bool            m_bSaved; ///<µ±Ç°µÄÄÚÈİÊÇ·ñ±£´æµ½ÎÄ¼ş
-    CWX_UINT32      m_uiWriteCount; ///<µ±Ç°ÎÄ¼şĞ´µÄ´ÎÊı
+    string          m_strFileName; ///<ç³»ç»Ÿæ–‡ä»¶åå­—
+    string          m_strOldFileName; ///<æ—§ç³»ç»Ÿæ–‡ä»¶åå­—
+    string          m_strNewFileName; ///<æ–°ç³»ç»Ÿæ–‡ä»¶çš„åå­—
+    char*           m_szFileContentBuf; ///<æ–‡ä»¶å†…å®¹çš„buf
+    CWX_UINT32      m_uiBufLen;  ///<æ–‡ä»¶å†…å®¹bufçš„é•¿åº¦
+    CWX_UINT32      m_uiFileSize; ///<å½“å‰æ–‡ä»¶çš„å­—èŠ‚æ•°
+    CWX_UINT32      m_uiContentSize; ///<å½“å‰bufä¸­å†…å®¹çš„å­—èŠ‚æ•°
+    CWX_UINT32      m_uiSwitchLogFileCount; ///<åˆ‡æ¢ç³»ç»Ÿæ–‡ä»¶çš„å†™æ¬¡æ•°
+    int             m_fd; ///<å½“å‰æ–‡ä»¶handleï¼Œè‹¥ä¸º-1è¡¨ç¤ºæ— æ•ˆ
+    bool            m_bSaved; ///<å½“å‰çš„å†…å®¹æ˜¯å¦ä¿å­˜åˆ°æ–‡ä»¶
+    CWX_UINT32      m_uiWriteCount; ///<å½“å‰æ–‡ä»¶å†™çš„æ¬¡æ•°
     char            m_szErrMsg[2048];
 };
 

@@ -1,9 +1,9 @@
-#ifndef __CWX_MPROXY_RECV_HANDLER_H__
+ï»¿#ifndef __CWX_MPROXY_RECV_HANDLER_H__
 #define __CWX_MPROXY_RECV_HANDLER_H__
 /*
-°æÈ¨ÉùÃ÷£º
-    ±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-    ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+    æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+    è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 #include "CwxCommander.h"
 #include "CwxTss.h"
@@ -13,40 +13,40 @@
 CWINUX_USING_NAMESPACE
 
 class CwxMproxyApp;
-///´úÀímqÏûÏ¢µÄ½ÓÊÜhandle
+///ä»£ç†mqæ¶ˆæ¯çš„æ¥å—handle
 class CwxMproxyRecvHandler : public CwxCmdOp 
 {
 public:
-    ///¹¹Ôìº¯Êı
+    ///æ„é€ å‡½æ•°
     CwxMproxyRecvHandler(CwxMproxyApp* pApp):m_pApp(pApp)
     {
         m_unzipBuf = NULL;
         m_uiBufLen = 0;
     }
-    ///Îö¹¹º¯Êı
+    ///ææ„å‡½æ•°
     virtual ~CwxMproxyRecvHandler()
     {
         if (m_unzipBuf) delete [] m_unzipBuf;
     }
 public:
-    ///´¦ÀímqÏûÏ¢µÄº¯Êı
+    ///å¤„ç†mqæ¶ˆæ¯çš„å‡½æ•°
     virtual int onRecvMsg(CwxMsgBlock*& msg,  CwxTss* pThrEnv);
-    //´¦ÀíÁ¬½Ó¹Ø±ÕµÄÏûÏ¢
+    //å¤„ç†è¿æ¥å…³é—­çš„æ¶ˆæ¯
     virtual int onConnClosed(CwxMsgBlock*& msg, CwxTss* pThrEnv);
-    //³¬Ê±¼á³ÖµÄÏûÏ¢
+    //è¶…æ—¶åšæŒçš„æ¶ˆæ¯
     virtual int onTimeoutCheck(CwxMsgBlock*& msg, CwxTss* pThrEnv);
 public:
-    //»Ø¸´´úÀíµÄmqÏûÏ¢
+    //å›å¤ä»£ç†çš„mqæ¶ˆæ¯
     static void reply(CwxMproxyApp* app, CwxMsgBlock* msg, CWX_UINT32 uiConnId);
 
 private:
     CWX_UINT32 isAuth(CwxMqTss* pTss, CWX_UINT32 uiGroup, char const* szUser, char const* szPasswd);
-    //»ñÈ¡unzipµÄbuf
+    //è·å–unzipçš„buf
     bool prepareUnzipBuf();
 private:
-    CwxMproxyApp*     m_pApp;  ///<app¶ÔÏó
-    unsigned char*          m_unzipBuf; ///<½âÑ¹µÄbuffer
-    CWX_UINT32              m_uiBufLen; ///<½âÑ¹bufferµÄ´óĞ¡£¬ÆäÎªtrunkµÄ20±¶£¬×îĞ¡Îª20M¡£
+    CwxMproxyApp*     m_pApp;  ///<appå¯¹è±¡
+    unsigned char*          m_unzipBuf; ///<è§£å‹çš„buffer
+    CWX_UINT32              m_uiBufLen; ///<è§£å‹bufferçš„å¤§å°ï¼Œå…¶ä¸ºtrunkçš„20å€ï¼Œæœ€å°ä¸º20Mã€‚
 };
 
 #endif 

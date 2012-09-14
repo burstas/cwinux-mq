@@ -1,10 +1,10 @@
-#include "CwxMproxyConfig.h"
+ï»¿#include "CwxMproxyConfig.h"
 #include "CwxMproxyApp.h"
 
 int CwxMproxyConfig::loadConfig(string const & strConfFile){
     CwxIniParse	cnf;
     string value;
-    //½âÎöÅäÖÃÎÄ¼þ
+    //è§£æžé…ç½®æ–‡ä»¶
     if (false == cnf.load(strConfFile)){
         CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to Load conf file:%s. err:%s", strConfFile.c_str(), cnf.getErrMsg());
         return -1;
@@ -54,7 +54,7 @@ int CwxMproxyConfig::loadConfig(string const & strConfFile){
                 CwxMqIdRange id(id_iter->first, id_iter->second);
                 if (m_groupPasswd.find(id) != m_groupPasswd.end())
                 {
-                    snprintf(m_szErrMsg, 2047, "passwd for name=%s, group[%u,%u] for passwd is duplicate with passwd for name=%s£¬group[%u,%u]",
+                    snprintf(m_szErrMsg, 2047, "passwd for name=%s, group[%u,%u] for passwd is duplicate with passwd for name=%sï¼Œgroup[%u,%u]",
                         passwd.m_strName.c_str(),
                         id_iter->first,
                         id_iter->second,

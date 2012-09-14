@@ -1,9 +1,9 @@
-#ifndef __CWX_MQ_APP_H__
+ï»¿#ifndef __CWX_MQ_APP_H__
 #define __CWX_MQ_APP_H__
 /*
-°æÈ¨ÉùÃ÷£º
-    ±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-    ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+    æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+    è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 #include "CwxMqMacro.h"
 #include "CwxAppFramework.h"
@@ -18,61 +18,61 @@
 #include "CwxMqQueueMgr.h"
 #include "CwxThreadPool.h"
 
-///Ó¦ÓÃĞÅÏ¢¶¨Òå
+///åº”ç”¨ä¿¡æ¯å®šä¹‰
 #define CWX_MQ_VERSION "2.2.10"
 #define CWX_MQ_MODIFY_DATE "20110901102000"
 
-///MQ·şÎñµÄapp¶ÔÏó
+///MQæœåŠ¡çš„appå¯¹è±¡
 class CwxMqApp : public CwxAppFramework{
 public:
     enum{
-        MAX_MONITOR_REPLY_SIZE = 1024 * 1024, ///<¼à¿ØµÄBUF¿Õ¼ä´óĞ¡
-        LOG_FILE_SIZE = 30, ///<Ã¿¸ö¿ÉÑ­»·Ê¹ÓÃÈÕÖ¾ÎÄ¼şµÄMByte
-        LOG_FILE_NUM = 7, ///<¿ÉÑ­»·Ê¹ÓÃÈÕÖ¾ÎÄ¼şµÄÊıÁ¿
-        SVR_TYPE_RECV = CwxAppFramework::SVR_TYPE_USER_START, ///<master binĞ­Òé½ÓÊÕµÄsvr type
-        SVR_TYPE_ASYNC = CwxAppFramework::SVR_TYPE_USER_START + 2, ///<master/slave binĞ­ÒéÒì²½·Ö·¢µÄsvr type
-        SVR_TYPE_MASTER = CwxAppFramework::SVR_TYPE_USER_START + 4, ///<slave ´Ómaster½ÓÊÕÊı¾İµÄsvr type
-        SVR_TYPE_FETCH = CwxAppFramework::SVR_TYPE_USER_START + 5, ///<mq binĞ­ÒéÏûÏ¢»ñÈ¡·şÎñÀàĞÍ
-        SVR_TYPE_MONITOR = CwxAppFramework::SVR_TYPE_USER_START + 7 ///<¼à¿Ø¼àÌıµÄ·şÎñÀàĞÍ
+        MAX_MONITOR_REPLY_SIZE = 1024 * 1024, ///<ç›‘æ§çš„BUFç©ºé—´å¤§å°
+        LOG_FILE_SIZE = 30, ///<æ¯ä¸ªå¯å¾ªç¯ä½¿ç”¨æ—¥å¿—æ–‡ä»¶çš„MByte
+        LOG_FILE_NUM = 7, ///<å¯å¾ªç¯ä½¿ç”¨æ—¥å¿—æ–‡ä»¶çš„æ•°é‡
+        SVR_TYPE_RECV = CwxAppFramework::SVR_TYPE_USER_START, ///<master binåè®®æ¥æ”¶çš„svr type
+        SVR_TYPE_ASYNC = CwxAppFramework::SVR_TYPE_USER_START + 2, ///<master/slave binåè®®å¼‚æ­¥åˆ†å‘çš„svr type
+        SVR_TYPE_MASTER = CwxAppFramework::SVR_TYPE_USER_START + 4, ///<slave ä»masteræ¥æ”¶æ•°æ®çš„svr type
+        SVR_TYPE_FETCH = CwxAppFramework::SVR_TYPE_USER_START + 5, ///<mq binåè®®æ¶ˆæ¯è·å–æœåŠ¡ç±»å‹
+        SVR_TYPE_MONITOR = CwxAppFramework::SVR_TYPE_USER_START + 7 ///<ç›‘æ§ç›‘å¬çš„æœåŠ¡ç±»å‹
     };
     enum{
-        MQ_NEW_MSG_EVENT=CwxEventInfo::SYS_EVENT_NUM + 1, ///<binlogÓĞĞÂÊı¾İµÄÊÂ¼ş
-        MQ_CONTINUE_SEND_EVENT= MQ_NEW_MSG_EVENT + 1 ///<Î´Íê³É·¢ËÍµÄÁ¬½Ó£¬¼ÌĞø·¢ËÍ
+        MQ_NEW_MSG_EVENT=CwxEventInfo::SYS_EVENT_NUM + 1, ///<binlogæœ‰æ–°æ•°æ®çš„äº‹ä»¶
+        MQ_CONTINUE_SEND_EVENT= MQ_NEW_MSG_EVENT + 1 ///<æœªå®Œæˆå‘é€çš„è¿æ¥ï¼Œç»§ç»­å‘é€
     };
-    ///¹¹Ôìº¯Êı
+    ///æ„é€ å‡½æ•°
 	CwxMqApp();
-    ///Îö¹¹º¯Êı
+    ///ææ„å‡½æ•°
 	virtual ~CwxMqApp();
-    ///ÖØÔØ³õÊ¼»¯º¯Êı
+    ///é‡è½½åˆå§‹åŒ–å‡½æ•°
     virtual int init(int argc, char** argv);
 public:
-    ///Ê±ÖÓÏìÓ¦º¯Êı
+    ///æ—¶é’Ÿå“åº”å‡½æ•°
     virtual void onTime(CwxTimeValue const& current);
-    ///signalÏìÓ¦º¯Êı
+    ///signalå“åº”å‡½æ•°
     virtual void onSignal(int signum);
-    ///Á¬½Ó½¨Á¢
+    ///è¿æ¥å»ºç«‹
     virtual int onConnCreated(CWX_UINT32 uiSvrId, ///<service id
         CWX_UINT32 uiHostId, ///<host id
-        CWX_HANDLE handle, ///<Á¬½Óhandle
-        bool& bSuspendListen ///<ÊÇ·ñsuspend listen
+        CWX_HANDLE handle, ///<è¿æ¥handle
+        bool& bSuspendListen ///<æ˜¯å¦suspend listen
         );
-    ///Á¬½Ó½¨Á¢
-    virtual int onConnCreated(CwxAppHandler4Msg& conn, ///<Á¬½Ó¶ÔÏó
-        bool& bSuspendConn, ///<ÊÇ·ñsuspend Á¬½ÓÏûÏ¢µÄ½ÓÊÕ
-        bool& bSuspendListen ///<ÊÇ·ñsuspend ĞÂÁ¬½ÓµÄ¼àÌı
+    ///è¿æ¥å»ºç«‹
+    virtual int onConnCreated(CwxAppHandler4Msg& conn, ///<è¿æ¥å¯¹è±¡
+        bool& bSuspendConn, ///<æ˜¯å¦suspend è¿æ¥æ¶ˆæ¯çš„æ¥æ”¶
+        bool& bSuspendListen ///<æ˜¯å¦suspend æ–°è¿æ¥çš„ç›‘å¬
         );
-    ///Á¬½Ó¹Ø±Õ
+    ///è¿æ¥å…³é—­
     virtual int onConnClosed(CwxAppHandler4Msg& conn);
-    ///ÊÕµ½ÏûÏ¢µÄÏìÓ¦º¯Êı
+    ///æ”¶åˆ°æ¶ˆæ¯çš„å“åº”å‡½æ•°
     virtual int onRecvMsg(CwxMsgBlock* msg,
                         CwxAppHandler4Msg& conn,
                         CwxMsgHead const& header,
                         bool& bSuspendConn);
-    ///ÊÕµ½ÏûÏ¢µÄÏìÓ¦º¯Êı
+    ///æ”¶åˆ°æ¶ˆæ¯çš„å“åº”å‡½æ•°
     virtual int onRecvMsg(CwxAppHandler4Msg& conn,
            bool& bSuspendConn);
 public:
-    ///¼ÆËã»úµÄÊ±ÖÓÊÇ·ñ»Øµ÷
+    ///è®¡ç®—æœºçš„æ—¶é’Ÿæ˜¯å¦å›è°ƒ
     static bool isClockBack(CWX_UINT32& uiLastTime, CWX_UINT32 uiNow){
         if (uiLastTime > uiNow + 1){
             uiLastTime = uiNow;
@@ -81,73 +81,73 @@ public:
         uiLastTime = uiNow;
         return false;
     }
-    ///-1:Ê§°Ü£»0£º³É¹¦
+    ///-1:å¤±è´¥ï¼›0ï¼šæˆåŠŸ
     int commit_mq();
-    ///ÊÇ·ñÊÇµÚÒ»Ìõbinlog
+    ///æ˜¯å¦æ˜¯ç¬¬ä¸€æ¡binlog
     inline bool isFirstBinLog() const{
         return m_bFirstBinLog;
     }
-    ///ÉèÖÃÎªÊÕµ½µÄµÚÒ»Ìõbinlog
+    ///è®¾ç½®ä¸ºæ”¶åˆ°çš„ç¬¬ä¸€æ¡binlog
     inline void clearFirstBinLog(){
         m_bFirstBinLog = false;
     }
-    ///»ñÈ¡ÉÏÒ»´ÎcommitµÄÊ±¼ä
+    ///è·å–ä¸Šä¸€æ¬¡commitçš„æ—¶é—´
     inline CWX_UINT32 getLastCommitTime() const{
         return m_ttLastCommitTime;
     }
-    ///ÉèÖÃÉÏÒ»´ÎcommitµÄÊ±¼ä
+    ///è®¾ç½®ä¸Šä¸€æ¬¡commitçš„æ—¶é—´
     inline void setLastCommitTime(CWX_UINT32 ttTime){
         m_ttLastCommitTime = ttTime;
     }
-    ///»ñÈ¡Î´commitµÄlogÊıÁ¿
+    ///è·å–æœªcommitçš„logæ•°é‡
     inline CWX_UINT32 getUnCommitLogNum() const{
         return m_uiUnCommitLogNum;
     }
-    ///Ôö¼ÓÎ´commitµÄlogÊıÁ¿
+    ///å¢åŠ æœªcommitçš„logæ•°é‡
     inline CWX_UINT32 incUnCommitLogNum(){
         return ++m_uiUnCommitLogNum;
     }
-    ///½«Î´commitµÄlogÊıÁ¿¹éÁã
+    ///å°†æœªcommitçš„logæ•°é‡å½’é›¶
     inline void zeroUnCommitLogNum(){
         m_uiUnCommitLogNum = 0;
     }
-    ///»ñÈ¡MQÉÏ´ÎcommitµÄÊ±¼ä
+    ///è·å–MQä¸Šæ¬¡commitçš„æ—¶é—´
     inline CWX_UINT32 getMqLastCommitTime() const{
         return m_ttMqLastCommitTime;
     }
-    ///ÉèÖÃMQÉÏ´ÎcommitµÄÊ±¼ä
+    ///è®¾ç½®MQä¸Šæ¬¡commitçš„æ—¶é—´
     inline void setMqLastCommitTime(CWX_UINT32 ttTime){
         m_ttMqLastCommitTime = ttTime;
     }
-    ///½«µ±Ç°µÄSID¼Ó1²¢·µ»Ø£¬Ö»ÓĞmaster²ÅĞÎ³Ésid
+    ///å°†å½“å‰çš„SIDåŠ 1å¹¶è¿”å›ï¼Œåªæœ‰masteræ‰å½¢æˆsid
     inline CWX_UINT64 nextSid(){
         return ++m_uiCurSid;
     }
-    ///»ñÈ¡µ±Ç°µÄsid
+    ///è·å–å½“å‰çš„sid
     inline CWX_UINT64 getCurSid(){
         return m_uiCurSid;
     }
-    ///»ñÈ¡ÅäÖÃĞÅÏ¢¶ÔÏó
+    ///è·å–é…ç½®ä¿¡æ¯å¯¹è±¡
     inline CwxMqConfig const& getConfig() const{
         return m_config;
     }
-    ///»ñÈ¡binlog manager ¶ÔÏóÖ¸Õë
+    ///è·å–binlog manager å¯¹è±¡æŒ‡é’ˆ
     inline CwxBinLogMgr* getBinLogMgr(){
         return m_pBinLogMgr;
     }
-    ///»ñÈ¡mq¶ÓÁĞ¹ÜÀíÆ÷
+    ///è·å–mqé˜Ÿåˆ—ç®¡ç†å™¨
     inline CwxMqQueueMgr* getQueueMgr(){
         return m_queueMgr;
     }
-    ///»ñÈ¡slave´ÓmasterÍ¬²½binlogµÄhandler¶ÔÏó
+    ///è·å–slaveä»masteråŒæ­¥binlogçš„handlerå¯¹è±¡
     inline CwxMqMasterHandler* getMasterHandler(){
         return m_pMasterHandler;
     }
-    ///»ñÈ¡master½ÓÊÕbinlogµÄhandler¶ÔÏó
+    ///è·å–masteræ¥æ”¶binlogçš„handlerå¯¹è±¡
     inline CwxMqBinRecvHandler* getBinRecvHandler(){
         return m_pBinRecvHandler;
     }
-    ///¸üĞÂ·şÎñ×´Ì¬
+    ///æ›´æ–°æœåŠ¡çŠ¶æ€
     inline void updateAppRunState(){
         bool bValid = true;
         char const* szReason = "";
@@ -171,64 +171,64 @@ public:
         setAppRunValid(bValid);
         setAppRunFailReason(szReason);
     }
-    ///»ñÈ¡·Ö·¢µÄchannel
+    ///è·å–åˆ†å‘çš„channel
     CwxAppChannel* getAsyncDispChannel(){
         return m_asyncDispChannel;
     }
-    ///»ñÈ¡mqµÄchannel
+    ///è·å–mqçš„channel
     CwxAppChannel* getMqChannel(){
         return m_mqChannel;
     }
 protected:
-    ///ÖØÔØÔËĞĞ»·¾³ÉèÖÃAPI
+    ///é‡è½½è¿è¡Œç¯å¢ƒè®¾ç½®API
     virtual int initRunEnv();
-    ///ÊÍ·Åapp×ÊÔ´
+    ///é‡Šæ”¾appèµ„æº
     virtual void destroy();
 private:
-    ///Æô¶¯binlog¹ÜÀíÆ÷£¬-1£ºÊ§°Ü£»0£º³É¹¦
+    ///å¯åŠ¨binlogç®¡ç†å™¨ï¼Œ-1ï¼šå¤±è´¥ï¼›0ï¼šæˆåŠŸ
     int startBinLogMgr();
-    ///Æô¶¯ÍøÂç£¬-1£ºÊ§°Ü£»0£º³É¹¦
+    ///å¯åŠ¨ç½‘ç»œï¼Œ-1ï¼šå¤±è´¥ï¼›0ï¼šæˆåŠŸ
     int startNetwork();
-    ///statsÃüÁî£¬-1£ºÒòÎª´íÎó¹Ø±ÕÁ¬½Ó£»0£º²»¹Ø±ÕÁ¬½Ó
+    ///statså‘½ä»¤ï¼Œ-1ï¼šå› ä¸ºé”™è¯¯å…³é—­è¿æ¥ï¼›0ï¼šä¸å…³é—­è¿æ¥
     int monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHandler4Msg& conn);
-    ///ĞÎ³É¼à¿ØÄÚÈİ£¬·µ»Ø¼à¿ØÄÚÈİµÄ³¤¶È
+    ///å½¢æˆç›‘æ§å†…å®¹ï¼Œè¿”å›ç›‘æ§å†…å®¹çš„é•¿åº¦
     CWX_UINT32 packMonitorInfo();
-    ///·Ö·¢channelµÄÏß³Ìº¯Êı£¬argÎªapp¶ÔÏó
+    ///åˆ†å‘channelçš„çº¿ç¨‹å‡½æ•°ï¼Œargä¸ºappå¯¹è±¡
     static void* dispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg);
-    ///·Ö·¢channelµÄ¶ÓÁĞÏûÏ¢º¯Êı¡£·µ»ØÖµ£º0£ºÕı³££»-1£º¶ÓÁĞÍ£Ö¹
+    ///åˆ†å‘channelçš„é˜Ÿåˆ—æ¶ˆæ¯å‡½æ•°ã€‚è¿”å›å€¼ï¼š0ï¼šæ­£å¸¸ï¼›-1ï¼šé˜Ÿåˆ—åœæ­¢
     static int dealDispatchThreadQueueMsg(CwxTss* tss, CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel);
-    ///·Ö·¢mq channelµÄÏß³Ìº¯Êı£¬argÎªapp¶ÔÏó
+    ///åˆ†å‘mq channelçš„çº¿ç¨‹å‡½æ•°ï¼Œargä¸ºappå¯¹è±¡
     static void* mqFetchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg);
-    ///·Ö·¢mq channelµÄ¶ÓÁĞÏûÏ¢º¯Êı¡£·µ»ØÖµ£º0£ºÕı³££»-1£º¶ÓÁĞÍ£Ö¹
+    ///åˆ†å‘mq channelçš„é˜Ÿåˆ—æ¶ˆæ¯å‡½æ•°ã€‚è¿”å›å€¼ï¼š0ï¼šæ­£å¸¸ï¼›-1ï¼šé˜Ÿåˆ—åœæ­¢
     static int dealMqFetchThreadQueueMsg(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel);
-    ///ÉèÖÃmaster recvÁ¬½ÓµÄÊôĞÔ
+    ///è®¾ç½®master recvè¿æ¥çš„å±æ€§
     static int setMasterRecvSockAttr(CWX_HANDLE handle, void* arg);
-    ///ÉèÖÃmaster dispatchÁ¬½ÓµÄÊôĞÔ
+    ///è®¾ç½®master dispatchè¿æ¥çš„å±æ€§
     static int setMasterDispatchSockAttr(CWX_HANDLE handle, void* arg);
-    ///ÉèÖÃslave dispatchÁ¬½ÓµÄÊôĞÔ
+    ///è®¾ç½®slave dispatchè¿æ¥çš„å±æ€§
     static int setSlaveDispatchSockAttr(CWX_HANDLE handle, void* arg);
-    ///ÉèÖÃslave reportÁ¬½ÓµÄÊôĞÔ
+    ///è®¾ç½®slave reportè¿æ¥çš„å±æ€§
     static int setSlaveReportSockAttr(CWX_HANDLE handle, void* arg);
-    ///ÉèÖÃmqÁ¬½ÓµÄÊôĞÔ
+    ///è®¾ç½®mqè¿æ¥çš„å±æ€§
     static int setMqSockAttr(CWX_HANDLE handle, void* arg);
 private:
-    bool                        m_bFirstBinLog; ///<·şÎñÆô¶¯ºó£¬ÊÕµ½µÄµÚÒ»Ìõbinglog
-    CWX_UINT32                  m_ttLastCommitTime; ///<ÉÏÒ»´ÎcommitµÄÊ±ºò
-    CWX_UINT32                  m_uiUnCommitLogNum; ///<×ÔÉÏÒ»´ÎcommitÒÔÀ´£¬Î´commitµÄbinlogÊıÁ¿
-    CWX_UINT32                  m_ttMqLastCommitTime; ///<ÏûÏ¢·Ö·¢sysÎÄ¼şÉÏ´ÎcommitµÄÊ±ºò
-    CWX_UINT64                  m_uiCurSid; ///<µ±Ç°µÄsid
-    CwxMqConfig                 m_config; ///<ÅäÖÃÎÄ¼ş
-    CwxBinLogMgr*               m_pBinLogMgr; ///<binlogµÄ¹ÜÀí¶ÔÏó
-    CwxMqMasterHandler*         m_pMasterHandler; ///<´Ómaster½ÓÊÕÏûÏ¢µÄhandle
-    CwxMqBinRecvHandler*        m_pBinRecvHandler; ///<binĞ­Òé½ÓÊÕbinlogµÄhandle¡£
-    CwxMqQueueMgr*              m_queueMgr; ///<¶ÓÁĞ¹ÜÀíÆ÷
-    CwxThreadPool*              m_pRecvThreadPool;///<ÏûÏ¢½ÓÊÜµÄÏß³Ì³Ø¶ÔÏó
-    CwxThreadPool*              m_pAsyncDispThreadPool; ///<ÏûÏ¢Òì²½·Ö·¢µÄÏß³Ì³Ø¶ÔÏó
-    CwxAppChannel*              m_asyncDispChannel; ///<ÏûÏ¢Òì²½·Ö·¢µÄchannel
-    CwxThreadPool*              m_pMqThreadPool;       ///<mq»ñÈ¡µÄÏß³Ì³Ø¶ÔÏó
-    CwxAppChannel*              m_mqChannel;           ///<mq»ñÈ¡µÄchannel
-    string                      m_strStartTime; ///<Æô¶¯Ê±¼ä
-    char                        m_szBuf[MAX_MONITOR_REPLY_SIZE];///<¼à¿ØÏûÏ¢µÄ»Ø¸´buf
+    bool                        m_bFirstBinLog; ///<æœåŠ¡å¯åŠ¨åï¼Œæ”¶åˆ°çš„ç¬¬ä¸€æ¡binglog
+    CWX_UINT32                  m_ttLastCommitTime; ///<ä¸Šä¸€æ¬¡commitçš„æ—¶å€™
+    CWX_UINT32                  m_uiUnCommitLogNum; ///<è‡ªä¸Šä¸€æ¬¡commitä»¥æ¥ï¼Œæœªcommitçš„binlogæ•°é‡
+    CWX_UINT32                  m_ttMqLastCommitTime; ///<æ¶ˆæ¯åˆ†å‘sysæ–‡ä»¶ä¸Šæ¬¡commitçš„æ—¶å€™
+    CWX_UINT64                  m_uiCurSid; ///<å½“å‰çš„sid
+    CwxMqConfig                 m_config; ///<é…ç½®æ–‡ä»¶
+    CwxBinLogMgr*               m_pBinLogMgr; ///<binlogçš„ç®¡ç†å¯¹è±¡
+    CwxMqMasterHandler*         m_pMasterHandler; ///<ä»masteræ¥æ”¶æ¶ˆæ¯çš„handle
+    CwxMqBinRecvHandler*        m_pBinRecvHandler; ///<binåè®®æ¥æ”¶binlogçš„handleã€‚
+    CwxMqQueueMgr*              m_queueMgr; ///<é˜Ÿåˆ—ç®¡ç†å™¨
+    CwxThreadPool*              m_pRecvThreadPool;///<æ¶ˆæ¯æ¥å—çš„çº¿ç¨‹æ± å¯¹è±¡
+    CwxThreadPool*              m_pAsyncDispThreadPool; ///<æ¶ˆæ¯å¼‚æ­¥åˆ†å‘çš„çº¿ç¨‹æ± å¯¹è±¡
+    CwxAppChannel*              m_asyncDispChannel; ///<æ¶ˆæ¯å¼‚æ­¥åˆ†å‘çš„channel
+    CwxThreadPool*              m_pMqThreadPool;       ///<mqè·å–çš„çº¿ç¨‹æ± å¯¹è±¡
+    CwxAppChannel*              m_mqChannel;           ///<mqè·å–çš„channel
+    string                      m_strStartTime; ///<å¯åŠ¨æ—¶é—´
+    char                        m_szBuf[MAX_MONITOR_REPLY_SIZE];///<ç›‘æ§æ¶ˆæ¯çš„å›å¤buf
 
 };
 #endif

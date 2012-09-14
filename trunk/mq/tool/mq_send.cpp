@@ -1,4 +1,4 @@
-#include "CwxSocket.h"
+Ôªø#include "CwxSocket.h"
 #include "CwxINetAddr.h"
 #include "CwxSockStream.h"
 #include "CwxSockConnector.h"
@@ -18,7 +18,7 @@ char*       g_szData = NULL;
 CWX_UINT32 g_uiDataLen = 0;
 string     g_sign;
 bool       g_zip=false;
-///-1£∫ ß∞‹£ª0£∫help£ª1£∫≥…π¶
+///-1ÔºöÂ§±Ë¥•Ôºõ0ÔºöhelpÔºõ1ÔºöÊàêÂäü
 int parseArg(int argc, char**argv)
 {
     CwxGetOpt cmd_option(argc, argv, "H:P:u:p:g:d:f:m:zh");

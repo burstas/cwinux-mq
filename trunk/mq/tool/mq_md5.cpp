@@ -1,11 +1,11 @@
-#include "CwxMd5.h"
+ï»¿#include "CwxMd5.h"
 #include "CwxGetOpt.h"
 #include "CwxStl.h"
 #include "CwxFile.h"
 using namespace cwinux;
 string g_strMd5;
 string g_strMd5File;
-///-1£ºÊ§°Ü£»0£ºhelp£»1£º³É¹¦
+///-1ï¼šå¤±è´¥ï¼›0ï¼šhelpï¼›1ï¼šæˆåŠŸ
 int parseArg(int argc, char**argv)
 {
     CwxGetOpt cmd_option(argc, argv, "c:f:h");

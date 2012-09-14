@@ -1,9 +1,9 @@
-#ifndef __CWX_MQ_QUEUE_LOG_FILE_H__
+ï»¿#ifndef __CWX_MQ_QUEUE_LOG_FILE_H__
 #define __CWX_MQ_QUEUE_LOG_FILE_H__
 /*
-°æÈ¨ÉùÃ÷£º
-    ±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-    ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+    æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+    è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 #include "CwxMqMacro.h"
 #include "CwxMutexLock.h"
@@ -16,7 +16,7 @@
 
 /**
 @file CwxMqQueueLogFile.h
-@brief MQ Queue ¶ÓÁĞµÄlog¶ÔÏó¶¨Òå¡£
+@brief MQ Queue é˜Ÿåˆ—çš„logå¯¹è±¡å®šä¹‰ã€‚
 @author cwinux@gmail.com
 @version 1.0
 @date 2011-05-27
@@ -27,26 +27,26 @@
 class CwxMqQueueLogFile{
 public:
     enum{
-        SWITCH_FILE_LOG_NUM = 100000, ///<Ğ´Èë¶àÉÙ¸öLog¼ÇÂ¼£¬ĞèÒªÇĞ»»ÈÕÖ¾ÎÄ¼ş
+        SWITCH_FILE_LOG_NUM = 100000, ///<å†™å…¥å¤šå°‘ä¸ªLogè®°å½•ï¼Œéœ€è¦åˆ‡æ¢æ—¥å¿—æ–‡ä»¶
     };
 public:
     CwxMqQueueLogFile(CWX_UINT32 uiFsyncInternal, string const& strFileName);
     ~CwxMqQueueLogFile();
 public:
-    ///³õÊ¼»¯ÏµÍ³ÎÄ¼ş£»0£º³É¹¦£»-1£ºÊ§°Ü
+    ///åˆå§‹åŒ–ç³»ç»Ÿæ–‡ä»¶ï¼›0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     int init(CwxMqQueueInfo& queue,
         set<CWX_UINT64>& uncommitSets,
         set<CWX_UINT64>& commitSets);
-    ///±£´æ¶ÓÁĞĞÅÏ¢£»0£º³É¹¦£»-1£ºÊ§°Ü
+    ///ä¿å­˜é˜Ÿåˆ—ä¿¡æ¯ï¼›0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     int save(CwxMqQueueInfo const& queue,
         set<CWX_UINT64> const& uncommitSets,
         set<CWX_UINT64> const& commitSets);
-    ///Ğ´commit¼ÇÂ¼£»-1£ºÊ§°Ü£»·ñÔò·µ»ØÒÑ¾­Ğ´ÈëµÄlogÊıÁ¿
+    ///å†™commitè®°å½•ï¼›-1ï¼šå¤±è´¥ï¼›å¦åˆ™è¿”å›å·²ç»å†™å…¥çš„logæ•°é‡
     int log(CWX_UINT64 sid);
-    ///Ç¿ĞĞfsyncÈÕÖ¾ÎÄ¼ş£»0£º³É¹¦£»-1£ºÊ§°Ü
+    ///å¼ºè¡Œfsyncæ—¥å¿—æ–‡ä»¶ï¼›0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     int fsync();
 public:
-	///É¾³ı¶ÓÁĞÎÄ¼ş
+	///åˆ é™¤é˜Ÿåˆ—æ–‡ä»¶
 	inline static void removeFile(string const& file){
 		string strFile = file;
 		CwxFile::rmFile(strFile.c_str());
@@ -57,15 +57,15 @@ public:
 		strFile = file + ".new";
 		CwxFile::rmFile(strFile.c_str());
 	}
-    ///»ñÈ¡ÏµÍ³ÎÄ¼şµÄÃû×Ö
+    ///è·å–ç³»ç»Ÿæ–‡ä»¶çš„åå­—
     inline string const& getFileName() const{
         return m_strFileName;
     }
-    ///»ñÈ¡´íÎóĞÅÏ¢
+    ///è·å–é”™è¯¯ä¿¡æ¯
     inline char const* getErrMsg() const{
         return m_szErr2K;
     }
-    ///ÊÇ·ñÓĞĞ§
+    ///æ˜¯å¦æœ‰æ•ˆ
     inline bool isValid() const{
         return m_fd!=NULL;
     }
@@ -79,17 +79,17 @@ public:
 		return m_uiLastSaveTime;
 	}
 private:
-    ///0£º³É¹¦£»-1£ºÊ§°Ü
+    ///0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     int prepare();
-    ///0£º³É¹¦£»-1£ºÊ§°Ü
+    ///0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     int load( CwxMqQueueInfo& queues,
         set<CWX_UINT64>& uncommitSets,
         set<CWX_UINT64>& commitSets);
-    ///0£º³É¹¦£»-1£ºÊ§°Ü
+    ///0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     int parseQueue(string const& line, CwxMqQueueInfo& queue);
-    ///0£º³É¹¦£»-1£ºÊ§°Ü
+    ///0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
     int parseSid(string const& line, CWX_UINT64& ullSid);
-    ///¹Ø±ÕÎÄ¼ş
+    ///å…³é—­æ–‡ä»¶
     inline void closeFile(bool bSync=true){
         if (m_fd){
             if (bSync) ::fsync(fileno(m_fd));
@@ -102,17 +102,17 @@ private:
         }
     }
 private:
-    string          m_strFileName; ///<ÏµÍ³ÎÄ¼şÃû×Ö
-    string          m_strOldFileName; ///<¾ÉÏµÍ³ÎÄ¼şÃû×Ö
-    string          m_strNewFileName; ///<ĞÂÏµÍ³ÎÄ¼şµÄÃû×Ö
-    FILE*           m_fd; ///<ÎÄ¼şhandle
-    bool            m_bLock; ///<ÎÄ¼şÊÇ·ñÒÑ¾­¼ÓËø
-    CWX_UINT32      m_uiFsyncInternal; ///<flushÓ²ÅÌµÄ¼ä¸ô
-    CWX_UINT32      m_uiCurLogCount; ///<×ÔÉÏ´ÎfsyncÀ´£¬log¼ÇÂ¼µÄ´ÎÊı
-    CWX_UINT32      m_uiTotalLogCount; ///<µ±Ç°ÎÄ¼şlogµÄÊıÁ¿
-    CWX_UINT32      m_uiLine; ///<¶ÁÈ¡ÎÄ¼şµÄµ±Ç°ĞĞÊı
-	CWX_UINT32      m_uiLastSaveTime; ///<ÉÏÒ»´ÎlogÎÄ¼şµÄ±£´æÊ±¼ä
-    char            m_szErr2K[2048]; ///<´íÎóÏûÏ¢
+    string          m_strFileName; ///<ç³»ç»Ÿæ–‡ä»¶åå­—
+    string          m_strOldFileName; ///<æ—§ç³»ç»Ÿæ–‡ä»¶åå­—
+    string          m_strNewFileName; ///<æ–°ç³»ç»Ÿæ–‡ä»¶çš„åå­—
+    FILE*           m_fd; ///<æ–‡ä»¶handle
+    bool            m_bLock; ///<æ–‡ä»¶æ˜¯å¦å·²ç»åŠ é”
+    CWX_UINT32      m_uiFsyncInternal; ///<flushç¡¬ç›˜çš„é—´éš”
+    CWX_UINT32      m_uiCurLogCount; ///<è‡ªä¸Šæ¬¡fsyncæ¥ï¼Œlogè®°å½•çš„æ¬¡æ•°
+    CWX_UINT32      m_uiTotalLogCount; ///<å½“å‰æ–‡ä»¶logçš„æ•°é‡
+    CWX_UINT32      m_uiLine; ///<è¯»å–æ–‡ä»¶çš„å½“å‰è¡Œæ•°
+	CWX_UINT32      m_uiLastSaveTime; ///<ä¸Šä¸€æ¬¡logæ–‡ä»¶çš„ä¿å­˜æ—¶é—´
+    char            m_szErr2K[2048]; ///<é”™è¯¯æ¶ˆæ¯
 };
 
 #endif 

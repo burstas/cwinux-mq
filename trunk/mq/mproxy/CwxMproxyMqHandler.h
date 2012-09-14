@@ -1,9 +1,9 @@
-#ifndef __CWX_MPROXY_MQ_HANDLER_H__
+ï»¿#ifndef __CWX_MPROXY_MQ_HANDLER_H__
 #define __CWX_MPROXY_MQ_HANDLER_H__
 /*
-°æÈ¨ÉùÃ÷£º
-    ±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-    ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+    æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+    è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 #include "CwxCommander.h"
 #include "CwxTss.h"
@@ -13,21 +13,21 @@
 CWINUX_USING_NAMESPACE
 
 class CwxMproxyApp;
-///ÇëÇóµÄMQÏûÏ¢»Ø¸´µÄhandle
+///è¯·æ±‚çš„MQæ¶ˆæ¯å›å¤çš„handle
 class CwxMproxyMqHandler : public CwxCmdOp 
 {
 public:
-    ///¹¹Ôìº¯Êı
+    ///æ„é€ å‡½æ•°
     CwxMproxyMqHandler(CwxMproxyApp* pApp):m_pApp(pApp)
     {
     }
-    ///Îö¹¹º¯Êı
+    ///ææ„å‡½æ•°
     virtual ~CwxMproxyMqHandler()
     {
 
     }
 public:
-    ///mqÏûÏ¢·µ»ØµÄ´¦Àíº¯Êı
+    ///mqæ¶ˆæ¯è¿”å›çš„å¤„ç†å‡½æ•°
     virtual int onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     virtual int onConnClosed(CwxMsgBlock*& msg, CwxTss* pThrEnv);
     virtual int onEndSendMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
@@ -35,7 +35,7 @@ public:
 public:
     static int sendMq(CwxMproxyApp* app, CWX_UINT32 uiTaskId, CwxMsgBlock*& msg);
 private:
-    CwxMproxyApp*     m_pApp;  ///<app¶ÔÏó
+    CwxMproxyApp*     m_pApp;  ///<appå¯¹è±¡
 };
 
 #endif 

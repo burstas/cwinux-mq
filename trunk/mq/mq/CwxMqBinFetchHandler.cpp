@@ -1,24 +1,24 @@
-#include "CwxMqBinFetchHandler.h"
+ï»¿#include "CwxMqBinFetchHandler.h"
 #include "CwxMqApp.h"
 #include "CwxMsgHead.h"
 /**
-@brief Á¬½Ó¿É¶ÁÊÂ¼ş£¬·µ»Ø-1£¬close()»á±»µ÷ÓÃ
-@return -1£º´¦ÀíÊ§°Ü£¬»áµ÷ÓÃclose()£» 0£º´¦Àí³É¹¦
+@brief è¿æ¥å¯è¯»äº‹ä»¶ï¼Œè¿”å›-1ï¼Œclose()ä¼šè¢«è°ƒç”¨
+@return -1ï¼šå¤„ç†å¤±è´¥ï¼Œä¼šè°ƒç”¨close()ï¼› 0ï¼šå¤„ç†æˆåŠŸ
 */
 int CwxMqBinFetchHandler::onInput(){
-    ///½ÓÊÜÏûÏ¢
+    ///æ¥å—æ¶ˆæ¯
     int ret = CwxAppHandler4Channel::recvPackage(getHandle(),
         m_uiRecvHeadLen,
         m_uiRecvDataLen,
         m_szHeadBuf,
         m_header,
         m_recvMsgData);
-    if (1 != ret) return ret; ///Èç¹ûÊ§°Ü»òÕßÏûÏ¢Ã»ÓĞ½ÓÊÕÍê£¬·µ»Ø¡£
-    ///»ñÈ¡fetch Ïß³ÌµÄtss¶ÔÏó
+    if (1 != ret) return ret; ///å¦‚æœå¤±è´¥æˆ–è€…æ¶ˆæ¯æ²¡æœ‰æ¥æ”¶å®Œï¼Œè¿”å›ã€‚
+    ///è·å–fetch çº¿ç¨‹çš„tsså¯¹è±¡
     CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
-    ///Í¨ÖªÊÕµ½Ò»¸öÏûÏ¢
+    ///é€šçŸ¥æ”¶åˆ°ä¸€ä¸ªæ¶ˆæ¯
     ret = recvMessage(tss);
-    ///Èç¹ûm_recvMsgDataÃ»ÓĞÊÍ·Å£¬ÔòÊÇ·ñm_recvMsgDataµÈ´ı½ÓÊÕÏÂÒ»¸öÏûÏ¢
+    ///å¦‚æœm_recvMsgDataæ²¡æœ‰é‡Šæ”¾ï¼Œåˆ™æ˜¯å¦m_recvMsgDataç­‰å¾…æ¥æ”¶ä¸‹ä¸€ä¸ªæ¶ˆæ¯
     if (m_recvMsgData) CwxMsgBlockAlloc::free(m_recvMsgData);
     this->m_recvMsgData = NULL;
     this->m_uiRecvHeadLen = 0;
@@ -26,25 +26,25 @@ int CwxMqBinFetchHandler::onInput(){
     return ret;
 }
 /**
-@brief Í¨ÖªÁ¬½Ó¹Ø±Õ¡£
-@return 1£º²»´ÓengineÖĞÒÆ³ı×¢²á£»0£º´ÓengineÖĞÒÆ³ı×¢²áµ«²»É¾³ıhandler£»-1£º´ÓengineÖĞ½«handleÒÆ³ı²¢É¾³ı¡£
+@brief é€šçŸ¥è¿æ¥å…³é—­ã€‚
+@return 1ï¼šä¸ä»engineä¸­ç§»é™¤æ³¨å†Œï¼›0ï¼šä»engineä¸­ç§»é™¤æ³¨å†Œä½†ä¸åˆ é™¤handlerï¼›-1ï¼šä»engineä¸­å°†handleç§»é™¤å¹¶åˆ é™¤ã€‚
 */
 int CwxMqBinFetchHandler::onConnClosed(){
     return -1;
 }
 
 /**
-@brief HandlerµÄredoÊÂ¼ş£¬ÔÚÃ¿´ÎdispatchÊ±Ö´ĞĞ¡£
-@return -1£º´¦ÀíÊ§°Ü£¬»áµ÷ÓÃclose()£» 0£º´¦Àí³É¹¦
+@brief Handlerçš„redoäº‹ä»¶ï¼Œåœ¨æ¯æ¬¡dispatchæ—¶æ‰§è¡Œã€‚
+@return -1ï¼šå¤„ç†å¤±è´¥ï¼Œä¼šè°ƒç”¨close()ï¼› 0ï¼šå¤„ç†æˆåŠŸ
 */
 int CwxMqBinFetchHandler::onRedo(){
-    ///»ñÈ¡tssÊµÀı
+    ///è·å–tsså®ä¾‹
     CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
     int iRet = sentBinlog(tss);
-    if (0 == iRet){///¼ÌĞøµÈ´ıÏûÏ¢
+    if (0 == iRet){///ç»§ç»­ç­‰å¾…æ¶ˆæ¯
         m_conn.m_bWaiting = true;
         channel()->regRedoHander(this);
-    }else if (-1 == iRet){///´íÎó£¬¹Ø±ÕÁ¬½Ó
+    }else if (-1 == iRet){///é”™è¯¯ï¼Œå…³é—­è¿æ¥
         return -1;
     }
     m_conn.m_bWaiting = false;
@@ -52,57 +52,57 @@ int CwxMqBinFetchHandler::onRedo(){
 }
 
 /**
-@brief Í¨ÖªÁ¬½ÓÍê³ÉÒ»¸öÏûÏ¢µÄ·¢ËÍ¡£<br>
-Ö»ÓĞÔÚMsgÖ¸¶¨FINISH_NOTICEµÄÊ±ºò²Åµ÷ÓÃ.
-@param [in,out] msg ´«Èë·¢ËÍÍê±ÏµÄÏûÏ¢£¬Èô·µ»ØNULL£¬ÔòmsgÓĞÉÏ²ãÊÍ·Å£¬·ñÔòµ×²ãÊÍ·Å¡£
+@brief é€šçŸ¥è¿æ¥å®Œæˆä¸€ä¸ªæ¶ˆæ¯çš„å‘é€ã€‚<br>
+åªæœ‰åœ¨MsgæŒ‡å®šFINISH_NOTICEçš„æ—¶å€™æ‰è°ƒç”¨.
+@param [in,out] msg ä¼ å…¥å‘é€å®Œæ¯•çš„æ¶ˆæ¯ï¼Œè‹¥è¿”å›NULLï¼Œåˆ™msgæœ‰ä¸Šå±‚é‡Šæ”¾ï¼Œå¦åˆ™åº•å±‚é‡Šæ”¾ã€‚
 @return 
-CwxMsgSendCtrl::UNDO_CONN£º²»ĞŞ¸ÄÁ¬½ÓµÄ½ÓÊÕ×´Ì¬
-CwxMsgSendCtrl::RESUME_CONN£ºÈÃÁ¬½Ó´Ósuspend×´Ì¬±äÎªÊı¾İ½ÓÊÕ×´Ì¬¡£
-CwxMsgSendCtrl::SUSPEND_CONN£ºÈÃÁ¬½Ó´ÓÊı¾İ½ÓÊÕ×´Ì¬±äÎªsuspend×´Ì¬
+CwxMsgSendCtrl::UNDO_CONNï¼šä¸ä¿®æ”¹è¿æ¥çš„æ¥æ”¶çŠ¶æ€
+CwxMsgSendCtrl::RESUME_CONNï¼šè®©è¿æ¥ä»suspendçŠ¶æ€å˜ä¸ºæ•°æ®æ¥æ”¶çŠ¶æ€ã€‚
+CwxMsgSendCtrl::SUSPEND_CONNï¼šè®©è¿æ¥ä»æ•°æ®æ¥æ”¶çŠ¶æ€å˜ä¸ºsuspendçŠ¶æ€
 */
 CWX_UINT32 CwxMqBinFetchHandler::onEndSendMsg(CwxMsgBlock*& msg){
-    ///»ñÈ¡tssÊµÀı
+    ///è·å–tsså®ä¾‹
     CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
     int iRet = m_pApp->getQueueMgr()->endSendMsg(m_conn.m_strQueueName,
         msg->event().m_ullArg,
         true,
         tss->m_szBuf2K);
-    //0£º³É¹¦£¬-1£ºÊ§°Ü£¬-2£º¶ÓÁĞ²»´æÔÚ
-    if (-1 == iRet){//ÄÚ²¿´íÎó£¬´ËÊ±±ØĞë¹Ø±ÕÁ¬½Ó
-        CWX_ERROR(("Queue[%s]: Failure to endSendMsg£¬ err: %s",
+    //0ï¼šæˆåŠŸï¼Œ-1ï¼šå¤±è´¥ï¼Œ-2ï¼šé˜Ÿåˆ—ä¸å­˜åœ¨
+    if (-1 == iRet){//å†…éƒ¨é”™è¯¯ï¼Œæ­¤æ—¶å¿…é¡»å…³é—­è¿æ¥
+        CWX_ERROR(("Queue[%s]: Failure to endSendMsgï¼Œ err: %s",
             m_conn.m_strQueueName.c_str(), 
             tss->m_szBuf2K));
-    }else if (-2 == iRet){//¶ÓÁĞ²»´æÔÚ
+    }else if (-2 == iRet){//é˜Ÿåˆ—ä¸å­˜åœ¨
         CWX_ERROR(("Queue[%s]: No queue"));
     }
-    //´ËmsgÓÉqueue mgr¸ºÔğ¹ÜÀí£¬Íâ²ã²»ÄÜÊÍ·Å
+    //æ­¤msgç”±queue mgrè´Ÿè´£ç®¡ç†ï¼Œå¤–å±‚ä¸èƒ½é‡Šæ”¾
     msg = NULL;
     return CwxMsgSendCtrl::UNDO_CONN;
 }
 
 /**
-@brief Í¨ÖªÁ¬½ÓÉÏ£¬Ò»¸öÏûÏ¢·¢ËÍÊ§°Ü¡£<br>
-Ö»ÓĞÔÚMsgÖ¸¶¨FAIL_NOTICEµÄÊ±ºò²Åµ÷ÓÃ.
-@param [in,out] msg ·¢ËÍÊ§°ÜµÄÏûÏ¢£¬Èô·µ»ØNULL£¬ÔòmsgÓĞÉÏ²ãÊÍ·Å£¬·ñÔòµ×²ãÊÍ·Å¡£
-@return void¡£
+@brief é€šçŸ¥è¿æ¥ä¸Šï¼Œä¸€ä¸ªæ¶ˆæ¯å‘é€å¤±è´¥ã€‚<br>
+åªæœ‰åœ¨MsgæŒ‡å®šFAIL_NOTICEçš„æ—¶å€™æ‰è°ƒç”¨.
+@param [in,out] msg å‘é€å¤±è´¥çš„æ¶ˆæ¯ï¼Œè‹¥è¿”å›NULLï¼Œåˆ™msgæœ‰ä¸Šå±‚é‡Šæ”¾ï¼Œå¦åˆ™åº•å±‚é‡Šæ”¾ã€‚
+@return voidã€‚
 */
 void CwxMqBinFetchHandler::onFailSendMsg(CwxMsgBlock*& msg){
     CwxMqTss* tss = (CwxMqTss*)CwxTss::instance();
     backMq(msg->event().m_ullArg, tss);
-    //´ËmsgÓÉqueue mgr¸ºÔğ¹ÜÀí£¬Íâ²ã²»ÄÜÊÍ·Å
+    //æ­¤msgç”±queue mgrè´Ÿè´£ç®¡ç†ï¼Œå¤–å±‚ä¸èƒ½é‡Šæ”¾
     msg = NULL;
 }
 
-///ÊÕµ½Ò»¸öÏûÏ¢£¬0£º³É¹¦£»-1£ºÊ§°Ü
+///æ”¶åˆ°ä¸€ä¸ªæ¶ˆæ¯ï¼Œ0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
 int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss){
-    if (CwxMqPoco::MSG_TYPE_FETCH_DATA == m_header.getMsgType()){///mqµÄ»ñÈ¡ÏûÏ¢
+    if (CwxMqPoco::MSG_TYPE_FETCH_DATA == m_header.getMsgType()){///mqçš„è·å–æ¶ˆæ¯
         return fetchMq(pTss);
-    }else if (CwxMqPoco::MSG_TYPE_CREATE_QUEUE == m_header.getMsgType()){///´´½¨¶ÓÁĞµÄÏûÏ¢
+    }else if (CwxMqPoco::MSG_TYPE_CREATE_QUEUE == m_header.getMsgType()){///åˆ›å»ºé˜Ÿåˆ—çš„æ¶ˆæ¯
         return createQueue(pTss);
-    }else if (CwxMqPoco::MSG_TYPE_DEL_QUEUE == m_header.getMsgType()){///É¾³ı¶ÓÁĞµÄÏûÏ¢
+    }else if (CwxMqPoco::MSG_TYPE_DEL_QUEUE == m_header.getMsgType()){///åˆ é™¤é˜Ÿåˆ—çš„æ¶ˆæ¯
         return delQueue(pTss);
     }
-    ///ÈôÆäËûÏûÏ¢£¬Ôò·µ»Ø´íÎó
+    ///è‹¥å…¶ä»–æ¶ˆæ¯ï¼Œåˆ™è¿”å›é”™è¯¯
     CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u", m_header.getMsgType());
     CWX_ERROR((pTss->m_szBuf2K));
     CwxMsgBlock* block = packEmptyFetchMsg(pTss, CWX_MQ_ERR_ERROR, pTss->m_szBuf2K);
@@ -137,65 +137,65 @@ int CwxMqBinFetchHandler::fetchMq(CwxMqTss* pTss){
             user,
             passwd,
             pTss->m_szBuf2K);
-        ///Èç¹û½âÎöÊ§°Ü£¬Ôò½øÈë´íÎóÏûÏ¢´¦Àí
+        ///å¦‚æœè§£æå¤±è´¥ï¼Œåˆ™è¿›å…¥é”™è¯¯æ¶ˆæ¯å¤„ç†
         if (CWX_MQ_ERR_SUCCESS != iRet) break; 
-        ///Èç¹ûµ±Ç°mqµÄ»ñÈ¡´¦ÓÚwaiting×´Ì¬»ò»¹Ã»ÓĞ¶àµÄÈ·ÈÏ£¬ÔòÖ±½ÓºöÂÔ
+        ///å¦‚æœå½“å‰mqçš„è·å–å¤„äºwaitingçŠ¶æ€æˆ–è¿˜æ²¡æœ‰å¤šçš„ç¡®è®¤ï¼Œåˆ™ç›´æ¥å¿½ç•¥
         if (m_conn.m_bWaiting) return 0;
-        ///Èç¹ûÊÇµÚÒ»´Î»ñÈ¡»òÕß¸Ä±äÁËÏûÏ¢¶ÔÁË£¬ÔòĞ£Ñé¶ÓÁĞÈ¨ÏŞ
-        if (!m_conn.m_strQueueName.length() ||  ///µÚÒ»´Î»ñÈ¡
-            m_conn.m_strQueueName != queue_name ///ĞÂ¶ÓÁĞ
+        ///å¦‚æœæ˜¯ç¬¬ä¸€æ¬¡è·å–æˆ–è€…æ”¹å˜äº†æ¶ˆæ¯å¯¹äº†ï¼Œåˆ™æ ¡éªŒé˜Ÿåˆ—æƒé™
+        if (!m_conn.m_strQueueName.length() ||  ///ç¬¬ä¸€æ¬¡è·å–
+            m_conn.m_strQueueName != queue_name ///æ–°é˜Ÿåˆ—
             )
         {
-            m_conn.m_strQueueName.erase(); ///Çå¿Õµ±Ç°¶ÓÁĞ
+            m_conn.m_strQueueName.erase(); ///æ¸…ç©ºå½“å‰é˜Ÿåˆ—
             string strQueue = queue_name?queue_name:"";
             string strUser = user?user:"";
             string strPasswd = passwd?passwd:"";
-            ///¼øÈ¨¶ÓÁĞµÄÓÃ»§Ãû¡¢¿ÚÁî
+            ///é‰´æƒé˜Ÿåˆ—çš„ç”¨æˆ·åã€å£ä»¤
             iRet = m_pApp->getQueueMgr()->authQueue(strQueue, strUser, strPasswd);
-            ///Èç¹û¶ÓÁĞ²»´æÔÚ£¬Ôò·µ»Ø´íÎóÏûÏ¢
+            ///å¦‚æœé˜Ÿåˆ—ä¸å­˜åœ¨ï¼Œåˆ™è¿”å›é”™è¯¯æ¶ˆæ¯
             if (0 == iRet){
                 iRet = CWX_MQ_ERR_ERROR;
                 CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "No queue:%s", strQueue.c_str());
                 CWX_DEBUG((pTss->m_szBuf2K));
                 break;
             }
-            ///Èç¹ûÈ¨ÏŞ´íÎó£¬Ôò·µ»Ø´íÎóÏûÏ¢
+            ///å¦‚æœæƒé™é”™è¯¯ï¼Œåˆ™è¿”å›é”™è¯¯æ¶ˆæ¯
             if (-1 == iRet){
                 iRet = CWX_MQ_ERR_FAIL_AUTH;
                 CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
                 CWX_DEBUG((pTss->m_szBuf2K));
                 break;
             }
-            ///³õÊ¼»¯Á¬½Ó
+            ///åˆå§‹åŒ–è¿æ¥
             m_conn.reset();
-            ///ÉèÖÃ¶ÓÁĞÃû
+            ///è®¾ç½®é˜Ÿåˆ—å
             m_conn.m_strQueueName = strQueue;
         }
-        ///ÉèÖÃÊÇ·ñblock
+        ///è®¾ç½®æ˜¯å¦block
         m_conn.m_bBlock = bBlock;
-        ///·¢ËÍÏûÏ¢
+        ///å‘é€æ¶ˆæ¯
         int ret = sentBinlog(pTss);
-        if (0 == ret){///µÈ´ıÏûÏ¢
+        if (0 == ret){///ç­‰å¾…æ¶ˆæ¯
             m_conn.m_bWaiting = true;
             channel()->regRedoHander(this);
             return 0;
-        }else if (-1 == ret){///·¢ËÍÊ§°Ü£¬¹Ø±ÕÁ¬½Ó¡£´ËÊôÓÚÄÚ´æ²»×ã¡¢Á¬½Ó¹Ø±ÕµÈµÈÑÏÖØµÄ´íÎó
+        }else if (-1 == ret){///å‘é€å¤±è´¥ï¼Œå…³é—­è¿æ¥ã€‚æ­¤å±äºå†…å­˜ä¸è¶³ã€è¿æ¥å…³é—­ç­‰ç­‰ä¸¥é‡çš„é”™è¯¯
             return -1;
         }
-        //·¢ËÍÁËÒ»¸öÏûÏ¢
+        //å‘é€äº†ä¸€ä¸ªæ¶ˆæ¯
         m_conn.m_bWaiting = false;
         return 0;
     }while(0);
 
-    ///»Ø¸´´íÎóÏûÏ¢
+    ///å›å¤é”™è¯¯æ¶ˆæ¯
     m_conn.m_bWaiting = false;
     block = packEmptyFetchMsg(pTss, iRet, pTss->m_szBuf2K);
     if (!block)
-    {///·ÖÅä¿Õ¼ä´íÎó£¬Ö±½Ó¹Ø±ÕÁ¬½Ó
+    {///åˆ†é…ç©ºé—´é”™è¯¯ï¼Œç›´æ¥å…³é—­è¿æ¥
         CWX_ERROR(("No memory to malloc package"));
         return -1;
     }
-    ///»Ø¸´Ê§°Ü£¬Ö±½Ó¹Ø±ÕÁ¬½Ó
+    ///å›å¤å¤±è´¥ï¼Œç›´æ¥å…³é—­è¿æ¥
     if (-1 == replyFetchMq(pTss, block, false, bClose)) return -1;
     return 0;
 
@@ -228,9 +228,9 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
             auth_passwd,
             ullSid,
             pTss->m_szBuf2K);
-        ///Èç¹û½âÎöÊ§°Ü£¬Ôò½øÈë´íÎóÏûÏ¢´¦Àí
+        ///å¦‚æœè§£æå¤±è´¥ï¼Œåˆ™è¿›å…¥é”™è¯¯æ¶ˆæ¯å¤„ç†
         if (CWX_MQ_ERR_SUCCESS != iRet) break;
-        //Ğ£ÑéÈ¨ÏŞ
+        //æ ¡éªŒæƒé™
         if (m_pApp->getConfig().getMq().m_mq.getUser().length()){
             if ((m_pApp->getConfig().getMq().m_mq.getUser() != auth_user) ||
                 (m_pApp->getConfig().getMq().m_mq.getPasswd() != auth_passwd))
@@ -240,7 +240,7 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
                 break;
             }
         }
-        //¼ì²â²ÎÊı
+        //æ£€æµ‹å‚æ•°
         if (!strlen(queue_name)){
             iRet = CWX_MQ_ERR_ERROR;
             strcpy(pTss->m_szBuf2K, "queue name is empty");
@@ -285,14 +285,14 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
             string(passwd),
             string(scribe),
             pTss->m_szBuf2K);
-        if (1 == iRet){//³É¹¦
+        if (1 == iRet){//æˆåŠŸ
             iRet = CWX_MQ_ERR_SUCCESS;
             break;
         }else if (0 == iRet){//exist
             iRet = CWX_MQ_ERR_ERROR;
             strcpy(pTss->m_szBuf2K, "Queue exists");
             break;
-        }else{//ÄÚ²¿´íÎó
+        }else{//å†…éƒ¨é”™è¯¯
             iRet = CWX_MQ_ERR_ERROR;
             break;
         }
@@ -308,8 +308,8 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
     block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
     block->send_ctrl().setHostId(0);
     block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
-    ///½«ÏûÏ¢·Åµ½Á¬½ÓµÄ·¢ËÍ¶ÓÁĞµÈ´ı·¢ËÍ
-    if (!putMsg(block)){///·Å·¢ËÍ¶ÓÁĞÊ§°Ü
+    ///å°†æ¶ˆæ¯æ”¾åˆ°è¿æ¥çš„å‘é€é˜Ÿåˆ—ç­‰å¾…å‘é€
+    if (!putMsg(block)){///æ”¾å‘é€é˜Ÿåˆ—å¤±è´¥
         CWX_ERROR(("Failure to reply create queue"));
         CwxMsgBlockAlloc::free(block);
         return -1;
@@ -339,9 +339,9 @@ int CwxMqBinFetchHandler::delQueue(CwxMqTss* pTss){
             auth_user,
             auth_passwd,
             pTss->m_szBuf2K);
-        ///Èç¹û½âÎöÊ§°Ü£¬Ôò½øÈë´íÎóÏûÏ¢´¦Àí
+        ///å¦‚æœè§£æå¤±è´¥ï¼Œåˆ™è¿›å…¥é”™è¯¯æ¶ˆæ¯å¤„ç†
         if (CWX_MQ_ERR_SUCCESS != iRet) break;
-        //Ğ£ÑéÈ¨ÏŞ
+        //æ ¡éªŒæƒé™
         if (m_pApp->getConfig().getMq().m_mq.getUser().length()){
             if ((m_pApp->getConfig().getMq().m_mq.getUser() != auth_user) ||
                 (m_pApp->getConfig().getMq().m_mq.getPasswd() != auth_passwd))
@@ -352,26 +352,26 @@ int CwxMqBinFetchHandler::delQueue(CwxMqTss* pTss){
             }
         }
         iRet = m_pApp->getQueueMgr()->authQueue(string(queue_name), string(user), string(passwd));
-        if (0 == iRet){//¶ÓÁĞ²»´æÔÚ
+        if (0 == iRet){//é˜Ÿåˆ—ä¸å­˜åœ¨
             iRet = CWX_MQ_ERR_ERROR;
             CwxCommon::snprintf(pTss->m_szBuf2K,  2047, "Queue[%s] doesn't exists", queue_name);
             break;
         }
-        ///Èç¹ûÈ¨ÏŞ´íÎó£¬Ôò·µ»Ø´íÎóÏûÏ¢
+        ///å¦‚æœæƒé™é”™è¯¯ï¼Œåˆ™è¿”å›é”™è¯¯æ¶ˆæ¯
         if (-1 == iRet){
             iRet = CWX_MQ_ERR_FAIL_AUTH;
             strcpy(pTss->m_szBuf2K, "No auth");
             break;
         }
         iRet = m_pApp->getQueueMgr()->delQueue(string(queue_name), pTss->m_szBuf2K);
-        if (1 == iRet){//³É¹¦
+        if (1 == iRet){//æˆåŠŸ
             iRet = CWX_MQ_ERR_SUCCESS;
             break;
         }else if (0 == iRet){//exist
             iRet = CWX_MQ_ERR_ERROR;
             strcpy(pTss->m_szBuf2K, "Queue exists");
             break;
-        }else{//ÄÚ²¿´íÎó
+        }else{//å†…éƒ¨é”™è¯¯
             iRet = CWX_MQ_ERR_ERROR;
             break;
         }
@@ -387,8 +387,8 @@ int CwxMqBinFetchHandler::delQueue(CwxMqTss* pTss){
     block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
     block->send_ctrl().setHostId(0);
     block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
-    ///½«ÏûÏ¢·Åµ½Á¬½ÓµÄ·¢ËÍ¶ÓÁĞµÈ´ı·¢ËÍ
-    if (!putMsg(block)){///·Å·¢ËÍ¶ÓÁĞÊ§°Ü
+    ///å°†æ¶ˆæ¯æ”¾åˆ°è¿æ¥çš„å‘é€é˜Ÿåˆ—ç­‰å¾…å‘é€
+    if (!putMsg(block)){///æ”¾å‘é€é˜Ÿåˆ—å¤±è´¥
         CWX_ERROR(("Failure to reply delete queue"));
         CwxMsgBlockAlloc::free(block);
         return -1;
@@ -425,8 +425,8 @@ int CwxMqBinFetchHandler::replyFetchMq(CwxMqTss* pTss,
     msg->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
     msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
     msg->send_ctrl().setHostId(0);
-    if (bBinlog){///Èç¹ûÊÇbinlog£¬´ËÊ±ĞèÒª·¢ËÍÍê±ÏµÄÊ±ºòÍ¨Öª
-        if (bClose) ///ÊÇ·ñ¹Ø±ÕÁ¬½Ó
+    if (bBinlog){///å¦‚æœæ˜¯binlogï¼Œæ­¤æ—¶éœ€è¦å‘é€å®Œæ¯•çš„æ—¶å€™é€šçŸ¥
+        if (bClose) ///æ˜¯å¦å…³é—­è¿æ¥
             msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::FAIL_NOTICE | CwxMsgSendCtrl::FINISH_NOTICE|CwxMsgSendCtrl::CLOSE_NOTICE);
         else 
             msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::FAIL_NOTICE | CwxMsgSendCtrl::FINISH_NOTICE);
@@ -436,13 +436,13 @@ int CwxMqBinFetchHandler::replyFetchMq(CwxMqTss* pTss,
         else
             msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
     }
-    ///½«ÏûÏ¢·Åµ½Á¬½ÓµÄ·¢ËÍ¶ÓÁĞµÈ´ı·¢ËÍ
-    if (!putMsg(msg)){///·Å·¢ËÍ¶ÓÁĞÊ§°Ü
+    ///å°†æ¶ˆæ¯æ”¾åˆ°è¿æ¥çš„å‘é€é˜Ÿåˆ—ç­‰å¾…å‘é€
+    if (!putMsg(msg)){///æ”¾å‘é€é˜Ÿåˆ—å¤±è´¥
         CWX_ERROR(("Failure to reply fetch mq"));
-        ///Èç¹ûÊÇbinlog£¬ĞèÒª½«ÏûÏ¢·µ»Øµ½mq manager
+        ///å¦‚æœæ˜¯binlogï¼Œéœ€è¦å°†æ¶ˆæ¯è¿”å›åˆ°mq manager
         if (bBinlog) 
             backMq(msg->event().m_ullArg, pTss);
-        else///·ñÔòÊÍ·ÅÏûÏ¢
+        else///å¦åˆ™é‡Šæ”¾æ¶ˆæ¯
             CwxMsgBlockAlloc::free(msg);
         return -1;
     }
@@ -455,18 +455,18 @@ void CwxMqBinFetchHandler::backMq(CWX_UINT64 ullSid, CwxMqTss* pTss){
         false,
         pTss->m_szBuf2K);
     if (0 != iRet){
-        if(-1 == iRet){///¶ÓÁĞ´íÎó
+        if(-1 == iRet){///é˜Ÿåˆ—é”™è¯¯
             CWX_ERROR(("Failure to back queue[%s]'s message, err:%s",
                 m_conn.m_strQueueName.c_str(),
                 pTss->m_szBuf2K));
-        }else{///¶ÓÁĞ²»´æÔÚ
+        }else{///é˜Ÿåˆ—ä¸å­˜åœ¨
             CWX_ERROR(("Failure to back queue[%s]'s message for no existing",
                 m_conn.m_strQueueName.c_str()));
         }
     }
 }
 
-///·¢ËÍÏûÏ¢£¬0£ºÃ»ÓĞÏûÏ¢·¢ËÍ£»1£º·¢ËÍÒ»¸ö£»-1£º·¢ËÍÊ§°Ü
+///å‘é€æ¶ˆæ¯ï¼Œ0ï¼šæ²¡æœ‰æ¶ˆæ¯å‘é€ï¼›1ï¼šå‘é€ä¸€ä¸ªï¼›-1ï¼šå‘é€å¤±è´¥
 int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss){
     CwxMsgBlock* pBlock=NULL;
     int err_no = CWX_MQ_ERR_SUCCESS;
@@ -476,18 +476,18 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss){
         pBlock,
         err_no,
         pTss->m_szBuf2K);
-    if (-1 == iState){///»ñÈ¡ÏûÏ¢Ê§°Ü
+    if (-1 == iState){///è·å–æ¶ˆæ¯å¤±è´¥
         CWX_ERROR(("Failure to read binlog ,err:%s", pTss->m_szBuf2K));
         pBlock = packEmptyFetchMsg(pTss, CWX_MQ_ERR_ERROR, pTss->m_szBuf2K);
         if (!pBlock){
             CWX_ERROR(("No memory to malloc package"));
             return -1;
         }
-        ///´Ëlog²»ÊÇbinlog¡£
+        ///æ­¤logä¸æ˜¯binlogã€‚
         if (0 != replyFetchMq(pTss, pBlock, false, false))  return -1;
         return 1;
-    }else if (0 == iState){ ///ÒÑ¾­Íê³É
-        if (!m_conn.m_bBlock){///Èç¹û²»ÊÇblockÀàĞÍ£¬»Ø¸´Ã»ÓĞÏûÏ¢
+    }else if (0 == iState){ ///å·²ç»å®Œæˆ
+        if (!m_conn.m_bBlock){///å¦‚æœä¸æ˜¯blockç±»å‹ï¼Œå›å¤æ²¡æœ‰æ¶ˆæ¯
             pBlock = packEmptyFetchMsg(pTss, CWX_MQ_ERR_ERROR, "No message");
             if (!pBlock){
                 CWX_ERROR(("No memory to malloc package"));
@@ -496,17 +496,17 @@ int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss){
             if (0 != replyFetchMq(pTss, pBlock, false, false))  return -1;
             return 1;
         }
-        //Î´Íê³É£¬µÈ´ıblock
+        //æœªå®Œæˆï¼Œç­‰å¾…block
         return 0;
-    }else if (1 == iState){///»ñÈ¡ÁËÒ»¸öÏûÏ¢
+    }else if (1 == iState){///è·å–äº†ä¸€ä¸ªæ¶ˆæ¯
         if (0 != replyFetchMq(pTss, pBlock, true, false)){
             return -1;
         }
         return 1;
-    }else if (2 == iState){//Î´Íê³É
+    }else if (2 == iState){//æœªå®Œæˆ
         return 0;
     }
-    //´ËÊ±£¬iStateÎª-2
+    //æ­¤æ—¶ï¼ŒiStateä¸º-2
     //no queue
     CWX_ERROR(("Not find queue:%s", m_conn.m_strQueueName.c_str()));
     string strErr = string("No queue:") + m_conn.m_strQueueName;

@@ -1,4 +1,4 @@
-#include "CwxMqDef.h"
+﻿#include "CwxMqDef.h"
 #include "CwxMqQueueMgr.h"
 #include "CwxMqPoco.h"
 

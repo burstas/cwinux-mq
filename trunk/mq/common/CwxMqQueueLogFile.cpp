@@ -1,17 +1,17 @@
-#include "CwxMqQueueLogFile.h"
+ï»¿#include "CwxMqQueueLogFile.h"
 #include "CwxDate.h"
 
 CwxMqQueueLogFile::CwxMqQueueLogFile(CWX_UINT32 uiFsyncInternal,
                                      string const& strFileName)
 {
-    m_strFileName = strFileName; ///<ÏµÍ³ÎÄ¼şÃû×Ö
-    m_strOldFileName = strFileName + ".old";///<¾ÉÏµÍ³ÎÄ¼şÃû×Ö
-    m_strNewFileName = strFileName + ".new"; ///<ĞÂÏµÍ³ÎÄ¼şµÄÃû×Ö
+    m_strFileName = strFileName; ///<ç³»ç»Ÿæ–‡ä»¶åå­—
+    m_strOldFileName = strFileName + ".old";///<æ—§ç³»ç»Ÿæ–‡ä»¶åå­—
+    m_strNewFileName = strFileName + ".new"; ///<æ–°ç³»ç»Ÿæ–‡ä»¶çš„åå­—
     m_fd = NULL;
     m_bLock = false;
-    m_uiFsyncInternal = uiFsyncInternal; ///<flushÓ²ÅÌµÄ¼ä¸ô
-    m_uiCurLogCount = 0; ///<×ÔÉÏ´ÎfsyncÀ´£¬log¼ÇÂ¼µÄ´ÎÊı
-    m_uiTotalLogCount = 0; ///<µ±Ç°ÎÄ¼şlogµÄÊıÁ¿
+    m_uiFsyncInternal = uiFsyncInternal; ///<flushç¡¬ç›˜çš„é—´éš”
+    m_uiCurLogCount = 0; ///<è‡ªä¸Šæ¬¡fsyncæ¥ï¼Œlogè®°å½•çš„æ¬¡æ•°
+    m_uiTotalLogCount = 0; ///<å½“å‰æ–‡ä»¶logçš„æ•°é‡
 	m_uiLastSaveTime = 0;
     strcpy(m_szErr2K, "No init");
 }
@@ -20,7 +20,7 @@ CwxMqQueueLogFile::~CwxMqQueueLogFile(){
     closeFile(true);
 }
 
-///³õÊ¼»¯ÏµÍ³ÎÄ¼ş£»0£º³É¹¦£»-1£ºÊ§°Ü
+///åˆå§‹åŒ–ç³»ç»Ÿæ–‡ä»¶ï¼›0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
 int CwxMqQueueLogFile::init(CwxMqQueueInfo& queue,
          set<CWX_UINT64>& uncommitSets,
          set<CWX_UINT64>& commitSets)
@@ -29,13 +29,13 @@ int CwxMqQueueLogFile::init(CwxMqQueueInfo& queue,
         closeFile(false);
         return -1;
     }
-    //Çå¿ÕÊı¾İ
+    //æ¸…ç©ºæ•°æ®
 	queue.m_strName.erase();
 	uncommitSets.clear();
     commitSets.clear();
-    //¼ÓÔØÊı¾İ
+    //åŠ è½½æ•°æ®
     if (0 != load(queue, uncommitSets, commitSets)){
-        //ÈôÊ§°Ü£¬Çå¿ÕÊı¾İ
+        //è‹¥å¤±è´¥ï¼Œæ¸…ç©ºæ•°æ®
 		uncommitSets.clear();
 		commitSets.clear();
         closeFile(false);
@@ -45,13 +45,13 @@ int CwxMqQueueLogFile::init(CwxMqQueueInfo& queue,
     return 0;
 }
 
-///±£´æ¶ÓÁĞĞÅÏ¢£»0£º³É¹¦£»-1£ºÊ§°Ü
+///ä¿å­˜é˜Ÿåˆ—ä¿¡æ¯ï¼›0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
 int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
                             set<CWX_UINT64>const& uncommitSets,
                             set<CWX_UINT64>const& commitSets)
 {
     if (!m_fd) return -1;
-    //Ğ´ĞÂÎÄ¼ş
+    //å†™æ–°æ–‡ä»¶
     int fd = ::open(m_strNewFileName.c_str(),  O_RDWR|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     if (-1 == fd){
         CwxCommon::snprintf(m_szErr2K, 2047, "Failure to open new sys file:%s, errno=%d",
@@ -60,7 +60,7 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
         closeFile(true);
         return -1;
     }
-    //Ğ´Èë¶ÓÁĞĞÅÏ¢
+    //å†™å…¥é˜Ÿåˆ—ä¿¡æ¯
     char line[1024];
     char szSid[64];
     ssize_t len = 0;
@@ -81,7 +81,7 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
 		closeFile(true);
 		return -1;
 	}
-    //Ğ´Î´Ìá½»µÄsid
+    //å†™æœªæäº¤çš„sid
     set<CWX_UINT64>::const_iterator iter_sid = uncommitSets.begin();
     while(iter_sid != uncommitSets.end()){
 		//uncommit:sid=1
@@ -97,7 +97,7 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
 		}
 		iter_sid++;
     }
-    //Ğ´Ìá½»µÄsid
+    //å†™æäº¤çš„sid
     iter_sid = commitSets.begin();
     while(iter_sid != commitSets.end()){
 		//commit:sid=1
@@ -115,7 +115,7 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
     }
     ::fsync(fd);
     ::close(fd);
-    //È·±£¾ÉÎÄ¼şÉ¾³ı
+    //ç¡®ä¿æ—§æ–‡ä»¶åˆ é™¤
     if (CwxFile::isFile(m_strOldFileName.c_str()) &&
         !CwxFile::rmFile(m_strOldFileName.c_str()))
     {
@@ -125,9 +125,9 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
         closeFile(true);
         return -1;
     }
-    //¹Ø±Õµ±Ç°ÎÄ¼ş
+    //å…³é—­å½“å‰æ–‡ä»¶
     closeFile(true);
-    //½«µ±Ç°ÎÄ¼şmoveÎªoldÎÄ¼ş
+    //å°†å½“å‰æ–‡ä»¶moveä¸ºoldæ–‡ä»¶
     if (!CwxFile::moveFile(m_strFileName.c_str(), m_strOldFileName.c_str())){
         CwxCommon::snprintf(m_szErr2K, 2047, "Failure to move current sys file:%s to old sys file:%s, errno=%d",
             m_strFileName.c_str(),
@@ -135,7 +135,7 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
             errno);
         return -1;
     }
-    //½«ĞÂÎÄ¼şÒÆÎªµ±Ç°ÎÄ¼ş
+    //å°†æ–°æ–‡ä»¶ç§»ä¸ºå½“å‰æ–‡ä»¶
     if (!CwxFile::moveFile(m_strNewFileName.c_str(), m_strFileName.c_str())){
         CwxCommon::snprintf(m_szErr2K, 2047, "Failure to move new sys file:%s to current sys file:%s, errno=%d",
             m_strNewFileName.c_str(),
@@ -143,9 +143,9 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
             errno);
         return -1;
     }
-	//É¾³ı¾ÉÎÄ¼ş
+	//åˆ é™¤æ—§æ–‡ä»¶
 	CwxFile::rmFile(m_strOldFileName.c_str());
-    //´ò¿ªµ±Ç°ÎÄ¼ş£¬½ÓÊÜĞ´
+    //æ‰“å¼€å½“å‰æ–‡ä»¶ï¼Œæ¥å—å†™
     //open file
     m_fd = ::fopen(m_strFileName.c_str(), "a+");
     if (!m_fd){
@@ -167,7 +167,7 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
     return 0;
 }
 
-///Ğ´commit¼ÇÂ¼£»-1£ºÊ§°Ü£»·ñÔò·µ»ØÒÑ¾­Ğ´ÈëµÄlogÊıÁ¿
+///å†™commitè®°å½•ï¼›-1ï¼šå¤±è´¥ï¼›å¦åˆ™è¿”å›å·²ç»å†™å…¥çš„logæ•°é‡
 int CwxMqQueueLogFile::log(CWX_UINT64 sid){
     if (m_fd){
         char szBuf[1024];
@@ -189,7 +189,7 @@ int CwxMqQueueLogFile::log(CWX_UINT64 sid){
     }
     return -1;
 }
-///Ç¿ĞĞfsyncÈÕÖ¾ÎÄ¼ş£»0£º³É¹¦£»-1£ºÊ§°Ü
+///å¼ºè¡Œfsyncæ—¥å¿—æ–‡ä»¶ï¼›0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
 int CwxMqQueueLogFile::fsync(){
     if (m_uiCurLogCount && m_fd){
         fflush(m_fd);
@@ -218,7 +218,7 @@ int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue,
     strQueuePrex +=":";
     strCommitPrex += ":";
     strUncommitPrex +=":";
-    //seekµ½ÎÄ¼şÍ·²¿
+    //seekåˆ°æ–‡ä»¶å¤´éƒ¨
     fseek(m_fd, 0, SEEK_SET);
     //step
     int step = 0; //0:load queue, 1:load uncommit; 2:load commit
@@ -234,13 +234,13 @@ int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue,
 				return -1;
 			}
             step = 1;
-			continue; ///¶ÁÈ¡ÏÂÒ»ĞĞ
+			continue; ///è¯»å–ä¸‹ä¸€è¡Œ
         }
         if (1 == step){//uncommit:sid=1
             if (strUncommitPrex == line.substr(0, strUncommitPrex.length())){
                 line = line.substr(strUncommitPrex.length());
                 if (0 != parseSid(line, ullSid)){
-                    continue; ///Êı¾İ¿ÉÄÜ²»ÍêÕû
+                    continue; ///æ•°æ®å¯èƒ½ä¸å®Œæ•´
                 }
 				uncommitSets.insert(ullSid);
                 continue;
@@ -251,17 +251,17 @@ int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue,
             if (strCommitPrex == line.substr(0, strCommitPrex.length())){
                 line = line.substr(strCommitPrex.length());
                 if (0 != parseSid(line, ullSid)){
-                    continue; ///<Êı¾İ¿ÉÄÜ²»ÍêÕû
+                    continue; ///<æ•°æ®å¯èƒ½ä¸å®Œæ•´
                 }
                 commitSets.insert(ullSid);
-                //Èç¹ûsidÔÚuncommit setÖĞ´æÔÚ£¬ÔòĞèÒªÉ¾³ı
+                //å¦‚æœsidåœ¨uncommit setä¸­å­˜åœ¨ï¼Œåˆ™éœ€è¦åˆ é™¤
 				if (uncommitSets.find(ullSid) != uncommitSets.end()){
 					uncommitSets.erase(ullSid);
                 }
                 m_uiTotalLogCount++;
                 continue;
             }
-            ///Î´ÖªµÄlogÈÕÖ¾
+            ///æœªçŸ¥çš„logæ—¥å¿—
             CwxCommon::snprintf(m_szErr2K, 2047, "Unknown log:%s, line:%d",
                 line.c_str(),
                 m_uiLine);
@@ -369,12 +369,12 @@ int CwxMqQueueLogFile::prepare(){
         closeFile(true);
     }
     m_fd = NULL;
-    m_uiCurLogCount = 0; ///<×ÔÉÏ´ÎfsyncÀ´£¬log¼ÇÂ¼µÄ´ÎÊı
-    m_uiTotalLogCount = 0; ///<µ±Ç°ÎÄ¼şlogµÄÊıÁ¿
+    m_uiCurLogCount = 0; ///<è‡ªä¸Šæ¬¡fsyncæ¥ï¼Œlogè®°å½•çš„æ¬¡æ•°
+    m_uiTotalLogCount = 0; ///<å½“å‰æ–‡ä»¶logçš„æ•°é‡
     strcpy(m_szErr2K, "No init");
 
     if (!bExistCur){
-        if (bExistOld){//²ÉÓÃ¾ÉÎÄ¼ş
+        if (bExistOld){//é‡‡ç”¨æ—§æ–‡ä»¶
             if (!CwxFile::moveFile(m_strOldFileName.c_str(), m_strFileName.c_str())){
                 CwxCommon::snprintf(m_szErr2K, 2047, "Failure to move old sys file[%s] to cur sys file:[%s], errno=%d",
                     m_strOldFileName.c_str(),
@@ -382,7 +382,7 @@ int CwxMqQueueLogFile::prepare(){
                     errno);
                 return -1;
             }
-        }else if(bExistNew){//²ÉÓÃĞÂÎÄ¼ş
+        }else if(bExistNew){//é‡‡ç”¨æ–°æ–‡ä»¶
             if (!CwxFile::moveFile(m_strNewFileName.c_str(), m_strFileName.c_str())){
                 CwxCommon::snprintf(m_szErr2K, 2047, "Failure to move new sys file[%s] to cur sys file:[%s], errno=%d",
                     2047,
@@ -391,7 +391,7 @@ int CwxMqQueueLogFile::prepare(){
                     errno);
                 return -1;
             }
-        }else{//´´½¨¿ÕµÄµ±Ç°ÎÄ¼ş
+        }else{//åˆ›å»ºç©ºçš„å½“å‰æ–‡ä»¶
             int fd = ::open(m_strFileName.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
             if (-1 == fd){
                 CwxCommon::snprintf(m_szErr2K, 2047, "Failure to create cur sys file:[%s], errno=%d",
@@ -416,9 +416,9 @@ int CwxMqQueueLogFile::prepare(){
             errno);
         return -1;
     }
-	//É¾³ı¾ÉÎÄ¼ş
+	//åˆ é™¤æ—§æ–‡ä»¶
 	CwxFile::rmFile(m_strOldFileName.c_str());
-	//É¾³ıĞÂÎÄ¼ş
+	//åˆ é™¤æ–°æ–‡ä»¶
 	CwxFile::rmFile(m_strNewFileName.c_str());
     m_bLock = true;
     return 0;

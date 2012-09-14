@@ -1,8 +1,8 @@
-#include "CwxMproxyRecvHandler.h"
+ï»¿#include "CwxMproxyRecvHandler.h"
 #include "CwxMproxyApp.h"
 #include "CwxMqPoco.h"
 #include "CwxZlib.h"
-///echoÇëÇóµÄ´¦Àíº¯Êı
+///echoè¯·æ±‚çš„å¤„ç†å‡½æ•°
 int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
 {
     CwxMproxyTask* pTask = NULL;
@@ -13,17 +13,17 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
     char const* passwd=NULL;
     CWX_UINT32 uiTaskId = 0;
     do{
-        ///binlogÊı¾İ½ÓÊÕÏûÏ¢
+        ///binlogæ•°æ®æ¥æ”¶æ¶ˆæ¯
         if (CwxMqPoco::MSG_TYPE_RECV_DATA == msg->event().getMsgHeader().getMsgType())
         {
             CWX_UINT32 uiGroup;
             CwxKeyValueItem const* pData;
             unsigned long ulUnzipLen = 0;
             bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
-            //ÅĞ¶ÏÊÇ·ñÑ¹ËõÊı¾İ
+            //åˆ¤æ–­æ˜¯å¦å‹ç¼©æ•°æ®
             if (bZip)
-            {//Ñ¹ËõÊı¾İ£¬ĞèÒª½âÑ¹
-                //Ê×ÏÈ×¼±¸½âÑ¹µÄbuf
+            {//å‹ç¼©æ•°æ®ï¼Œéœ€è¦è§£å‹
+                //é¦–å…ˆå‡†å¤‡è§£å‹çš„buf
                 if (!prepareUnzipBuf())
                 {
                     iRet = CWX_MQ_ERR_ERROR;
@@ -32,7 +32,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                     break;
                 }
                 ulUnzipLen = m_uiBufLen;
-                //½âÑ¹
+                //è§£å‹
                 if (!CwxZlib::unzip(m_unzipBuf, ulUnzipLen, (const unsigned char*)msg->rd_ptr(), msg->length()))
                 {
                     iRet = CWX_MQ_ERR_ERROR;
@@ -51,7 +51,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 passwd,
                 pTss->m_szBuf2K)))
             {
-                //Èç¹ûÊÇÎŞĞ§Êı¾İ£¬·µ»Ø
+                //å¦‚æœæ˜¯æ— æ•ˆæ•°æ®ï¼Œè¿”å›
                 CWX_DEBUG(("Failure to parse the recieve msg, err=%s", pTss->m_szBuf2K));
                 break;
             }
@@ -91,7 +91,7 @@ int CwxMproxyRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv)
                 passwd,
                 pTss->m_szBuf2K))
             {
-                //Èç¹ûÊÇÎŞĞ§Êı¾İ£¬·µ»Ø
+                //å¦‚æœæ˜¯æ— æ•ˆæ•°æ®ï¼Œè¿”å›
                 CWX_DEBUG(("Failure to parse the commit msg, err=%s", pTss->m_szBuf2K));
                 iRet = CWX_MQ_ERR_ERROR;
                 break;
@@ -203,7 +203,7 @@ CWX_UINT32 CwxMproxyRecvHandler::isAuth(CwxMqTss* pTss, CWX_UINT32 uiGroup, char
 {
     CwxMqIdRange id(uiGroup, uiGroup);
     if (m_pApp->getConfig().m_allowGroup.size())
-    {///group±ØĞëÔÚÔÊĞíµÄgroup·¶Î§ÄÚ
+    {///groupå¿…é¡»åœ¨å…è®¸çš„groupèŒƒå›´å†…
         if (m_pApp->getConfig().m_allowGroup.find(id) == m_pApp->getConfig().m_allowGroup.end())
         {
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "group[%u] is not allowed.", uiGroup);
@@ -211,7 +211,7 @@ CWX_UINT32 CwxMproxyRecvHandler::isAuth(CwxMqTss* pTss, CWX_UINT32 uiGroup, char
         }
     }
     else if (m_pApp->getConfig().m_denyGroup.size())
-    {///ÊÇ·ñÔÚ±»½ûÖ¹µÄgroup·¶Î§ÄÚ
+    {///æ˜¯å¦åœ¨è¢«ç¦æ­¢çš„groupèŒƒå›´å†…
         if (m_pApp->getConfig().m_denyGroup.find(id) != m_pApp->getConfig().m_denyGroup.end())
         {
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "group[%u] is forbiden.", uiGroup);
@@ -246,7 +246,7 @@ CWX_UINT32 CwxMproxyRecvHandler::isAuth(CwxMqTss* pTss, CWX_UINT32 uiGroup, char
     return CWX_MQ_ERR_SUCCESS;
 }
 
-//»ñÈ¡unzipµÄbuf
+//è·å–unzipçš„buf
 bool CwxMproxyRecvHandler::prepareUnzipBuf()
 {
     if (!m_unzipBuf)

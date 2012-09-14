@@ -1,9 +1,9 @@
-#ifndef __CWX_MQ_PROXY_CONFIG_H__
+ï»¿#ifndef __CWX_MQ_PROXY_CONFIG_H__
 #define __CWX_MQ_PROXY_CONFIG_H__
 /*
-°æÈ¨ÉùÃ÷£º
-±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 
 #include "CwxMqMacro.h"
@@ -13,7 +13,7 @@
 #include "CwxMqDef.h"
 
 
-///ÅäÖÃÎÄ¼ş
+///é…ç½®æ–‡ä»¶
 class CwxMproxyConfig
 {
 public:
@@ -24,28 +24,28 @@ public:
     ~CwxMproxyConfig(){
     }
 public:
-    //¼ÓÔØÅäÖÃÎÄ¼ş.-1:failure, 0:success
+    //åŠ è½½é…ç½®æ–‡ä»¶.-1:failure, 0:success
     int loadConfig(string const & strConfFile);
-    //Êä³öÅäÖÃÎÄ¼ş
+    //è¾“å‡ºé…ç½®æ–‡ä»¶
     void outputConfig();
-    //»ñÈ¡¼ÓÔØÅäÖÃÎÄ¼şµÄÊ§°Ü´íÎóĞÅÏ¢
+    //è·å–åŠ è½½é…ç½®æ–‡ä»¶çš„å¤±è´¥é”™è¯¯ä¿¡æ¯
     char const* getError() { return m_szErrMsg; };
 private:
     bool fetchHost(CwxIniParse& cnf, string const& node, CwxHostInfo& host, bool bIpOnly=false);
     bool parsePasswd(string const& strName, string const& strPasswd, CwxMqConfigQueue& passwd);
     bool parseIds(string const& group, list<pair<CWX_UINT32, CWX_UINT32> >& ids);
 public:
-    string               m_strWorkDir;///<¹¤×÷Ä¿Â¼
-    CWX_UINT32           m_uiTimeout; ///<²éÑ¯³¬Ê±Ê±¼ä£¬µ¥Î»Îªms
-    CwxHostInfo          m_monitor; ///<´úÀíµÄ¼à¿ØµØÖ·
-    CwxHostInfo          m_recv;      ///<´úÀíÏûÏ¢½ÓÊÜµÄ¼àÌıµØÖ·
-    map<CwxMqIdRange, CwxMqConfigQueue>  m_groupPasswd; ///<¿ÚÁî
-    map<CwxMqIdRange, string>    m_allowGroup; ///<ÔÊĞíµÄgroup£¬Èô²»Îª¿Õ£¬Ôògroup±ØĞëÔÚallowÖĞ´æÔÚ£¬·ñÔò²édeny
-    map<CwxMqIdRange, string>    m_denyGroup; ///<½ûÖ¹µÄgroup£¬ÈôallowÎª¿Õ£¬Ôò²édeny¡£ÈôÔÚdenyÖĞ´æÔÚ£¬Ôò½ûÖ¹¡£
-    CwxHostInfo          m_mq; ///<mqµÄ·şÎñÆ÷
-    bool                 m_bzip; ///<·¢ËÍ¸ømqµÄÏûÏ¢ÊÇ·ñÑ¹Ëõ
-    string               m_mqSign; ///<mqµÄÇ©ÃûÀàĞÍ
-    char                 m_szErrMsg[2048];///<´íÎóÏûÏ¢buf
+    string               m_strWorkDir;///<å·¥ä½œç›®å½•
+    CWX_UINT32           m_uiTimeout; ///<æŸ¥è¯¢è¶…æ—¶æ—¶é—´ï¼Œå•ä½ä¸ºms
+    CwxHostInfo          m_monitor; ///<ä»£ç†çš„ç›‘æ§åœ°å€
+    CwxHostInfo          m_recv;      ///<ä»£ç†æ¶ˆæ¯æ¥å—çš„ç›‘å¬åœ°å€
+    map<CwxMqIdRange, CwxMqConfigQueue>  m_groupPasswd; ///<å£ä»¤
+    map<CwxMqIdRange, string>    m_allowGroup; ///<å…è®¸çš„groupï¼Œè‹¥ä¸ä¸ºç©ºï¼Œåˆ™groupå¿…é¡»åœ¨allowä¸­å­˜åœ¨ï¼Œå¦åˆ™æŸ¥deny
+    map<CwxMqIdRange, string>    m_denyGroup; ///<ç¦æ­¢çš„groupï¼Œè‹¥allowä¸ºç©ºï¼Œåˆ™æŸ¥denyã€‚è‹¥åœ¨denyä¸­å­˜åœ¨ï¼Œåˆ™ç¦æ­¢ã€‚
+    CwxHostInfo          m_mq; ///<mqçš„æœåŠ¡å™¨
+    bool                 m_bzip; ///<å‘é€ç»™mqçš„æ¶ˆæ¯æ˜¯å¦å‹ç¼©
+    string               m_mqSign; ///<mqçš„ç­¾åç±»å‹
+    char                 m_szErrMsg[2048];///<é”™è¯¯æ¶ˆæ¯buf
 };
 
 #endif

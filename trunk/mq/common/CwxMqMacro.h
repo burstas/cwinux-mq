@@ -1,13 +1,13 @@
-#ifndef __CWX_MQ_MACRO_H__
+ï»¿#ifndef __CWX_MQ_MACRO_H__
 #define __CWX_MQ_MACRO_H__
 /*
-°æÈ¨ÉùÃ÷£º
-    ±¾Èí¼ş×ñÑ­GNU GPL V3£¨http://www.gnu.org/licenses/gpl.html£©£¬
-    ÁªÏµ·½Ê½£ºemail:cwinux@gmail.com£»Î¢²©:http://t.sina.com.cn/cwinux
+ç‰ˆæƒå£°æ˜ï¼š
+    æœ¬è½¯ä»¶éµå¾ªGNU GPL V3ï¼ˆhttp://www.gnu.org/licenses/gpl.htmlï¼‰ï¼Œ
+    è”ç³»æ–¹å¼ï¼šemail:cwinux@gmail.comï¼›å¾®åš:http://t.sina.com.cn/cwinux
 */
 /**
 @file CwxMqMacro.h
-@brief MQÏµÁĞ·şÎñµÄºê¶¨ÒåÎÄ¼ş¡£
+@brief MQç³»åˆ—æœåŠ¡çš„å®å®šä¹‰æ–‡ä»¶ã€‚
 @author cwinux@gmail.com
 @version 1.0
 @date 2010-09-23
@@ -22,18 +22,18 @@
 CWINUX_USING_NAMESPACE
 
 
-///Í¨ĞÅµÄkey¶¨Òå
-#define CWX_MQ_D    "d"  ///<dataµÄkey
+///é€šä¿¡çš„keyå®šä¹‰
+#define CWX_MQ_D    "d"  ///<dataçš„key
 #define CWX_MQ_RET  "ret"
 #define CWX_MQ_SID  "sid"
 #define CWX_MQ_ERR  "err"
-#define CWX_MQ_B    "b" ///<ÊÇ·ñblock
-#define CWX_MQ_T    "t" ///<Ê±¼ä´Á
-#define CWX_MQ_U    "u" ///<userµÄkey
-#define CWX_MQ_P    "p"  ///<passwdµÄkey
+#define CWX_MQ_B    "b" ///<æ˜¯å¦block
+#define CWX_MQ_T    "t" ///<æ—¶é—´æˆ³
+#define CWX_MQ_U    "u" ///<userçš„key
+#define CWX_MQ_P    "p"  ///<passwdçš„key
 #define CWX_MQ_SUBSCRIBE "subscribe"
-#define CWX_MQ_Q   "q"   ///<¶ÓÁĞµÄÃû×Ö
-#define CWX_MQ_G    "g" ///<groupµÄkey
+#define CWX_MQ_Q   "q"   ///<é˜Ÿåˆ—çš„åå­—
+#define CWX_MQ_G    "g" ///<groupçš„key
 #define CWX_MQ_CHUNK "chunk"
 #define CWX_MQ_M     "m"
 #define CWX_MQ_SIGN   "sign"
@@ -50,35 +50,35 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_UNCOMMIT "uncommit"
 #define CWX_MQ_ZIP     "zip"
 #define CWX_MQ_DELAY   "delay"
-///´íÎó´úÂë¶¨Òå
-#define CWX_MQ_ERR_SUCCESS          0  ///<³É¹¦
-#define CWX_MQ_ERR_ERROR            1  ///<´íÎó
-#define CWX_MQ_ERR_FAIL_AUTH        2 ///<¼øÈ¨Ê§°Ü
-#define CWX_MQ_ERR_LOST_SYNC        3 ///<Ê§È¥ÁËÍ¬²½×´Ì¬
+///é”™è¯¯ä»£ç å®šä¹‰
+#define CWX_MQ_ERR_SUCCESS          0  ///<æˆåŠŸ
+#define CWX_MQ_ERR_ERROR            1  ///<é”™è¯¯
+#define CWX_MQ_ERR_FAIL_AUTH        2 ///<é‰´æƒå¤±è´¥
+#define CWX_MQ_ERR_LOST_SYNC        3 ///<å¤±å»äº†åŒæ­¥çŠ¶æ€
 
-#define CWX_MQ_PROXY_NO_AUTH_GROUP    100 ///<ÏûÏ¢µÄgroupÃ»ÓĞ±»ÔÊĞí
-#define CWX_MQ_PROXY_FORBID_GROUP     101 ///<ÏûÏ¢µÄgroup±»½ûÖ¹
-#define CWX_MQ_PROXY_NO_AUTH          102 ///<ÏûÏ¢µÄgroup±»½ûÖ¹
-#define CWX_MQ_PROXY_TIMEOUT          103 ///<·¢ËÍ³¬Ê±
-#define CWX_MQ_PROXY_MQ_INVALID       104 ///<mq·şÎñ²»¿ÉÓÃ
+#define CWX_MQ_PROXY_NO_AUTH_GROUP    100 ///<æ¶ˆæ¯çš„groupæ²¡æœ‰è¢«å…è®¸
+#define CWX_MQ_PROXY_FORBID_GROUP     101 ///<æ¶ˆæ¯çš„groupè¢«ç¦æ­¢
+#define CWX_MQ_PROXY_NO_AUTH          102 ///<æ¶ˆæ¯çš„groupè¢«ç¦æ­¢
+#define CWX_MQ_PROXY_TIMEOUT          103 ///<å‘é€è¶…æ—¶
+#define CWX_MQ_PROXY_MQ_INVALID       104 ///<mqæœåŠ¡ä¸å¯ç”¨
 
-#define CWX_MQ_CONN_TIMEOUT_SECOND    5  ///<mqµÄÍ¬²½Á¬½ÓµÄÁ¬½Ó³¬Ê±Ê±¼ä
+#define CWX_MQ_CONN_TIMEOUT_SECOND    5  ///<mqçš„åŒæ­¥è¿æ¥çš„è¿æ¥è¶…æ—¶æ—¶é—´
 
-#define CWX_MQ_MIN_TIMEOUT_SECOND     1 ///<×îĞ¡µÄ³¬Ê±ÃëÊı
-#define CWX_MQ_MAX_TIMEOUT_SECOND     1800 ///<×î´óµÄ³¬Ê±ÃëÊı
-#define CWX_MQ_DEF_TIMEOUT_SECOND     5  ///<È±Ê¡µÄ³¬Ê±ÃëÊı
+#define CWX_MQ_MIN_TIMEOUT_SECOND     1 ///<æœ€å°çš„è¶…æ—¶ç§’æ•°
+#define CWX_MQ_MAX_TIMEOUT_SECOND     1800 ///<æœ€å¤§çš„è¶…æ—¶ç§’æ•°
+#define CWX_MQ_DEF_TIMEOUT_SECOND     5  ///<ç¼ºçœçš„è¶…æ—¶ç§’æ•°
 
-#define CWX_MQ_MAX_QUEUE_NAME_LEN        64 ///<×î´ó¶ÓÁĞÃû³¤¶È
-#define CWX_MQ_MAX_QUEUE_USER_LEN        64 ///<×î´óµÄ¶ÓÁĞÓÃ»§³¤¶È
-#define CWX_MQ_MAX_QUEUE_PASSWD_LEN      64 ///<×î´óµÄÓÃ»§¿ÚÁî³¤¶È
-#define CWX_MQ_MAX_QUEUE_SCRIBE_LEN      800 ///<×î´ó¶©ÔÄ±í´ïÊ½µÄ³¤¶È
+#define CWX_MQ_MAX_QUEUE_NAME_LEN        64 ///<æœ€å¤§é˜Ÿåˆ—åé•¿åº¦
+#define CWX_MQ_MAX_QUEUE_USER_LEN        64 ///<æœ€å¤§çš„é˜Ÿåˆ—ç”¨æˆ·é•¿åº¦
+#define CWX_MQ_MAX_QUEUE_PASSWD_LEN      64 ///<æœ€å¤§çš„ç”¨æˆ·å£ä»¤é•¿åº¦
+#define CWX_MQ_MAX_QUEUE_SCRIBE_LEN      800 ///<æœ€å¤§è®¢é˜…è¡¨è¾¾å¼çš„é•¿åº¦
 
-#define CWX_MQ_MAX_MSG_SIZE           10 * 1024 * 1024 ///<×î´óµÄÏûÏ¢´óĞ¡
-#define CWX_MQ_MAX_CHUNK_KSIZE         20 * 1024 ///<×î´óµÄchunk size
+#define CWX_MQ_MAX_MSG_SIZE           10 * 1024 * 1024 ///<æœ€å¤§çš„æ¶ˆæ¯å¤§å°
+#define CWX_MQ_MAX_CHUNK_KSIZE         20 * 1024 ///<æœ€å¤§çš„chunk size
 
 #define CWX_MQ_ZIP_EXTRA_BUF           128
 
 
-#define CWX_MQ_MAX_BINLOG_FLUSH_COUNT  10000 ///<·şÎñÆô¶¯Ê±£¬×î´óµÄskip sidÊıÁ¿
+#define CWX_MQ_MAX_BINLOG_FLUSH_COUNT  10000 ///<æœåŠ¡å¯åŠ¨æ—¶ï¼Œæœ€å¤§çš„skip sidæ•°é‡
 
 #endif

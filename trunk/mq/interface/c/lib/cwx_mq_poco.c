@@ -1,4 +1,4 @@
-#include "cwx_mq_poco.h"
+Ôªø#include "cwx_mq_poco.h"
 #include "cwx_md5.h"
 #include "cwx_crc32.h"
 #include <zlib.h>
@@ -69,7 +69,7 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
     }
     if (sign)
     {
-        if (strcmp(sign, CWX_MQ_KEY_CRC32) == 0)//CRC32«©√˚
+        if (strcmp(sign, CWX_MQ_KEY_CRC32) == 0)//CRC32Á≠æÂêç
         {
             CWX_UINT32 uiCrc32 = cwx_crc32_value(cwx_pg_writer_get_msg(writer), cwx_pg_writer_get_msg_size(writer));
             if (0 != cwx_pg_writer_add_key(writer, CWX_MQ_KEY_CRC32, (char*)&uiCrc32, sizeof(uiCrc32), 0))
@@ -78,7 +78,7 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
                 return CWX_MQ_ERR_ERROR;
             }
         }
-        else if (strcmp(sign, CWX_MQ_KEY_MD5) == 0)//md5«©√˚
+        else if (strcmp(sign, CWX_MQ_KEY_MD5) == 0)//md5Á≠æÂêç
         {
             cwx_md5_context md5;
             unsigned char szMd5[16];
@@ -753,7 +753,7 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
     }
     if (sign)
     {
-        if (strcmp(sign, CWX_MQ_KEY_CRC32) == 0)//CRC32«©√˚
+        if (strcmp(sign, CWX_MQ_KEY_CRC32) == 0)//CRC32Á≠æÂêç
         {
             CWX_UINT32 uiCrc32 = cwx_crc32_value(cwx_pg_writer_get_msg(writer), cwx_pg_writer_get_msg_size(writer));
             if (0 != cwx_pg_writer_add_key(writer, CWX_MQ_KEY_CRC32, (char*)&uiCrc32, sizeof(uiCrc32), 0))
@@ -762,7 +762,7 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
                 return CWX_MQ_ERR_ERROR;
             }
         }
-        else if (strcmp(sign, CWX_MQ_KEY_MD5) == 0)//md5«©√˚
+        else if (strcmp(sign, CWX_MQ_KEY_MD5) == 0)//md5Á≠æÂêç
         {
             cwx_md5_context md5;
             unsigned char szMd5[16];

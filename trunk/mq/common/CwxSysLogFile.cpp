@@ -1,4 +1,4 @@
-#include "CwxSysLogFile.h"
+ï»¿#include "CwxSysLogFile.h"
 
 
 CwxSysLogFile::CwxSysLogFile(char const* szFileName, CWX_UINT32 uiSwithFileNum){
@@ -41,7 +41,7 @@ int CwxSysLogFile::init(){
     m_bSaved =true;
 
     if (!bExistCur){
-        if (bExistOld){//²ÉÓÃ¾ÉÎÄ¼ş
+        if (bExistOld){//é‡‡ç”¨æ—§æ–‡ä»¶
             if (!CwxFile::moveFile(m_strOldFileName.c_str(), m_strFileName.c_str())){
                 CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to move old sys file[%s] to cur sys file:[%s], errno=%d",
                     2047,
@@ -50,7 +50,7 @@ int CwxSysLogFile::init(){
                     errno);
                 return -1;
             }
-        }else if(bExistNew){//²ÉÓÃĞÂÎÄ¼ş
+        }else if(bExistNew){//é‡‡ç”¨æ–°æ–‡ä»¶
             if (!CwxFile::moveFile(m_strNewFileName.c_str(), m_strFileName.c_str())){
                 CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to move new sys file[%s] to cur sys file:[%s], errno=%d",
                     2047,
@@ -59,7 +59,7 @@ int CwxSysLogFile::init(){
                     errno);
                 return -1;
             }
-        }else{//´´½¨¿ÕµÄµ±Ç°ÎÄ¼ş
+        }else{//åˆ›å»ºç©ºçš„å½“å‰æ–‡ä»¶
             int fd = ::open(m_strFileName.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
             if (-1 == fd){
                 CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to create cur sys file:[%s], errno=%d",
@@ -122,7 +122,7 @@ int CwxSysLogFile::init(){
 }
 
 int CwxSysLogFile::switchSysFile(){
-    if (!m_fd) return -1; ///µ±Ç°ÎÄ¼şµÄfd
+    if (!m_fd) return -1; ///å½“å‰æ–‡ä»¶çš„fd
     if (!m_bSaved){
         if (0 != saveFile()){
             ::close(m_fd);
@@ -130,7 +130,7 @@ int CwxSysLogFile::switchSysFile(){
             return -1;
         }
     }
-    //flushµ±Ç°ÎÄ¼şµÄÊı¾İ
+    //flushå½“å‰æ–‡ä»¶çš„æ•°æ®
     if (0 != ::fsync(m_fd)){
         CwxFile::unlock(m_fd);
         ::close(m_fd);
@@ -140,11 +140,11 @@ int CwxSysLogFile::switchSysFile(){
             errno);
         return -1;
     }
-    //¹Ø±Õµ±Ç°ÏµÍ³ÎÄ¼ş
+    //å…³é—­å½“å‰ç³»ç»Ÿæ–‡ä»¶
     CwxFile::unlock(m_fd);
     ::close(m_fd);
     m_fd = -1;
-    //Ğ´µ½ĞÂÎÄ¼ş
+    //å†™åˆ°æ–°æ–‡ä»¶
     int fd = ::open(m_strNewFileName.c_str(),  O_RDWR|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     if (-1 == fd){
         CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to open new sys file:%s, errno=%d",
@@ -167,9 +167,9 @@ int CwxSysLogFile::switchSysFile(){
         return -1;
     }
     ::close(fd);
-    //É¾³ıoldÎÄ¼ş
+    //åˆ é™¤oldæ–‡ä»¶
     CwxFile::rmFile(m_strOldFileName.c_str());
-    //½«µ±Ç°ÎÄ¼ş£¬moveÎªoldÎÄ¼ş
+    //å°†å½“å‰æ–‡ä»¶ï¼Œmoveä¸ºoldæ–‡ä»¶
     if (!CwxFile::moveFile(m_strFileName.c_str(), m_strOldFileName.c_str())){
         CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to move sys file:[%s] to old sys file:[%s], errno=%d",
             m_strFileName.c_str(),
@@ -177,7 +177,7 @@ int CwxSysLogFile::switchSysFile(){
             errno);
         return -1;
     }
-    //½«ĞÂÎÄ¼ş£¬moveÎªµ±Ç°ÎÄ¼ş
+    //å°†æ–°æ–‡ä»¶ï¼Œmoveä¸ºå½“å‰æ–‡ä»¶
     if (!CwxFile::moveFile(m_strNewFileName.c_str(), m_strFileName.c_str())){
         CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to move new sys file:[%s] to sys file:[%s], errno=%d",
             m_strNewFileName.c_str(),
@@ -185,7 +185,7 @@ int CwxSysLogFile::switchSysFile(){
             errno);
         return -1;
     }
-    //´ò¿ªĞÂÎÄ¼ş
+    //æ‰“å¼€æ–°æ–‡ä»¶
     m_fd = ::open(m_strFileName.c_str(), O_RDWR);
     if (-1 == m_fd){
         CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to open sys file:[%s], errno=%d",
@@ -204,12 +204,12 @@ int CwxSysLogFile::switchSysFile(){
     return 0;
 }
 
-///½«µ±Ç°µÄÄÚÈİ±£´æµ½ÎÄ¼ş£»0£º³É¹¦£»-1£ºÊ§°Ü
+///å°†å½“å‰çš„å†…å®¹ä¿å­˜åˆ°æ–‡ä»¶ï¼›0ï¼šæˆåŠŸï¼›-1ï¼šå¤±è´¥
 int CwxSysLogFile::saveFile(){
     CWX_UINT32 uiWriteSize = m_uiContentSize;
     if (m_bSaved) return 0;
     if (-1 == m_fd) return -1;
-    if (m_uiContentSize < m_uiFileSize){///ÒÔ¿Õ¸ñ²¹Æë
+    if (m_uiContentSize < m_uiFileSize){///ä»¥ç©ºæ ¼è¡¥é½
         for (CWX_UINT32 i=m_uiContentSize; i<m_uiFileSize; i++)
             m_szFileContentBuf[i] = 0x20;
         uiWriteSize = m_uiFileSize;
@@ -236,7 +236,7 @@ int CwxSysLogFile::saveFile(){
     return 0;
 }
 
-///»ñÈ¡Ö¸¶¨´óĞ¡µÄÄÚ´æ£»true£º³É¹¦£»false£ºÊ§°Ü
+///è·å–æŒ‡å®šå¤§å°çš„å†…å­˜ï¼›trueï¼šæˆåŠŸï¼›falseï¼šå¤±è´¥
 bool CwxSysLogFile::prepareBuf(CWX_UINT32 uiSize){
     if (m_uiBufLen <= uiSize){
         uiSize = ((uiSize/1024) + 1)*1024;

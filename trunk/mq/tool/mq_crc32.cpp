@@ -1,11 +1,11 @@
-#include "CwxCrc32.h"
+Ôªø#include "CwxCrc32.h"
 #include "CwxGetOpt.h"
 #include "CwxStl.h"
 #include "CwxFile.h"
 using namespace cwinux;
 string g_strCrc32;
 string g_strCrc32File;
-///-1£∫ ß∞‹£ª0£∫help£ª1£∫≥…π¶
+///-1ÔºöÂ§±Ë¥•Ôºõ0ÔºöhelpÔºõ1ÔºöÊàêÂäü
 int parseArg(int argc, char**argv)
 {
     CwxGetOpt cmd_option(argc, argv, "c:f:h");
