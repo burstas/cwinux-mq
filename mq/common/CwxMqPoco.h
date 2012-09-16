@@ -22,90 +22,6 @@
 #include "CwxCrc32.h"
 #include "CwxMd5.h"
 
-///订阅规则的规则信息对象
-class CwxMqSubscribeItem{
-public:
-    CwxMqSubscribeItem(){
-        m_bAll = false;
-        m_bMod = false;
-        m_uiModBase = 0;
-        m_uiModIndex = 0;
-    }
-    CwxMqSubscribeItem(CwxMqSubscribeItem const& item){
-        m_bAll = item.m_bAll;
-        m_bMod = item.m_bMod;
-        m_uiModBase = item.m_uiModBase;
-        m_uiModIndex = item.m_uiModIndex;
-        m_set = item.m_set;
-    }
-    CwxMqSubscribeItem& operator=(CwxMqSubscribeItem const& item){
-        if (this != &item){
-            m_bAll = item.m_bAll;
-            m_bMod = item.m_bMod;
-            m_uiModBase = item.m_uiModBase;
-            m_uiModIndex = item.m_uiModIndex;
-            m_set = item.m_set;
-        }
-        return *this;
-    }
-public:
-    ///是否订阅指定的id
-    inline bool isSubscribe(CWX_UINT32 id) const{
-        if (m_bAll) return true;
-        if (m_bMod) return (id%m_uiModBase)==m_uiModIndex;
-        list<pair<CWX_UINT32, CWX_UINT32> >::const_iterator iter = m_set.begin();
-        while(iter != m_set.end()){
-            if ((id>=iter->first) && (id<=iter->second)) return true;
-            iter++;
-        }
-        return false;
-    }
-public:
-    bool    m_bAll; ///<是否全部订阅
-    bool    m_bMod; ///<是否为求余模式
-    CWX_UINT32  m_uiModBase; ///<求余的基数
-    CWX_UINT32  m_uiModIndex; ///<余数值
-    list<pair<CWX_UINT32, CWX_UINT32> > m_set; ///<订阅的group或type的范围列表
-};
-
-///订阅规则表达式对象
-class CwxMqSubscribe{
-public:
-    CwxMqSubscribe(){
-        m_bAll = false;
-    }
-
-    CwxMqSubscribe(CwxMqSubscribe const& item){
-        m_bAll = item.m_bAll;
-        m_subscribe = item.m_subscribe;
-    }
-
-    CwxMqSubscribe& operator=(CwxMqSubscribe const& item){
-        if (this != &item){
-            m_bAll = item.m_bAll;
-            m_subscribe = item.m_subscribe;
-        }
-        return *this;
-    }
-
-public:
-    ///是否订阅指定的group、type对
-    inline bool isSubscribe(CWX_UINT32 uiGroup) const{
-        if (!m_bAll){
-            list<CwxMqSubscribeItem/*group*/>::const_iterator iter = m_subscribe.begin();
-            while(iter != m_subscribe.end()){
-                if (iter->isSubscribe(uiGroup)) return true;
-                iter++;
-            }
-            return false;
-        }
-        return true;
-    }
-public:
-    bool    m_bAll; ///<是否订阅全部消息
-    list<CwxMqSubscribeItem/*group*/ > m_subscribe; ///<订阅规则列表
-};
-
 //mq的协议定义对象
 class CwxMqPoco{
 public:
@@ -137,32 +53,22 @@ public:
         ///错误消息
         MSG_TYPE_SYNC_ERR = 105  ///<数据同步错误消息
     };
-    enum{
-        MAX_CONTINUE_SEEK_NUM = 8192
-    };
 public:
-    ///初始化协议。返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int init(char* szErr2K=NULL);
-    ///释放协议。
-    static void destory();
     ///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int packRecvData(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
         CwxKeyValueItem const& data,
-        CWX_UINT32 group,
         char const* user=NULL,
         char const* passwd=NULL,
         char const* sign=NULL,
         bool        zip=false,
         char* szErr2K=NULL
         );
-
     ///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseRecvData(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
         CwxKeyValueItem const*& data,
-        CWX_UINT32& group,
         char const*& user,
         char const*& passwd,
         char* szErr2K=NULL);
@@ -172,7 +78,6 @@ public:
         char const* msg,
         CWX_UINT32  msg_len,
         CwxKeyValueItem const*& data,
-        CWX_UINT32& group,
         char const*& user,
         char const*& passwd,
         char* szErr2K=NULL);
@@ -207,13 +112,14 @@ public:
         char const*& user,
         char const*& passwd,
         char* szErr2K=NULL);
+
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int packCommitReply(CwxPackageWriter* writer,
         CwxMsgBlock*& msg,
         CWX_UINT32 uiTaskId,
         int ret,
         char const* szErrMsg,
-        char* szErr2K=NULL);
+        char* szErr2K=NULL);   
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseCommitReply(CwxPackageReader* reader,
         CwxMsgBlock const* msg,
@@ -228,7 +134,7 @@ public:
         CWX_UINT64 ullSid,
         bool      bNewly,
         CWX_UINT32  uiChunkSize,
-        char const* subscribe = NULL,
+        char const* source = NULL,
         char const* user=NULL,
         char const* passwd=NULL,
         char const* sign=NULL,
@@ -240,7 +146,7 @@ public:
         CWX_UINT64& ullSid,
         bool&       bNewly,
         CWX_UINT32&  uiChunkSize,
-        char const*& subscribe,
+        char const*& source,
         char const*& user,
         char const*& passwd,
         char const*& sign,
@@ -277,7 +183,6 @@ public:
         CWX_UINT64 ullSid,
         CWX_UINT32 uiTimeStamp,
         CwxKeyValueItem const& data,
-        CWX_UINT32 group,
         char const* sign,
         bool       zip,
         CWX_UINT64 ullSeq,
@@ -287,7 +192,6 @@ public:
         CWX_UINT64 ullSid,
         CWX_UINT32 uiTimeStamp,
         CwxKeyValueItem const& data,
-        CWX_UINT32 group,
         char const* sign=NULL,
         char* szErr2K=NULL);
     static int packMultiSyncData(
@@ -305,7 +209,6 @@ public:
         CWX_UINT64& ullSid,
         CWX_UINT32& uiTimeStamp,
         CwxKeyValueItem const*& data,
-        CWX_UINT32& group,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseSyncData(CwxPackageReader* reader,
@@ -314,7 +217,6 @@ public:
         CWX_UINT64& ullSid,
         CWX_UINT32& uiTimeStamp,
         CwxKeyValueItem const*& data,
-        CWX_UINT32& group,
         char* szErr2K=NULL);
 
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
@@ -354,7 +256,6 @@ public:
         CWX_UINT64 ullSid,
         CWX_UINT32 uiTimeStamp,
         CwxKeyValueItem const& data,
-        CWX_UINT32 group,
         char* szErr2K=NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseFetchMqReply(CwxPackageReader* reader,
@@ -364,9 +265,7 @@ public:
         CWX_UINT64& ullSid,
         CWX_UINT32& uiTimeStamp,
         CwxKeyValueItem const*& data,
-        CWX_UINT32& group,
         char* szErr2K=NULL);
-
 
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseCreateQueue(CwxPackageReader* reader,
@@ -374,7 +273,6 @@ public:
         char const*& name,
         char const*& user,
         char const*& passwd,
-        char const*& scribe,
         char const*& auth_user,
         char const*& auth_passwd,
         CWX_UINT64&  ullSid,///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
@@ -385,7 +283,6 @@ public:
         char const* name,
         char const* user,
         char const* passwd,
-        char const* scribe,
         char const* auth_user,
         char const* auth_passwd,
         CWX_UINT64  ullSid=0,///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
@@ -438,6 +335,7 @@ public:
         int  ret,
         char const* szErrMsg,
         char* szErr2K=NULL);
+
     ///pack report或sync的出错消息包。返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int packSyncErr(CwxPackageWriter* writer, ///<用于pack的writer
         CwxMsgBlock*& msg, ///<返回的消息包，对象由内部分配
@@ -476,47 +374,12 @@ public:
         return ullSeq;
     }
 
-    ///返回sync记录。
-    inline static char const* getSyncRecordData(){
-        return m_pWriter->getMsg();
-    }
-    ///获取sync记录的长度
-    inline static CWX_UINT32 getSyncRecordDataLen(){
-        return m_pWriter->getMsgSize();
-    }
-    ///是否继续查找订阅的消息类型
-    inline static bool isContinueSeek(CWX_UINT32 uiSeekedNum){
-        return MAX_CONTINUE_SEEK_NUM>uiSeekedNum;
-    }
-    ///是否为有效地消息订阅语法
-    static bool isValidSubscribe(string const& strSubscribe, string& strErrMsg);
-    ///解析订阅的语法
-    /*
-    表达式为
-    group_express;group_express...
-    其中：
-    group_express: [*]|[group_index%group_num]|[begin-end,begin-end,...]
-    *：全部
-    group_index%group_num：对group以group_num求余，余数为group_index的。
-    begin-end：group范围，多个范围可以以【,】分割，若begin==end，则只写begin就可以了
-    */
-    static bool parseSubsribe(string const& strSubscribe, CwxMqSubscribe& subscribe, string& strErrMsg);
-    ///消息是否订阅
-    inline static bool isSubscribe(CwxMqSubscribe const& subscribe, CWX_UINT32 uiGroup){
-        return subscribe.isSubscribe(uiGroup);
-    }
 private:
     ///禁止创建对象实例
     CwxMqPoco(){
     }
     ///析构函数
     ~CwxMqPoco();
-    ///解析一个订阅表达式
-    static bool parseSubsribeExpress(string const& strSubsribeExpress,
-        CwxMqSubscribeItem& express,
-        string& strErrMsg);
-private:
-    static CwxPackageWriter*   m_pWriter;
 };
 
 
