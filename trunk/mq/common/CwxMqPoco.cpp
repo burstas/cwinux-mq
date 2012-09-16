@@ -1,29 +1,11 @@
 ﻿#include "CwxMqPoco.h"
 #include "CwxZlib.h"
 
-CwxPackageWriter* CwxMqPoco::m_pWriter =NULL;
-///初始化协议。返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::init(char* ){
-    char const* data="This is binlog sync record.";
-    if (!m_pWriter) m_pWriter = new CwxPackageWriter();
-    m_pWriter->beginPack();
-    m_pWriter->addKeyValue(CWX_MQ_D, data, strlen(data), false);
-    m_pWriter->pack();
-    return CWX_MQ_ERR_SUCCESS;
-}
-
-///释放协议。
-void CwxMqPoco::destory(){
-    if (m_pWriter) delete m_pWriter;
-    m_pWriter = NULL;
-}
-
 ///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
                         CwxMsgBlock*& msg,
                         CWX_UINT32 uiTaskId,
                         CwxKeyValueItem const& data,
-                        CWX_UINT32 group,
                         char const* user,
                         char const* passwd,
                         char const* sign,
@@ -33,10 +15,6 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
 {
     writer->beginPack();
     if (!writer->addKeyValue(CWX_MQ_D, data.m_szData, data.m_uiDataLen, data.m_bKeyValue)){
-        if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_ERR_ERROR;
-    }
-    if (!writer->addKeyValue(CWX_MQ_G, group)){
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_ERR_ERROR;
     }
@@ -100,7 +78,6 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
 int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
                          CwxMsgBlock const* msg,
                          CwxKeyValueItem const*& data,
-                         CWX_UINT32& group,
                          char const*& user,
                          char const*& passwd,
                          char* szErr2K)
@@ -109,7 +86,6 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
         msg->rd_ptr(),
         msg->length(),
         data,
-        group,
         user,
         passwd,
         szErr2K);
@@ -120,7 +96,6 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
         char const* msg,
         CWX_UINT32  msg_len,
         CwxKeyValueItem const*& data,
-        CWX_UINT32& group,
         char const*& user,
         char const*& passwd,
         char* szErr2K)
@@ -140,10 +115,6 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
             if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "key[%s] is key/value, but it's format is not valid..", CWX_MQ_D);
             return CWX_MQ_ERR_ERROR;
         }
-    }
-    //get group
-    if (!reader->getKey(CWX_MQ_G, group)){
-        group = 0;
     }
     CwxKeyValueItem const* pItem = NULL;
     //get user
@@ -399,7 +370,7 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
                           CWX_UINT64 ullSid,
                           bool      bNewly,
                           CWX_UINT32  uiChunkSize,
-                          char const* subscribe,
+                          char const* source,
                           char const* user,
                           char const* passwd,
                           char const* sign,
@@ -417,7 +388,7 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_ERR_ERROR;
     }
-    if (subscribe && !writer->addKeyValue(CWX_MQ_SUBSCRIBE, subscribe, strlen(subscribe))){
+    if (source && !writer->addKeyValue(CWX_MQ_SOURCE, source, strlen(source))){
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_ERR_ERROR;
     }
@@ -462,7 +433,7 @@ int CwxMqPoco::parseReportData(CwxPackageReader* reader,
                            CWX_UINT64& ullSid,
                            bool& bNewly,
                            CWX_UINT32&  uiChunkSize,
-                           char const*& subscribe,
+                           char const*& source,
                            char const*& user,
                            char const*& passwd,
                            char const*& sign,
@@ -483,11 +454,11 @@ int CwxMqPoco::parseReportData(CwxPackageReader* reader,
         uiChunkSize = 0;
     }
     CwxKeyValueItem const* pItem = NULL;
-    //get subscribe
-    if (!(pItem = reader->getKey(CWX_MQ_SUBSCRIBE))){
-        subscribe = "";
+    //get source
+    if (!(pItem = reader->getKey(CWX_MQ_SOURCE))){
+        source = "";
     }else{
-        subscribe = pItem->m_szData;
+        source = pItem->m_szData;
     }
     //get user
     if (!(pItem = reader->getKey(CWX_MQ_U))){
@@ -617,7 +588,6 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
                         CWX_UINT64 ullSid,
                         CWX_UINT32 uiTimeStamp,
                         CwxKeyValueItem const& data,
-                        CWX_UINT32 group,
                         char const* sign,
                         bool       zip,
                         CWX_UINT64 ullSeq,
@@ -628,7 +598,6 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
         ullSid,
         uiTimeStamp,
         data,
-        group,
         sign,
         szErr2K);
     if (CWX_MQ_ERR_SUCCESS != ret) return ret;
@@ -674,7 +643,6 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
                             CWX_UINT64 ullSid,
                             CWX_UINT32 uiTimeStamp,
                             CwxKeyValueItem const& data,
-                            CWX_UINT32 group,
                             char const* sign,
                             char* szErr2K)
 {
@@ -690,11 +658,6 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
         return CWX_MQ_ERR_ERROR;
     }
     if (!writer->addKeyValue(CWX_MQ_D, data.m_szData, data.m_uiDataLen, data.m_bKeyValue))
-    {
-        if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_ERR_ERROR;
-    }
-    if (!writer->addKeyValue(CWX_MQ_G, group))
     {
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_ERR_ERROR;
@@ -795,7 +758,6 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
                          CWX_UINT64& ullSid,
                          CWX_UINT32& uiTimeStamp,
                          CwxKeyValueItem const*& data,
-                         CWX_UINT32& group,
                          char* szErr2K)
 {
     if (!reader->unpack(szData, uiDataLen, false, true))
@@ -820,11 +782,6 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
     {
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_D);
         return CWX_MQ_ERR_ERROR;
-    }
-    //get group
-    if (!reader->getKey(CWX_MQ_G, group))
-    {
-        group = 0;
     }
     CwxKeyValueItem const* pItem = NULL;
     //get crc32
@@ -992,7 +949,6 @@ int CwxMqPoco::packFetchMqReply(CwxPackageWriter* writer,
                             CWX_UINT64 ullSid,
                             CWX_UINT32 uiTimeStamp,
                             CwxKeyValueItem const& data,
-                            CWX_UINT32 group,
                             char* szErr2K)
 {
     writer->beginPack();
@@ -1019,10 +975,6 @@ int CwxMqPoco::packFetchMqReply(CwxPackageWriter* writer,
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_ERR_ERROR;
     }
-    if (!writer->addKeyValue(CWX_MQ_G, group)){
-        if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_ERR_ERROR;
-    }
     if (!writer->pack()){
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_ERR_ERROR;
@@ -1044,7 +996,6 @@ int CwxMqPoco::parseFetchMqReply(CwxPackageReader* reader,
                     CWX_UINT64& ullSid,
                     CWX_UINT32& uiTimeStamp,
                     CwxKeyValueItem const*& data,
-                    CWX_UINT32& group,
                     char* szErr2K)
 {
     if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true)){
@@ -1082,10 +1033,6 @@ int CwxMqPoco::parseFetchMqReply(CwxPackageReader* reader,
         if (szErr2K) CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_D);
         return CWX_MQ_ERR_ERROR;
     }
-    //get group
-    if (!reader->getKey(CWX_MQ_G, group)){
-        group = 0;
-    }
     return CWX_MQ_ERR_SUCCESS;
 }
 
@@ -1096,7 +1043,6 @@ int CwxMqPoco::parseCreateQueue(CwxPackageReader* reader,
                             char const*& name,
                             char const*& user,
                             char const*& passwd,
-                            char const*& scribe,
                             char const*& auth_user,
                             char const*& auth_passwd,
                             CWX_UINT64&  ullSid,///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
@@ -1129,13 +1075,6 @@ int CwxMqPoco::parseCreateQueue(CwxPackageReader* reader,
     }else{
         passwd = pItem->m_szData;
     }
-    //get subscribe
-    pItem = reader->getKey(CWX_MQ_SUBSCRIBE);
-    if (!pItem){
-        scribe = "";
-    }else{
-        scribe = pItem->m_szData;
-    }
     //get auth_user
     pItem = reader->getKey(CWX_MQ_AUTH_USER);
     if (!pItem){
@@ -1161,7 +1100,6 @@ int CwxMqPoco::packCreateQueue(CwxPackageWriter* writer,
                            char const* name,
                            char const* user,
                            char const* passwd,
-                           char const* scribe,
                            char const* auth_user,
                            char const* auth_passwd,
                            CWX_UINT64  ullSid,///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
@@ -1181,10 +1119,6 @@ int CwxMqPoco::packCreateQueue(CwxPackageWriter* writer,
         return CWX_MQ_ERR_ERROR;
     }
     if (passwd && !writer->addKeyValue(CWX_MQ_P, passwd, strlen(passwd))){
-        if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_ERR_ERROR;
-    }
-    if (scribe && !writer->addKeyValue(CWX_MQ_SUBSCRIBE, scribe, strlen(scribe))){
         if (szErr2K) strcpy(szErr2K, writer->getErrMsg());
         return CWX_MQ_ERR_ERROR;
     }
@@ -1495,111 +1429,4 @@ int CwxMqPoco::parseSyncErr(CwxPackageReader* reader,
     }
     szErrMsg = pItem->m_szData;
     return CWX_MQ_ERR_SUCCESS;
-}
-
-
-///是否为有效地消息订阅语法
-bool CwxMqPoco::isValidSubscribe(string const& strSubscribe, string& strErrMsg)
-{
-    CwxMqSubscribe subscribe;
-    return parseSubsribe(strSubscribe, subscribe, strErrMsg);
-}
-
-///解析订阅的语法
-bool CwxMqPoco::parseSubsribe(string const& strSubscribe,
-                              CwxMqSubscribe& subscribe, string& strErrMsg)
-{
-    list<string> groups;
-    list<string>::iterator iter_group;
-    CwxMqSubscribeItem/*group*/ rule;
-    string strGroup=strSubscribe;
-    subscribe.m_bAll = false;
-    subscribe.m_subscribe.clear();
-    CwxCommon::trim(strGroup);
-    if (!strGroup.length() || !strcmp("*",strGroup.c_str())){
-        subscribe.m_bAll = true;
-        return true;
-    }
-    //split strSubscribe by [;]
-    CwxCommon::split(strSubscribe, groups, ';');
-    iter_group = groups.begin();
-    while(iter_group != groups.end()){
-        strGroup = *iter_group;
-        CwxCommon::trim(strGroup);
-        if (strGroup.length()){//it must be group_express
-            if (!parseSubsribeExpress(strGroup, rule, strErrMsg)) return false;
-            if (rule.m_bAll){
-                subscribe.m_bAll = true;
-                return true;
-            }
-            subscribe.m_subscribe.push_back(rule);
-        }
-        iter_group++;
-    }
-    if (!subscribe.m_subscribe.size()) subscribe.m_bAll = true;
-    return true;
-}
-
-
-///解析一个订阅表达式； [*]|[type_index%typte_num]|[begin-end,begin-group,...]
-bool CwxMqPoco::parseSubsribeExpress(string const& strSubsribeExpress,
-                                 CwxMqSubscribeItem& express,
-                                 string& strErrMsg)
-{
-    express.m_bAll = false;
-    express.m_bMod = false;
-    express.m_uiModBase = 0;
-    express.m_uiModIndex = 0;
-    express.m_set.clear();
-    if (!strSubsribeExpress.length() || !strcmp("*", strSubsribeExpress.c_str()))
-    {
-        express.m_bAll = true;
-        return true;
-    }
-    if (strSubsribeExpress.find('%') != string::npos)
-    {//mod表达式
-        express.m_bMod = true;
-        express.m_uiModIndex = strtoul(strSubsribeExpress.c_str(), NULL, 10);
-        express.m_uiModBase = strtoul(strSubsribeExpress.c_str() + strSubsribeExpress.find('%') + 1, NULL, 10);
-        if (!express.m_uiModBase)
-        {
-            strErrMsg = "[";
-            strErrMsg += strSubsribeExpress + "]'s mod-base is zero";
-            return false;
-        }
-        if (express.m_uiModBase <= express.m_uiModIndex)
-        {
-            strErrMsg = "[";
-            strErrMsg += strSubsribeExpress + "]'s mod-base is not more than mod-index";
-            return false;
-        }
-        return true;
-    }
-    //set表达式 begin-end,begin-end,..
-    {
-        list<string> items;
-        list<string>::iterator iter;
-        pair<CWX_UINT32, CWX_UINT32> range;
-        string strValue;
-        CwxCommon::split(strSubsribeExpress,items, ',');
-        iter = items.begin();
-        while(iter != items.end()){
-            strValue = *iter;
-            CwxCommon::trim(strValue);
-            if (strValue.find('-') != string::npos){//it's a range
-                range.first = strtoul(strValue.c_str(), NULL, 10);
-                range.second = strtoul(strValue.c_str() + strValue.find('-') + 1, NULL, 10);
-            }else{
-                range.first = range.second = strtoul(strValue.c_str(), NULL, 10);
-            }
-            if (range.first > range.second){
-                strErrMsg = "[";
-                strErrMsg += strSubsribeExpress + "]'s begin is more than end.";
-                return false;
-            }
-            express.m_set.push_back(range);
-            iter++;
-        }
-    }
-    return true;
 }

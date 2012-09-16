@@ -31,7 +31,7 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_T    "t" ///<时间戳
 #define CWX_MQ_U    "u" ///<user的key
 #define CWX_MQ_P    "p"  ///<passwd的key
-#define CWX_MQ_SUBSCRIBE "subscribe"
+#define CWX_MQ_SOURCE "source"
 #define CWX_MQ_Q   "q"   ///<队列的名字
 #define CWX_MQ_G    "g" ///<group的key
 #define CWX_MQ_CHUNK "chunk"
