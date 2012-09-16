@@ -199,10 +199,8 @@ private:
     static int dealMqFetchThreadQueueMsg(CwxMsgQueue* queue, CwxMqApp* app, CwxAppChannel* channel);
     ///设置master recv连接的属性
     static int setMasterRecvSockAttr(CWX_HANDLE handle, void* arg);
-    ///设置master dispatch连接的属性
-    static int setMasterDispatchSockAttr(CWX_HANDLE handle, void* arg);
     ///设置slave dispatch连接的属性
-    static int setSlaveDispatchSockAttr(CWX_HANDLE handle, void* arg);
+    static int setDispatchSockAttr(CWX_HANDLE handle, void* arg);
     ///设置slave report连接的属性
     static int setSlaveReportSockAttr(CWX_HANDLE handle, void* arg);
     ///设置mq连接的属性

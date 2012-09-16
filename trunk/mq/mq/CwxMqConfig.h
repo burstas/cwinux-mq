@@ -153,6 +153,10 @@ public:
     inline CwxMqConfigMaster const& getMaster() const{
         return m_master;
     }
+    ///获取分发的信息
+    inline CwxMqConfigDispatch const& getDispatch() const{
+        return m_dispatch;
+    }
     ///获取消息接受的listen信息
     inline CwxMqConfigRecv const& getRecv() const{
         return m_recv;
