@@ -19,8 +19,8 @@
 #include "CwxThreadPool.h"
 
 ///应用信息定义
-#define CWX_MQ_VERSION "2.2.10"
-#define CWX_MQ_MODIFY_DATE "20110901102000"
+#define CWX_MQ_VERSION "2.3.2"
+#define CWX_MQ_MODIFY_DATE "20120916142000"
 
 ///MQ服务的app对象
 class CwxMqApp : public CwxAppFramework{
@@ -34,10 +34,6 @@ public:
         SVR_TYPE_MASTER = CwxAppFramework::SVR_TYPE_USER_START + 4, ///<slave 从master接收数据的svr type
         SVR_TYPE_FETCH = CwxAppFramework::SVR_TYPE_USER_START + 5, ///<mq bin协议消息获取服务类型
         SVR_TYPE_MONITOR = CwxAppFramework::SVR_TYPE_USER_START + 7 ///<监控监听的服务类型
-    };
-    enum{
-        MQ_NEW_MSG_EVENT=CwxEventInfo::SYS_EVENT_NUM + 1, ///<binlog有新数据的事件
-        MQ_CONTINUE_SEND_EVENT= MQ_NEW_MSG_EVENT + 1 ///<未完成发送的连接，继续发送
     };
     ///构造函数
 	CwxMqApp();
