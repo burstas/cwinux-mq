@@ -55,6 +55,7 @@ public:
         m_strUser = item.m_strUser; ///<队列鉴权的用户名
         m_strPasswd = item.m_strPasswd; ///<队列的用户口令
         m_ullCursorSid = item.m_ullCursorSid;
+        m_ullLeftNum = item.m_ullLeftNum;
     }
 
     CwxMqQueueInfo& operator=(CwxMqQueueInfo const& item){
@@ -63,6 +64,7 @@ public:
             m_strUser = item.m_strUser; ///<队列鉴权的用户名
             m_strPasswd = item.m_strPasswd; ///<队列的用户口令
             m_ullCursorSid = item.m_ullCursorSid;
+            m_ullLeftNum = item.m_ullLeftNum;
         }
         return *this;
     }
@@ -71,6 +73,7 @@ public:
     string                           m_strUser; ///<队列鉴权的用户名
     string                           m_strPasswd; ///<队列的用户口令
     CWX_UINT64                       m_ullCursorSid; ///<当前cursor的sid
+    CWX_UINT64                       m_ullLeftNum; ///<当前消息
 };
 
 bool mqParseHostPort(string const& strHostPort, CwxHostInfo& host);
