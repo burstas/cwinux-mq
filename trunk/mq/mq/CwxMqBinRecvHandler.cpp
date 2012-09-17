@@ -35,7 +35,6 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
         ///binlog数据接收消息
         if (CwxMqPoco::MSG_TYPE_RECV_DATA == msg->event().getMsgHeader().getMsgType())
         {
-            CWX_UINT32 uiGroup;
             CwxKeyValueItem const* pData;
             if (m_pApp->getBinLogMgr()->isInvalid()){
                 ///如果binlog mgr无效，则停止接收
@@ -75,7 +74,6 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
                 bZip?(char const*)m_unzipBuf:msg->rd_ptr(),
                 bZip?ulUnzipLen:msg->length(),
                 pData,
-                uiGroup,
                 user,
                 passwd,
                 pTss->m_szBuf2K)))
@@ -101,7 +99,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
             ullSid = m_pApp->nextSid();
             if (0 != m_pApp->getBinLogMgr()->append(ullSid,
                 time(NULL),
-                uiGroup,
+                0,
                 pTss->m_pWriter->getMsg(),
                 pTss->m_pWriter->getMsgSize(),
                 pTss->m_szBuf2K))
