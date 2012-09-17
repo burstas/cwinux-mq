@@ -34,13 +34,9 @@ public:
     ~CwxMqQueueLogFile();
 public:
     ///初始化系统文件；0：成功；-1：失败
-    int init(CwxMqQueueInfo& queue,
-        set<CWX_UINT64>& uncommitSets,
-        set<CWX_UINT64>& commitSets);
+    int init(CwxMqQueueInfo& queue);
     ///保存队列信息；0：成功；-1：失败
-    int save(CwxMqQueueInfo const& queue,
-        set<CWX_UINT64> const& uncommitSets,
-        set<CWX_UINT64> const& commitSets);
+    int save(CwxMqQueueInfo const& queue);
     ///写commit记录；-1：失败；否则返回已经写入的log数量
     int log(CWX_UINT64 sid);
     ///强行fsync日志文件；0：成功；-1：失败
@@ -82,9 +78,7 @@ private:
     ///0：成功；-1：失败
     int prepare();
     ///0：成功；-1：失败
-    int load( CwxMqQueueInfo& queues,
-        set<CWX_UINT64>& uncommitSets,
-        set<CWX_UINT64>& commitSets);
+    int load( CwxMqQueueInfo& queues);
     ///0：成功；-1：失败
     int parseQueue(string const& line, CwxMqQueueInfo& queue);
     ///0：成功；-1：失败
