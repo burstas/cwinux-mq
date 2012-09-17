@@ -207,7 +207,6 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
     char const* queue_name = NULL;
     char const* user = NULL;
     char const* passwd = NULL;
-    char const* scribe = NULL;
     char const* auth_user = NULL;
     char const* auth_passwd = NULL;
     CWX_UINT64 ullSid = 0;
@@ -223,7 +222,6 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
             queue_name,
             user,
             passwd,
-            scribe,
             auth_user,
             auth_passwd,
             ullSid,
@@ -266,24 +264,11 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue's passwd [%s] is too long, max:%u", passwd, CWX_MQ_MAX_QUEUE_PASSWD_LEN);
             break;
         }
-        if (!strlen(scribe)) scribe = "*";
-        if (strlen(scribe) > CWX_MQ_MAX_QUEUE_SCRIBE_LEN){
-            iRet = CWX_MQ_ERR_ERROR;
-            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Queue's scribe [%s] is too long, max:%u", scribe, CWX_MQ_MAX_QUEUE_SCRIBE_LEN);
-            break;
-        }
-        string strErrMsg;
-        if (!CwxMqPoco::isValidSubscribe(string(scribe), strErrMsg)){
-            iRet = CWX_MQ_ERR_ERROR;
-            CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "%s", strErrMsg.c_str());
-            break;
-        }
         if (0 == ullSid) ullSid = m_pApp->getBinLogMgr()->getMaxSid();
         iRet = m_pApp->getQueueMgr()->addQueue(string(queue_name),
             ullSid,
             string(user),
             string(passwd),
-            string(scribe),
             pTss->m_szBuf2K);
         if (1 == iRet){//成功
             iRet = CWX_MQ_ERR_SUCCESS;
@@ -299,7 +284,11 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss)
     }while(0);
 
     CwxMsgBlock* block = NULL;
-    iRet = CwxMqPoco::packCreateQueueReply(pTss->m_pWriter, block, iRet, pTss->m_szBuf2K, pTss->m_szBuf2K);
+    iRet = CwxMqPoco::packCreateQueueReply(pTss->m_pWriter,
+        block,
+        iRet,
+        pTss->m_szBuf2K,
+        pTss->m_szBuf2K);
     if (CWX_MQ_ERR_SUCCESS != iRet){
         CWX_ERROR(("Failure to pack create-queue-reply, err:%s", pTss->m_szBuf2K));
         return -1;

@@ -82,7 +82,7 @@ int CwxMqMasterHandler::createSession(CwxMqTss* pTss){
         m_pApp->getBinLogMgr()->getMaxSid(),
         false,
         m_pApp->getConfig().getCommon().m_uiChunkSize,
-        m_pApp->getConfig().getSlave().m_strSubScribe.c_str(),
+        NULL,
         m_pApp->getConfig().getSlave().m_master.getUser().c_str(),
         m_pApp->getConfig().getSlave().m_master.getPasswd().c_str(),
         m_pApp->getConfig().getSlave().m_strSign.c_str(),
@@ -458,7 +458,6 @@ int CwxMqMasterHandler::saveBinlog(CwxMqTss* pTss,
                                    CWX_UINT32 uiLen)
 {
     CWX_UINT32 ttTimestamp;
-    CWX_UINT32 uiGroup;
     CWX_UINT64 ullSid;
     CwxKeyValueItem const* data;
     ///获取binlog的数据
@@ -468,7 +467,6 @@ int CwxMqMasterHandler::saveBinlog(CwxMqTss* pTss,
         ullSid,
         ttTimestamp,
         data,
-        uiGroup,
         pTss->m_szBuf2K))
     {
         CWX_ERROR(("Failure to parse binlog from master, err=%s", pTss->m_szBuf2K));
@@ -480,7 +478,7 @@ int CwxMqMasterHandler::saveBinlog(CwxMqTss* pTss,
     pTss->m_pWriter->pack();
     if (0 !=m_pApp->getBinLogMgr()->append(ullSid,
         (time_t)ttTimestamp,
-        uiGroup,
+        0,
         pTss->m_pWriter->getMsg(),
         pTss->m_pWriter->getMsgSize(),
         pTss->m_szBuf2K))

@@ -121,7 +121,6 @@ public:
         CWX_UINT64 ullSid,
         string const& strUser,
         string const& strPasswd,
-        string const& strScribe,
         char* szErr2K=NULL);
     ///1：成功
     ///0：不存在
