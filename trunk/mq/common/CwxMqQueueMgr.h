@@ -29,7 +29,6 @@ public:
     CwxMqQueue(string strName,
         string strUser,
         string strPasswd,
-        string strSubscribe,
         CwxBinLogMgr* pBinlog);
     ~CwxMqQueue();
 public:
@@ -49,42 +48,37 @@ public:
 
     ///消息发送完毕，bSend=true表示已经发送成功；false表示发送失败
     void endSendMsg(CWX_UINT64 ullSid, bool bSend=true);
-
+    ///获取队列的名字
     inline string const& getName() const{
         return m_strName;
     }
+    ///获取队列的用户名
     inline string const& getUserName() const{
         return m_strUser;
     }
+    ///获取队列的用户口令
     inline string const& getPasswd() const{
         return m_strPasswd;
     }
-    inline CwxMqSubscribe& getSubscribe(){
-        return m_subscribe;
-    }
-    inline string const& getSubscribeRule() const{
-        return m_strSubScribe;
-    }
-    inline CWX_UINT64 getCurSid() const{
-		return (m_cursor && (CwxBinLogCursor::CURSOR_STATE_READY == m_cursor->getSeekState()))?m_cursor->getHeader().getSid():0;
-    }
-    inline CWX_UINT32 getWaitCommitNum() const{
+    ///获取uncommit的消息数量
+    inline CWX_UINT32 getUncommitNum() const{
         return m_uncommitMap.size();
     }
+    ///获取uncommit的map对象
     inline map<CWX_UINT64, CwxMsgBlock*>& getUncommitMap(){
         return m_uncommitMap;
     }
+    ///获取内存消息的map
     inline map<CWX_UINT64, CwxMsgBlock*>& getMemMsgMap(){
         return m_memMsgMap;///<发送失败消息队列
     }
+    ///获取cursor
     inline CwxBinLogCursor* getCursor() {
         return m_cursor;
     }
+    ///获取内存消息的数量
     inline CWX_UINT32 getMemSidNum() const{
         return m_memMsgMap.size();
-    }
-    inline CWX_UINT32 getUncommitSidNum() const{
-        return m_uncommitMap.size();
     }
     inline CWX_UINT64 getCursorSid() const{
         ///如果cursor有效，则返回cursor的sid

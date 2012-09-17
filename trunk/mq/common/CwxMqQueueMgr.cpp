@@ -620,7 +620,7 @@ void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues){
         info.m_strSubScribe = iter->second.first->getSubscribeRule();
         info.m_ullCursorSid = iter->second.first->getCursorSid();
         info.m_ullLeftNum = iter->second.first->getMqNum();
-        info.m_uiWaitCommitNum = iter->second.first->getWaitCommitNum();
+        info.m_uiWaitCommitNum = iter->second.first->getUncommitNum();
         info.m_uiMemLogNum = iter->second.first->getMemMsgMap().size();
         if (iter->second.first->getCursor()){
             info.m_ucQueueState = iter->second.first->getCursor()->getSeekState();

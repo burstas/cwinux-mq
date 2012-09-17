@@ -21,9 +21,7 @@ CwxMqQueueLogFile::~CwxMqQueueLogFile(){
 }
 
 ///初始化系统文件；0：成功；-1：失败
-int CwxMqQueueLogFile::init(CwxMqQueueInfo& queue,
-         set<CWX_UINT64>& uncommitSets,
-         set<CWX_UINT64>& commitSets)
+int CwxMqQueueLogFile::init(CwxMqQueueInfo& queue)
 {
     if (0 != prepare()){
         closeFile(false);
@@ -31,13 +29,9 @@ int CwxMqQueueLogFile::init(CwxMqQueueInfo& queue,
     }
     //清空数据
 	queue.m_strName.erase();
-	uncommitSets.clear();
-    commitSets.clear();
     //加载数据
-    if (0 != load(queue, uncommitSets, commitSets)){
+    if (0 != load(queue)){
         //若失败，清空数据
-		uncommitSets.clear();
-		commitSets.clear();
         closeFile(false);
         return -1;
     }
@@ -46,15 +40,15 @@ int CwxMqQueueLogFile::init(CwxMqQueueInfo& queue,
 }
 
 ///保存队列信息；0：成功；-1：失败
-int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
-                            set<CWX_UINT64>const& uncommitSets,
-                            set<CWX_UINT64>const& commitSets)
-{
+int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue){
     if (!m_fd) return -1;
     //写新文件
-    int fd = ::open(m_strNewFileName.c_str(),  O_RDWR|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+    int fd = ::open(m_strNewFileName.c_str(),
+        O_RDWR|O_CREAT|O_TRUNC,
+        S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
     if (-1 == fd){
-        CwxCommon::snprintf(m_szErr2K, 2047, "Failure to open new sys file:%s, errno=%d",
+        CwxCommon::snprintf(m_szErr2K, 2047,
+            "Failure to open new sys file:%s, errno=%d",
             m_strNewFileName.c_str(),
             errno);
         closeFile(true);
@@ -64,16 +58,14 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
     char line[1024];
     char szSid[64];
     ssize_t len = 0;
-    //queue:name=q1|sid=12345|u=u_q1|p=p_q1|subscribe=*
+    //name=q1|sid=12345|u=u_q1|p=p_q1
 	len = CwxCommon::snprintf(line, 
             1023,
-            "%s:name=%s|sid=%s|u=%s|p=%s|subscribe=%s\n",
-            CWX_MQ_Q,
+            "name=%s|sid=%s|u=%s|p=%s\n",
             queue.m_strName.c_str(),
             CwxCommon::toString(queue.m_ullCursorSid, szSid, 10),
             queue.m_strUser.c_str(),
-            queue.m_strPasswd.c_str(),
-            queue.m_strSubScribe.c_str());
+            queue.m_strPasswd.c_str());
 	if (len != write(fd, line, len)){
 		CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write new sys file:%s, errno=%d",
 			m_strNewFileName.c_str(),
@@ -81,38 +73,6 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue,
 		closeFile(true);
 		return -1;
 	}
-    //写未提交的sid
-    set<CWX_UINT64>::const_iterator iter_sid = uncommitSets.begin();
-    while(iter_sid != uncommitSets.end()){
-		//uncommit:sid=1
-		len = CwxCommon::snprintf(line, 1023, "%s:sid=%s\n",
-			CWX_MQ_UNCOMMIT,
-			CwxCommon::toString(*iter_sid, szSid, 10));
-		if (len != write(fd, line, len)){
-			CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write new sys file:%s, errno=%d",
-				m_strNewFileName.c_str(),
-				errno);
-			closeFile(true);
-			return -1;
-		}
-		iter_sid++;
-    }
-    //写提交的sid
-    iter_sid = commitSets.begin();
-    while(iter_sid != commitSets.end()){
-		//commit:sid=1
-		len = CwxCommon::snprintf(line, 1023, "%s:sid=%s\n",
-			CWX_MQ_COMMIT,
-			CwxCommon::toString(*iter_sid, szSid, 10));
-		if (len != write(fd, line, len)){
-			CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write new sys file:%s, errno=%d",
-				m_strNewFileName.c_str(),
-				errno);
-			closeFile(true);
-			return -1;
-		}
-		iter_sid++;
-    }
     ::fsync(fd);
     ::close(fd);
     //确保旧文件删除
@@ -172,7 +132,7 @@ int CwxMqQueueLogFile::log(CWX_UINT64 sid){
     if (m_fd){
         char szBuf[1024];
         char szSid[64];
-		size_t len = CwxCommon::snprintf(szBuf, 1023, "%s:sid=%s\n", CWX_MQ_COMMIT, CwxCommon::toString(sid, szSid, 10));
+		size_t len = CwxCommon::snprintf(szBuf, 1023, "sid=%s\n", CwxCommon::toString(sid, szSid, 10));
         if (len != fwrite(szBuf, 1, len, m_fd)){
             closeFile(false);
             CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write log to file[%s], errno=%d",
@@ -206,76 +166,44 @@ int CwxMqQueueLogFile::fsync(){
 }
 
 
-int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue,
-                            set<CWX_UINT64>& uncommitSets,
-                            set<CWX_UINT64>& commitSets){
-
+int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue){
     bool bRet = true;
     string line;
-    string strQueuePrex=CWX_MQ_Q;
-    string strCommitPrex = CWX_MQ_COMMIT;
-    string strUncommitPrex = CWX_MQ_UNCOMMIT;
-    strQueuePrex +=":";
-    strCommitPrex += ":";
-    strUncommitPrex +=":";
     //seek到文件头部
     fseek(m_fd, 0, SEEK_SET);
     //step
-    int step = 0; //0:load queue, 1:load uncommit; 2:load commit
-    m_uiLine = 0;
+    int step = 0;
+    m_uiLine = 1;
     string strQueue;
     CWX_UINT64 ullSid;
+    //read queue, format:name=q1|sid=12345|u=u_q1|p=p_q1
+    bRet = CwxFile::readTxtLine(m_fd, line);
+    if (!bRet){
+        CwxCommon::snprintf(m_szErr2K, 2047, "Failure to read queue file[%s], errno=%d",
+            m_strFileName.c_str(),
+            errno);
+        return -1;
+    }
+    if (line.empty()) return 0;
+    if (0 != parseQueue(line, queue)) return -1;
+    //read sid
     while((bRet = CwxFile::readTxtLine(m_fd, line))){
         if (line.empty()) break;
         m_uiLine++;
-        if (0 == step){//queue:name=q1|sid=12345|u=u_q1|p=p_q1|subscribe=*
-			line = line.substr(strQueuePrex.length());
-			if (0 != parseQueue(line, queue)){
-				return -1;
-			}
-            step = 1;
-			continue; ///读取下一行
+        //format: sid=xx
+        if (0 != parseSid(line, ullSid)){
+            continue; ///数据可能不完整
         }
-        if (1 == step){//uncommit:sid=1
-            if (strUncommitPrex == line.substr(0, strUncommitPrex.length())){
-                line = line.substr(strUncommitPrex.length());
-                if (0 != parseSid(line, ullSid)){
-                    continue; ///数据可能不完整
-                }
-				uncommitSets.insert(ullSid);
-                continue;
-            }
-            step = 2;
-        }
-        if (2 == step){//commit:sid=1
-            if (strCommitPrex == line.substr(0, strCommitPrex.length())){
-                line = line.substr(strCommitPrex.length());
-                if (0 != parseSid(line, ullSid)){
-                    continue; ///<数据可能不完整
-                }
-                commitSets.insert(ullSid);
-                //如果sid在uncommit set中存在，则需要删除
-				if (uncommitSets.find(ullSid) != uncommitSets.end()){
-					uncommitSets.erase(ullSid);
-                }
-                m_uiTotalLogCount++;
-                continue;
-            }
-            ///未知的log日志
-            CwxCommon::snprintf(m_szErr2K, 2047, "Unknown log:%s, line:%d",
-                line.c_str(),
-                m_uiLine);
-            return -1;
-        }
+        queue.m_ullCursorSid = ullSid;
+        m_uiTotalLogCount++;
     }
     if (!bRet){
-        CwxCommon::snprintf(m_szErr2K, 2047, "Failure to read sys file[%s], errno=%d",
+        CwxCommon::snprintf(m_szErr2K, 2047, "Failure to read queue file[%s], errno=%d",
             m_strFileName.c_str(),
             errno);
         return -1;
     }
     return 0;
-
 }
 
 
@@ -318,25 +246,6 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue){
         return -1;
     }
     queue.m_strPasswd = item.second;
-    //get scribe
-    if (!CwxCommon::findKey(items, CWX_MQ_SUBSCRIBE, item)){
-        CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] has no [%s] key, line:%u",
-            queue.m_strName.c_str(),
-            CWX_MQ_SUBSCRIBE,
-            m_uiLine);
-        return -1;
-    }
-    queue.m_strSubScribe = item.second;
-    string errMsg;
-    if (!CwxMqPoco::isValidSubscribe(queue.m_strSubScribe, errMsg)){
-        CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s]'s subscribe[%s] is invalid, err=%s line:%u",
-            queue.m_strName.c_str(),
-            queue.m_strSubScribe.c_str(),
-            errMsg.c_str(),
-            m_uiLine);
-        return -1;
-
-    }
     return 0;
 }
 
