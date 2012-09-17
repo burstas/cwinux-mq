@@ -33,10 +33,7 @@ public:
     ~CwxMqQueue();
 public:
     ///0:成功;-1：失败
-    int init(CWX_UINT64 ullLastCommitSid,
-        set<CWX_UINT64> const& uncommitSid,
-        set<CWX_UINT64> const& commitSid,
-        string& strErrMsg);
+    int init(CWX_UINT64 ullSid, string& strErrMsg);
     ///0：没有消息；
     ///1：获取一个消息；
     ///2：达到了搜索点，但没有发现消息；
@@ -60,49 +57,11 @@ public:
     inline string const& getPasswd() const{
         return m_strPasswd;
     }
-    ///获取uncommit的消息数量
-    inline CWX_UINT32 getUncommitNum() const{
-        return m_uncommitMap.size();
-    }
-    ///获取uncommit的map对象
-    inline map<CWX_UINT64, CwxMsgBlock*>& getUncommitMap(){
-        return m_uncommitMap;
-    }
-    ///获取内存消息的map
-    inline map<CWX_UINT64, CwxMsgBlock*>& getMemMsgMap(){
-        return m_memMsgMap;///<发送失败消息队列
-    }
-    ///获取cursor
-    inline CwxBinLogCursor* getCursor() {
-        return m_cursor;
-    }
-    ///获取内存消息的数量
-    inline CWX_UINT32 getMemSidNum() const{
-        return m_memMsgMap.size();
-    }
-    inline CWX_UINT64 getCursorSid() const{
-        ///如果cursor有效，则返回cursor的sid
-        if (m_cursor && (CwxBinLogCursor::CURSOR_STATE_READY == m_cursor->getSeekState()))
-            return m_cursor->getHeader().getSid();
-        ///否则返回初始sid。
-        return getStartSid();
-    }
     ///获取cursor的起始sid
-    inline CWX_UINT64 getStartSid() const{
-        CWX_UINT64 ullSid = 0;
-        //如果存在历史未commit的数据，则从历史未commit的数据中获取最小的sid
-        if (m_lastUncommitSid.size()){
-           ullSid =  *m_lastUncommitSid.begin();
-           if (ullSid) ullSid --;
-           if (ullSid > m_ullLastCommitSid) ullSid = m_ullLastCommitSid;
-           return ullSid;
-        }
-        return m_ullLastCommitSid;
+    inline CWX_UINT64 getCurSid() const{
+        if (m_cursor) return m_cursor->getHeader().getSid();
+        return 0;
     }
-    ///获取dump信息
-    void getQueueDumpInfo(CWX_UINT64& ullLastCommitSid,
-        set<CWX_UINT64>& uncommitSid,
-        set<CWX_UINT64>& commitSid);
     CWX_UINT64 getMqNum();
 private:
     ///0：没有消息；
@@ -117,15 +76,10 @@ private:
     string                           m_strName; ///<队列的名字
     string                           m_strUser; ///<队列鉴权的用户名
     string                           m_strPasswd; ///<队列鉴权的口令
-    string                           m_strSubScribe; ///<订阅规则
-    CwxBinLogMgr*                    m_binLog; ///<binlog
-    map<CWX_UINT64, CwxMsgBlock*>     m_uncommitMap; ///<commit队列中未commit的消息sid索引
-    map<CWX_UINT64, CwxMsgBlock*>     m_memMsgMap;///<发送失败消息队列
-    CwxBinLogCursor*                 m_cursor; ///<队列的游标
-    CwxMqSubscribe                   m_subscribe; ///<订阅
-    CWX_UINT64                       m_ullLastCommitSid; ///<日志文件记录的cursor的sid
-    set<CWX_UINT64>                  m_lastUncommitSid; ///<m_ullLastCommitSid之前未commit的binlog
-    set<CWX_UINT64>                  m_lastCommitSid; ///<m_ullLastCommitSid之后commit的binlog
+    CwxBinLogMgr*                     m_binLog; ///<binlog
+    map<CWX_UINT64, CwxMsgBlock*>      m_uncommitMap; ///<commit队列中未commit的消息sid索引
+    map<CWX_UINT64, CwxMsgBlock*>      m_memMsgMap;///<发送失败消息队列
+    CwxBinLogCursor*                  m_cursor; ///<队列的游标
 };
 
 

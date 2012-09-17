@@ -169,6 +169,7 @@ int CwxMqQueueLogFile::fsync(){
 int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue){
     bool bRet = true;
     string line;
+    queue.m_strName.erase();
     //seek到文件头部
     fseek(m_fd, 0, SEEK_SET);
     //step
@@ -185,7 +186,10 @@ int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue){
         return -1;
     }
     if (line.empty()) return 0;
-    if (0 != parseQueue(line, queue)) return -1;
+    if (0 != parseQueue(line, queue)){
+        queue.m_strName.erase();
+        return 0;
+    }
     //read sid
     while((bRet = CwxFile::readTxtLine(m_fd, line))){
         if (line.empty()) break;
