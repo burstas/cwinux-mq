@@ -12,7 +12,7 @@
 #include "CwxMqDef.h"
 #include "CwxAppHandler4Channel.h"
 #include "CwxAppChannel.h"
-#include "CwxMqQueueLogFile.h"
+#include "CwxSidLogFile.h"
 
 class CwxMqApp;
 class CwxMqBinAsyncHandler;
@@ -63,7 +63,7 @@ public:
     bool                     m_bZip; ///<是否压缩
     string                   m_strHost; ///<session的来源主机
     string                   m_strSource; ///<source的名字
-    CwxMqQueueLogFile*        m_sourceFile; ///<source的文件
+    CwxSidLogFile*        m_sourceFile; ///<source的文件
 };
 
 ///异步binlog分发的消息处理handler

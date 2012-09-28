@@ -1,5 +1,5 @@
-﻿#ifndef __CWX_MQ_QUEUE_LOG_FILE_H__
-#define __CWX_MQ_QUEUE_LOG_FILE_H__
+﻿#ifndef __CWX_SID_LOG_FILE_H__
+#define __CWX_SID_LOG_FILE_H__
 /*
 版权声明：
     本软件遵循GNU GPL V3（http://www.gnu.org/licenses/gpl.html），
@@ -15,8 +15,8 @@
 #include "CwxMqDef.h"
 
 /**
-@file CwxMqQueueLogFile.h
-@brief MQ Queue 队列的log对象定义。
+@file CwxSidLogFile.h
+@brief Sid的log对象定义。
 @author cwinux@gmail.com
 @version 1.0
 @date 2011-05-27
@@ -24,25 +24,30 @@
 @bug
 */
 
-class CwxMqQueueLogFile{
+class CwxSidLogFile{
 public:
     enum{
         SWITCH_FILE_LOG_NUM = 100000, ///<写入多少个Log记录，需要切换日志文件
     };
 public:
-    CwxMqQueueLogFile(CWX_UINT32 uiFlushRecord,
+    CwxSidLogFile(CWX_UINT32 uiFlushRecord,
         CWX_UINT32 uiFlushSecond,
         string const& strFileName);
-    ~CwxMqQueueLogFile();
+    ~CwxSidLogFile();
 public:
-    ///初始化系统文件；0：成功；-1：失败
-    int init(CwxMqQueueInfo& queue);
-    ///保存队列信息；0：成功；-1：失败
-    int save(CwxMqQueueInfo const& queue);
+    ///创建log文件；0：成功；-1：失败
+    int create(string const& strName,///<对象的名字
+        CWX_UINT64 ullMaxSid, ///<当前最大的sid
+        string const& strUserName, ///<用户的名字
+        string const& strPasswd); ///<用户的口令
+    ///加载log文件；1：成功；0：不存在；-1：失败
+    int load();
     ///写commit记录；-1：失败；否则返回已经写入的log数量
     int log(CWX_UINT64 sid, CWX_UINT32 uiNow);
     ///强行fsync日志文件；0：成功；-1：失败
     int fsync();
+    ///保存队列信息；0：成功；-1：失败
+    int save();
 public:
 	///删除队列文件
 	inline static void removeFile(string const& file){
@@ -67,13 +72,36 @@ public:
     inline bool isValid() const{
         return m_fd!=NULL;
     }
+    ///获取log的名字
+    string const& getName() const{
+        return m_strName; ///<对象的名字
+    }
+    ///获取当前的最大sid
+    CWX_UINT64 getCurMaxSid() const{
+        return m_ullMaxSid; ///<当前最大的sid
+    }
+    ///获取log的用户名字 
+    string const& getUserName() const{
+        return m_strUserName; ///<用户的名字
+    }
+    ///设置log的用户名
+    void setUserName(string const& strUser){
+        m_strUserName = strUser;
+    }
+    ///获取log的用户口令
+    string const& getPasswd() const{
+        m_strPasswd; ///<用户的口令
+    }
+    ///设置用户的口令
+    void setPasswd(string const& strPasswd){
+        m_strPasswd = strPasswd;
+    }
+
 private:
     ///0：成功；-1：失败
     int prepare();
     ///0：成功；-1：失败
-    int load( CwxMqQueueInfo& queues);
-    ///0：成功；-1：失败
-    int parseQueue(string const& line, CwxMqQueueInfo& queue);
+    int parseLogHead(string const& line);
     ///0：成功；-1：失败
     int parseSid(string const& line, CWX_UINT64& ullSid);
     ///关闭文件
@@ -99,7 +127,10 @@ private:
     CWX_UINT32      m_uiCurLogCount; ///<自上次fsync来，log记录的次数
     CWX_UINT32      m_uiLastSyncTime; ///<上一次sync log文件的时间
     CWX_UINT32      m_uiTotalLogCount; ///<当前文件log的数量
-    CWX_UINT32      m_uiLine; ///<读取文件的当前行数
+    string          m_strName; ///<对象的名字
+    CWX_UINT64      m_ullMaxSid; ///<当前最大的sid
+    string          m_strUserName; ///<用户的名字
+    string          m_strPasswd; ///<用户的口令
     char            m_szErr2K[2048]; ///<错误消息
 };
 

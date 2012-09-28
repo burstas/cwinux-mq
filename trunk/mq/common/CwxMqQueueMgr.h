@@ -22,7 +22,7 @@
 #include "CwxMsgBlock.h"
 #include "CwxMqTss.h"
 #include "CwxMqDef.h"
-#include "CwxMqQueueLogFile.h"
+#include "CwxSidLogFile.h"
 
 class CwxMqQueue{
 public:
@@ -140,7 +140,7 @@ public:
         string const& passwd)
     {
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
-        map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::const_iterator iter = m_queues.find(strQueue);
+        map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::const_iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return 0;
         if (iter->second.first->getUserName().length()){
             return ((user != iter->second.first->getUserName()) || (passwd != iter->second.first->getPasswd()))?-1:1;
@@ -174,12 +174,12 @@ public:
 
 private:
     ///保存数据
-    bool _save(CwxMqQueue* queue, CwxMqQueueLogFile* logFile);
+    bool _save(CwxMqQueue* queue, CwxSidLogFile* logFile);
 	bool _fetchLogFile(set<string/*queue name*/> & queues);
 	bool _isQueueLogFile(string const& file, string& queue);
 	string& _getQueueLogFile(string const& queue, string& strFile);
 private:
-    map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >   m_queues; ///<队列
+    map<string, pair<CwxMqQueue*, CwxSidLogFile*> >   m_queues; ///<队列
     CwxRwLock                  m_lock; ///<读写所
     string                     m_strQueueLogFilePath; ///<queue log文件的路径
     CWX_UINT32                 m_uiMaxFsyncNum; ///<flush硬盘的次数间隔

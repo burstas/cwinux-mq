@@ -1,7 +1,7 @@
-﻿#include "CwxMqQueueLogFile.h"
+﻿#include "CwxSidLogFile.h"
 #include "CwxDate.h"
 
-CwxMqQueueLogFile::CwxMqQueueLogFile(CWX_UINT32 uiFlushRecord,
+CwxSidLogFile::CwxSidLogFile(CWX_UINT32 uiFlushRecord,
                                      CWX_UINT32 uiFlushSecond,
                                      string const& strFileName)
 {
@@ -18,23 +18,58 @@ CwxMqQueueLogFile::CwxMqQueueLogFile(CWX_UINT32 uiFlushRecord,
     strcpy(m_szErr2K, "No init");
 }
 
-CwxMqQueueLogFile::~CwxMqQueueLogFile(){
+CwxSidLogFile::~CwxSidLogFile(){
     closeFile(true);
 }
 
-///初始化系统文件；0：成功；-1：失败
-int CwxMqQueueLogFile::init(CwxMqQueueInfo& queue)
+///创建log文件；0：成功；-1：失败
+int CwxSidLogFile::create(string const& strName,
+           CWX_UINT64 ullMaxSid,
+           string const& strUserName,
+           string const& strPasswd)
 {
+    m_strUserName = strName;
+    m_ullMaxSid = ullMaxSid;
+    m_strUserName = strUserName;
+    m_strPasswd = strPasswd;
+    return save();
+}
+
+
+///加载log文件；1：成功；0：不存在；-1：失败
+int CwxSidLogFile::load(){
+    m_uiLastSyncTime = time(NULL);
     if (0 != prepare()){
         closeFile(false);
         return -1;
     }
-    //清空数据
-	queue.m_strName.erase();
-    //加载数据
-    if (0 != load(queue)){
-        //若失败，清空数据
-        closeFile(false);
+    bool bRet = true;
+    string line;
+    //seek到文件头部
+    fseek(m_fd, 0, SEEK_SET);
+    CWX_UINT64 ullSid;
+    //read log info, format:name=logname|sid=12345|u=u_q1|p=p_q1
+    bRet = CwxFile::readTxtLine(m_fd, line);
+    if (!bRet){
+        CwxCommon::snprintf(m_szErr2K, 2047, "Failure to read sid log file[%s], errno=%d",
+            m_strFileName.c_str(),
+            errno);
+        return -1;
+    }
+    if (line.empty()) return 0;
+    if (0 != parseLogHead(line)) return 0;
+    //read sid
+    while((bRet = CwxFile::readTxtLine(m_fd, line))){
+        if (line.empty()) break;
+        //format: sid=xx
+        if (0 != parseSid(line, ullSid)) continue; ///数据可能不完整
+        m_ullMaxSid = ullSid;
+        m_uiTotalLogCount++;
+    }
+    if (!bRet){
+        CwxCommon::snprintf(m_szErr2K, 2047, "Failure to read queue file[%s], errno=%d",
+            m_strFileName.c_str(),
+            errno);
         return -1;
     }
 	m_uiLastSyncTime = time(NULL);
@@ -42,7 +77,7 @@ int CwxMqQueueLogFile::init(CwxMqQueueInfo& queue)
 }
 
 ///保存队列信息；0：成功；-1：失败
-int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue){
+int CwxSidLogFile::save(){
     if (!m_fd) return -1;
     //写新文件
     int fd = ::open(m_strNewFileName.c_str(),
@@ -60,14 +95,14 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue){
     char line[1024];
     char szSid[64];
     ssize_t len = 0;
-    //name=q1|sid=12345|u=u_q1|p=p_q1
+    //name=log name|sid=12345|u=u_q1|p=p_q1
 	len = CwxCommon::snprintf(line, 
             1023,
             "name=%s|sid=%s|u=%s|p=%s\n",
-            queue.m_strName.c_str(),
-            CwxCommon::toString(queue.m_ullCursorSid, szSid, 10),
-            queue.m_strUser.c_str(),
-            queue.m_strPasswd.c_str());
+            m_strName.c_str(),
+            CwxCommon::toString(m_ullMaxSid, szSid, 10),
+            m_strUser.c_str(),
+            m_strPasswd.c_str());
 	if (len != write(fd, line, len)){
 		CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write new sys file:%s, errno=%d",
 			m_strNewFileName.c_str(),
@@ -130,7 +165,7 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue){
 }
 
 ///写commit记录；-1：失败；否则返回已经写入的log数量
-int CwxMqQueueLogFile::log(CWX_UINT64 sid){
+int CwxSidLogFile::log(CWX_UINT64 sid, CWX_UINT32 uiNow){
     if (m_fd){
         char szBuf[1024];
         char szSid[64];
@@ -152,7 +187,7 @@ int CwxMqQueueLogFile::log(CWX_UINT64 sid){
     return -1;
 }
 ///强行fsync日志文件；0：成功；-1：失败
-int CwxMqQueueLogFile::fsync(){
+int CwxSidLogFile::fsync(){
     if (m_uiCurLogCount && m_fd){
         fflush(m_fd);
         if (0 != ::fsync(fileno(m_fd))){
@@ -167,53 +202,7 @@ int CwxMqQueueLogFile::fsync(){
     return 0;
 }
 
-
-int CwxMqQueueLogFile::load(CwxMqQueueInfo& queue){
-    bool bRet = true;
-    string line;
-    queue.m_strName.erase();
-    //seek到文件头部
-    fseek(m_fd, 0, SEEK_SET);
-    //step
-    int step = 0;
-    m_uiLine = 1;
-    string strQueue;
-    CWX_UINT64 ullSid;
-    //read queue, format:name=q1|sid=12345|u=u_q1|p=p_q1
-    bRet = CwxFile::readTxtLine(m_fd, line);
-    if (!bRet){
-        CwxCommon::snprintf(m_szErr2K, 2047, "Failure to read queue file[%s], errno=%d",
-            m_strFileName.c_str(),
-            errno);
-        return -1;
-    }
-    if (line.empty()) return 0;
-    if (0 != parseQueue(line, queue)){
-        queue.m_strName.erase();
-        return 0;
-    }
-    //read sid
-    while((bRet = CwxFile::readTxtLine(m_fd, line))){
-        if (line.empty()) break;
-        m_uiLine++;
-        //format: sid=xx
-        if (0 != parseSid(line, ullSid)){
-            continue; ///数据可能不完整
-        }
-        queue.m_ullCursorSid = ullSid;
-        m_uiTotalLogCount++;
-    }
-    if (!bRet){
-        CwxCommon::snprintf(m_szErr2K, 2047, "Failure to read queue file[%s], errno=%d",
-            m_strFileName.c_str(),
-            errno);
-        return -1;
-    }
-    return 0;
-}
-
-
-int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue){
+int CwxSidLogFile::parseLogHead(string const& line){
     list<pair<string, string> > items;
     pair<string, string> item;
     CwxCommon::split(line, items, '|');
@@ -255,7 +244,7 @@ int CwxMqQueueLogFile::parseQueue(string const& line, CwxMqQueueInfo& queue){
     return 0;
 }
 
-int CwxMqQueueLogFile::parseSid(string const& line, CWX_UINT64& ullSid){
+int CwxSidLogFile::parseSid(string const& line, CWX_UINT64& ullSid){
     pair<string, string> item;
     if (!CwxCommon::keyValue(line, item)){
 		CwxCommon::snprintf(m_szErr2K, 2047, "Not find [%s] key, line:%u", 
@@ -275,19 +264,15 @@ int CwxMqQueueLogFile::parseSid(string const& line, CWX_UINT64& ullSid){
 }
 
 
-int CwxMqQueueLogFile::prepare(){
+int CwxSidLogFile::prepare(){
     bool bExistOld = CwxFile::isFile(m_strOldFileName.c_str());
     bool bExistCur = CwxFile::isFile(m_strFileName.c_str());
     bool bExistNew = CwxFile::isFile(m_strNewFileName.c_str());
-
-    if (m_fd){
-        closeFile(true);
-    }
+    if (m_fd) closeFile(true);
     m_fd = NULL;
     m_uiCurLogCount = 0; ///<自上次fsync来，log记录的次数
     m_uiTotalLogCount = 0; ///<当前文件log的数量
     strcpy(m_szErr2K, "No init");
-
     if (!bExistCur){
         if (bExistOld){//采用旧文件
             if (!CwxFile::moveFile(m_strOldFileName.c_str(), m_strFileName.c_str())){

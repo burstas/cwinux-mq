@@ -265,7 +265,7 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
             }
             ///如果中间有失败，则退出
             if (iter != m_sessionMap.end()) break;
-            m_syncSession->m_sourceFile = new CwxMqQueueLogFile(
+            m_syncSession->m_sourceFile = new CwxSidLogFile(
                 m_pApp->getConfig().getDispatch().m_uiFlushNum,
 
             
