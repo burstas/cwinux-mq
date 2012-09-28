@@ -92,8 +92,7 @@ public:
 ///配置文件的recv参数对象
 class CwxMqConfigRecv{
 public:
-    CwxMqConfigRecv(){
-    }
+    CwxMqConfigRecv(){}
 public:
     CwxHostInfo     m_recv; ///<master recieve消息的listen信息
 };

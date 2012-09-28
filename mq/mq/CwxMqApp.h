@@ -123,6 +123,10 @@ public:
     inline CwxMqBinRecvHandler* getBinRecvHandler(){
         return m_pBinRecvHandler;
     }
+    ///获取当前的时间
+    inline CWX_UINT32 getCurTime() const{
+        return m_ttCurTime;
+    }
     ///更新服务状态
     inline void updateAppRunState(){
         bool bValid = true;
@@ -200,6 +204,7 @@ private:
     CwxThreadPool*              m_pMqThreadPool;       ///<mq获取的线程池对象
     CwxAppChannel*              m_mqChannel;           ///<mq获取的channel
     string                      m_strStartTime; ///<启动时间
+    volatile CWX_UINT32          m_ttCurTime; ///<当前的时间
     char                        m_szBuf[MAX_MONITOR_REPLY_SIZE];///<监控消息的回复buf
 
 };
