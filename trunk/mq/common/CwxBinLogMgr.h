@@ -552,9 +552,9 @@ public:
         DEF_MANAGE_FILE_NUM=10, ///<缺省管理binlog的数量
         MIN_MANAGE_FILE_NUM = 1, ///<管理binlog的最小数量
         MAX_MANAGE_FILE_NUM = 2048, ///<管理binlog的最大小时数
-		START_FILE_NUM = 1, ///<开始的文件序号
+		 START_FILE_NUM = 1, ///<开始的文件序号
         MIN_SID_NO = 1, ///<最小的sid序号
-		MAX_BINLOG_FILE_SIZE = 0X7FFFFFFF, ///<2G
+		 MAX_BINLOG_FILE_SIZE = 0X7FFFFFFF, ///<2G
         SKIP_SID_NUM = 10000 ///<当next sid小于最大值时，跳跃的数量
     };
 public:
@@ -571,6 +571,8 @@ public:
     CwxBinLogMgr(char const* szLogPath,
         char const* szFilePrex,
         CWX_UINT32 uiMaxFileSize,
+        CWX_UINT32 uiBinlogFlushNum,
+        CWX_UINT32 uiBinlogFlushSecond,
         bool       bDelOutManageLogFile = false
         );
     ///析构函数
@@ -819,6 +821,10 @@ private:
     CWX_UINT32                m_ttMinTimestamp; ///<binlog文件的log开始时间
     CWX_UINT32                m_ttMaxTimestamp; ///<binlog文件的log结束时间
     CWX_UINT64                m_ullNextSid; ///<一下一个sid的值
+    CWX_UINT32                m_uiFlushBinLogNum; ///<多少binlog自动flush
+    CWX_UINT32                m_uiFlushBinLogTime; ///<多少时间自动flush
+    CWX_UINT32				  m_uiUnFlushBinlog; ///<未flush的binlog数量。
+    CWX_UINT32				  m_ttLastFlushBinlogTime; ///<上一次flushbinlog的时间
 };
 
 
