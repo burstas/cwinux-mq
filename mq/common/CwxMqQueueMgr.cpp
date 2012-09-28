@@ -181,7 +181,7 @@ CwxMqQueueMgr::CwxMqQueueMgr(string const& strQueueLogFilePath,
 }
 
 CwxMqQueueMgr::~CwxMqQueueMgr(){
-    map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter =  m_queues.begin();
+    map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter =  m_queues.begin();
     while(iter != m_queues.end()){
         delete iter->second.first;
 		delete iter->second.second;
@@ -191,14 +191,14 @@ CwxMqQueueMgr::~CwxMqQueueMgr(){
 
 int CwxMqQueueMgr::init(CwxBinLogMgr* binLog){
     CwxMqQueue* mq = NULL;
-	CwxMqQueueLogFile* mqLogFile = NULL;
+	CwxSidLogFile* mqLogFile = NULL;
 	string  strMqLogFile;
     m_binLog = binLog;
 	m_bValid = false;
 
 	//清空数据
 	{
-		map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter =  m_queues.begin();
+		map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter =  m_queues.begin();
 		while(iter != m_queues.end()){
 			delete iter->second.first;
 			delete iter->second.second;
@@ -209,7 +209,7 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog){
 
 	//初始化队列
 	{
-		pair<CwxMqQueue*, CwxMqQueueLogFile*> mq_pair;
+		pair<CwxMqQueue*, CwxSidLogFile*> mq_pair;
 		CwxMqQueueInfo queue;
 		string strQueueFile;
 		string strQueuePathFile;
@@ -219,7 +219,7 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog){
 		iter  = queues.begin();
 		while(iter != queues.end()){
 			strQueuePathFile = m_strQueueLogFilePath + _getQueueLogFile(*iter, strQueueFile);
-			mqLogFile = new CwxMqQueueLogFile(m_uiMaxFsyncNum, strQueuePathFile);
+			mqLogFile = new CwxSidLogFile(m_uiMaxFsyncNum, strQueuePathFile);
 			queue.m_strName.erase();
 			if (0 != mqLogFile->init(queue)){
 				char szBuf[2048];
@@ -233,7 +233,7 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog){
 			}
 			if (queue.m_strName.empty()){//空队列文件，删除
 				delete mqLogFile;
-				CwxMqQueueLogFile::removeFile(strQueuePathFile);
+				CwxSidLogFile::removeFile(strQueuePathFile);
 				iter++;
 				continue;
 			}
@@ -285,7 +285,7 @@ int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss,
 {
     if (m_bValid){
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
-        map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter = m_queues.find(strQueue);
+        map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return -2;
 		if (!iter->second.second->isValid()){
 			if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
@@ -306,7 +306,7 @@ int CwxMqQueueMgr::endSendMsg(string const& strQueue,
 {
     if (m_bValid){
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
-        map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter = m_queues.find(strQueue);
+        map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return -2;
 		if (!iter->second.second->isValid()){
 			if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
@@ -334,7 +334,7 @@ int CwxMqQueueMgr::endSendMsg(string const& strQueue,
 ///强行flush mq的log文件
 void CwxMqQueueMgr::commit(){
 	if (m_bValid){
-		map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter = m_queues.begin();
+		map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter = m_queues.begin();
 		while(iter != m_queues.end()){
 			iter->second.second->fsync();
 			iter++;
@@ -353,7 +353,7 @@ int CwxMqQueueMgr::addQueue(string const& strQueue,
 {
     if (m_bValid){
         CwxWriteLockGuard<CwxRwLock>  lock(&m_lock);
-        map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter = m_queues.find(strQueue);
+        map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter = m_queues.find(strQueue);
         if (iter != m_queues.end()) return 0;
         CwxMqQueue* mq = new CwxMqQueue(strQueue, 
             strUser,
@@ -370,8 +370,8 @@ int CwxMqQueueMgr::addQueue(string const& strQueue,
 		string strQueuePathFile;
 		CwxMqQueueInfo queue;
 		strQueuePathFile = m_strQueueLogFilePath + _getQueueLogFile(strQueue, strQueueFile);
-		CwxMqQueueLogFile::removeFile(strQueuePathFile);
-		CwxMqQueueLogFile* mqLogFile = new CwxMqQueueLogFile(m_uiMaxFsyncNum, strQueuePathFile);
+		CwxSidLogFile::removeFile(strQueuePathFile);
+		CwxSidLogFile* mqLogFile = new CwxSidLogFile(m_uiMaxFsyncNum, strQueuePathFile);
 		queue.m_strName.erase();
 		if (0 != mqLogFile->init(queue)){
 			char szBuf[2048];
@@ -393,7 +393,7 @@ int CwxMqQueueMgr::addQueue(string const& strQueue,
 			if (szErr2K) strcpy(szErr2K, szBuf);
             return -1;
         }
-		pair<CwxMqQueue*, CwxMqQueueLogFile*> item;
+		pair<CwxMqQueue*, CwxSidLogFile*> item;
 		item.first = mq;
 		item.second = mqLogFile;
 		m_queues[strQueue] = item;
@@ -410,7 +410,7 @@ int CwxMqQueueMgr::delQueue(string const& strQueue,
 {
     if (m_bValid){
         CwxWriteLockGuard<CwxRwLock>  lock(&m_lock);
-        map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::iterator iter = m_queues.find(strQueue);
+        map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return 0;
         delete iter->second.first;
 		delete iter->second.second;
@@ -419,7 +419,7 @@ int CwxMqQueueMgr::delQueue(string const& strQueue,
 		string strQueuePathFile;
 		_getQueueLogFile(strQueue, strQueueFile);
 		strQueuePathFile = m_strQueueLogFilePath + strQueueFile;
-		CwxMqQueueLogFile::removeFile(strQueuePathFile);
+		CwxSidLogFile::removeFile(strQueuePathFile);
         return 1;
     }
     if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
@@ -429,7 +429,7 @@ int CwxMqQueueMgr::delQueue(string const& strQueue,
 void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues){
     CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
     CwxMqQueueInfo info;
-    map<string, pair<CwxMqQueue*, CwxMqQueueLogFile*> >::const_iterator iter = m_queues.begin();
+    map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::const_iterator iter = m_queues.begin();
     while(iter != m_queues.end()){
         info.m_strName = iter->second.first->getName();
         info.m_strUser = iter->second.first->getUserName();
@@ -440,7 +440,7 @@ void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues){
     }
 }
 
-bool CwxMqQueueMgr::_save(CwxMqQueue* queue, CwxMqQueueLogFile* logFile){
+bool CwxMqQueueMgr::_save(CwxMqQueue* queue, CwxSidLogFile* logFile){
 	CwxMqQueueInfo queueInfo;
 	set<CWX_UINT64> uncommitSets;
 	set<CWX_UINT64> commitSets;
