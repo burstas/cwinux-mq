@@ -397,6 +397,8 @@ int CwxMqApp::startBinLogMgr(){
         m_pBinLogMgr = new CwxBinLogMgr(m_config.getBinLog().m_strBinlogPath.c_str(),
             m_config.getBinLog().m_strBinlogPrex.c_str(),
             ullBinLogSize,
+            m_config.getBinLog().m_uiFlushNum,
+            m_config.getBinLog().m_uiFlushSecond,
             m_config.getBinLog().m_bDelOutdayLogFile);
         if (0 != m_pBinLogMgr->init(m_config.getBinLog().m_uiMgrFileNum,
             true,
