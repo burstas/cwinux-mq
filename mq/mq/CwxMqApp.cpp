@@ -636,28 +636,13 @@ CWX_UINT32 CwxMqApp::packMonitorInfo(){
         list<CwxMqQueueInfo> queues;
         m_queueMgr->getQueuesInfo(queues);
         list<CwxMqQueueInfo>::iterator iter = queues.begin();
-        char const* state="";
         while(iter != queues.end()){
-            if (iter->m_ucQueueState==CwxBinLogCursor::CURSOR_STATE_UNSEEK)
-                state = "unseek";
-            else if (iter->m_ucQueueState==CwxBinLogCursor::CURSOR_STATE_ERROR)
-                state = "error";
-            else if (iter->m_ucQueueState==CwxBinLogCursor::CURSOR_STATE_READY)
-                state = "ready";
-            else
-                state = "unknown";
-
             CwxCommon::toString(iter->m_ullCursorSid, szSid1, 10);
             CwxCommon::toString(iter->m_ullLeftNum, szSid2, 10);
-            CwxCommon::snprintf(szLine, 4096, "STAT name(%s)|cursor_state(%s)|log_state(%s)|sid(%s)|msg(%s)|subscribe(%s)|cursor_err(%s)|log_err(%s)\r\n",
+            CwxCommon::snprintf(szLine, 4096, "STAT name(%s)|sid(%s)|msg(%s)\r\n",
                 iter->m_strName.c_str(),
-                state,
-                iter->m_bQueueLogFileValid?"yes":"no",
                 szSid1,
-                szSid2,
-                iter->m_strSubScribe.c_str(),
-                iter->m_ucQueueState==CwxBinLogCursor::CURSOR_STATE_ERROR?iter->m_strQueueErrMsg.c_str():"",
-                iter->m_bQueueLogFileValid?"":iter->m_strQueueLogFileErrMsg.c_str());
+                szSid2);
             MQ_MONITOR_APPEND();
             iter++;
         }

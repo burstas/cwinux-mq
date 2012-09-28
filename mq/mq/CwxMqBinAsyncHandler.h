@@ -12,6 +12,7 @@
 #include "CwxMqDef.h"
 #include "CwxAppHandler4Channel.h"
 #include "CwxAppChannel.h"
+#include "CwxMqQueueLogFile.h"
 
 class CwxMqApp;
 class CwxMqBinAsyncHandler;
@@ -30,8 +31,13 @@ public:
         m_ullSid = 0;
         m_bNext = false;
         m_bZip = false;
+        m_sourceFile = NULL;
     }
     ~CwxMqBinAsyncHandlerSession(){
+        if (m_sourceFile){
+            m_sourceFile->fsync();
+            delete m_sourceFile;
+        }
     }
 public:
     void addConn(CwxMqBinAsyncHandler* conn);
@@ -53,10 +59,10 @@ public:
     CWX_UINT64               m_ullStartSid; ///<report的sid
     CWX_UINT64               m_ullSid; ///<当前发送到的sid
     bool                     m_bNext; ///<是否发送下一个消息
-    CwxMqSubscribe         m_subscribe; ///<消息订阅对象
     string                   m_strSign; ///<签名类型
     bool                     m_bZip; ///<是否压缩
     string                   m_strHost; ///<session的来源主机
+    CwxMqQueueLogFile*        m_sourceFile; ///<source的文件
 };
 
 ///异步binlog分发的消息处理handler
@@ -162,12 +168,11 @@ private:
     CWX_UINT32                    m_uiRecvDataLen; ///<recieved data's byte number.
     CwxMsgBlock*                  m_recvMsgData; ///<the recieved msg data
     string                       m_strPeerHost; ///<对端host
-    CWX_UINT16                   m_unPeerPort; ///<对端port
-    CwxMqTss*                   m_tss;        ///<对象对应的tss对象
+    CWX_UINT16                    m_unPeerPort; ///<对端port
+    CwxMqTss*                     m_tss;        ///<对象对应的tss对象
 private:
     static map<CWX_UINT64, CwxMqBinAsyncHandlerSession* > m_sessionMap;  ///<session的map，key为session id
     static list<CwxMqBinAsyncHandlerSession*>            m_freeSession; ///<需要关闭的session
-
 };
 
 
