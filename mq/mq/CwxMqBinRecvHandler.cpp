@@ -33,8 +33,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
     CWX_UINT64 ullSid = 0;
     do{
         ///binlog数据接收消息
-        if (CwxMqPoco::MSG_TYPE_RECV_DATA == msg->event().getMsgHeader().getMsgType())
-        {
+        if (CwxMqPoco::MSG_TYPE_RECV_DATA == msg->event().getMsgHeader().getMsgType()){
             CwxKeyValueItem const* pData;
             if (m_pApp->getBinLogMgr()->isInvalid()){
                 ///如果binlog mgr无效，则停止接收
@@ -48,7 +47,6 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
                 iRet = CWX_MQ_ERR_ERROR;
                 break;
             }
-
             unsigned long ulUnzipLen = 0;
             bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
             //判断是否压缩数据
@@ -108,52 +106,14 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
                 iRet = CWX_MQ_ERR_ERROR;
                 break;
             }
-            ///增加未提交的binlog数量
-            m_pApp->incUnCommitLogNum();
             ///auto commit
-            if (m_pApp->isFirstBinLog() ||
-                (m_pApp->getUnCommitLogNum() >= m_pApp->getConfig().getBinLog().m_uiFlushNum)||
-                (time(NULL) > (time_t)(m_pApp->getLastCommitTime() + m_pApp->getConfig().getBinLog().m_uiFlushSecond)))
-            {
+            if (m_pApp->isFirstBinLog()){
                 ///若达到提交的数量或第一次提交，则提交
                 if (0 != commit(pTss->m_szBuf2K)){
                     CWX_ERROR((pTss->m_szBuf2K));
                     iRet = CWX_MQ_ERR_ERROR;
                     break;
                 }
-            }
-        }else if(CwxMqPoco::MSG_TYPE_RECV_COMMIT == msg->event().getMsgHeader().getMsgType()){
-            if (!msg){
-                user = "";
-                passwd = "";
-            }else{
-                if (CWX_MQ_ERR_SUCCESS != (iRet=CwxMqPoco::parseCommit(pTss->m_pReader,
-                    msg,
-                    user,
-                    passwd,
-                    pTss->m_szBuf2K)))
-                {
-                    //如果是无效数据，返回
-                    CWX_DEBUG(("Failure to parse the commit msg, err=%s", pTss->m_szBuf2K));
-                    //iRet = CWX_MQ_ERR_ERROR;
-                    break;
-                }
-            }
-            if (m_pApp->getConfig().getMaster().m_recv.getUser().length()){
-                if ((m_pApp->getConfig().getMaster().m_recv.getUser() != user) ||
-                    (m_pApp->getConfig().getMaster().m_recv.getPasswd() != passwd))
-                {
-                    CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
-                    CWX_DEBUG((pTss->m_szBuf2K));
-                    iRet = CWX_MQ_ERR_FAIL_AUTH;
-                    break;
-                }
-            }
-
-            if (0 != commit(pTss->m_szBuf2K)){
-                CWX_ERROR(("Failure to commit the binlog, err=%s", pTss->m_szBuf2K));
-                iRet = CWX_MQ_ERR_ERROR;
-                break;
             }
         }else{
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u", msg->event().getMsgHeader().getMsgType());
@@ -163,31 +123,17 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
         }
     }while(0);
     CwxMsgBlock* pBlock = NULL;
-    if (CwxMqPoco::MSG_TYPE_RECV_COMMIT==msg->event().getMsgHeader().getMsgType()){
-        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packCommitReply(pTss->m_pWriter,
-            pBlock,
-            msg->event().getMsgHeader().getTaskId(),
-            iRet,
-            pTss->m_szBuf2K,
-            pTss->m_szBuf2K))
-        {
-            CWX_ERROR(("Failure to pack commit reply msg, err=%s", pTss->m_szBuf2K));
-            m_pApp->noticeCloseConn(msg->event().getConnId());
-            return 1;
-        }
-    }else{
-        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packRecvDataReply(pTss->m_pWriter,
-            pBlock,
-            msg->event().getMsgHeader().getTaskId(),
-            iRet,
-            ullSid,
-            pTss->m_szBuf2K,
-            pTss->m_szBuf2K))
-        {
-            CWX_ERROR(("Failure to pack mq reply msg, err=%s", pTss->m_szBuf2K));
-            m_pApp->noticeCloseConn(msg->event().getConnId());
-            return 1;
-        }
+    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packRecvDataReply(pTss->m_pWriter,
+        pBlock,
+        msg->event().getMsgHeader().getTaskId(),
+        iRet,
+        ullSid,
+        pTss->m_szBuf2K,
+        pTss->m_szBuf2K))
+    {
+        CWX_ERROR(("Failure to pack mq reply msg, err=%s", pTss->m_szBuf2K));
+        m_pApp->noticeCloseConn(msg->event().getConnId());
+        return 1;
     }
     pBlock->send_ctrl().setConnId(conn_iter->first);
     pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_RECV);
@@ -203,17 +149,6 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
 
 ///对于同步dispatch，需要检查同步的超时
 int CwxMqBinRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* pThrEnv){
-    CwxMqTss* pTss = (CwxMqTss*)pThrEnv;
-    ///flush binlog
-    if (m_pApp->getUnCommitLogNum()){
-        if ((m_pApp->getUnCommitLogNum()>=m_pApp->getConfig().getBinLog().m_uiFlushNum) ||
-            (time(NULL) > (time_t)(m_pApp->getLastCommitTime() + m_pApp->getConfig().getBinLog().m_uiFlushSecond)))
-        {
-            if (0 != this->commit(pTss->m_szBuf2K)){
-                CWX_ERROR(("Failure to flush binlog ,err=%s", pTss->m_szBuf2K));
-            }
-        }
-    }
     return 1;
 }
 
@@ -221,12 +156,8 @@ int CwxMqBinRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* pThrEnv){
 int CwxMqBinRecvHandler::commit(char* szErr2K){
     int iRet = 0;
     CWX_INFO(("Begin flush bin log......."));
-    if (m_pApp->getUnCommitLogNum()){
-        m_pApp->clearFirstBinLog();
-        iRet = m_pApp->getBinLogMgr()->commit(false, szErr2K);
-        m_pApp->zeroUnCommitLogNum();
-        m_pApp->setLastCommitTime(time(NULL));
-    }
+    m_pApp->clearFirstBinLog();
+    iRet = m_pApp->getBinLogMgr()->commit(false, szErr2K);
     CWX_INFO(("End flush bin log......."));
     return iRet;
 }

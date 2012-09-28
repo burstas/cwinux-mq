@@ -30,8 +30,6 @@ public:
         ///RECV服务类型的消息类型定义
         MSG_TYPE_RECV_DATA = 1, ///<数据提交消息
         MSG_TYPE_RECV_DATA_REPLY = 2, ///<数据提交消息的回复
-        MSG_TYPE_RECV_COMMIT = 3, ///<数据commit消息
-        MSG_TYPE_RECV_COMMIT_REPLY = 4, ///<commit消息的回复
         ///分发的消息类型定义
         MSG_TYPE_SYNC_REPORT = 5, ///<同步SID点报告消息类型
         MSG_TYPE_SYNC_REPORT_REPLY = 6, ///<失败返回
@@ -95,35 +93,6 @@ public:
         CwxMsgBlock const* msg,
         int& ret,
         CWX_UINT64& ullSid,
-        char const*& szErrMsg,
-        char* szErr2K=NULL);
-
-    ///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packCommit(CwxPackageWriter* writer,
-        CwxMsgBlock*& msg,
-        CWX_UINT32 uiTaskId,
-        char const* user=NULL,
-        char const* passwd=NULL,
-        char* szErr2K=NULL
-        );
-    ///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int parseCommit(CwxPackageReader* reader,
-        CwxMsgBlock const* msg,
-        char const*& user,
-        char const*& passwd,
-        char* szErr2K=NULL);
-
-    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packCommitReply(CwxPackageWriter* writer,
-        CwxMsgBlock*& msg,
-        CWX_UINT32 uiTaskId,
-        int ret,
-        char const* szErrMsg,
-        char* szErr2K=NULL);   
-    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int parseCommitReply(CwxPackageReader* reader,
-        CwxMsgBlock const* msg,
-        int& ret,
         char const*& szErrMsg,
         char* szErr2K=NULL);
 

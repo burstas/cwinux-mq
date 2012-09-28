@@ -3,8 +3,6 @@
 ///构造函数
 CwxMqApp::CwxMqApp(){
     m_bFirstBinLog =  true;
-    m_ttLastCommitTime = 0;
-    m_uiUnCommitLogNum = 0;
     m_ttMqLastCommitTime = 0;
     m_uiCurSid = 0;
     m_pBinLogMgr = NULL;
@@ -408,8 +406,6 @@ int CwxMqApp::startBinLogMgr(){
             return -1;
         }
         m_bFirstBinLog = true;
-        m_ttLastCommitTime = time(NULL);
-        m_uiUnCommitLogNum = 0;
         ///提取sid
         m_uiCurSid = m_pBinLogMgr->getMaxSid() + CWX_MQ_MAX_BINLOG_FLUSH_COUNT + 1;
     }

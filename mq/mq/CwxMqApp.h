@@ -87,26 +87,6 @@ public:
     inline void clearFirstBinLog(){
         m_bFirstBinLog = false;
     }
-    ///获取上一次commit的时间
-    inline CWX_UINT32 getLastCommitTime() const{
-        return m_ttLastCommitTime;
-    }
-    ///设置上一次commit的时间
-    inline void setLastCommitTime(CWX_UINT32 ttTime){
-        m_ttLastCommitTime = ttTime;
-    }
-    ///获取未commit的log数量
-    inline CWX_UINT32 getUnCommitLogNum() const{
-        return m_uiUnCommitLogNum;
-    }
-    ///增加未commit的log数量
-    inline CWX_UINT32 incUnCommitLogNum(){
-        return ++m_uiUnCommitLogNum;
-    }
-    ///将未commit的log数量归零
-    inline void zeroUnCommitLogNum(){
-        m_uiUnCommitLogNum = 0;
-    }
     ///获取MQ上次commit的时间
     inline CWX_UINT32 getMqLastCommitTime() const{
         return m_ttMqLastCommitTime;
@@ -207,8 +187,6 @@ private:
     static int setMqSockAttr(CWX_HANDLE handle, void* arg);
 private:
     bool                        m_bFirstBinLog; ///<服务启动后，收到的第一条binglog
-    CWX_UINT32                  m_ttLastCommitTime; ///<上一次commit的时候
-    CWX_UINT32                  m_uiUnCommitLogNum; ///<自上一次commit以来，未commit的binlog数量
     CWX_UINT32                  m_ttMqLastCommitTime; ///<消息分发sys文件上次commit的时候
     CWX_UINT64                  m_uiCurSid; ///<当前的sid
     CwxMqConfig                 m_config; ///<配置文件
