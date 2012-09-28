@@ -36,13 +36,15 @@ CwxMqBinAsyncHandler::~CwxMqBinAsyncHandler(){
 
 ///释放资源
 void CwxMqBinAsyncHandler::destroy(CwxMqApp* app){
-    map<CWX_UINT64, CwxMqBinAsyncHandlerSession* >::iterator iter = m_sessionMap.begin();
-    while(iter != m_sessionMap.end()){
-        if (iter->second->m_pCursor) app->getBinLogMgr()->destoryCurser(iter->second->m_pCursor);
-        delete iter->second;
-        iter++;
+    {
+        map<CWX_UINT64, CwxMqBinAsyncHandlerSession* >::iterator iter = m_sessionMap.begin();
+        while(iter != m_sessionMap.end()){
+            if (iter->second->m_pCursor) app->getBinLogMgr()->destoryCurser(iter->second->m_pCursor);
+            delete iter->second;
+            iter++;
+        }
+        m_sessionMap.clear();
     }
-    m_sessionMap.clear();
 }
 
 void CwxMqBinAsyncHandler::doEvent(CwxMqApp* app, CwxMqTss* tss, CwxMsgBlock*& msg){
@@ -176,7 +178,7 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
     CWX_UINT64 ullSid = 0;
     bool bNewly = false;
     CWX_UINT32 uiChunk = 0;
-    char const* subscribe = NULL;
+    char const* source = NULL;
     char const* user=NULL;
     char const* passwd=NULL;
     char const* sign=NULL;
@@ -203,7 +205,7 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
             ullSid,
             bNewly,
             uiChunk,
-            subscribe,
+            source,
             user,
             passwd,
             sign,
@@ -213,13 +215,13 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
             CWX_ERROR(("Failure to parse report msg, err=%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
             break;
         }
-        CWX_INFO(("Recv report from:%s:%u, sid=%s, from_new=%s, chunk=%u, subscribe=%s, user=%s, passwd=%s, sign=%s, zip=%s",
+        CWX_INFO(("Recv report from:%s:%u, sid=%s, from_new=%s, chunk=%u, source=%s, user=%s, passwd=%s, sign=%s, zip=%s",
             m_strPeerHost.c_str(),
             m_unPeerPort,
             CwxCommon::toString(ullSid, pTss->m_szBuf2K, 10),
             bNewly?"yes":"no",
             uiChunk,
-            subscribe?subscribe:"",
+            source?source:"",
             user?user:"",
             passwd?passwd:"",
             sign?sign:"",
@@ -248,19 +250,7 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
                 }
             }
         }
-        string strSubcribe=subscribe?subscribe:"";
-        string strErrMsg;
         m_syncSession = new CwxMqBinAsyncHandlerSession();
-        if (!CwxMqPoco::parseSubsribe(strSubcribe, m_syncSession->m_subscribe, strErrMsg)){
-            iRet = CWX_MQ_ERR_ERROR;
-            CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Invalid subscribe[%s], err=%s",
-                subscribe,
-                strErrMsg.c_str());
-            CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
-            delete m_syncSession;
-            m_syncSession = NULL;
-            break;
-        }
         m_syncSession->m_strHost = m_strPeerHost;
         m_syncSession->m_uiChunk = uiChunk;
         m_syncSession->m_bZip = bzip;
