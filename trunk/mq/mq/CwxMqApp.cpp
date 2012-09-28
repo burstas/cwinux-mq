@@ -183,10 +183,11 @@ int CwxMqApp::initRunEnv(){
 void CwxMqApp::onTime(CwxTimeValue const& current){
     ///调用基类的onTime函数
     CwxAppFramework::onTime(current);
+    m_ttCurTime = current.sec();
     ///检查超时
     static CWX_UINT32 ttTimeBase = 0; ///<时钟回跳的base时钟
-    static CWX_UINT32 ttLastTime = time(NULL); ///<上一次检查的时间
-    CWX_UINT32 uiNow = time(NULL);
+    static CWX_UINT32 ttLastTime = m_ttCurTime; ///<上一次检查的时间
+    CWX_UINT32 uiNow = m_ttCurTime;
     bool bClockBack = isClockBack(ttTimeBase, uiNow);
     if (bClockBack || (uiNow >= ttLastTime + 1)){
         if (m_config.getCommon().m_bMaster){

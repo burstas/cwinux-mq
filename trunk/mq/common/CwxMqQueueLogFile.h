@@ -30,7 +30,9 @@ public:
         SWITCH_FILE_LOG_NUM = 100000, ///<写入多少个Log记录，需要切换日志文件
     };
 public:
-    CwxMqQueueLogFile(CWX_UINT32 uiFsyncInternal, string const& strFileName);
+    CwxMqQueueLogFile(CWX_UINT32 uiFlushRecord,
+        CWX_UINT32 uiFlushSecond,
+        string const& strFileName);
     ~CwxMqQueueLogFile();
 public:
     ///初始化系统文件；0：成功；-1：失败
@@ -38,7 +40,7 @@ public:
     ///保存队列信息；0：成功；-1：失败
     int save(CwxMqQueueInfo const& queue);
     ///写commit记录；-1：失败；否则返回已经写入的log数量
-    int log(CWX_UINT64 sid);
+    int log(CWX_UINT64 sid, CWX_UINT32 uiNow);
     ///强行fsync日志文件；0：成功；-1：失败
     int fsync();
 public:
@@ -65,15 +67,6 @@ public:
     inline bool isValid() const{
         return m_fd!=NULL;
     }
-    inline CWX_UINT32 getCurLogCount() const{
-        return m_uiCurLogCount;
-    }
-    inline CWX_UINT32 getTotalLogCount() const{
-        return m_uiTotalLogCount;
-    }
-	inline CWX_UINT32 getLastSaveTime() const{
-		return m_uiLastSaveTime;
-	}
 private:
     ///0：成功；-1：失败
     int prepare();
@@ -101,11 +94,12 @@ private:
     string          m_strNewFileName; ///<新系统文件的名字
     FILE*           m_fd; ///<文件handle
     bool            m_bLock; ///<文件是否已经加锁
-    CWX_UINT32      m_uiFsyncInternal; ///<flush硬盘的间隔
+    CWX_UINT32      m_uiFlushRecord; ///<flush硬盘的记录间隔
+    CWX_UINT32      m_uiFlushSecond; ///<flush的时间间隔
     CWX_UINT32      m_uiCurLogCount; ///<自上次fsync来，log记录的次数
+    CWX_UINT32      m_uiLastSyncTime; ///<上一次sync log文件的时间
     CWX_UINT32      m_uiTotalLogCount; ///<当前文件log的数量
     CWX_UINT32      m_uiLine; ///<读取文件的当前行数
-	CWX_UINT32      m_uiLastSaveTime; ///<上一次log文件的保存时间
     char            m_szErr2K[2048]; ///<错误消息
 };
 

@@ -1,7 +1,8 @@
 ﻿#include "CwxMqQueueLogFile.h"
 #include "CwxDate.h"
 
-CwxMqQueueLogFile::CwxMqQueueLogFile(CWX_UINT32 uiFsyncInternal,
+CwxMqQueueLogFile::CwxMqQueueLogFile(CWX_UINT32 uiFlushRecord,
+                                     CWX_UINT32 uiFlushSecond,
                                      string const& strFileName)
 {
     m_strFileName = strFileName; ///<系统文件名字
@@ -9,10 +10,11 @@ CwxMqQueueLogFile::CwxMqQueueLogFile(CWX_UINT32 uiFsyncInternal,
     m_strNewFileName = strFileName + ".new"; ///<新系统文件的名字
     m_fd = NULL;
     m_bLock = false;
-    m_uiFsyncInternal = uiFsyncInternal; ///<flush硬盘的间隔
+    m_uiFlushRecord = uiFlushRecord; ///<flush硬盘的记录间隔
+    m_uiFlushSecond = uiFlushSecond; ///<flush硬盘的时间间隔
     m_uiCurLogCount = 0; ///<自上次fsync来，log记录的次数
     m_uiTotalLogCount = 0; ///<当前文件log的数量
-	m_uiLastSaveTime = 0;
+	m_uiLastSyncTime = time(NULL);
     strcpy(m_szErr2K, "No init");
 }
 
@@ -35,7 +37,7 @@ int CwxMqQueueLogFile::init(CwxMqQueueInfo& queue)
         closeFile(false);
         return -1;
     }
-	m_uiLastSaveTime = time(NULL);
+	m_uiLastSyncTime = time(NULL);
     return 0;
 }
 
@@ -123,7 +125,7 @@ int CwxMqQueueLogFile::save(CwxMqQueueInfo const& queue){
     m_bLock = true;
     m_uiTotalLogCount = 0;
     m_uiCurLogCount = 0;
-	m_uiLastSaveTime = time(NULL);
+	m_uiLastSyncTime = time(NULL);
     return 0;
 }
 

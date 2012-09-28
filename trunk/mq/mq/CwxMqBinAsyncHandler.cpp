@@ -226,28 +226,14 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
             passwd?passwd:"",
             sign?sign:"",
             bzip?"yes":"no"));
-
-        if (m_pApp->getConfig().getCommon().m_bMaster){
-            if (m_pApp->getConfig().getMaster().m_async.getUser().length()){
-                if ( (m_pApp->getConfig().getMaster().m_async.getUser() != user) ||
-                    (m_pApp->getConfig().getMaster().m_async.getPasswd() != passwd))
-                {
-                    iRet = CWX_MQ_ERR_FAIL_AUTH;
-                    CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
-                    CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
-                    break;
-                }
-            }
-        }else{
-            if (m_pApp->getConfig().getSlave().m_async.getUser().length()){
-                if ( (m_pApp->getConfig().getSlave().m_async.getUser() != user) ||
-                    (m_pApp->getConfig().getSlave().m_async.getPasswd() != passwd))
-                {
-                    iRet = CWX_MQ_ERR_FAIL_AUTH;
-                    CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
-                    CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
-                    break;
-                }
+        if (m_pApp->getConfig().getDispatch.m_async.m_async.getUser().length()){
+            if ( (m_pApp->getConfig().getDispatch().m_async.getUser() != user) ||
+                (m_pApp->getConfig().getDispatch().m_async.getPasswd() != passwd))
+            {
+                iRet = CWX_MQ_ERR_FAIL_AUTH;
+                CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
+                CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+                break;
             }
         }
         m_syncSession = new CwxMqBinAsyncHandlerSession();
@@ -265,6 +251,26 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
             if (m_syncSession->m_uiChunk < CwxMqConfigCmn::MIN_CHUNK_SIZE_KB) m_syncSession->m_uiChunk = CwxMqConfigCmn::MIN_CHUNK_SIZE_KB;
             m_syncSession->m_uiChunk *= 1024;
         }
+        if (source){///检查source是否存在
+            map<CWX_UINT64, CwxMqBinAsyncHandlerSession* >::iterator iter = m_sessionMap.begin();
+            while(iter != m_sessionMap.end()){
+                if (iter->second->m_strSource == source){
+                    iRet = CWX_MQ_ERR_ERROR;
+                    CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Source[%s]'s connection exist, from[%s]",
+                        source, iter->second->m_strHost.c_str());
+                    CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+                    break;
+                }
+                ++iter;
+            }
+            ///如果中间有失败，则退出
+            if (iter != m_sessionMap.end()) break;
+            m_syncSession->m_sourceFile = new CwxMqQueueLogFile(
+                m_pApp->getConfig().getDispatch().m_uiFlushNum,
+
+            
+        }
+
         if (bNewly){///不sid为空，则取当前最大sid-1
             ullSid = m_pApp->getBinLogMgr()->getMaxSid();
             if (ullSid) ullSid--;

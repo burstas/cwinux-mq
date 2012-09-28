@@ -62,6 +62,7 @@ public:
     string                   m_strSign; ///<签名类型
     bool                     m_bZip; ///<是否压缩
     string                   m_strHost; ///<session的来源主机
+    string                   m_strSource; ///<source的名字
     CwxMqQueueLogFile*        m_sourceFile; ///<source的文件
 };
 
