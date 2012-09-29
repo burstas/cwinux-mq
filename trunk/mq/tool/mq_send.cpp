@@ -205,19 +205,14 @@ int main(int argc ,char** argv)
     char const* pErrMsg=NULL;
     CwxKeyValueItem item;
 
-    CwxMqPoco::init();
-    if (g_file.length())
-    {
+    if (g_file.length()){
         item.m_szData = g_szData;
         item.m_uiDataLen = g_uiDataLen;
-    }
-    else
-    {
+    }else{
         item.m_szData = (char*)g_data.c_str();
         item.m_uiDataLen = g_data.length();
     }
-    do 
-    {
+    do {
         if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packRecvData(
             &writer,
             block,

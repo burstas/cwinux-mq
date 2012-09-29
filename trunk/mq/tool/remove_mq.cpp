@@ -147,9 +147,7 @@ int main(int argc ,char** argv)
     char szErr2K[2048];
     char const* pErrMsg=NULL;
 
-    CwxMqPoco::init();
-    do 
-    {
+    do {
         if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packDelQueue(
             &writer,
             block,

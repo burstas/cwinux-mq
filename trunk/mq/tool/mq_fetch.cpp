@@ -146,12 +146,8 @@ int main(int argc ,char** argv)
     CWX_UINT32 group = 0;
     CWX_UINT32 timestamp = 0;
     CwxKeyValueItem const* item = NULL;
-
-    CwxMqPoco::init();
-    do 
-    {
-        while(1)
-        {
+    do {
+        while(1) {
             if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packFetchMq(
                 &writer,
                 block,

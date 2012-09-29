@@ -12,12 +12,11 @@ string g_user;
 string g_passwd;
 string g_auth_user;
 string g_auth_passwd;
-string g_subscribe;
 CWX_UINT64 g_sid;
 ///-1：失败；0：help；1：成功
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:s:U:W:S:h");
+	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:q:U:W:S:h");
     int option;
 
     while( (option = cmd_option.next()) != -1)
@@ -32,7 +31,6 @@ int parseArg(int argc, char**argv)
             printf("-u: queue's user, it can be empty.\n");
             printf("-p: queue's user passwd, it can be empty.\n");
             printf("-q: queue's name, it can't be empty.\n");
-            printf("-s: queue's subscribe. it can be empty for subscribe all message.\n");
             printf("-U: authentication user for queue.\n");
             printf("-W: authentication user password for queue.\n");
             printf("-S: queue's start sid, zero for the current max sid.\n");
@@ -77,15 +75,6 @@ int parseArg(int argc, char**argv)
                 return -1;
             }
             g_queue = cmd_option.opt_arg();
-            break;
-            break;
-        case 's':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("-s requires an argument.\n");
-                return -1;
-            }
-            g_subscribe = cmd_option.opt_arg();
             break;
         case 'U':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -144,7 +133,6 @@ int parseArg(int argc, char**argv)
         printf("No queue, set by -q\n");
         return -1;
     }
-    if (!g_subscribe.length()) g_subscribe = "*";
     return 1;
 }
 
@@ -169,8 +157,6 @@ int main(int argc ,char** argv)
     CwxMsgBlock* block=NULL;
     char szErr2K[2048];
     char const* pErrMsg=NULL;
-
-    CwxMqPoco::init();
     do 
     {
         if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packCreateQueue(
@@ -179,7 +165,6 @@ int main(int argc ,char** argv)
             g_queue.c_str(),
             g_user.c_str(),
             g_passwd.c_str(),
-            g_subscribe.c_str(),
             g_auth_user.c_str(),
             g_auth_passwd.c_str(),
             g_sid,
@@ -231,11 +216,10 @@ int main(int argc ,char** argv)
             break;
         }
         iRet = 0;
-        printf("success to create queue[%s],user=%s,passwd=%s,subscribe=%s,sid=%s\n",
+        printf("success to create queue[%s],user=%s,passwd=%s,sid=%s\n",
             g_queue.c_str(),
             g_user.c_str(),
             g_passwd.c_str(),
-            g_subscribe.c_str(),
             CwxCommon::toString(g_sid, szErr2K, 10));
     } while(0);
     if (block) CwxMsgBlockAlloc::free(block);
