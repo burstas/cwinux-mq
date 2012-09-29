@@ -103,7 +103,7 @@ int CwxSidLogFile::save(){
             "name=%s|sid=%s|u=%s|p=%s\n",
             m_strName.c_str(),
             CwxCommon::toString(m_ullMaxSid, szSid, 10),
-            m_strUser.c_str(),
+            m_strUserName.c_str(),
             m_strPasswd.c_str());
 	if (len != write(fd, line, len)){
 		CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write new sys file:%s, errno=%d",
@@ -181,9 +181,7 @@ int CwxSidLogFile::log(CWX_UINT64 sid){
         }
         m_uiCurLogCount++;
         m_uiTotalLogCount++;
-        if (m_uiCurLogCount >= m_uiFlushRecord){
-            if (0 != syncFile()) return -1;
-        }
+        if (m_uiCurLogCount >= m_uiFlushRecord) syncFile()
         return m_uiTotalLogCount;
     }
     return -1;
@@ -194,19 +192,16 @@ void CwxSidLogFile::timeout(CWX_UINT32 uiNow){
     if ((uiNow < m_uiLastSyncTime) || (m_uiLastSyncTime + m_uiFlushSecond < uiNow)){
         m_uiLastSyncTime = uiNow;
         syncFile();
-        return -1;
     }
-    return 0;
 }
 
 ///强行fsync日志文件；
 void CwxSidLogFile::syncFile(){
     if (m_uiCurLogCount && m_fd){
-        ::fsync(fileno(m_fd);
+        ::fsync(fileno(m_fd));
         m_uiCurLogCount = 0;
         m_uiLastSyncTime = time(NULL);
     }
-    return 0;
 }
 
 int CwxSidLogFile::parseLogHead(string const& line){
