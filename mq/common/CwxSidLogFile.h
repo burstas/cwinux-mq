@@ -35,15 +35,17 @@ public:
         string const& strFileName);
     ~CwxSidLogFile();
 public:
-    ///创建log文件；0：成功；-1：失败
+    // 创建log文件；0：成功；-1：失败
     int create(string const& strName,///<对象的名字
         CWX_UINT64 ullMaxSid, ///<当前最大的sid
         string const& strUserName, ///<用户的名字
         string const& strPasswd); ///<用户的口令
-    ///加载log文件；1：成功；0：不存在；-1：失败
+    // 加载log文件；1：成功；0：不存在；-1：失败
     int load();
-    ///写commit记录；-1：失败；否则返回已经写入的log数量
-    int log(CWX_UINT64 sid, CWX_UINT32 uiNow);
+    // 写commit记录；-1：失败；否则返回已经写入的log数量
+    int log(CWX_UINT64 sid);
+    // 时间commit检查；-1：失败；否则返回已经写入的log数量
+    void timeout(CWX_UINT32 uiNow);
     ///强行fsync日志文件；0：成功；-1：失败
     int fsync();
     ///保存队列信息；0：成功；-1：失败
