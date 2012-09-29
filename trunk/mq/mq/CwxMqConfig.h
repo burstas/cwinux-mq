@@ -160,10 +160,6 @@ public:
     inline CwxMqConfigRecv const& getRecv() const{
         return m_recv;
     }
-    ///获取slave配置信息
-    inline CwxMqConfigDispatch const& getSlave() const {
-        return m_dispatch;
-    }
     inline CwxMqConfigMq const& getMq() const{
         return m_mq;
     }
