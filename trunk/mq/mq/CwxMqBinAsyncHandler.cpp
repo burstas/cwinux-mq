@@ -273,10 +273,10 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
             }
             ///如果中间有失败，则退出
             if (iter != m_sessionMap.end()) break;
+            /*
             m_syncSession->m_sourceFile = new CwxSidLogFile(
                 m_pApp->getConfig().getDispatch().m_uiFlushNum,
-
-            
+            */            
         }
 
         if (bNewly){///不sid为空，则取当前最大sid-1
@@ -554,7 +554,6 @@ int CwxMqBinAsyncHandler::onRedo(){
 int CwxMqBinAsyncHandler::syncSendBinLog(CwxMqTss* pTss){
     int iRet = 0;
     CwxMsgBlock* pBlock = NULL;
-    CWX_UINT32 uiSkipNum = 0;
     CWX_UINT32 uiKeyLen = 0;
     CWX_UINT32 uiTotalLen = 0;
     CWX_UINT64 ullSeq = m_syncSession->m_ullSeq;
@@ -687,7 +686,6 @@ int CwxMqBinAsyncHandler::syncPackOneBinLog(CwxPackageWriter* writer,
         m_syncSession->m_pCursor->getHeader().getSid(),
         m_syncSession->m_pCursor->getHeader().getDatetime(),
         *pData,
-        m_syncSession->m_pCursor->getHeader().getGroup(),
         m_syncSession->m_strSign.c_str(),
         m_syncSession->m_bZip,
         ullSeq,
@@ -712,7 +710,6 @@ int CwxMqBinAsyncHandler::syncPackMultiBinLog(CwxPackageWriter* writer,
         m_syncSession->m_pCursor->getHeader().getSid(),
         m_syncSession->m_pCursor->getHeader().getDatetime(),
         *pData,
-        m_syncSession->m_pCursor->getHeader().getGroup(),
         NULL,
         szErr2K))
     {
@@ -731,7 +728,7 @@ int CwxMqBinAsyncHandler::syncPackMultiBinLog(CwxPackageWriter* writer,
 }
 
 //1：发现记录；0：没有发现；-1：错误
-int CwxMqBinAsyncHandler::syncSeekToBinlog(CwxMqTss* tss, CWX_UINT32& uiSkipNum){
+int CwxMqBinAsyncHandler::syncSeekToBinlog(CwxMqTss* tss){
     int iRet = 0;
     if (m_syncSession->m_bNext){
         iRet = m_pApp->getBinLogMgr()->next(m_syncSession->m_pCursor);
@@ -742,7 +739,6 @@ int CwxMqBinAsyncHandler::syncSeekToBinlog(CwxMqTss* tss, CWX_UINT32& uiSkipNum)
             return -1;
         }
     }
-    bool bFind = false;
     CWX_UINT32 uiDataLen = m_syncSession->m_pCursor->getHeader().getLogLen();
     ///准备data读取的buf
     char* szData = tss->getBuf(uiDataLen);        
@@ -753,28 +749,17 @@ int CwxMqBinAsyncHandler::syncSeekToBinlog(CwxMqTss* tss, CWX_UINT32& uiSkipNum)
         CWX_ERROR((tss->m_szBuf2K));
         return -1;
     }
-    uiSkipNum++;
     m_syncSession->m_bNext = false;
     while(1){
-        bFind = false;
-        do{
-            if (!tss->m_pReader->unpack(szData, uiDataLen, false,true)){
-                CWX_ERROR(("Can't unpack binlog, sid=%s", CwxCommon::toString(m_syncSession->m_pCursor->getHeader().getSid(), tss->m_szBuf2K)));
-                break;
-            }
+        if (!tss->m_pReader->unpack(szData, uiDataLen, false,true)){
+            CWX_ERROR(("Can't unpack binlog, sid=%s", CwxCommon::toString(m_syncSession->m_pCursor->getHeader().getSid(), tss->m_szBuf2K)));
+        }else{
             ///获取CWX_MQ_D的key，此为真正data数据
             tss->m_pBinlogData = tss->m_pReader->getKey(CWX_MQ_D);
             if (!tss->m_pBinlogData){
                 CWX_ERROR(("Can't find key[%s] in binlog, sid=%s", CWX_MQ_D,
                     CwxCommon::toString(m_syncSession->m_pCursor->getHeader().getSid(), tss->m_szBuf2K)));
-                break;
-            }
-            bFind = true;
-        }while(0);
-        if (bFind){
-            if (CwxMqPoco::isSubscribe(m_syncSession->m_subscribe,
-                m_syncSession->m_pCursor->getHeader().getGroup()))
-            {
+            }else{
                 break;
             }
         }
@@ -787,10 +772,6 @@ int CwxMqBinAsyncHandler::syncSeekToBinlog(CwxMqTss* tss, CWX_UINT32& uiSkipNum)
             CwxCommon::snprintf(tss->m_szBuf2K, 2047, "Failure to seek cursor, err:%s", m_syncSession->m_pCursor->getErrMsg());
             CWX_ERROR((tss->m_szBuf2K));
             return -1;
-        }
-        uiSkipNum ++;
-        if (!CwxMqPoco::isContinueSeek(uiSkipNum)){
-            return 0;///未完成状态
         }
     };
     return 1;
