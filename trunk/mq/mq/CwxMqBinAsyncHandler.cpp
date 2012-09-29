@@ -75,8 +75,8 @@ void CwxMqBinAsyncHandler::doEvent(CwxMqApp* app, CwxMqTss* tss, CwxMsgBlock*& m
         pHandler->m_tss = (CwxMqTss*)CwxTss::instance();
         CWX_INFO(("Accept sync connection from %s:%u",  pHandler->m_strPeerHost.c_str(), pHandler->m_unPeerPort));
     }else{
-        CWX_ASSERT(block->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
-        CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_ASYNC);
+        CWX_ASSERT(msg->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
+        CWX_ASSERT(msg->event().getSvrId() == SVR_TYPE_ASYNC);
         //日志超时检查
         map<CWX_UINT64, CwxMqBinAsyncHandlerSession* >::iterator iter = m_sessionMap.begin();
         while(iter != m_sessionMap.end()){
@@ -234,7 +234,7 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss){
             passwd?passwd:"",
             sign?sign:"",
             bzip?"yes":"no"));
-        if (m_pApp->getConfig().getDispatch.m_async.m_async.getUser().length()){
+        if (m_pApp->getConfig().getDispatch().m_async.m_async.getUser().length()){
             if ( (m_pApp->getConfig().getDispatch().m_async.getUser() != user) ||
                 (m_pApp->getConfig().getDispatch().m_async.getPasswd() != passwd))
             {
@@ -563,7 +563,7 @@ int CwxMqBinAsyncHandler::syncSendBinLog(CwxMqTss* pTss){
 
     if (m_syncSession->m_uiChunk)  pTss->m_pWriter->beginPack();
     while(1){
-        if ( 1 != (iRet = syncSeekToBinlog(pTss, uiSkipNum))) break;
+        if ( 1 != (iRet = syncSeekToBinlog(pTss))) break;
         //设置移到下一个记录位置
         m_syncSession->m_bNext = true;
         if (!m_syncSession->m_uiChunk){
