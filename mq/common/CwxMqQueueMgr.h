@@ -117,6 +117,8 @@ public:
 
     ///强行flush mq的log文件
     void commit();
+    // 时间commit检查；
+    void timeout(CWX_UINT32 uiNow);
     ///添加队列
     int addQueue(string const& strQueue,
         CWX_UINT64 ullSid,

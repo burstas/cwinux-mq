@@ -116,46 +116,24 @@ int CwxMqApp::initRunEnv(){
         CWX_ERROR(("Failure to start recv thread pool"));
         return -1;
     }
-
     //创建分发线程池
-    if (m_config.getCommon().m_bMaster){
-        if (m_config.getMaster().m_async.getHostName().length()){
-            m_asyncDispChannel = new CwxAppChannel();
-            m_pAsyncDispThreadPool = new CwxThreadPool( CwxAppFramework::THREAD_GROUP_USER_START + 1,
-                1,
-                getThreadPoolMgr(),
-                &getCommander(),
-                CwxMqApp::dispatchThreadMain,
-                this);
-            ///启动线程
-            pTss = new CwxTss*[1];
-            pTss[0] = new CwxMqTss();
-            ((CwxMqTss*)pTss[0])->init();
-            if ( 0 != m_pAsyncDispThreadPool->start(pTss)){
-                CWX_ERROR(("Failure to start dispatch thread pool"));
-                return -1;
-            }
-        }
-    }else{
-        if (m_config.getSlave().m_async.getHostName().length()){
-            m_asyncDispChannel = new CwxAppChannel();
-            m_pAsyncDispThreadPool = new CwxThreadPool( CwxAppFramework::THREAD_GROUP_USER_START + 1,
-                1,
-                getThreadPoolMgr(),
-                &getCommander(),
-                CwxMqApp::dispatchThreadMain,
-                this);
-            ///启动线程
-            pTss = new CwxTss*[1];
-            pTss[0] = new CwxMqTss();
-            ((CwxMqTss*)pTss[0])->init();
-            if ( 0 != m_pAsyncDispThreadPool->start(pTss)){
-                CWX_ERROR(("Failure to start dispatch thread pool"));
-                return -1;
-            }
+    if (m_config.getDispatch().m_async.getHostName().length()){
+        m_asyncDispChannel = new CwxAppChannel();
+        m_pAsyncDispThreadPool = new CwxThreadPool( CwxAppFramework::THREAD_GROUP_USER_START + 1,
+            1,
+            getThreadPoolMgr(),
+            &getCommander(),
+            CwxMqApp::dispatchThreadMain,
+            this);
+        ///启动线程
+        pTss = new CwxTss*[1];
+        pTss[0] = new CwxMqTss();
+        ((CwxMqTss*)pTss[0])->init();
+        if ( 0 != m_pAsyncDispThreadPool->start(pTss)){
+            CWX_ERROR(("Failure to start dispatch thread pool"));
+            return -1;
         }
     }
-
     //创建mq线程池
     if (m_config.getMq().m_mq.getHostName().length() ||
         m_config.getMq().m_mq.getUnixDomain().length())
@@ -187,23 +165,37 @@ void CwxMqApp::onTime(CwxTimeValue const& current){
     ///检查超时
     static CWX_UINT32 ttTimeBase = 0; ///<时钟回跳的base时钟
     static CWX_UINT32 ttLastTime = m_ttCurTime; ///<上一次检查的时间
-    CWX_UINT32 uiNow = m_ttCurTime;
-    bool bClockBack = isClockBack(ttTimeBase, uiNow);
-    if (bClockBack || (uiNow >= ttLastTime + 1)){
+    bool bClockBack = isClockBack(ttTimeBase, m_ttCurTime);
+    if (bClockBack || (m_ttCurTime >= ttLastTime + 1)){
+        ttLastTime = m_ttCurTime;
         if (m_config.getCommon().m_bMaster){
-            ttLastTime = uiNow;
             CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
             pBlock->event().setSvrId(SVR_TYPE_RECV);
             pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
             //将超时检查事件，放入事件队列
             m_pRecvThreadPool->append(pBlock);
         }else{
-            ttLastTime = uiNow;
             CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
             pBlock->event().setSvrId(SVR_TYPE_MASTER);
             pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
             //将超时检查事件，放入事件队列
             m_pRecvThreadPool->append(pBlock);
+        }
+        //若存在分发线程池，则往分发线程池append TIMEOUT_CHECK
+        if (m_pAsyncDispThreadPool){
+            CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
+            pBlock->event().setSvrId(SVR_TYPE_ASYNC);
+            pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
+            //将超时检查事件，放入事件队列
+            m_pAsyncDispThreadPool->append(pBlock);
+        }
+        //若存在mq程池，则往mq线程池append TIMEOUT_CHECK
+        if (m_pMqThreadPool){
+            CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
+            pBlock->event().setSvrId(SVR_TYPE_FETCH);
+            pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
+            //将超时检查事件，放入事件队列
+            m_pMqThreadPool->append(pBlock);
         }
     }
 }
@@ -413,14 +405,13 @@ int CwxMqApp::startBinLogMgr(){
         m_uiCurSid = m_pBinLogMgr->getMaxSid() + CWX_MQ_MAX_BINLOG_FLUSH_COUNT + 1;
     }
     //初始化MQ
-    if (m_config.getMq().m_mq.getHostName().length() ||
-        m_config.getMq().m_mq.getUnixDomain().length())
-    {
+    if (m_config.getMq().m_mq.getHostName().length()){
         m_ttMqLastCommitTime = time(NULL);
         //初始化队列管理器
         if (m_queueMgr) delete m_queueMgr;
         m_queueMgr = new CwxMqQueueMgr(m_config.getMq().m_strLogFilePath,
-            m_config.getMq().m_uiFlushNum);
+            m_config.getMq().m_uiFlushNum,
+            m_config.getMq().m_uiFlushSecond);
         if (0 != m_queueMgr->init(m_pBinLogMgr)){
             CWX_ERROR(("Failure to init mq queue manager, err=%s", m_queueMgr->getErrMsg().c_str()));
             return -1;

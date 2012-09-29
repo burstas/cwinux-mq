@@ -44,10 +44,10 @@ public:
     int load();
     // 写commit记录；-1：失败；否则返回已经写入的log数量
     int log(CWX_UINT64 sid);
-    // 时间commit检查；-1：失败；否则返回已经写入的log数量
+    // 时间commit检查；
     void timeout(CWX_UINT32 uiNow);
-    ///强行fsync日志文件；0：成功；-1：失败
-    int fsync();
+    ///强行fsync日志文件；
+    void syncFile();
     ///保存队列信息；0：成功；-1：失败
     int save();
 public:
