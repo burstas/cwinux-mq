@@ -75,7 +75,7 @@ int CwxSidLogFile::load(){
         return -1;
     }
 	m_uiLastSyncTime = time(NULL);
-    return 0;
+    return 1;
 }
 
 ///保存队列信息；0：成功；-1：失败

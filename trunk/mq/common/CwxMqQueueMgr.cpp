@@ -31,8 +31,7 @@ CwxMqQueue::~CwxMqQueue(){
     m_uncommitMap.clear();
 }
 
-int CwxMqQueue::init(CWX_UINT64 ullSid, string& strErrMsg)
-{
+int CwxMqQueue::init(CWX_UINT64 ullSid, string& strErrMsg){
     if (m_memMsgMap.size()){
         map<CWX_UINT64, CwxMsgBlock*>::iterator iter = m_memMsgMap.begin();
         while(iter != m_memMsgMap.end()){
@@ -50,14 +49,14 @@ int CwxMqQueue::init(CWX_UINT64 ullSid, string& strErrMsg)
         iter++;
     }
     m_uncommitMap.clear();
-	//创建cursor
-	{
-		m_cursor = m_binLog->createCurser(ullSid);
-		if (!m_cursor){
-			strErrMsg = "Failure to create cursor.";
-			return -1;
-		}
-	}
+    //创建cursor
+    {
+        m_cursor = m_binLog->createCurser(ullSid);
+        if (!m_cursor){
+            strErrMsg = "Failure to create cursor.";
+            return -1;
+        }
+    }
     return 0;
 }
 
@@ -102,9 +101,9 @@ void CwxMqQueue::endSendMsg(CWX_UINT64 ullSid, bool bSend){
 ///2：达到了搜索点，但没有发现消息；
 ///-1：失败；
 int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
-                    CwxMsgBlock*&msg,
-                    int& err_num,
-                    char* szErr2K)
+                                CwxMsgBlock*&msg,
+                                int& err_num,
+                                char* szErr2K)
 {
     do{
         int iRet = m_binLog->next(m_cursor);
@@ -168,107 +167,102 @@ CWX_UINT64 CwxMqQueue::getMqNum(){
 }
 
 
-CwxMqQueueMgr::CwxMqQueueMgr(string const& strQueueLogFilePath,
-                             CWX_UINT32 uiMaxFsyncNum)
+CwxMqQueueMgr::CwxMqQueueMgr(string const& strQueuePath,
+                             CWX_UINT32 uiFlushNum,
+                             CWX_UINT32 uiFlushSecond)
 {
-    m_strQueueLogFilePath = strQueueLogFilePath;
-	if (m_strQueueLogFilePath[m_strQueueLogFilePath.length()-1] != '/')
-		m_strQueueLogFilePath += "/";
-    m_uiMaxFsyncNum = uiMaxFsyncNum;
+    m_strQueuePath = strQueuePath;
+    if (m_strQueuePath[m_strQueuePath.length()-1] != '/')
+        m_strQueuePath += "/";
+    m_uiFlushNum = uiFlushNum;
+    m_uiFlushSecond = uiFlushSecond;
     m_binLog = NULL;
     m_strErrMsg = "Not init";
-	m_bValid = false;
+    m_bValid = false;
 }
 
 CwxMqQueueMgr::~CwxMqQueueMgr(){
     map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter =  m_queues.begin();
     while(iter != m_queues.end()){
         delete iter->second.first;
-		delete iter->second.second;
+        delete iter->second.second;
         iter++;
     }
 }
 
 int CwxMqQueueMgr::init(CwxBinLogMgr* binLog){
-    CwxMqQueue* mq = NULL;
-	CwxSidLogFile* mqLogFile = NULL;
-	string  strMqLogFile;
     m_binLog = binLog;
-	m_bValid = false;
-
-	//清空数据
-	{
-		map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter =  m_queues.begin();
-		while(iter != m_queues.end()){
-			delete iter->second.first;
-			delete iter->second.second;
-			iter++;
-		}
-		m_queues.clear();
-	}
-
-	//初始化队列
-	{
-		pair<CwxMqQueue*, CwxSidLogFile*> mq_pair;
-		CwxMqQueueInfo queue;
-		string strQueueFile;
-		string strQueuePathFile;
-		set<string/*queue name*/ > queues;
-		set<string/*queue name*/ >::iterator iter;
-		if (!_fetchLogFile(queues)) return -1;
-		iter  = queues.begin();
-		while(iter != queues.end()){
-			strQueuePathFile = m_strQueueLogFilePath + _getQueueLogFile(*iter, strQueueFile);
-			mqLogFile = new CwxSidLogFile(m_uiMaxFsyncNum, strQueuePathFile);
-			queue.m_strName.erase();
-			if (0 != mqLogFile->init(queue)){
-				char szBuf[2048];
-				CwxCommon::snprintf(szBuf, 2047, "Failure to init mq queue log-file:%s, err:%s",
-					strQueuePathFile.c_str(),
-					mqLogFile->getErrMsg());
-				m_strErrMsg = szBuf;
-				m_bValid = false;
-				delete mqLogFile;
-				return -1;
-			}
-			if (queue.m_strName.empty()){//空队列文件，删除
-				delete mqLogFile;
-				CwxSidLogFile::removeFile(strQueuePathFile);
-				iter++;
-				continue;
-			}
-			if (*iter != queue.m_strName){
-				char szBuf[2048];
-				CwxCommon::snprintf(szBuf, 2047, "queue log file[%s]'s queue name should be [%s], but it's [%s]",
-					strQueuePathFile.c_str(),
-					iter->c_str(),
-					queue.m_strName.c_str());
-				m_strErrMsg = szBuf;
-				m_bValid = false;
-				delete mqLogFile;
-				return -1;
-			}
-			mq = new CwxMqQueue(queue.m_strName, 
-				queue.m_strUser,
-				queue.m_strPasswd
-				m_binLog);
-			if (0 != mq->init(queue.m_ullCursorSid,
-                m_strErrMsg))
-			{
-				delete mqLogFile;
-				delete mq;
-				m_bValid = false;
-				return -1;
-			}
-			mq_pair.first = mq;
-			mq_pair.second = mqLogFile;
-			m_queues[queue.m_strName] = mq_pair;
-			iter++;
-		}
-	}
-	m_bValid = true;
-
-	return 0;
+    m_bValid = false;
+    //清空数据
+    {
+        map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter =  m_queues.begin();
+        while(iter != m_queues.end()){
+            delete iter->second.first;
+            delete iter->second.second;
+            iter++;
+        }
+        m_queues.clear();
+    }
+    //初始化队列
+    {
+        pair<CwxMqQueue*, CwxSidLogFile*> mq_pair;
+        CwxMqQueue* mq = NULL;
+        CwxSidLogFile* mqLogFile = NULL;
+        int  ret = 0;
+        string strQueueFile;
+        string strQueuePathFile;
+        set<string/*queue name*/ > queues;
+        set<string/*queue name*/ >::iterator iter;
+        if (!_fetchLogFile(queues)) return -1;
+        iter  = queues.begin();
+        while(iter != queues.end()){
+            strQueuePathFile = m_strQueuePath + _getQueueLogFile(*iter, strQueueFile);
+            mqLogFile = new CwxSidLogFile(m_uiFlushNum, m_uiFlushSecond, strQueuePathFile);
+            ret = mqLogFile->load();
+            if (-1 == ret){
+                char szBuf[2048];
+                CwxCommon::snprintf(szBuf, 2047, "Failure to init mq queue log-file:%s, err:%s",
+                    strQueuePathFile.c_str(),
+                    mqLogFile->getErrMsg());
+                m_strErrMsg = szBuf;
+                m_bValid = false;
+                delete mqLogFile;
+                return -1;
+            }else if (0 == ret){//空队列文件，删除
+                delete mqLogFile;
+                CwxSidLogFile::removeFile(strQueuePathFile);
+                iter++;
+                continue;
+            }
+            if (*iter != mqLogFile->getName()){
+                char szBuf[2048];
+                CwxCommon::snprintf(szBuf, 2047, "queue log file[%s]'s queue name should be [%s], but it's [%s]",
+                    strQueuePathFile.c_str(),
+                    iter->c_str(),
+                    mqLogFile->getName().c_str());
+                m_strErrMsg = szBuf;
+                m_bValid = false;
+                delete mqLogFile;
+                return -1;
+            }
+            mq = new CwxMqQueue(mqLogFile->getName(),
+                mqLogFile->getUserName(),
+                mqLogFile->getPasswd(),
+                m_binLog);
+            if (0 != mq->init(mqLogFile->getCurMaxSid(), m_strErrMsg)){
+                delete mqLogFile;
+                delete mq;
+                m_bValid = false;
+                return -1;
+            }
+            mq_pair.first = mq;
+            mq_pair.second = mqLogFile;
+            m_queues[queue.m_strName] = mq_pair;
+            iter++;
+        }
+    }
+    m_bValid = true;
+    return 0;
 }
 
 
@@ -278,19 +272,19 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog){
 ///-1：失败；
 ///-2：队列不存在
 int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss,
-                  string const& strQueue,
-                  CwxMsgBlock*&msg,
-                  int& err_num,
-                  char* szErr2K)
+                                 string const& strQueue,
+                                 CwxMsgBlock*&msg,
+                                 int& err_num,
+                                 char* szErr2K)
 {
     if (m_bValid){
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
         map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return -2;
-		if (!iter->second.second->isValid()){
-			if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
-			return -1;
-		}
+        if (!iter->second.second->isValid()){
+            if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
+            return -1;
+        }
         return iter->second.first->getNextBinlog(pTss, msg, err_num, szErr2K);
     }
     if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
@@ -300,31 +294,31 @@ int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss,
 ///消息发送完毕，bSend=true表示已经发送成功；false表示发送失败
 ///返回值：0：成功，-1：失败，-2：队列不存在
 int CwxMqQueueMgr::endSendMsg(string const& strQueue,
-               CWX_UINT64 ullSid,
-               bool bSend,
-               char* szErr2K)
+                              CWX_UINT64 ullSid,
+                              bool bSend,
+                              char* szErr2K)
 {
     if (m_bValid){
         CwxReadLockGuard<CwxRwLock>  lock(&m_lock);
         map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return -2;
-		if (!iter->second.second->isValid()){
-			if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
-			return -1;
-		}
-       iter->second.first->endSendMsg(ullSid, bSend);
-       int num = iter->second.second->log(ullSid);
-       if (-1 == num){
-           if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
-           return -1;
-       }
-       if (num >= MQ_SWITCH_LOG_NUM){
-           if (!_save(iter->second.first, iter->second.second)){
-               if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
-               return -1;
-           }
-       }
-       return 0;
+        if (!iter->second.second->isValid()){
+            if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
+            return -1;
+        }
+        iter->second.first->endSendMsg(ullSid, bSend);
+        int num = iter->second.second->log(ullSid);
+        if (-1 == num){
+            if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
+            return -1;
+        }
+        if (num >= MQ_SWITCH_LOG_NUM){
+            if (!_save(iter->second.first, iter->second.second)){
+                if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
+                return -1;
+            }
+        }
+        return 0;
     }
     if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
     return -1;
@@ -333,13 +327,13 @@ int CwxMqQueueMgr::endSendMsg(string const& strQueue,
 
 ///强行flush mq的log文件
 void CwxMqQueueMgr::commit(){
-	if (m_bValid){
-		map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter = m_queues.begin();
-		while(iter != m_queues.end()){
-			iter->second.second->fsync();
-			iter++;
-		}
-	}
+    if (m_bValid){
+        map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter = m_queues.begin();
+        while(iter != m_queues.end()){
+            iter->second.second->fsync();
+            iter++;
+        }
+    }
 }
 
 ///1：成功
@@ -362,64 +356,65 @@ int CwxMqQueueMgr::addQueue(string const& strQueue,
         string strErr;
         if (0 != mq->init(ullSid,strErr)){
             delete mq;
-			if (szErr2K) strcpy(szErr2K, strErr.c_str());
+            if (szErr2K) strcpy(szErr2K, strErr.c_str());
             return -1;
         }
-		//create mq log file
-		string strQueueFile;
-		string strQueuePathFile;
-		CwxMqQueueInfo queue;
-		strQueuePathFile = m_strQueueLogFilePath + _getQueueLogFile(strQueue, strQueueFile);
-		CwxSidLogFile::removeFile(strQueuePathFile);
-		CwxSidLogFile* mqLogFile = new CwxSidLogFile(m_uiMaxFsyncNum, strQueuePathFile);
-		queue.m_strName.erase();
-		if (0 != mqLogFile->init(queue)){
-			char szBuf[2048];
-			CwxCommon::snprintf(szBuf, 2047, "Failure to init mq queue log-file:%s, err:%s",
-				strQueuePathFile.c_str(),
-				mqLogFile->getErrMsg());
-			delete mqLogFile;
-			delete mq;
-			if (szErr2K) strcpy(szErr2K, szBuf);
-			return -1;
-		}
+        //create mq log file
+        string strQueueFile;
+        string strQueuePathFile;
+        CwxMqQueueInfo queue;
+        strQueuePathFile = m_strQueuePath + _getQueueLogFile(strQueue, strQueueFile);
+        CwxSidLogFile::removeFile(strQueuePathFile);
+        CwxSidLogFile* mqLogFile = new CwxSidLogFile(m_uiMaxFsyncNum, strQueuePathFile);
+        queue.m_strName.erase();
+        if (0 != mqLogFile->init(queue)){
+            char szBuf[2048];
+            CwxCommon::snprintf(szBuf, 2047, "Failure to init mq queue log-file:%s, err:%s",
+                strQueuePathFile.c_str(),
+                mqLogFile->getErrMsg());
+            delete mqLogFile;
+            delete mq;
+            if (szErr2K) strcpy(szErr2K, szBuf);
+            return -1;
+        }
         if (!_save(mq, mqLogFile)){
-			char szBuf[2048];
-			CwxCommon::snprintf(szBuf, 2047, "Failure to save mq queue log-file:%s, err:%s",
-				strQueuePathFile.c_str(),
-				mqLogFile->getErrMsg());
-			delete mqLogFile;
-			delete mq;
-			if (szErr2K) strcpy(szErr2K, szBuf);
+            char szBuf[2048];
+            CwxCommon::snprintf(szBuf, 2047, "Failure to save mq queue log-file:%s, err:%s",
+                strQueuePathFile.c_str(),
+                mqLogFile->getErrMsg());
+            delete mqLogFile;
+            delete mq;
+            if (szErr2K) strcpy(szErr2K, szBuf);
             return -1;
         }
-		pair<CwxMqQueue*, CwxSidLogFile*> item;
-		item.first = mq;
-		item.second = mqLogFile;
-		m_queues[strQueue] = item;
+        pair<CwxMqQueue*, CwxSidLogFile*> item;
+        item.first = mq;
+        item.second = mqLogFile;
+        m_queues[strQueue] = item;
         return 1;
     }
     if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
     return -1;
 }
+
 ///1：成功
 ///0：不存在
 ///-1：其他错误
 int CwxMqQueueMgr::delQueue(string const& strQueue,
-             char* szErr2K)
+                            char* szErr2K)
 {
     if (m_bValid){
         CwxWriteLockGuard<CwxRwLock>  lock(&m_lock);
         map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter = m_queues.find(strQueue);
         if (iter == m_queues.end()) return 0;
         delete iter->second.first;
-		delete iter->second.second;
+        delete iter->second.second;
         m_queues.erase(iter);
-		string strQueueFile;
-		string strQueuePathFile;
-		_getQueueLogFile(strQueue, strQueueFile);
-		strQueuePathFile = m_strQueueLogFilePath + strQueueFile;
-		CwxSidLogFile::removeFile(strQueuePathFile);
+        string strQueueFile;
+        string strQueuePathFile;
+        _getQueueLogFile(strQueue, strQueueFile);
+        strQueuePathFile = m_strQueuePath + strQueueFile;
+        CwxSidLogFile::removeFile(strQueuePathFile);
         return 1;
     }
     if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
@@ -441,72 +436,72 @@ void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues){
 }
 
 bool CwxMqQueueMgr::_save(CwxMqQueue* queue, CwxSidLogFile* logFile){
-	CwxMqQueueInfo queueInfo;
-	set<CWX_UINT64> uncommitSets;
-	set<CWX_UINT64> commitSets;
-	queueInfo.m_strName = queue->getName();
-	queueInfo.m_strUser = queue->getUserName();
-	queueInfo.m_strPasswd = queue->getPasswd();
-	queueInfo.m_ullCursorSid = queue->getCurSid();
-	//保存到log中
-	if (0 != logFile->save(queueInfo)){
-		return false;
-	}
-	return true;
+    CwxMqQueueInfo queueInfo;
+    set<CWX_UINT64> uncommitSets;
+    set<CWX_UINT64> commitSets;
+    queueInfo.m_strName = queue->getName();
+    queueInfo.m_strUser = queue->getUserName();
+    queueInfo.m_strPasswd = queue->getPasswd();
+    queueInfo.m_ullCursorSid = queue->getCurSid();
+    //保存到log中
+    if (0 != logFile->save(queueInfo)){
+        return false;
+    }
+    return true;
 }
 
 bool CwxMqQueueMgr::_fetchLogFile(set<string/*queue name*/> & queues){
-	//如果binlog的目录不存在，则创建此目录
-	if (!CwxFile::isDir(m_strQueueLogFilePath.c_str())){
-		if (!CwxFile::createDir(m_strQueueLogFilePath.c_str())){
-			char szBuf[2048];
-			CwxCommon::snprintf(szBuf, 2047, "Failure to create mq log path:%s, errno=%d", m_strQueueLogFilePath.c_str(), errno);
-			m_strErrMsg = szBuf;
-			m_bValid = false;
-			return false;
-		}
-	}
-	//获取目录下的所有文件
-	list<string> pathfiles;
-	if (!CwxFile::getDirFile(m_strQueueLogFilePath, pathfiles)){
-		char szBuf[2048];
-		CwxCommon::snprintf(szBuf, 2047, "Failure to fetch mq log, path:%s, errno=%d", m_strQueueLogFilePath.c_str(), errno);
-		m_strErrMsg = szBuf;
-		m_bValid = false;
-		return false;
-	}
-	//提取目录下的所有binlog文件，并放到map中，利用map的排序，逆序打开文件
-	string strQueue;
-	list<string>::iterator iter=pathfiles.begin();
-	queues.clear();
-	while(iter != pathfiles.end()){
-		if (_isQueueLogFile(*iter, strQueue)){
-			queues.insert(strQueue);
-		}
-		iter++;
-	}
-	return true;
+    //如果binlog的目录不存在，则创建此目录
+    if (!CwxFile::isDir(m_strQueuePath.c_str())){
+        if (!CwxFile::createDir(m_strQueuePath.c_str())){
+            char szBuf[2048];
+            CwxCommon::snprintf(szBuf, 2047, "Failure to create mq log path:%s, errno=%d", m_strQueuePath.c_str(), errno);
+            m_strErrMsg = szBuf;
+            m_bValid = false;
+            return false;
+        }
+    }
+    //获取目录下的所有文件
+    list<string> pathfiles;
+    if (!CwxFile::getDirFile(m_strQueuePath, pathfiles)){
+        char szBuf[2048];
+        CwxCommon::snprintf(szBuf, 2047, "Failure to fetch mq log, path:%s, errno=%d", m_strQueuePath.c_str(), errno);
+        m_strErrMsg = szBuf;
+        m_bValid = false;
+        return false;
+    }
+    //提取目录下的所有binlog文件，并放到map中，利用map的排序，逆序打开文件
+    string strQueue;
+    list<string>::iterator iter=pathfiles.begin();
+    queues.clear();
+    while(iter != pathfiles.end()){
+        if (_isQueueLogFile(*iter, strQueue)){
+            queues.insert(strQueue);
+        }
+        iter++;
+    }
+    return true;
 }
 
 bool CwxMqQueueMgr::_isQueueLogFile(string const& file, string& queue){
-	string strFile;
-	list<string> items;
-	list<string>::iterator iter;
-	CwxCommon::split(file, items, '.');
-	if ((3 != items.size())&&(4 != items.size())) return false;
-	iter = items.begin();
-	if (*iter != "queue") return false;
-	iter++;
-	queue = *iter;
-	if (!isInvalidQueueName(queue.c_str())) return false;
-	iter++;
-	if (*iter != "log") return false;
-	return true;
+    string strFile;
+    list<string> items;
+    list<string>::iterator iter;
+    CwxCommon::split(file, items, '.');
+    if ((3 != items.size())&&(4 != items.size())) return false;
+    iter = items.begin();
+    if (*iter != "queue") return false;
+    iter++;
+    queue = *iter;
+    if (!isInvalidQueueName(queue.c_str())) return false;
+    iter++;
+    if (*iter != "log") return false;
+    return true;
 }
 
 string& CwxMqQueueMgr::_getQueueLogFile(string const& queue, string& strFile){
-	strFile = "queue.";
-	strFile += queue;
-	strFile += ".log";
-	return strFile;
+    strFile = "queue.";
+    strFile += queue;
+    strFile += ".log";
+    return strFile;
 }

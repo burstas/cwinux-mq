@@ -2,8 +2,8 @@
 #define __CWX_MQ_QUEUE_MGR_H__
 /*
 版权声明：
-    本软件遵循GNU GPL V3（http://www.gnu.org/licenses/gpl.html），
-    联系方式：email:cwinux@gmail.com；微博:http://t.sina.com.cn/cwinux
+本软件遵循GNU GPL V3（http://www.gnu.org/licenses/gpl.html），
+联系方式：email:cwinux@gmail.com；微博:http://t.sina.com.cn/cwinux
 */
 /**
 @file CwxMqMgr.h
@@ -86,12 +86,12 @@ private:
 class CwxMqQueueMgr{
 public:
     enum{
-        MQ_SWITCH_LOG_NUM = 100000,
-        MQ_MAX_SWITCH_LOG_INTERNAL = 600
+        MQ_SWITCH_LOG_NUM = 100000
     };
 public:
-    CwxMqQueueMgr(string const& strQueueLogFilePath,
-        CWX_UINT32 uiMaxFsyncNum);
+    CwxMqQueueMgr(string const& strQueuePath,
+        CWX_UINT32 uiFlushNum,
+        CWX_UINT32 uiFlushSecond);
     ~CwxMqQueueMgr();
 public:
     //0:成功；-1：失败
@@ -117,6 +117,7 @@ public:
 
     ///强行flush mq的log文件
     void commit();
+    ///添加队列
     int addQueue(string const& strQueue,
         CWX_UINT64 ullSid,
         string const& strUser,
@@ -158,34 +159,35 @@ public:
         return m_strErrMsg;
     }
     inline static bool isInvalidQueueName(char const* queue){
-		if (!queue) return false;
-		CWX_UINT32 uiLen = strlen(queue);
-		if (!uiLen) return false;
-		for (CWX_UINT32 i=0; i<uiLen; i++)
-		{
-			if (queue[i]>='a' && queue[i]<='z') continue;
-			if (queue[i]>='A' && queue[i]<='Z') continue;
-			if (queue[i]>='0' && queue[i]<='9') continue;
-			if (queue[i]=='-' || queue[i]=='_') continue;
-			return false;
-		}
-		return true;
-	}
+        if (!queue) return false;
+        CWX_UINT32 uiLen = strlen(queue);
+        if (!uiLen) return false;
+        for (CWX_UINT32 i=0; i<uiLen; i++)
+        {
+            if (queue[i]>='a' && queue[i]<='z') continue;
+            if (queue[i]>='A' && queue[i]<='Z') continue;
+            if (queue[i]>='0' && queue[i]<='9') continue;
+            if (queue[i]=='-' || queue[i]=='_') continue;
+            return false;
+        }
+        return true;
+    }
 
 private:
     ///保存数据
     bool _save(CwxMqQueue* queue, CwxSidLogFile* logFile);
-	bool _fetchLogFile(set<string/*queue name*/> & queues);
-	bool _isQueueLogFile(string const& file, string& queue);
-	string& _getQueueLogFile(string const& queue, string& strFile);
+    bool _fetchLogFile(set<string/*queue name*/> & queues);
+    bool _isQueueLogFile(string const& file, string& queue);
+    string& _getQueueLogFile(string const& queue, string& strFile);
 private:
-    map<string, pair<CwxMqQueue*, CwxSidLogFile*> >   m_queues; ///<队列
-    CwxRwLock                  m_lock; ///<读写所
-    string                     m_strQueueLogFilePath; ///<queue log文件的路径
-    CWX_UINT32                 m_uiMaxFsyncNum; ///<flush硬盘的次数间隔
-    CwxBinLogMgr*              m_binLog; ///<binlog driver
-    string                     m_strErrMsg; ///<无效时的错误消息
-	bool					    m_bValid; ///<是否有效
+    map<string, pair<CwxMqQueue*, CwxSidLogFile*> > m_queues; ///<队列
+    CwxRwLock                                    m_lock; ///<读写所
+    string                                       m_strQueuePath; ///<queue log文件的路径
+    CWX_UINT32                                   m_uiFlushNum; ///<flush硬盘的次数间隔
+    CWX_UINT32                                   m_uiFlushSecond; ///<flush硬盘的时间间隔
+    CwxBinLogMgr*                                m_binLog; ///<binlog driver
+    string                                       m_strErrMsg; ///<无效时的错误消息
+    bool					                       m_bValid; ///<是否有效
 };
 
 
