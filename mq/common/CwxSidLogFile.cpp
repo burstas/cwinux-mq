@@ -181,7 +181,7 @@ int CwxSidLogFile::log(CWX_UINT64 sid){
         }
         m_uiCurLogCount++;
         m_uiTotalLogCount++;
-        if (m_uiCurLogCount >= m_uiFlushRecord) syncFile()
+        if (m_uiCurLogCount >= m_uiFlushRecord) syncFile();
         return m_uiTotalLogCount;
     }
     return -1;
