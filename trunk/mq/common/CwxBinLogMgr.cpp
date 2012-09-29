@@ -1492,6 +1492,14 @@ int CwxBinLogMgr::_append(CWX_UINT64 ullSid,
     return -1;
 
 }
+// 时间commit检查；
+void CwxBinLogMgr::timeout(CWX_UINT32 uiNow){
+    if ((m_uiUnFlushBinlog > m_uiFlushBinLogNum) ||
+        (m_ttLastFlushBinlogTime + m_uiFlushBinLogTime <= uiNow))
+    {
+        commit(false, NULL);
+    }
+}
 
 //-1：失败；0：成功。
 int CwxBinLogMgr::commit(bool bAlL, char* szErr2K){

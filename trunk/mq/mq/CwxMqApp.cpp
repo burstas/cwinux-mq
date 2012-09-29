@@ -3,7 +3,6 @@
 ///构造函数
 CwxMqApp::CwxMqApp(){
     m_bFirstBinLog =  true;
-    m_ttMqLastCommitTime = 0;
     m_uiCurSid = 0;
     m_pBinLogMgr = NULL;
     m_pMasterHandler = NULL;
@@ -406,7 +405,6 @@ int CwxMqApp::startBinLogMgr(){
     }
     //初始化MQ
     if (m_config.getMq().m_mq.getHostName().length()){
-        m_ttMqLastCommitTime = time(NULL);
         //初始化队列管理器
         if (m_queueMgr) delete m_queueMgr;
         m_queueMgr = new CwxMqQueueMgr(m_config.getMq().m_strLogFilePath,
@@ -487,18 +485,6 @@ int CwxMqApp::startNetwork(){
     }
     return 0;
 }
-
-int CwxMqApp::commit_mq(){
-    if (getMqLastCommitTime() + m_config.getMq().m_uiFlushSecond < (CWX_UINT32)time(NULL))
-    {
-        CWX_INFO(("Begin flush mq queue log file......."));
-        getQueueMgr()->commit();
-        setMqLastCommitTime(time(NULL));
-        CWX_INFO(("End flush mq queue log file......."));
-    }
-    return 0;
-}
-
 
 int CwxMqApp::monitorStats(char const* buf,
                            CWX_UINT32 uiDataLen,
@@ -749,7 +735,7 @@ int CwxMqApp::dealMqFetchThreadQueueMsg(CwxMsgQueue* queue,
             }else{
                 CWX_ASSERT(block->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
                 CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_FETCH);
-                app->commit_mq();
+                app->getQueueMgr()->timeout(app->getCurTime());
             }
         } while(0);
         CwxMsgBlockAlloc::free(block);

@@ -610,6 +610,8 @@ public:
     @return -1：失败；0：成功。
     */
     int commit(bool bAll= false, char* szErr2K=NULL);
+    // 时间commit检查；
+    void timeout(CWX_UINT32 uiNow);
     ///清空binlog管理器
     void clear();
     ///清空数据

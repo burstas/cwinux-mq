@@ -75,7 +75,15 @@ void CwxMqBinAsyncHandler::doEvent(CwxMqApp* app, CwxMqTss* tss, CwxMsgBlock*& m
         pHandler->m_tss = (CwxMqTss*)CwxTss::instance();
         CWX_INFO(("Accept sync connection from %s:%u",  pHandler->m_strPeerHost.c_str(), pHandler->m_unPeerPort));
     }else{
-        CWX_ERROR(("Unkwown event type:%d", msg->event().getEvent()));
+        CWX_ASSERT(block->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
+        CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_ASYNC);
+        //日志超时检查
+        map<CWX_UINT64, CwxMqBinAsyncHandlerSession* >::iterator iter = m_sessionMap.begin();
+        while(iter != m_sessionMap.end()){
+            if (iter->second->m_sourceFile)
+                iter->second->m_sourceFile->timeout(app->getCurTime());
+            ++iter;
+        }
     }
 }
 
