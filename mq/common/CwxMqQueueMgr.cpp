@@ -257,7 +257,7 @@ int CwxMqQueueMgr::init(CwxBinLogMgr* binLog){
             }
             mq_pair.first = mq;
             mq_pair.second = mqLogFile;
-            m_queues[queue.m_strName] = mq_pair;
+            m_queues[mqLogFile->getName()] = mq_pair;
             iter++;
         }
     }
@@ -313,7 +313,7 @@ int CwxMqQueueMgr::endSendMsg(string const& strQueue,
             return -1;
         }
         if (num >= MQ_SWITCH_LOG_NUM){
-            if (0 != iter->second->second->save()){
+            if (0 != iter->second.second->save()){
                 if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
                 return -1;
             }
@@ -442,7 +442,7 @@ void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues){
     while(iter != m_queues.end()){
         info.m_strName = iter->second.first->getName();
         info.m_strUser = iter->second.first->getUserName();
-        info.m_ullCursorSid = iter->second.first->getCursorSid();
+        info.m_ullCursorSid = iter->second.first->getCurSid();
         info.m_ullLeftNum = iter->second.first->getMqNum();
         queues.push_back(info);
         iter++;
