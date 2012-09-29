@@ -160,7 +160,6 @@ static int output(CwxPackageReader& reader,
                   CWX_UINT32 uiMsgLen)
 {
     CWX_UINT64 ullSid=0;
-    CWX_UINT32 group = 0;
     CWX_UINT32 timestamp = 0;
     CwxKeyValueItem const* item=NULL;
     char szErr2K[2048];
@@ -171,16 +170,14 @@ static int output(CwxPackageReader& reader,
         ullSid,
         timestamp,
         item,
-        group,
         szErr2K))
     {
         printf("failure to unpack recieve msg, err=%s\n", szErr2K);
         return -1;
     }
-    printf("%s|%u|%u|%s\n",
+    printf("%s|%u|%s\n",
         CwxCommon::toString(ullSid, szErr2K, 10),
         timestamp,
-        group,
         item->m_szData);
     return 0;
 }
