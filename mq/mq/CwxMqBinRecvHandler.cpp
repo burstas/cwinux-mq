@@ -80,9 +80,9 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
                 CWX_DEBUG(("Failure to parse the recieve msg, err=%s", pTss->m_szBuf2K));
                 break;
             }
-            if (!bAuth && m_pApp->getConfig().getMaster().m_recv.getUser().length()){
-                if ((m_pApp->getConfig().getMaster().m_recv.getUser() != user) ||
-                    (m_pApp->getConfig().getMaster().m_recv.getPasswd() != passwd))
+            if (!bAuth && m_pApp->getConfig().getRecv().m_recv.getUser().length()){
+                if ((m_pApp->getConfig().getRecv().m_recv.getUser() != user) ||
+                    (m_pApp->getConfig().getRecv().m_recv.getPasswd() != passwd))
                 {
                     CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Failure to auth user[%s] passwd[%s]", user, passwd);
                     CWX_DEBUG((pTss->m_szBuf2K));
@@ -149,6 +149,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
 
 ///对于同步dispatch，需要检查同步的超时
 int CwxMqBinRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* pThrEnv){
+    m_pApp->getBinLogMgr()->timeout(m_pApp->getCurTime());
     return 1;
 }
 
