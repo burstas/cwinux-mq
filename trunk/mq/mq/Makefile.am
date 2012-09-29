@@ -18,7 +18,7 @@ cwx_mq_SOURCES = CwxMqApp.cpp\
 		../common/CwxMqDef.cpp\
                 ../common/CwxMqPoco.cpp\
 		../common/CwxMqQueueMgr.cpp\
-		../common/CwxMqQueueLogFile.cpp\
+		../common/CwxSidLogFile.cpp\
 		../common/CwxMqTss.cpp\
                 ../common/CwxBinLogMgr.cpp\
                 ../common/CwxSysLogFile.cpp\
