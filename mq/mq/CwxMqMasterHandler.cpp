@@ -21,12 +21,12 @@ int CwxMqMasterHandler::createSession(CwxMqTss* pTss){
     if (m_syncSession) closeSession();
     ///重建所有连接
     CwxINetAddr addr;
-    if (0 != addr.set(m_pApp->getConfig().getSlave().m_master.getPort(),
-        m_pApp->getConfig().getSlave().m_master.getHostName().c_str()))
+    if (0 != addr.set(m_pApp->getConfig().getMaster().m_master.getPort(),
+        m_pApp->getConfig().getMaster().m_master.getHostName().c_str()))
     {
         CWX_ERROR(("Failure to init addr, addr:%s, port:%u, err=%d",
-            m_pApp->getConfig().getSlave().m_master.getHostName().c_str(),
-            m_pApp->getConfig().getSlave().m_master.getPort(),
+            m_pApp->getConfig().getMaster().m_master.getHostName().c_str(),
+            m_pApp->getConfig().getMaster().m_master.getPort(),
             errno));
         return -1;
     }
@@ -46,8 +46,8 @@ int CwxMqMasterHandler::createSession(CwxMqTss* pTss){
         true))
     {
         CWX_ERROR(("Failure to connect to addr:%s, port:%u, err=%d",
-            m_pApp->getConfig().getSlave().m_master.getHostName().c_str(),
-            m_pApp->getConfig().getSlave().m_master.getPort(),
+            m_pApp->getConfig().getMaster().m_master.getHostName().c_str(),
+            m_pApp->getConfig().getMaster().m_master.getPort(),
             errno)); 
         return -1;
     }
@@ -83,10 +83,10 @@ int CwxMqMasterHandler::createSession(CwxMqTss* pTss){
         false,
         m_pApp->getConfig().getCommon().m_uiChunkSize,
         NULL,
-        m_pApp->getConfig().getSlave().m_master.getUser().c_str(),
-        m_pApp->getConfig().getSlave().m_master.getPasswd().c_str(),
-        m_pApp->getConfig().getSlave().m_strSign.c_str(),
-        m_pApp->getConfig().getSlave().m_bzip,
+        m_pApp->getConfig().getMaster().m_master.getUser().c_str(),
+        m_pApp->getConfig().getMaster().m_master.getPasswd().c_str(),
+        m_pApp->getConfig().getMaster().m_strSign.c_str(),
+        m_pApp->getConfig().getMaster().m_bzip,
         pTss->m_szBuf2K);
     if (ret != CWX_MQ_ERR_SUCCESS){///数据包创建失败
         CWX_ERROR(("Failure to create report package, err:%s", pTss->m_szBuf2K));
@@ -401,15 +401,15 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
     }
     //检测签名
     int bSign = 0;
-    if (m_pApp->getConfig().getSlave().m_strSign.length()){
-        CwxKeyValueItem const* pItem = m_reader.getKey(m_pApp->getConfig().getSlave().m_strSign.c_str());
+    if (m_pApp->getConfig().getMaster().m_strSign.length()){
+        CwxKeyValueItem const* pItem = m_reader.getKey(m_pApp->getConfig().getMaster().m_strSign.c_str());
         if (pItem){//存在签名key
             if (!checkSign(m_reader.getMsg(),
                 pItem->m_szKey - CwxPackage::getKeyOffset() - m_reader.getMsg(),
                 pItem->m_szData,
-                m_pApp->getConfig().getSlave().m_strSign.c_str()))
+                m_pApp->getConfig().getMaster().m_strSign.c_str()))
             {
-                CWX_ERROR(("Failure to check %s sign", m_pApp->getConfig().getSlave().m_strSign.c_str()));
+                CWX_ERROR(("Failure to check %s sign", m_pApp->getConfig().getMaster().m_strSign.c_str()));
                 return -1;
             }
             bSign = 1;

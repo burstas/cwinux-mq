@@ -456,8 +456,8 @@ int CwxMqApp::startNetwork(){
             this))
         {
             CWX_ERROR(("Can't register the async-dispatch tcp accept listen: addr=%s, port=%d",
-                m_config.getSlave().m_async.getHostName().c_str(),
-                m_config.getSlave().m_async.getPort()));
+                m_config.getDispatch().m_async.getHostName().c_str(),
+                m_config.getDispatch().m_async.getPort()));
             return -1;
         }
     }
