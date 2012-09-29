@@ -77,8 +77,6 @@ public:
         uiLastTime = uiNow;
         return false;
     }
-    ///-1:失败；0：成功
-    int commit_mq();
     ///是否是第一条binlog
     inline bool isFirstBinLog() const{
         return m_bFirstBinLog;
@@ -86,14 +84,6 @@ public:
     ///设置为收到的第一条binlog
     inline void clearFirstBinLog(){
         m_bFirstBinLog = false;
-    }
-    ///获取MQ上次commit的时间
-    inline CWX_UINT32 getMqLastCommitTime() const{
-        return m_ttMqLastCommitTime;
-    }
-    ///设置MQ上次commit的时间
-    inline void setMqLastCommitTime(CWX_UINT32 ttTime){
-        m_ttMqLastCommitTime = ttTime;
     }
     ///将当前的SID加1并返回，只有master才形成sid
     inline CWX_UINT64 nextSid(){
@@ -191,7 +181,6 @@ private:
     static int setMqSockAttr(CWX_HANDLE handle, void* arg);
 private:
     bool                        m_bFirstBinLog; ///<服务启动后，收到的第一条binglog
-    CWX_UINT32                  m_ttMqLastCommitTime; ///<消息分发sys文件上次commit的时候
     CWX_UINT64                  m_uiCurSid; ///<当前的sid
     CwxMqConfig                 m_config; ///<配置文件
     CwxBinLogMgr*               m_pBinLogMgr; ///<binlog的管理对象
