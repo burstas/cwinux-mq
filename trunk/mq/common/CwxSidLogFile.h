@@ -92,7 +92,7 @@ public:
     }
     ///获取log的用户口令
     string const& getPasswd() const{
-        m_strPasswd; ///<用户的口令
+        return m_strPasswd; ///<用户的口令
     }
     ///设置用户的口令
     void setPasswd(string const& strPasswd){

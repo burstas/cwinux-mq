@@ -373,8 +373,6 @@ void CwxMqApp::destroy(){
         delete m_pBinLogMgr;
         m_pBinLogMgr = NULL;
     }
-    CwxMqPoco::destory();
-
     CwxAppFramework::destroy();
 }
 
@@ -865,7 +863,7 @@ int CwxMqApp::setSlaveReportSockAttr(CWX_HANDLE handle, void* arg)
         }
     }
 
-    if (app->getConfig().getSlave().m_master.isKeepAlive())
+    if (app->getConfig().getMaster().m_master.isKeepAlive())
     {
         if (0 != CwxSocket::setKeepalive(handle,
             true,
@@ -874,8 +872,8 @@ int CwxMqApp::setSlaveReportSockAttr(CWX_HANDLE handle, void* arg)
             CWX_APP_DEF_KEEPALIVE_COUNT))
         {
             CWX_ERROR(("Failure to set listen addr:%s, port:%u to keep-alive, errno=%d",
-                app->getConfig().getSlave().m_master.getHostName().c_str(),
-                app->getConfig().getSlave().m_master.getPort(),
+                app->getConfig().getMaster().m_master.getHostName().c_str(),
+                app->getConfig().getMaster().m_master.getPort(),
                 errno));
             return -1;
         }
@@ -885,8 +883,8 @@ int CwxMqApp::setSlaveReportSockAttr(CWX_HANDLE handle, void* arg)
     if (setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags)) != 0)
     {
         CWX_ERROR(("Failure to set listen addr:%s, port:%u NODELAY, errno=%d",
-            app->getConfig().getSlave().m_master.getHostName().c_str(),
-            app->getConfig().getSlave().m_master.getPort(),
+            app->getConfig().getMaster().m_master.getHostName().c_str(),
+            app->getConfig().getMaster().m_master.getPort(),
             errno));
         return -1;
     }
@@ -894,8 +892,8 @@ int CwxMqApp::setSlaveReportSockAttr(CWX_HANDLE handle, void* arg)
     if (setsockopt(handle, SOL_SOCKET, SO_LINGER, (void *)&ling, sizeof(ling)) != 0)
     {
         CWX_ERROR(("Failure to set listen addr:%s, port:%u LINGER, errno=%d",
-            app->getConfig().getSlave().m_master.getHostName().c_str(),
-            app->getConfig().getSlave().m_master.getPort(),
+            app->getConfig().getMaster().m_master.getHostName().c_str(),
+            app->getConfig().getMaster().m_master.getPort(),
             errno));
         return -1;
     }
