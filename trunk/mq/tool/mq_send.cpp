@@ -208,7 +208,6 @@ int main(int argc ,char** argv)
             block,
             0,
             item,
-            g_group,
             g_user.c_str(),
             g_passwd.c_str(),
             g_sign.c_str(),
