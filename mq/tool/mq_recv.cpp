@@ -10,7 +10,6 @@ string g_strHost;
 CWX_UINT16 g_unPort = 0;
 string g_user;
 string g_passwd;
-string g_subscribe;
 CWX_UINT64 g_sid = 0;
 CWX_UINT32 g_window = 1;
 CWX_UINT32 g_num = 1;
@@ -23,7 +22,7 @@ unsigned long g_unzip_len = 0;
 ///-1：失败；0：help；1：成功
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:s:w:n:m:S:c:zh");
+	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:w:n:m:S:c:zh");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
@@ -36,7 +35,6 @@ int parseArg(int argc, char**argv)
             printf("-P: mq server dispatch port\n");
             printf("-u: dispatch's user name.\n");
             printf("-p: dispatch's user password.\n");
-            printf("-s: dispatch's subscribe. default is *.\n");
             printf("-w: dispatch's window size, default is 1.\n");
             printf("-n: recieve message's number, default is 1.zero is all from the sid.\n");
             printf("-z: zip compress sign. no compress by default\n");
@@ -76,14 +74,6 @@ int parseArg(int argc, char**argv)
                 return -1;
             }
             g_passwd = cmd_option.opt_arg();
-            break;
-        case 's':
-            if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
-            {
-                printf("-s requires an argument.\n");
-                return -1;
-            }
-            g_subscribe = cmd_option.opt_arg();
             break;
         case 'w':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -161,7 +151,6 @@ int parseArg(int argc, char**argv)
         printf("No port, set by -P\n");
         return -1;
     }
-    if (!g_subscribe.length()) g_subscribe = "*";
     return 1;
 }
 
@@ -252,9 +241,7 @@ int main(int argc ,char** argv)
     CWX_UINT64 ullSeq = 0;
     CWX_UINT64 ullSessionId = 0;
     CWX_UINT32 num = 0;
-    CwxMqPoco::init();
-    do 
-    {
+    do {
         if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packReportData(
             &writer,
             block,
@@ -262,7 +249,6 @@ int main(int argc ,char** argv)
             g_sid>0?g_sid-1:g_sid,
             g_sid==0?true:false,
             g_chunk,
-            g_subscribe.c_str(),
             g_user.c_str(),
             g_passwd.c_str(),
             g_sign.c_str(),
