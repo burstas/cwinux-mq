@@ -228,7 +228,6 @@ int main(int argc ,char** argv)
     } while(0);
 
     if (block) CwxMsgBlockAlloc::free(block);
-    CwxMqPoco::destory();
     stream.close();
     return iRet;
 }

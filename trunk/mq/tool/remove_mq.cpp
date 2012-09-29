@@ -210,7 +210,6 @@ int main(int argc ,char** argv)
             g_passwd.c_str());
     } while(0);
     if (block) CwxMsgBlockAlloc::free(block);
-    CwxMqPoco::destory();
     stream.close();
     return iRet;
 }

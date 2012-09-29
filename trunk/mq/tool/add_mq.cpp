@@ -223,7 +223,6 @@ int main(int argc ,char** argv)
             CwxCommon::toString(g_sid, szErr2K, 10));
     } while(0);
     if (block) CwxMsgBlockAlloc::free(block);
-    CwxMqPoco::destory();
     stream.close();
     return iRet;
 }
