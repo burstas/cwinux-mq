@@ -313,7 +313,7 @@ int CwxMqQueueMgr::endSendMsg(string const& strQueue,
             return -1;
         }
         if (num >= MQ_SWITCH_LOG_NUM){
-            if (!_save(iter->second.first, iter->second.second)){
+            if (0 != iter->second->second->save()){
                 if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
                 return -1;
             }
@@ -362,14 +362,18 @@ int CwxMqQueueMgr::addQueue(string const& strQueue,
         //create mq log file
         string strQueueFile;
         string strQueuePathFile;
-        CwxMqQueueInfo queue;
         strQueuePathFile = m_strQueuePath + _getQueueLogFile(strQueue, strQueueFile);
         CwxSidLogFile::removeFile(strQueuePathFile);
-        CwxSidLogFile* mqLogFile = new CwxSidLogFile(m_uiMaxFsyncNum, strQueuePathFile);
-        queue.m_strName.erase();
-        if (0 != mqLogFile->init(queue)){
+        CwxSidLogFile* mqLogFile = new CwxSidLogFile(m_uiFlushNum,
+            m_uiFlushSecond,
+            strQueuePathFile);
+        if (0 != mqLogFile->create(strQueue,
+            ullSid,
+            strUser,
+            strPasswd))
+        {
             char szBuf[2048];
-            CwxCommon::snprintf(szBuf, 2047, "Failure to init mq queue log-file:%s, err:%s",
+            CwxCommon::snprintf(szBuf, 2047, "Failure to create queue log-file:%s, err:%s",
                 strQueuePathFile.c_str(),
                 mqLogFile->getErrMsg());
             delete mqLogFile;
@@ -377,9 +381,9 @@ int CwxMqQueueMgr::addQueue(string const& strQueue,
             if (szErr2K) strcpy(szErr2K, szBuf);
             return -1;
         }
-        if (!_save(mq, mqLogFile)){
+        if (0 != mqLogFile->save()){
             char szBuf[2048];
-            CwxCommon::snprintf(szBuf, 2047, "Failure to save mq queue log-file:%s, err:%s",
+            CwxCommon::snprintf(szBuf, 2047, "Failure to save queue log-file:%s, err:%s",
                 strQueuePathFile.c_str(),
                 mqLogFile->getErrMsg());
             delete mqLogFile;
@@ -433,21 +437,6 @@ void CwxMqQueueMgr::getQueuesInfo(list<CwxMqQueueInfo>& queues){
         queues.push_back(info);
         iter++;
     }
-}
-
-bool CwxMqQueueMgr::_save(CwxMqQueue* queue, CwxSidLogFile* logFile){
-    CwxMqQueueInfo queueInfo;
-    set<CWX_UINT64> uncommitSets;
-    set<CWX_UINT64> commitSets;
-    queueInfo.m_strName = queue->getName();
-    queueInfo.m_strUser = queue->getUserName();
-    queueInfo.m_strPasswd = queue->getPasswd();
-    queueInfo.m_ullCursorSid = queue->getCurSid();
-    //保存到log中
-    if (0 != logFile->save(queueInfo)){
-        return false;
-    }
-    return true;
 }
 
 bool CwxMqQueueMgr::_fetchLogFile(set<string/*queue name*/> & queues){

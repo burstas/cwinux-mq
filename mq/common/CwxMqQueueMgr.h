@@ -174,8 +174,6 @@ public:
     }
 
 private:
-    ///保存数据
-    bool _save(CwxMqQueue* queue, CwxSidLogFile* logFile);
     bool _fetchLogFile(set<string/*queue name*/> & queues);
     bool _isQueueLogFile(string const& file, string& queue);
     string& _getQueueLogFile(string const& queue, string& strFile);
