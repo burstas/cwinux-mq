@@ -324,13 +324,23 @@ int CwxMqQueueMgr::endSendMsg(string const& strQueue,
     return -1;
 }
 
+// 时间commit检查；
+void CwxMqQueueMgr::timeout(CWX_UINT32 uiNow){
+    if (m_bValid){
+        map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter = m_queues.begin();
+        while(iter != m_queues.end()){
+            iter->second.second->timeout(uiNow);
+            iter++;
+        }
+    }
+}
 
 ///强行flush mq的log文件
 void CwxMqQueueMgr::commit(){
     if (m_bValid){
         map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter = m_queues.begin();
         while(iter != m_queues.end()){
-            iter->second.second->fsync();
+            iter->second.second->syncFile();
             iter++;
         }
     }

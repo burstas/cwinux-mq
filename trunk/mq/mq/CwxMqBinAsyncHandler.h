@@ -35,7 +35,7 @@ public:
     }
     ~CwxMqBinAsyncHandlerSession(){
         if (m_sourceFile){
-            m_sourceFile->fsync();
+            m_sourceFile->syncFile();
             delete m_sourceFile;
         }
     }

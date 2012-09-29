@@ -182,7 +182,7 @@ int CwxSidLogFile::log(CWX_UINT64 sid){
         m_uiCurLogCount++;
         m_uiTotalLogCount++;
         if (m_uiCurLogCount >= m_uiFlushRecord){
-            if (0 != fsync()) return -1;
+            if (0 != syncFile()) return -1;
         }
         return m_uiTotalLogCount;
     }
@@ -190,26 +190,19 @@ int CwxSidLogFile::log(CWX_UINT64 sid){
 }
 
 // 时间commit检查
-int CwxSidLogFile::timeout(CWX_UINT32 uiNow){
+void CwxSidLogFile::timeout(CWX_UINT32 uiNow){
     if ((uiNow < m_uiLastSyncTime) || (m_uiLastSyncTime + m_uiFlushSecond < uiNow)){
-        CWX_UINT32 num = m_uiCurLogCount;
-        if (-1 != fsync()) return num;
+        m_uiLastSyncTime = uiNow;
+        syncFile();
         return -1;
     }
     return 0;
 }
 
-///强行fsync日志文件；0：成功；-1：失败
-int CwxSidLogFile::fsync(){
+///强行fsync日志文件；
+void CwxSidLogFile::syncFile(){
     if (m_uiCurLogCount && m_fd){
-        fflush(m_fd);
-        if (0 != ::fsync(fileno(m_fd))){
-            CwxCommon::snprintf(m_szErr2K, 2047, "Failure to fsync file[%s], errno=%d",
-                m_strFileName.c_str(),
-                errno);
-            closeFile(false);
-            return -1;
-        }
+        ::fsync(fileno(m_fd);
         m_uiCurLogCount = 0;
         m_uiLastSyncTime = time(NULL);
     }
