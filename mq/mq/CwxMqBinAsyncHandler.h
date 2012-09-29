@@ -113,9 +113,7 @@ public:
         );
 
     ///定位到需要的binlog处。返回值：1：发现记录；0：没有发现；-1：错误
-    int syncSeekToBinlog(CwxMqTss* tss, ///<线程tss
-        CWX_UINT32& uiSkipNum ///<最多可以遍历的binlog数量，返回剩余值
-        );
+    int syncSeekToBinlog(CwxMqTss* tss);
 
     ///将binlog定位到report的sid。返回值：1：成功；0：太大；-1：错误
     int syncSeekToReportSid(CwxMqTss* tss);
