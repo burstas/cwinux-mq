@@ -82,12 +82,9 @@ int CwxMqApp::initRunEnv(){
 
     //启动binlog管理器
     if (0 != startBinLogMgr()) return -1;
-    ///初始化协议
-    CwxMqPoco::init(NULL);
-
     if (m_config.getCommon().m_bMaster){
         ///注册数据接收handler
-        if (m_config.getMaster().m_recv.getHostName().length()){
+        if (m_config.getRecv().m_recv.getHostName().length()){
             m_pBinRecvHandler = new CwxMqBinRecvHandler(this);
             getCommander().regHandle(SVR_TYPE_RECV, m_pBinRecvHandler);
         }
