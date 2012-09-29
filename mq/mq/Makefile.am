@@ -21,7 +21,6 @@ cwx_mq_SOURCES = CwxMqApp.cpp\
 		../common/CwxSidLogFile.cpp\
 		../common/CwxMqTss.cpp\
                 ../common/CwxBinLogMgr.cpp\
-                ../common/CwxSysLogFile.cpp\
                 ../common/CwxMqConnector.cpp
 cwx_mq_LDADD=
 cwx_mq_LDFLAGS =-L@cwinux_dir@/lib
