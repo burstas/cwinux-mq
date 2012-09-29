@@ -607,7 +607,6 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
                          CWX_UINT64& ullSid,
                          CWX_UINT32& uiTimeStamp,
                          CwxKeyValueItem const*& data,
-                         CWX_UINT32& group,
                          char* szErr2K)
 {
     return parseSyncData(reader,
@@ -616,7 +615,6 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
         ullSid,
         uiTimeStamp,
         data,
-        group,
         szErr2K);
 }
 

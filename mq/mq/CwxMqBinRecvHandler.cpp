@@ -148,7 +148,7 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv){
 }
 
 ///对于同步dispatch，需要检查同步的超时
-int CwxMqBinRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* pThrEnv){
+int CwxMqBinRecvHandler::onTimeoutCheck(CwxMsgBlock*& , CwxTss* ){
     m_pApp->getBinLogMgr()->timeout(m_pApp->getCurTime());
     return 1;
 }
