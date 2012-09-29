@@ -12,6 +12,8 @@ CwxSidLogFile::CwxSidLogFile(CWX_UINT32 uiFlushRecord,
     m_bLock = false;
     m_uiFlushRecord = uiFlushRecord; ///<flush硬盘的记录间隔
     m_uiFlushSecond = uiFlushSecond; ///<flush硬盘的时间间隔
+    if (!m_uiFlushRecord) m_uiFlushRecord = 1;
+    if (!m_uiFlushSecond) m_uiFlushSecond = 1;
     m_uiCurLogCount = 0; ///<自上次fsync来，log记录的次数
     m_uiTotalLogCount = 0; ///<当前文件log的数量
 	m_uiLastSyncTime = time(NULL);
@@ -165,11 +167,11 @@ int CwxSidLogFile::save(){
 }
 
 ///写commit记录；-1：失败；否则返回已经写入的log数量
-int CwxSidLogFile::log(CWX_UINT64 sid, CWX_UINT32 uiNow){
+int CwxSidLogFile::log(CWX_UINT64 sid){
     if (m_fd){
-        char szBuf[1024];
+        char szBuf[128];
         char szSid[64];
-		size_t len = CwxCommon::snprintf(szBuf, 1023, "sid=%s\n", CwxCommon::toString(sid, szSid, 10));
+		size_t len = CwxCommon::snprintf(szBuf, 127, "sid=%s\n", CwxCommon::toString(sid, szSid, 10));
         if (len != fwrite(szBuf, 1, len, m_fd)){
             closeFile(false);
             CwxCommon::snprintf(m_szErr2K, 2047, "Failure to write log to file[%s], errno=%d",
@@ -179,13 +181,24 @@ int CwxSidLogFile::log(CWX_UINT64 sid, CWX_UINT32 uiNow){
         }
         m_uiCurLogCount++;
         m_uiTotalLogCount++;
-        if (m_uiCurLogCount >= m_uiFsyncInternal){
+        if (m_uiCurLogCount >= m_uiFlushRecord){
             if (0 != fsync()) return -1;
         }
         return m_uiTotalLogCount;
     }
     return -1;
 }
+
+// 时间commit检查
+int CwxSidLogFile::timeout(CWX_UINT32 uiNow){
+    if ((uiNow < m_uiLastSyncTime) || (m_uiLastSyncTime + m_uiFlushSecond < uiNow)){
+        CWX_UINT32 num = m_uiCurLogCount;
+        if (-1 != fsync()) return num;
+        return -1;
+    }
+    return 0;
+}
+
 ///强行fsync日志文件；0：成功；-1：失败
 int CwxSidLogFile::fsync(){
     if (m_uiCurLogCount && m_fd){
@@ -198,6 +211,7 @@ int CwxSidLogFile::fsync(){
             return -1;
         }
         m_uiCurLogCount = 0;
+        m_uiLastSyncTime = time(NULL);
     }
     return 0;
 }
@@ -207,58 +221,36 @@ int CwxSidLogFile::parseLogHead(string const& line){
     pair<string, string> item;
     CwxCommon::split(line, items, '|');
     //get name
-    if (!CwxCommon::findKey(items, CWX_MQ_NAME, item)){
-        CwxCommon::snprintf(m_szErr2K, 2047, "queue has no [%s] key, line:%u", 
-            CWX_MQ_NAME,
-            m_uiLine);
+    if (!CwxCommon::findKey(items, "name", item)){
+        CwxCommon::snprintf(m_szErr2K, 2047, "log file head has no [name] key."); 
         return -1;
     }
-    queue.m_strName = item.second;
+    m_strName = item.second;
     //get sid
-    if (!CwxCommon::findKey(items, CWX_MQ_SID, item)){
-        CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] has no [%s] key, line:%u",
-            queue.m_strName.c_str(),
-            CWX_MQ_SID,
-            m_uiLine);
+    if (!CwxCommon::findKey(items, "sid", item)){
+        CwxCommon::snprintf(m_szErr2K, 2047, "log file head has no [sid] key.");
         return -1;
     }
-    queue.m_ullCursorSid = strtoull(item.second.c_str(), NULL, 10);
+    m_ullMaxSid = strtoull(item.second.c_str(), NULL, 10);
     //get user
-    if (!CwxCommon::findKey(items, CWX_MQ_U, item)){
-        CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] has no [%s] key, line:%u",
-            queue.m_strName.c_str(),
-            CWX_MQ_U,
-            m_uiLine);
+    if (!CwxCommon::findKey(items, "u", item)){
+        CwxCommon::snprintf(m_szErr2K, 2047, "log file head has no [u] key.");
         return -1;
     }
-    queue.m_strUser = item.second;
+    m_strUserName = item.second;
     //get passwd
-    if (!CwxCommon::findKey(items, CWX_MQ_P, item)){
-        CwxCommon::snprintf(m_szErr2K, 2047, "queue[%s] has no [%s] key, line:%u",
-            queue.m_strName.c_str(),
-            CWX_MQ_P,
-            m_uiLine);
+    if (!CwxCommon::findKey(items, "p", item)){
+        CwxCommon::snprintf(m_szErr2K, 2047, "log file head has no [p] key.");
         return -1;
     }
-    queue.m_strPasswd = item.second;
+    m_strPasswd = item.second;
     return 0;
 }
 
 int CwxSidLogFile::parseSid(string const& line, CWX_UINT64& ullSid){
     pair<string, string> item;
-    if (!CwxCommon::keyValue(line, item)){
-		CwxCommon::snprintf(m_szErr2K, 2047, "Not find [%s] key, line:%u", 
-			CWX_MQ_SID,
-			m_uiLine);
-		return -1;
-	}
-	if (item.first != CWX_MQ_SID){
-		CwxCommon::snprintf(m_szErr2K, 2047, "Not find [%s] key, line:%u", 
-			CWX_MQ_SID,
-			m_uiLine);
-		return -1;
-	}
-    //get sid
+    if (!CwxCommon::keyValue(line, item)) return -1;
+	if (item.first != "sid") return -1;
     ullSid = strtoull(item.second.c_str(), NULL, 10);
     return 0;
 }
