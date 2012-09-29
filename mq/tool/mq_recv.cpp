@@ -10,8 +10,8 @@ string g_strHost;
 CWX_UINT16 g_unPort = 0;
 string g_user;
 string g_passwd;
+string g_source;
 CWX_UINT64 g_sid = 0;
-CWX_UINT32 g_window = 1;
 CWX_UINT32 g_num = 1;
 string    g_sign;
 bool      g_zip = false;
@@ -22,7 +22,7 @@ unsigned long g_unzip_len = 0;
 ///-1：失败；0：help；1：成功
 int parseArg(int argc, char**argv)
 {
-	CwxGetOpt cmd_option(argc, argv, "H:P:u:p:w:n:m:S:c:zh");
+    CwxGetOpt cmd_option(argc, argv, "H:P:u:p:w:n:m:s:S:c:zh");
     int option;
     while( (option = cmd_option.next()) != -1)
     {
@@ -35,7 +35,7 @@ int parseArg(int argc, char**argv)
             printf("-P: mq server dispatch port\n");
             printf("-u: dispatch's user name.\n");
             printf("-p: dispatch's user password.\n");
-            printf("-w: dispatch's window size, default is 1.\n");
+            printf("-s: dispatch's source name.\n");
             printf("-n: recieve message's number, default is 1.zero is all from the sid.\n");
             printf("-z: zip compress sign. no compress by default\n");
             printf("-m: signature type, %s or %s. no signature by default\n", CWX_MQ_MD5, CWX_MQ_CRC32);
@@ -75,13 +75,13 @@ int parseArg(int argc, char**argv)
             }
             g_passwd = cmd_option.opt_arg();
             break;
-        case 'w':
+        case 's':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
             {
-                printf("-w requires an argument.\n");
+                printf("-s requires an argument.\n");
                 return -1;
             }
-            g_window = strtoul(cmd_option.opt_arg(),NULL,10);
+            g_source = cmd_option.opt_arg();
             break;
         case 'n':
             if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-'))
@@ -246,6 +246,7 @@ int main(int argc ,char** argv)
             g_sid>0?g_sid-1:g_sid,
             g_sid==0?true:false,
             g_chunk,
+            g_source.length()?g_source.c_str():NULL,
             g_user.c_str(),
             g_passwd.c_str(),
             g_sign.c_str(),
