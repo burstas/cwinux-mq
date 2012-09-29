@@ -400,7 +400,6 @@ CwxMsgBlock* CwxMqBinFetchHandler::packEmptyFetchMsg(CwxMqTss* pTss,
         0,
         0,
         kv,
-        0,
         pTss->m_szBuf2K);
     return pBlock;
 }
