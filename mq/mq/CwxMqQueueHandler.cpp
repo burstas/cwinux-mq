@@ -378,8 +378,8 @@ CwxMsgBlock* CwxMqQueueHandler::packEmptyFetchMsg(CwxMqTss* pTss, int iRet,
     char const* szErrMsg) {
   CwxMsgBlock* pBlock = NULL;
   CwxKeyValueItem kv;
-  iRet = CwxMqPoco::packFetchMqReply(pTss->m_pWriter, pBlock, iRet, szErrMsg, 0,
-      0, kv, pTss->m_szBuf2K);
+  iRet = CwxMqPoco::packFetchMqReply(pTss->m_pWriter, pBlock, iRet, szErrMsg,
+      kv, pTss->m_szBuf2K);
   return pBlock;
 }
 

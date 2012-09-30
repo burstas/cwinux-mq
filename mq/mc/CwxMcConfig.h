@@ -1,10 +1,5 @@
-#ifndef __CWX_MQ_CONFIG_H__
-#define __CWX_MQ_CONFIG_H__
-/*
- 版权声明：
- 本软件遵循GNU GPL V3（http://www.gnu.org/licenses/gpl.html），
- 联系方式：email:cwinux@gmail.com；微博:http://t.sina.com.cn/cwinux
- */
+#ifndef __CWX_MC_CONFIG_H__
+#define __CWX_MC_CONFIG_H__
 
 #include "CwxMqMacro.h"
 #include "CwxGlobalMacro.h"
@@ -19,38 +14,17 @@
 CWINUX_USING_NAMESPACE
 
 ///配置文件的common参数对象
-class CwxMqConfigCmn {
+class CwxMcConfigCmn {
   public:
-    enum {
-      DEF_SOCK_BUF_KB = 64,
-      MIN_SOCK_BUF_KB = 4,
-      MAX_SOCK_BUF_KB = 8 * 1024,
-      DEF_CHUNK_SIZE_KB = 32,
-      MIN_CHUNK_SIZE_KB = 4,
-      MAX_CHUNK_SIZE_KB = CWX_MQ_MAX_CHUNK_KSIZE,
-      DEF_SYNC_CONN_NUM = 10,
-      MIN_SYNC_CONN_NUM = 1,
-      MAX_SYNC_CONN_NUM = 128
-    };
-  public:
-    CwxMqConfigCmn() {
-      m_bMaster = false;
-      m_uiSockBufSize = DEF_SOCK_BUF_KB;
-      m_uiChunkSize = DEF_CHUNK_SIZE_KB;
-      m_uiSyncConnNum = DEF_SYNC_CONN_NUM;
+    CwxMcConfigCmn() {
     }
-    ;
   public:
     string m_strWorkDir; ///<工作目录
-    bool m_bMaster; ///<是否是master dispatch
-    CWX_UINT32 m_uiSockBufSize; ///<分发的socket连接的buf大小
-    CWX_UINT32 m_uiChunkSize; ///<Trunk的大小
-    CWX_UINT32 m_uiSyncConnNum;   ///<同步连接数量
     CwxHostInfo m_monitor; ///<监控监听
 };
 
-///配置文件的binlog参数对象
-class CwxMqConfigBinLog {
+///配置文件的log参数对象
+class CwxMcConfigLog {
   public:
     enum {
       DEF_BINLOG_MSIZE = 1024, ///<缺省的binlog大小
@@ -58,22 +32,51 @@ class CwxMqConfigBinLog {
       MAX_BINLOG_MSIZE = 2048 ///<最大的binlog大小
     };
   public:
-    CwxMqConfigBinLog() {
-      m_uiBinLogMSize = DEF_BINLOG_MSIZE;
-      m_uiMgrFileNum = CwxBinLogMgr::DEF_MANAGE_FILE_NUM;
-      m_bDelOutdayLogFile = false;
+    CwxMcConfigLog() {
+      m_uiLogMSize = DEF_BINLOG_MSIZE;
+      m_uiSwitchSecond = 0;
       m_uiFlushNum = 100;
       m_uiFlushSecond = 30;
     }
   public:
-    string m_strBinlogPath; ///<binlog的目录
-    string m_strBinlogPrex; ///<binlog的文件的前缀
-    CWX_UINT32 m_uiBinLogMSize; ///<binlog文件的最大大小，单位为M
-    CWX_UINT32 m_uiMgrFileNum; ///<管理的binglog的最大文件数
-    bool m_bDelOutdayLogFile; ///<是否删除不管理的消息文件
+    string m_strPath; ///<log的目录
+    CWX_UINT32 m_uiLogMSize; ///<log文件的最大大小，单位为M
+    CWX_UINT32 m_uiSwitchSecond; ///<log文件切换的时间间隔，单位为s
     CWX_UINT32 m_uiFlushNum; ///<接收多少条记录后，flush binlog文件
     CWX_UINT32 m_uiFlushSecond; ///<间隔多少秒，必须flush binlog文件
 };
+
+///配置文件的mq对象
+class CwxMcConfigMq {
+public:
+    CwxMcConfigMq() {
+        m_uiFlushNum = 1;
+        m_uiFlushSecond = 30;
+    }
+public:
+    CwxHostInfo     m_mq; ///<mq的fetch的配置信息
+    CWX_UINT32      m_uiMSize; ///<cache的MSize
+    CWX_UINT32      m_uiTimeout; ///<cache的数据时间
+};
+
+///数据接收的配置
+class CwxMcConfigSync{
+public:
+    CwxMcConfigSync(){
+        m_uiSockBufKByte = 64;
+        m_uiChunkKBye = 64;
+        m_uiConnNum = 8;
+        m_bZip = false;
+    }
+public:
+    string        m_strSource; ///<同步的source名字
+    CWX_UINT32    m_uiSockBufKByte; ///<同步socket的buf大小
+    CWX_UINT32    m_uiChunkKBye; ///<chunk的大小
+    CWX_UINT32    m_uiConnNum; ///<同步的连接数量
+    bool          m_bZip; ///<是否压缩
+    string        m_strSign; ///<签名的类型，为crc32或md5
+};
+
 
 ///分发的参数配置对象
 class CwxMqConfigDispatch {
@@ -111,20 +114,6 @@ class CwxMqConfigMaster {
     string m_strSign; ///<签名类型
 };
 
-///配置文件的mq对象
-class CwxMqConfigMq {
-  public:
-    CwxMqConfigMq() {
-      m_uiFlushNum = 1;
-      m_uiFlushSecond = 30;
-    }
-  public:
-    CwxHostInfo m_mq; ///<mq的fetch的配置信息
-    string m_strLogFilePath; ///<mq的log文件的目录
-    CWX_UINT32 m_uiFlushNum; ///<fetch多少条日志，必须flush获取点
-    CWX_UINT32 m_uiFlushSecond; ///<多少秒必须flush获取点
-
-};
 
 ///配置文件加载对象
 class CwxMqConfig {
