@@ -54,10 +54,8 @@ int CwxSidLogFile::load() {
         errno);
     return -1;
   }
-  if (line.empty())
-    return 0;
-  if (0 != parseLogHead(line))
-    return 0;
+  if (line.empty()) return 0;
+  if (0 != parseLogHead(line)) return 0;
   //read sid
   while ((bRet = CwxFile::readTxtLine(m_fd, line))) {
     if (line.empty())
@@ -80,8 +78,7 @@ int CwxSidLogFile::load() {
 
 ///保存队列信息；0：成功；-1：失败
 int CwxSidLogFile::save() {
-  if (!m_fd)
-    return -1;
+  if (!m_fd) return -1;
   //写新文件
   int fd = ::open(m_strNewFileName.c_str(), O_RDWR | O_CREAT | O_TRUNC,
       S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
@@ -174,9 +171,9 @@ int CwxSidLogFile::log(CWX_UINT64 sid) {
     }
     m_uiCurLogCount++;
     m_uiTotalLogCount++;
-    if (m_uiCurLogCount >= m_uiFlushRecord)
-      syncFile();
-    return m_uiTotalLogCount;
+    if (m_uiCurLogCount >= m_uiFlushRecord) syncFile();
+    if (m_uiTotalLogCount > SWITCH_FILE_LOG_NUM) return save();
+    return 0;
   }
   return -1;
 }

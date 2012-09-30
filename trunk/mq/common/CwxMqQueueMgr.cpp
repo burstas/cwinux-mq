@@ -273,8 +273,7 @@ int CwxMqQueueMgr::getNextBinlog(CwxMqTss* pTss, string const& strQueue,
     }
     return iter->second.first->getNextBinlog(pTss, msg, err_num, szErr2K);
   }
-  if (szErr2K)
-    strcpy(szErr2K, m_strErrMsg.c_str());
+  if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
   return -1;
 }
 
@@ -286,31 +285,20 @@ int CwxMqQueueMgr::endSendMsg(string const& strQueue, CWX_UINT64 ullSid,
     CwxReadLockGuard<CwxRwLock> lock(&m_lock);
     map<string, pair<CwxMqQueue*, CwxSidLogFile*> >::iterator iter =
         m_queues.find(strQueue);
-    if (iter == m_queues.end())
-      return -2;
+    if (iter == m_queues.end()) return -2;
     if (!iter->second.second->isValid()) {
       if (szErr2K)
         strcpy(szErr2K, iter->second.second->getErrMsg());
       return -1;
     }
     iter->second.first->endSendMsg(ullSid, bSend);
-    int num = iter->second.second->log(ullSid);
-    if (-1 == num) {
-      if (szErr2K)
-        strcpy(szErr2K, iter->second.second->getErrMsg());
+    if (-1 == iter->second.second->log(ullSid)){
+      if (szErr2K) strcpy(szErr2K, iter->second.second->getErrMsg());
       return -1;
-    }
-    if (num >= MQ_SWITCH_LOG_NUM) {
-      if (0 != iter->second.second->save()) {
-        if (szErr2K)
-          strcpy(szErr2K, iter->second.second->getErrMsg());
-        return -1;
-      }
     }
     return 0;
   }
-  if (szErr2K)
-    strcpy(szErr2K, m_strErrMsg.c_str());
+  if (szErr2K) strcpy(szErr2K, m_strErrMsg.c_str());
   return -1;
 }
 
