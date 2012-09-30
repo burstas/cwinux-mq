@@ -127,8 +127,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss, CwxMsgBlock*&msg, int& err_num,
         ///形成binlog发送的数据包
         if (CWX_MQ_ERR_SUCCESS
             != CwxMqPoco::packFetchMqReply(pTss->m_pWriter, msg,
-                CWX_MQ_ERR_SUCCESS, "", m_cursor->getHeader().getSid(),
-                m_cursor->getHeader().getDatetime(), *pItem, pTss->m_szBuf2K)) {
+                CWX_MQ_ERR_SUCCESS, "", *pItem, pTss->m_szBuf2K)) {
           ///形成数据包失败
           err_num = CWX_MQ_ERR_ERROR;
           return -1;

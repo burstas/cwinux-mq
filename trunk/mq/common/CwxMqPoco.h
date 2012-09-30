@@ -215,8 +215,6 @@ class CwxMqPoco {
         CwxMsgBlock*& msg,
         int ret,
         char const* szErrMsg,
-        CWX_UINT64 ullSid,
-        CWX_UINT32 uiTimeStamp,
         CwxKeyValueItem const& data,
         char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
@@ -224,8 +222,6 @@ class CwxMqPoco {
         CwxMsgBlock const* msg,
         int& ret,
         char const*& szErrMsg,
-        CWX_UINT64& ullSid,
-        CWX_UINT32& uiTimeStamp,
         CwxKeyValueItem const*& data,
         char* szErr2K = NULL);
 

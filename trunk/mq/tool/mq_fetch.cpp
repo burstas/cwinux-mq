@@ -130,9 +130,7 @@ int main(int argc, char** argv) {
   CwxMsgBlock* block = NULL;
   char szErr2K[2048];
   char const* pErrMsg = NULL;
-  CWX_UINT64 ullSid = 0;
   CWX_UINT32 num = 0;
-  CWX_UINT32 timestamp = 0;
   CwxKeyValueItem const* item = NULL;
   do {
     while (1) {
@@ -162,7 +160,7 @@ int main(int argc, char** argv) {
         num++;
         if (CWX_MQ_ERR_SUCCESS
             != CwxMqPoco::parseFetchMqReply(&reader, block, iRet, pErrMsg,
-                ullSid, timestamp, item, szErr2K)) {
+               item, szErr2K)) {
           printf("failure to unpack recieve msg, err=%s\n", szErr2K);
           iRet = 1;
           break;
@@ -173,8 +171,7 @@ int main(int argc, char** argv) {
           iRet = 1;
           break;
         }
-        printf("%s|%u|%s\n", CwxCommon::toString(ullSid, szErr2K, 10),
-            timestamp, item->m_szData);
+        printf("%s\n",item->m_szData);
         if (g_num) {
           if (num >= g_num) {
             iRet = 0;
