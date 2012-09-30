@@ -119,21 +119,21 @@ class CwxSidLogFile {
       }
     }
   private:
-    string m_strFileName; ///<系统文件名字
-    string m_strOldFileName; ///<旧系统文件名字
-    string m_strNewFileName; ///<新系统文件的名字
-    FILE* m_fd; ///<文件handle
-    bool m_bLock; ///<文件是否已经加锁
-    CWX_UINT32 m_uiFlushRecord; ///<flush硬盘的记录间隔
-    CWX_UINT32 m_uiFlushSecond; ///<flush的时间间隔
-    CWX_UINT32 m_uiCurLogCount; ///<自上次fsync来，log记录的次数
-    CWX_UINT32 m_uiLastSyncTime; ///<上一次sync log文件的时间
-    CWX_UINT32 m_uiTotalLogCount; ///<当前文件log的数量
-    string m_strName; ///<对象的名字
-    CWX_UINT64 m_ullMaxSid; ///<当前最大的sid
-    string m_strUserName; ///<用户的名字
-    string m_strPasswd; ///<用户的口令
-    char m_szErr2K[2048]; ///<错误消息
+    string                m_strFileName; ///<系统文件名字
+    string                m_strOldFileName; ///<旧系统文件名字
+    string                m_strNewFileName; ///<新系统文件的名字
+    FILE*                 m_fd; ///<文件handle
+    bool                  m_bLock; ///<文件是否已经加锁
+    CWX_UINT32            m_uiFlushRecord; ///<flush硬盘的记录间隔
+    CWX_UINT32            m_uiFlushSecond; ///<flush的时间间隔
+    CWX_UINT32            m_uiCurLogCount; ///<自上次fsync来，log记录的次数
+    CWX_UINT32            m_uiLastSyncTime; ///<上一次sync log文件的时间
+    CWX_UINT32            m_uiTotalLogCount; ///<当前文件log的数量
+    string                m_strName; ///<对象的名字
+    CWX_UINT64            m_ullMaxSid; ///<当前最大的sid
+    string                m_strUserName; ///<用户的名字
+    string                m_strPasswd; ///<用户的口令
+    char                  m_szErr2K[2048]; ///<错误消息
 };
 
 #endif 

@@ -35,10 +35,10 @@ class CwxMqFetchConn {
   public:
     void reset();
   public:
-    bool m_bWaiting; ///<是否正在等在发送信息
-    bool m_bBlock; ///<是否为block连接
-    CWX_UINT32 m_uiTaskId; ///<连接的taskid
-    string m_strQueueName; ///<队列的名字
+    bool              m_bWaiting; ///<是否正在等在发送信息
+    bool              m_bBlock; ///<是否为block连接
+    CWX_UINT32        m_uiTaskId; ///<连接的taskid
+    string            m_strQueueName; ///<队列的名字
 };
 
 ///mq queue的信息对象
@@ -67,11 +67,11 @@ class CwxMqQueueInfo {
       return *this;
     }
   public:
-    string m_strName; ///<队列的名字
-    string m_strUser; ///<队列鉴权的用户名
-    string m_strPasswd; ///<队列的用户口令
-    CWX_UINT64 m_ullCursorSid; ///<当前cursor的sid
-    CWX_UINT64 m_ullLeftNum; ///<当前消息
+    string           m_strName; ///<队列的名字
+    string           m_strUser; ///<队列鉴权的用户名
+    string           m_strPasswd; ///<队列的用户口令
+    CWX_UINT64       m_ullCursorSid; ///<当前cursor的sid
+    CWX_UINT64       m_ullLeftNum; ///<当前消息
 };
 
 bool mqParseHostPort(string const& strHostPort, CwxHostInfo& host);

@@ -2,9 +2,14 @@
 #include "CwxZlib.h"
 
 ///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::packRecvData(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-    CWX_UINT32 uiTaskId, CwxKeyValueItem const& data, char const* user,
-    char const* passwd, char const* sign, bool zip, char* szErr2K) {
+int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
+    CwxMsgBlock*& msg,
+    CWX_UINT32 uiTaskId,
+    CwxKeyValueItem const& data,
+    char const* user,
+    char const* passwd,
+    char const* sign,
+    bool zip, char* szErr2K) {
   writer->beginPack();
   if (!writer->addKeyValue(CWX_MQ_D, data.m_szData, data.m_uiDataLen,
       data.m_bKeyValue)) {
@@ -81,17 +86,24 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer, CwxMsgBlock*& msg,
 }
 
 ///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::parseRecvData(CwxPackageReader* reader, CwxMsgBlock const* msg,
-    CwxKeyValueItem const*& data, char const*& user, char const*& passwd,
+int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
+    CwxMsgBlock const* msg,
+    CwxKeyValueItem const*& data,
+    char const*& user,
+    char const*& passwd,
     char* szErr2K) {
   return parseRecvData(reader, msg->rd_ptr(), msg->length(), data, user, passwd,
       szErr2K);
 }
 
 ///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::parseRecvData(CwxPackageReader* reader, char const* msg,
-    CWX_UINT32 msg_len, CwxKeyValueItem const*& data, char const*& user,
-    char const*& passwd, char* szErr2K) {
+int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
+    char const* msg,
+    CWX_UINT32 msg_len,
+    CwxKeyValueItem const*& data,
+    char const*& user,
+    char const*& passwd,
+    char* szErr2K) {
   if (!reader->unpack(msg, msg_len, false, true)) {
     if (szErr2K)
       strcpy(szErr2K, reader->getErrMsg());
@@ -166,8 +178,12 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader, char const* msg,
 }
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::packRecvDataReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-    CWX_UINT32 uiTaskId, int ret, CWX_UINT64 ullSid, char const* szErrMsg,
+int CwxMqPoco::packRecvDataReply(CwxPackageWriter* writer,
+    CwxMsgBlock*& msg,
+    CWX_UINT32 uiTaskId,
+    int ret,
+    CWX_UINT64 ullSid,
+    char const* szErrMsg,
     char* szErr2K) {
   writer->beginPack();
   if (!writer->addKeyValue(CWX_MQ_RET, ret)) {
@@ -207,7 +223,10 @@ int CwxMqPoco::packRecvDataReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseRecvDataReply(CwxPackageReader* reader,
-    CwxMsgBlock const* msg, int& ret, CWX_UINT64& ullSid, char const*& szErrMsg,
+    CwxMsgBlock const* msg,
+    int& ret,
+    CWX_UINT64& ullSid,
+    char const*& szErrMsg,
     char* szErr2K) {
   if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true)) {
     if (szErr2K)
@@ -244,10 +263,18 @@ int CwxMqPoco::parseRecvDataReply(CwxPackageReader* reader,
   return CWX_MQ_ERR_SUCCESS;
 }
 
-int CwxMqPoco::packReportData(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-    CWX_UINT32 uiTaskId, CWX_UINT64 ullSid, bool bNewly, CWX_UINT32 uiChunkSize,
-    char const* source, char const* user, char const* passwd, char const* sign,
-    bool zip, char* szErr2K) {
+int CwxMqPoco::packReportData(CwxPackageWriter* writer,
+    CwxMsgBlock*& msg,
+    CWX_UINT32 uiTaskId,
+    CWX_UINT64 ullSid,
+    bool bNewly,
+    CWX_UINT32 uiChunkSize,
+    char const* source,
+    char const* user,
+    char const* passwd,
+    char const* sign,
+    bool zip,
+    char* szErr2K) {
   writer->beginPack();
   if (!bNewly) {
     if (!writer->addKeyValue(CWX_MQ_SID, ullSid)) {
@@ -309,10 +336,17 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer, CwxMsgBlock*& msg,
 }
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::parseReportData(CwxPackageReader* reader, CwxMsgBlock const* msg,
-    CWX_UINT64& ullSid, bool& bNewly, CWX_UINT32& uiChunkSize,
-    char const*& source, char const*& user, char const*& passwd,
-    char const*& sign, bool& zip, char* szErr2K) {
+int CwxMqPoco::parseReportData(CwxPackageReader* reader,
+    CwxMsgBlock const* msg,
+    CWX_UINT64& ullSid,
+    bool& bNewly,
+    CWX_UINT32& uiChunkSize,
+    char const*& source,
+    char const*& user,
+    char const*& passwd,
+    char const*& sign,
+    bool& zip,
+    char* szErr2K) {
   if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true)) {
     if (szErr2K)
       strcpy(szErr2K, reader->getErrMsg());
@@ -368,8 +402,11 @@ int CwxMqPoco::parseReportData(CwxPackageReader* reader, CwxMsgBlock const* msg,
 }
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::packReportDataReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-    CWX_UINT32 uiTaskId, CWX_UINT64 ullSession, char* szErr2K) {
+int CwxMqPoco::packReportDataReply(CwxPackageWriter* writer,
+    CwxMsgBlock*& msg,
+    CWX_UINT32 uiTaskId,
+    CWX_UINT64 ullSession,
+    char* szErr2K) {
   writer->beginPack();
   if (!writer->addKeyValue(CWX_MQ_SESSION, ullSession)) {
     if (szErr2K)
@@ -395,7 +432,9 @@ int CwxMqPoco::packReportDataReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseReportDataReply(CwxPackageReader* reader,
-    CwxMsgBlock const* msg, CWX_UINT64& ullSession, char* szErr2K) {
+    CwxMsgBlock const* msg,
+    CWX_UINT64& ullSession,
+    char* szErr2K) {
   if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true)) {
     if (szErr2K)
       strcpy(szErr2K, reader->getErrMsg());
@@ -412,8 +451,11 @@ int CwxMqPoco::parseReportDataReply(CwxPackageReader* reader,
 }
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::packReportNewConn(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-    CWX_UINT32 uiTaskId, CWX_UINT64 ullSession, char* szErr2K) {
+int CwxMqPoco::packReportNewConn(CwxPackageWriter* writer,
+    CwxMsgBlock*& msg,
+    CWX_UINT32 uiTaskId,
+    CWX_UINT64 ullSession,
+    char* szErr2K) {
   writer->beginPack();
   if (!writer->addKeyValue(CWX_MQ_SESSION, ullSession)) {
     if (szErr2K)
@@ -439,7 +481,9 @@ int CwxMqPoco::packReportNewConn(CwxPackageWriter* writer, CwxMsgBlock*& msg,
 }
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseReportNewConn(CwxPackageReader* reader,
-    CwxMsgBlock const* msg, CWX_UINT64& ullSession, char* szErr2K) {
+    CwxMsgBlock const* msg,
+    CWX_UINT64& ullSession,
+    char* szErr2K) {
   if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true)) {
     if (szErr2K)
       strcpy(szErr2K, reader->getErrMsg());
@@ -456,9 +500,15 @@ int CwxMqPoco::parseReportNewConn(CwxPackageReader* reader,
 }
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::packSyncData(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-    CWX_UINT32 uiTaskId, CWX_UINT64 ullSid, CWX_UINT32 uiTimeStamp,
-    CwxKeyValueItem const& data, char const* sign, bool zip, CWX_UINT64 ullSeq,
+int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
+    CwxMsgBlock*& msg,
+    CWX_UINT32 uiTaskId,
+    CWX_UINT64 ullSid,
+    CWX_UINT32 uiTimeStamp,
+    CwxKeyValueItem const& data,
+    char const* sign,
+    bool zip,
+    CWX_UINT64 ullSeq,
     char* szErr2K) {
   writer->beginPack();
   int ret = packSyncDataItem(writer, ullSid, uiTimeStamp, data, sign, szErr2K);
@@ -508,8 +558,11 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer, CwxMsgBlock*& msg,
   return CWX_MQ_ERR_SUCCESS;
 }
 
-int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer, CWX_UINT64 ullSid,
-    CWX_UINT32 uiTimeStamp, CwxKeyValueItem const& data, char const* sign,
+int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
+    CWX_UINT64 ullSid,
+    CWX_UINT32 uiTimeStamp,
+    CwxKeyValueItem const& data,
+    char const* sign,
     char* szErr2K) {
   writer->beginPack();
   if (!writer->addKeyValue(CWX_MQ_SID, ullSid)) {
@@ -554,8 +607,12 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer, CWX_UINT64 ullSid,
   return CWX_MQ_ERR_SUCCESS;
 }
 
-int CwxMqPoco::packMultiSyncData(CWX_UINT32 uiTaskId, char const* szData,
-    CWX_UINT32 uiDataLen, CwxMsgBlock*& msg, CWX_UINT64 ullSeq, bool zip,
+int CwxMqPoco::packMultiSyncData(CWX_UINT32 uiTaskId,
+    char const* szData,
+    CWX_UINT32 uiDataLen,
+    CwxMsgBlock*& msg,
+    CWX_UINT64 ullSeq,
+    bool zip,
     char* szErr2K) {
   CwxMsgHead head(0, 0, MSG_TYPE_SYNC_DATA_CHUNK, uiTaskId,
       uiDataLen + sizeof(ullSeq));
@@ -594,17 +651,24 @@ int CwxMqPoco::packMultiSyncData(CWX_UINT32 uiTaskId, char const* szData,
 
 }
 
-int CwxMqPoco::parseSyncData(CwxPackageReader* reader, CwxMsgBlock const* msg,
-    CWX_UINT64& ullSid, CWX_UINT32& uiTimeStamp, CwxKeyValueItem const*& data,
+int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
+    CwxMsgBlock const* msg,
+    CWX_UINT64& ullSid,
+    CWX_UINT32& uiTimeStamp,
+    CwxKeyValueItem const*& data,
     char* szErr2K) {
   return parseSyncData(reader, msg->rd_ptr(), msg->length(), ullSid,
       uiTimeStamp, data, szErr2K);
 }
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::parseSyncData(CwxPackageReader* reader, char const* szData,
-    CWX_UINT32 uiDataLen, CWX_UINT64& ullSid, CWX_UINT32& uiTimeStamp,
-    CwxKeyValueItem const*& data, char* szErr2K) {
+int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
+    char const* szData,
+    CWX_UINT32 uiDataLen,
+    CWX_UINT64& ullSid,
+    CWX_UINT32& uiTimeStamp,
+    CwxKeyValueItem const*& data,
+    char* szErr2K) {
   if (!reader->unpack(szData, uiDataLen, false, true)) {
     if (szErr2K)
       strcpy(szErr2K, reader->getErrMsg());
@@ -672,8 +736,11 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader, char const* szData,
 }
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::packSyncDataReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-    CWX_UINT32 uiTaskId, CWX_UINT16 unMsgType, CWX_UINT64 ullSeq,
+int CwxMqPoco::packSyncDataReply(CwxPackageWriter* writer,
+    CwxMsgBlock*& msg,
+    CWX_UINT32 uiTaskId,
+    CWX_UINT16 unMsgType,
+    CWX_UINT64 ullSeq,
     char* szErr2K) {
   char szBuf[9];
   setSeq(szBuf, ullSeq);
@@ -688,8 +755,10 @@ int CwxMqPoco::packSyncDataReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
   return CWX_MQ_ERR_SUCCESS;
 }
 
-int CwxMqPoco::parseSyncDataReply(CwxPackageReader*, CwxMsgBlock const* msg,
-    CWX_UINT64& ullSeq, char* szErr2K) {
+int CwxMqPoco::parseSyncDataReply(CwxPackageReader*,
+    CwxMsgBlock const* msg,
+    CWX_UINT64& ullSeq,
+    char* szErr2K) {
   if (msg->length() < sizeof(ullSeq)) {
     if (szErr2K)
       CwxCommon::snprintf(szErr2K, 2047,
@@ -701,8 +770,12 @@ int CwxMqPoco::parseSyncDataReply(CwxPackageReader*, CwxMsgBlock const* msg,
 }
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::packFetchMq(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-    bool bBlock, char const* queue_name, char const* user, char const* passwd,
+int CwxMqPoco::packFetchMq(CwxPackageWriter* writer,
+    CwxMsgBlock*& msg,
+    bool bBlock,
+    char const* queue_name,
+    char const* user,
+    char const* passwd,
     char* szErr2K) {
   writer->beginPack();
   if (!writer->addKeyValue(CWX_MQ_B, bBlock)) {
@@ -744,9 +817,13 @@ int CwxMqPoco::packFetchMq(CwxPackageWriter* writer, CwxMsgBlock*& msg,
 }
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::parseFetchMq(CwxPackageReader* reader, CwxMsgBlock const* msg,
-    bool& bBlock, char const*& queue_name, char const*& user,
-    char const*& passwd, char* szErr2K) {
+int CwxMqPoco::parseFetchMq(CwxPackageReader* reader,
+    CwxMsgBlock const* msg,
+    bool& bBlock,
+    char const*& queue_name,
+    char const*& user,
+    char const*& passwd,
+    char* szErr2K) {
   if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true)) {
     if (szErr2K)
       strcpy(szErr2K, reader->getErrMsg());
@@ -781,9 +858,14 @@ int CwxMqPoco::parseFetchMq(CwxPackageReader* reader, CwxMsgBlock const* msg,
   return CWX_MQ_ERR_SUCCESS;
 }
 
-int CwxMqPoco::packFetchMqReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-    int ret, char const* szErrMsg, CWX_UINT64 ullSid, CWX_UINT32 uiTimeStamp,
-    CwxKeyValueItem const& data, char* szErr2K) {
+int CwxMqPoco::packFetchMqReply(CwxPackageWriter* writer,
+    CwxMsgBlock*& msg,
+    int ret,
+    char const* szErrMsg,
+    CWX_UINT64 ullSid,
+    CWX_UINT32 uiTimeStamp,
+    CwxKeyValueItem const& data,
+    char* szErr2K) {
   writer->beginPack();
   if (!writer->addKeyValue(CWX_MQ_RET, ret)) {
     if (szErr2K)
@@ -832,8 +914,13 @@ int CwxMqPoco::packFetchMqReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
 }
 
 int CwxMqPoco::parseFetchMqReply(CwxPackageReader* reader,
-    CwxMsgBlock const* msg, int& ret, char const*& szErrMsg, CWX_UINT64& ullSid,
-    CWX_UINT32& uiTimeStamp, CwxKeyValueItem const*& data, char* szErr2K) {
+    CwxMsgBlock const* msg,
+    int& ret,
+    char const*& szErrMsg,
+    CWX_UINT64& ullSid,
+    CWX_UINT32& uiTimeStamp,
+    CwxKeyValueItem const*& data,
+    char* szErr2K) {
   if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true)) {
     if (szErr2K)
       strcpy(szErr2K, reader->getErrMsg());
@@ -883,8 +970,12 @@ int CwxMqPoco::parseFetchMqReply(CwxPackageReader* reader,
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseCreateQueue(CwxPackageReader* reader,
-    CwxMsgBlock const* msg, char const*& name, char const*& user,
-    char const*& passwd, char const*& auth_user, char const*& auth_passwd,
+    CwxMsgBlock const* msg,
+    char const*& name,
+    char const*& user,
+    char const*& passwd,
+    char const*& auth_user,
+    char const*& auth_passwd,
     CWX_UINT64& ullSid, ///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
     char* szErr2K) {
   if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true)) {
@@ -936,9 +1027,14 @@ int CwxMqPoco::parseCreateQueue(CwxPackageReader* reader,
   return CWX_MQ_ERR_SUCCESS;
 }
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::packCreateQueue(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-    char const* name, char const* user, char const* passwd,
-    char const* auth_user, char const* auth_passwd, CWX_UINT64 ullSid, ///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
+int CwxMqPoco::packCreateQueue(CwxPackageWriter* writer,
+    CwxMsgBlock*& msg,
+    char const* name,
+    char const* user,
+    char const* passwd,
+    char const* auth_user,
+    char const* auth_passwd,
+    CWX_UINT64 ullSid, ///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
     char* szErr2K) {
   writer->beginPack();
   if (!name) {
@@ -997,7 +1093,10 @@ int CwxMqPoco::packCreateQueue(CwxPackageWriter* writer, CwxMsgBlock*& msg,
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseCreateQueueReply(CwxPackageReader* reader,
-    CwxMsgBlock const* msg, int& ret, char const*& szErrMsg, char* szErr2K) {
+    CwxMsgBlock const* msg,
+    int& ret,
+    char const*& szErrMsg,
+    char* szErr2K) {
   if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true)) {
     if (szErr2K)
       strcpy(szErr2K, reader->getErrMsg());
@@ -1027,8 +1126,11 @@ int CwxMqPoco::parseCreateQueueReply(CwxPackageReader* reader,
 }
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::packCreateQueueReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-    int ret, char const* szErrMsg, char* szErr2K) {
+int CwxMqPoco::packCreateQueueReply(CwxPackageWriter* writer,
+    CwxMsgBlock*& msg,
+    int ret,
+    char const* szErrMsg,
+    char* szErr2K) {
   writer->beginPack();
   if (!writer->addKeyValue(CWX_MQ_RET, ret)) {
     if (szErr2K)
@@ -1062,9 +1164,14 @@ int CwxMqPoco::packCreateQueueReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
 }
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::parseDelQueue(CwxPackageReader* reader, CwxMsgBlock const* msg,
-    char const*& name, char const*& user, char const*& passwd,
-    char const*& auth_user, char const*& auth_passwd, char* szErr2K) {
+int CwxMqPoco::parseDelQueue(CwxPackageReader* reader,
+    CwxMsgBlock const* msg,
+    char const*& name,
+    char const*& user,
+    char const*& passwd,
+    char const*& auth_user,
+    char const*& auth_passwd,
+    char* szErr2K) {
   if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true)) {
     if (szErr2K)
       strcpy(szErr2K, reader->getErrMsg());
@@ -1111,9 +1218,14 @@ int CwxMqPoco::parseDelQueue(CwxPackageReader* reader, CwxMsgBlock const* msg,
   return CWX_MQ_ERR_SUCCESS;
 }
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::packDelQueue(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-    char const* name, char const* user, char const* passwd,
-    char const* auth_user, char const* auth_passwd, char* szErr2K) {
+int CwxMqPoco::packDelQueue(CwxPackageWriter* writer,
+    CwxMsgBlock*& msg,
+    char const* name,
+    char const* user,
+    char const* passwd,
+    char const* auth_user,
+    char const* auth_passwd,
+    char* szErr2K) {
   writer->beginPack();
   if (!name) {
     if (szErr2K)
@@ -1166,7 +1278,10 @@ int CwxMqPoco::packDelQueue(CwxPackageWriter* writer, CwxMsgBlock*& msg,
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
 int CwxMqPoco::parseDelQueueReply(CwxPackageReader* reader,
-    CwxMsgBlock const* msg, int& ret, char const*& szErrMsg, char* szErr2K) {
+    CwxMsgBlock const* msg,
+    int& ret,
+    char const*& szErrMsg,
+    char* szErr2K) {
   if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true)) {
     if (szErr2K)
       strcpy(szErr2K, reader->getErrMsg());
@@ -1195,8 +1310,11 @@ int CwxMqPoco::parseDelQueueReply(CwxPackageReader* reader,
   return CWX_MQ_ERR_SUCCESS;
 }
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::packDelQueueReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-    int ret, char const* szErrMsg, char* szErr2K) {
+int CwxMqPoco::packDelQueueReply(CwxPackageWriter* writer,
+    CwxMsgBlock*& msg,
+    int ret,
+    char const* szErrMsg,
+    char* szErr2K) {
   writer->beginPack();
   if (!writer->addKeyValue(CWX_MQ_RET, ret)) {
     if (szErr2K)
@@ -1230,8 +1348,12 @@ int CwxMqPoco::packDelQueueReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
 }
 
 ///返回值：UNISTOR_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::packSyncErr(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-    CWX_UINT32 uiTaskId, int ret, char const* szErrMsg, char* szErr2K) {
+int CwxMqPoco::packSyncErr(CwxPackageWriter* writer,
+    CwxMsgBlock*& msg,
+    CWX_UINT32 uiTaskId,
+    int ret,
+    char const* szErrMsg,
+    char* szErr2K) {
   writer->beginPack();
   if (!writer->addKeyValue(CWX_MQ_RET, strlen(CWX_MQ_RET), ret)) {
     if (szErr2K)
@@ -1261,8 +1383,11 @@ int CwxMqPoco::packSyncErr(CwxPackageWriter* writer, CwxMsgBlock*& msg,
 
 }
 ///返回值：UNISTOR_ERR_SUCCESS：成功；其他都是失败
-int CwxMqPoco::parseSyncErr(CwxPackageReader* reader, CwxMsgBlock const* msg,
-    int& ret, char const*& szErrMsg, char* szErr2K) {
+int CwxMqPoco::parseSyncErr(CwxPackageReader* reader,
+    CwxMsgBlock const* msg,
+    int& ret,
+    char const*& szErrMsg,
+    char* szErr2K) {
   if (!reader->unpack(msg->rd_ptr(), msg->length(), false, true)) {
     if (szErr2K)
       strcpy(szErr2K, reader->getErrMsg());

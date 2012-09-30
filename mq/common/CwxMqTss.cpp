@@ -2,14 +2,10 @@
 
 ///构造函数
 CwxMqTss::~CwxMqTss() {
-  if (m_pReader)
-    delete m_pReader;
-  if (m_pWriter)
-    delete m_pWriter;
-  if (m_pItemWriter)
-    delete m_pItemWriter;
-  if (m_szDataBuf)
-    delete[] m_szDataBuf;
+  if (m_pReader) delete m_pReader;
+  if (m_pWriter) delete m_pWriter;
+  if (m_pItemWriter) delete m_pItemWriter;
+  if (m_szDataBuf) delete[] m_szDataBuf;
 }
 
 int CwxMqTss::init() {
