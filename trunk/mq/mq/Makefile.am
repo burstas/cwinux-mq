@@ -9,11 +9,11 @@ BUILD_DATE=$(shell date +%F)
 bin_PROGRAMS = cwx_mq
 cwx_mq_CPPFLAGS = -D_BUILD_DATE="$(BUILD_DATE)" -W -Wall  -Wno-deprecated
 cwx_mq_SOURCES = CwxMqApp.cpp\
-		CwxMqBinFetchHandler.cpp\
+		CwxMqQueueHandler.cpp\
 		CwxMqConfig.cpp\
 		CwxMqMasterHandler.cpp\
-		CwxMqBinAsyncHandler.cpp\
-		CwxMqBinRecvHandler.cpp\
+		CwxMqDispHandler.cpp\
+		CwxMqRecvHandler.cpp\
 		cwx_mq.cpp\
 		../common/CwxMqDef.cpp\
                 ../common/CwxMqPoco.cpp\
