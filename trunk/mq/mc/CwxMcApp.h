@@ -1,5 +1,5 @@
-#ifndef __CWX_MQ_APP_H__
-#define __CWX_MQ_APP_H__
+#ifndef __CWX_MC_APP_H__
+#define __CWX_MC_APP_H__
 /*
 * 版权声明：
 * 本软件遵循GNU GPL V3（http://www.gnu.org/licenses/gpl.html），
