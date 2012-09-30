@@ -1,4 +1,4 @@
-﻿
+
 /***********************************************************************
                     CwxBinLogHeader  class
 ***********************************************************************/
@@ -8,12 +8,12 @@ inline CwxBinLogHeader::CwxBinLogHeader()
 }
 
 inline CwxBinLogHeader::CwxBinLogHeader(CWX_UINT64 ullSid,
-										CWX_UINT32 uiLogNo,
-                                     CWX_UINT32 uiDatetime,
-                                     CWX_UINT32 uiOffset,
-                                     CWX_UINT32 uiLogLen,
-                                     CWX_UINT32 uiPrevOffset,
-                                     CWX_UINT32 uiGroup):
+    CWX_UINT32 uiLogNo,
+                     CWX_UINT32 uiDatetime,
+                     CWX_UINT32 uiOffset,
+                     CWX_UINT32 uiLogLen,
+                     CWX_UINT32 uiPrevOffset,
+                     CWX_UINT32 uiGroup):
 m_ullSid(ullSid), m_uiLogNo(uiLogNo), m_uiDatetime(uiDatetime), m_uiOffset(uiOffset),
 m_uiLogLen(uiLogLen), m_uiPrevOffset(uiPrevOffset),
 m_uiGroup(uiGroup)
@@ -53,12 +53,12 @@ inline CWX_UINT64 CwxBinLogHeader::getSid() const
 ///设置记录号
 inline void CwxBinLogHeader::setLogNo(CWX_UINT32 uiLogNo)
 {
-	m_uiLogNo = uiLogNo;
+  m_uiLogNo = uiLogNo;
 }
 ///获取记录号
 inline CWX_UINT32 CwxBinLogHeader::getLogNo() const
 {
-	return m_uiLogNo;
+  return m_uiLogNo;
 }
 
 inline void CwxBinLogHeader::setDatetime(CWX_UINT32 uiDatetime)
@@ -124,8 +124,8 @@ inline CWX_UINT32 CwxBinLogHeader::serialize(char* szBuf) const
     byte4 = CWX_HTONL(byte4); memcpy(szBuf+pos, &byte4, 4); pos+=4;
     byte4 = (CWX_UINT32)(m_ullSid&0xFFFFFFFF);
     byte4 = CWX_HTONL(byte4); memcpy(szBuf+pos, &byte4, 4); pos+=4;
-	//logno
-	byte4 = CWX_HTONL(m_uiLogNo); memcpy(szBuf+pos, &byte4, 4); pos+=4;
+  //logno
+  byte4 = CWX_HTONL(m_uiLogNo); memcpy(szBuf+pos, &byte4, 4); pos+=4;
     //datetime
     byte4 = CWX_HTONL(m_uiDatetime); memcpy(szBuf+pos, &byte4, 4); pos+=4;
     //offset
@@ -133,7 +133,7 @@ inline CWX_UINT32 CwxBinLogHeader::serialize(char* szBuf) const
     //log-length
     byte4 = CWX_HTONL(m_uiLogLen); memcpy(szBuf+pos, &byte4, 4); pos+=4;
     //prev-offset
-	byte4 = CWX_HTONL(m_uiPrevOffset); memcpy(szBuf+pos, &byte4, 4); pos+=4;
+  byte4 = CWX_HTONL(m_uiPrevOffset); memcpy(szBuf+pos, &byte4, 4); pos+=4;
     //group
     byte4 = CWX_HTONL(m_uiGroup); memcpy(szBuf+pos, &byte4, 4); pos+=4;
     return pos;
@@ -149,21 +149,21 @@ inline CWX_UINT32 CwxBinLogHeader::unserialize(char const* szBuf)
     memcpy(&byte4, szBuf+pos, 4); pos += 4;
     m_ullSid <<=32;
     m_ullSid += CWX_NTOHL(byte4);
-	//log no
-	memcpy(&byte4, szBuf+pos, 4); pos += 4;
-	m_uiLogNo = CWX_NTOHL(byte4);
+  //log no
+  memcpy(&byte4, szBuf+pos, 4); pos += 4;
+  m_uiLogNo = CWX_NTOHL(byte4);
     //datetime
     memcpy(&byte4, szBuf+pos, 4); pos += 4;
     m_uiDatetime = CWX_NTOHL(byte4);
     //offset
-	memcpy(&byte4, szBuf+pos, 4); pos += 4;
-	m_uiOffset = CWX_NTOHL(byte4);
+  memcpy(&byte4, szBuf+pos, 4); pos += 4;
+  m_uiOffset = CWX_NTOHL(byte4);
     //log-length
     memcpy(&byte4, szBuf+pos, 4); pos += 4;
     m_uiLogLen = CWX_NTOHL(byte4);
     //prev-offset
-	memcpy(&byte4, szBuf+pos, 4); pos += 4;
-	m_uiPrevOffset = CWX_NTOHL(byte4);
+  memcpy(&byte4, szBuf+pos, 4); pos += 4;
+  m_uiPrevOffset = CWX_NTOHL(byte4);
     //group
     memcpy(&byte4, szBuf+pos, 4); pos += 4;
     m_uiGroup = CWX_NTOHL(byte4);
@@ -278,7 +278,7 @@ inline CWX_UINT32 CwxBinLogIndex::serialize(char* szBuf) const
     //datetime
     byte4 = CWX_HTONL(m_uiDatetime); memcpy(szBuf+pos, &byte4, 4); pos+=4;
     //offset
-	byte4 = CWX_HTONL(m_uiOffset); memcpy(szBuf+pos, &byte4, 4); pos+=4;
+  byte4 = CWX_HTONL(m_uiOffset); memcpy(szBuf+pos, &byte4, 4); pos+=4;
     //log-length
     byte4 = CWX_HTONL(m_uiLogLen); memcpy(szBuf+pos, &byte4, 4); pos+=4;
     return pos;
@@ -298,8 +298,8 @@ inline CWX_UINT32 CwxBinLogIndex::unserialize(char const* szBuf)
     memcpy(&byte4, szBuf+pos, 4); pos += 4;
     m_uiDatetime = CWX_NTOHL(byte4);
     //offset
-	memcpy(&byte4, szBuf+pos, 4); pos += 4;
-	m_uiOffset = CWX_NTOHL(byte4);
+  memcpy(&byte4, szBuf+pos, 4); pos += 4;
+  m_uiOffset = CWX_NTOHL(byte4);
     //log-length
     memcpy(&byte4, szBuf+pos, 4); pos += 4;
     m_uiLogLen = CWX_NTOHL(byte4);
@@ -319,44 +319,44 @@ inline void CwxBinLogIndex::reset()
 ***********************************************************************/
 inline int CwxBinLogCursor::next()
 {
-	if (CURSOR_STATE_ERROR == m_ucSeekState) return -1;
+  if (CURSOR_STATE_ERROR == m_ucSeekState) return -1;
     if (-1 == m_fd){
         CwxCommon::snprintf(this->m_szErr2K, 2047, "Cursor's file handle is invalid");
         return -1;
     }
-	if (CURSOR_STATE_UNSEEK == m_ucSeekState) {
+  if (CURSOR_STATE_UNSEEK == m_ucSeekState) {
         return header(0);
-	}
-	return header(m_curLogHeader.getOffset() + CwxBinLogHeader::BIN_LOG_HEADER_SIZE + m_curLogHeader.getLogLen());
+  }
+  return header(m_curLogHeader.getOffset() + CwxBinLogHeader::BIN_LOG_HEADER_SIZE + m_curLogHeader.getLogLen());
 }
 
 inline int CwxBinLogCursor::prev()
 {
-	if (CURSOR_STATE_ERROR == m_ucSeekState) return -1;
+  if (CURSOR_STATE_ERROR == m_ucSeekState) return -1;
     if (-1 == m_fd){
         CwxCommon::snprintf(this->m_szErr2K, 2047, "Cursor's file handle is invalid");
         return -1;
     }
-	if (CURSOR_STATE_UNSEEK == m_ucSeekState) {
+  if (CURSOR_STATE_UNSEEK == m_ucSeekState) {
         return header(0);
-	}
+  }
     if (0 != m_curLogHeader.getOffset()){
-		return header(m_curLogHeader.getPrevOffset());
-	}
-	return 0;
+    return header(m_curLogHeader.getPrevOffset());
+  }
+  return 0;
 }
 
 inline int CwxBinLogCursor::seek(CWX_UINT32 uiOffset)
 {
-	m_ucSeekState = CURSOR_STATE_UNSEEK;
-	if (-1 == m_fd)
-	{
-		CwxCommon::snprintf(this->m_szErr2K, 2047, "Cursor's file handle is invalid");
-		return -1;
-	}
+  m_ucSeekState = CURSOR_STATE_UNSEEK;
+  if (-1 == m_fd)
+  {
+    CwxCommon::snprintf(this->m_szErr2K, 2047, "Cursor's file handle is invalid");
+    return -1;
+  }
     int iRet = header(uiOffset);
     if (1 == iRet){
-		m_ucSeekState = CURSOR_STATE_READY;
+    m_ucSeekState = CURSOR_STATE_READY;
     }
     return iRet;
 }
@@ -397,32 +397,32 @@ inline int CwxBinLogCursor::getHandle() const
 
 ///获取cursor的SEEK STATE
 inline CWX_UINT8 CwxBinLogCursor::getSeekState() const{
-	return m_ucSeekState;
+  return m_ucSeekState;
 }
 ///设置cursor的SEEK STATE
 inline void CwxBinLogCursor::setSeekState(CWX_UINT8 ucSeekState){
-	m_ucSeekState = ucSeekState;
+  m_ucSeekState = ucSeekState;
 }
 ///获取cursor的SEEK SID
 inline CWX_UINT64 CwxBinLogCursor::getSeekSid() const{
-	return m_ullSeekSid;
+  return m_ullSeekSid;
 }
 ///设置cursor的SEEK SID
 inline void CwxBinLogCursor::setSeekSid(CWX_UINT64 ullSid){
-	m_ullSeekSid = ullSid;
+  m_ullSeekSid = ullSid;
 }
 
 ///是否ready
 inline bool CwxBinLogCursor::isReady() const{
-	return CURSOR_STATE_READY == m_ucSeekState;
+  return CURSOR_STATE_READY == m_ucSeekState;
 }
 ///是否unseek
 inline bool CwxBinLogCursor::isUnseek() const{
-	return CURSOR_STATE_UNSEEK == m_ucSeekState;
+  return CURSOR_STATE_UNSEEK == m_ucSeekState;
 }
 ///是否错误
 inline bool CwxBinLogCursor::isError() const{
-	return CURSOR_STATE_ERROR == m_ucSeekState;
+  return CURSOR_STATE_ERROR == m_ucSeekState;
 }
 
 
@@ -494,7 +494,7 @@ inline void CwxBinLogFile::setReadOnly()
     if (!m_bReadOnly)
     {
         flush_cache(NULL);
-		fsync(true,NULL);
+    fsync(true,NULL);
         m_bReadOnly = true;
         if (-1 != m_fd) ::close(m_fd);
         m_fd = -1;
@@ -528,20 +528,20 @@ inline string const& CwxBinLogFile::getIndexFileName() const
 inline int CwxBinLogFile::readIndex(int fd, CwxBinLogIndex& index, CWX_UINT32 uiOffset, char* szErr2K) const
 {
     char szBuf[CwxBinLogIndex::BIN_LOG_INDEX_SIZE];
-	ssize_t ret = pread(fd, &szBuf, CwxBinLogIndex::BIN_LOG_INDEX_SIZE, uiOffset);
+  ssize_t ret = pread(fd, &szBuf, CwxBinLogIndex::BIN_LOG_INDEX_SIZE, uiOffset);
     if (CwxBinLogIndex::BIN_LOG_INDEX_SIZE != ret)
     {
-		if (szErr2K)
-		{
-			if (-1 == ret)
-			{
-				CwxCommon::snprintf(szErr2K, 2047, "Failure to read binlog index, file:%s, errno=%d", this->m_strIndexFileName.c_str(), errno);
-			}
-			else
-			{
-				CwxCommon::snprintf(szErr2K, 2047, "No complete index record, offset:%u", uiOffset);
-			}
-		}
+    if (szErr2K)
+    {
+      if (-1 == ret)
+      {
+        CwxCommon::snprintf(szErr2K, 2047, "Failure to read binlog index, file:%s, errno=%d", this->m_strIndexFileName.c_str(), errno);
+      }
+      else
+      {
+        CwxCommon::snprintf(szErr2K, 2047, "No complete index record, offset:%u", uiOffset);
+      }
+    }
         return -1;
     }
     index.unserialize(szBuf);
@@ -586,8 +586,8 @@ inline bool CwxBinLogMgr::isUnseek(CwxBinLogCursor* pCursor)
 inline bool CwxBinLogMgr::_isOutRange(CwxBinLogCursor*& pCursor)
 {
     bool ret = pCursor->getHeader().getSid() < getMinSid();
-	CWX_ASSERT(!ret);
-	return ret;
+  CWX_ASSERT(!ret);
+  return ret;
 }
 
 
@@ -653,7 +653,7 @@ inline string& CwxBinLogMgr::getFileNameByFileNo(CWX_UINT32 uiFileNo,
     snprintf(szPathFile, 511, "%s%s.%10.10d.%s.log",
         m_strPrexLogPath.c_str(),
         m_strFilePrex.c_str(),
-		uiFileNo,
+    uiFileNo,
         strDay.substr(0,8).c_str());
     strFileName = szPathFile;
     return strFileName;
@@ -672,7 +672,7 @@ inline CWX_UINT32 CwxBinLogMgr::getBinLogFileNo(string const& strFileName, CWX_U
 {
     
     if (strFileName.length() <= m_strPrexLogPath.length() + m_strFilePrex.length() + 13) return 0;
-	string strFileNum = strFileName.substr(m_strPrexLogPath.length() + m_strFilePrex.length() + 1, 10);
+  string strFileNum = strFileName.substr(m_strPrexLogPath.length() + m_strFilePrex.length() + 1, 10);
     string strDay = strFileName.substr(m_strPrexLogPath.length() + m_strFilePrex.length() + 1 + 10 + 1, 8);
     strDay += "000000";
     ttDay = CwxDate::getDateY4MDHMS2(strDay);
@@ -734,20 +734,20 @@ inline bool CwxBinLogMgr::_isManageBinLogFile(CwxBinLogFile* pBinLogFile)
 {
     if (!m_pCurBinlog) return true;
     ///如果文件被cursor使用，则被管理
-	if (m_binlogMap.size() <= m_uiMaxFileNum) return true;
-	//检测是否有cursor在使用
-	set<CwxBinLogCursor*>::iterator iter = m_cursorSet.begin();
-	while(iter != m_cursorSet.end()){
-		if ((*iter)->isReady()){//cursor的header一定有效
-			if ((*iter)->getHeader().getSid() <= pBinLogFile->getMaxSid()){
-				return true;
-			}
+  if (m_binlogMap.size() <= m_uiMaxFileNum) return true;
+  //检测是否有cursor在使用
+  set<CwxBinLogCursor*>::iterator iter = m_cursorSet.begin();
+  while(iter != m_cursorSet.end()){
+    if ((*iter)->isReady()){//cursor的header一定有效
+      if ((*iter)->getHeader().getSid() <= pBinLogFile->getMaxSid()){
+        return true;
+      }
         }else if ((*iter)->getSeekSid() <= pBinLogFile->getMaxSid()){//cursor处于悬浮状态
-			return true;
-		}
-		iter++;
-	}
-	return false;
+      return true;
+    }
+    iter++;
+  }
+  return false;
 
 }
 

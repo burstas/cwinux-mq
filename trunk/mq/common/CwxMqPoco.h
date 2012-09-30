@@ -53,140 +53,244 @@ class CwxMqPoco {
     };
   public:
     ///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packRecvData(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-        CWX_UINT32 uiTaskId, CwxKeyValueItem const& data, char const* user =
-            NULL, char const* passwd = NULL, char const* sign = NULL, bool zip =
-            false, char* szErr2K = NULL);
+    static int packRecvData(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        CWX_UINT32 uiTaskId,
+        CwxKeyValueItem const& data,
+        char const* user =NULL,
+        char const* passwd = NULL,
+        char const* sign = NULL,
+        bool zip =false,
+        char* szErr2K = NULL);
     ///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int parseRecvData(CwxPackageReader* reader, CwxMsgBlock const* msg,
-        CwxKeyValueItem const*& data, char const*& user, char const*& passwd,
+    static int parseRecvData(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        CwxKeyValueItem const*& data,
+        char const*& user,
+        char const*& passwd,
         char* szErr2K = NULL);
 
     ///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int parseRecvData(CwxPackageReader* reader, char const* msg,
-        CWX_UINT32 msg_len, CwxKeyValueItem const*& data, char const*& user,
-        char const*& passwd, char* szErr2K = NULL);
+    static int parseRecvData(CwxPackageReader* reader,
+        char const* msg,
+        CWX_UINT32 msg_len,
+        CwxKeyValueItem const*& data,
+        char const*& user,
+        char const*& passwd,
+        char* szErr2K = NULL);
 
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packRecvDataReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-        CWX_UINT32 uiTaskId, int ret, CWX_UINT64 ullSid, char const* szErrMsg,
+    static int packRecvDataReply(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        CWX_UINT32 uiTaskId,
+        int ret,
+        CWX_UINT64 ullSid,
+        char const* szErrMsg,
         char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseRecvDataReply(CwxPackageReader* reader,
-        CwxMsgBlock const* msg, int& ret, CWX_UINT64& ullSid,
-        char const*& szErrMsg, char* szErr2K = NULL);
+        CwxMsgBlock const* msg,
+        int& ret,
+        CWX_UINT64& ullSid,
+        char const*& szErrMsg,
+        char* szErr2K = NULL);
 
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packReportData(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-        CWX_UINT32 uiTaskId, CWX_UINT64 ullSid, bool bNewly,
-        CWX_UINT32 uiChunkSize, char const* source = NULL, char const* user =
-            NULL, char const* passwd = NULL, char const* sign = NULL, bool zip =
-            false, char* szErr2K = NULL);
+    static int packReportData(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        CWX_UINT32 uiTaskId,
+        CWX_UINT64 ullSid,
+        bool bNewly,
+        CWX_UINT32 uiChunkSize,
+        char const* source = NULL,
+        char const* user = NULL,
+        char const* passwd = NULL,
+        char const* sign = NULL,
+        bool zip = false,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int parseReportData(CwxPackageReader* reader, CwxMsgBlock const* msg,
-        CWX_UINT64& ullSid, bool& bNewly, CWX_UINT32& uiChunkSize,
-        char const*& source, char const*& user, char const*& passwd,
-        char const*& sign, bool& zip, char* szErr2K = NULL);
-
+    static int parseReportData(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        CWX_UINT64& ullSid,
+        bool& bNewly,
+        CWX_UINT32& uiChunkSize,
+        char const*& source,
+        char const*& user,
+        char const*& passwd,
+        char const*& sign,
+        bool& zip,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packReportDataReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-        CWX_UINT32 uiTaskId, CWX_UINT64 ullSession, char* szErr2K = NULL);
+    static int packReportDataReply(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        CWX_UINT32 uiTaskId,
+        CWX_UINT64 ullSession,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseReportDataReply(CwxPackageReader* reader,
-        CwxMsgBlock const* msg, CWX_UINT64& ullSession, char* szErr2K = NULL);
+        CwxMsgBlock const* msg,
+        CWX_UINT64& ullSession,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packReportNewConn(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-        CWX_UINT32 uiTaskId, CWX_UINT64 ullSession, char* szErr2K = NULL);
+    static int packReportNewConn(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        CWX_UINT32 uiTaskId,
+        CWX_UINT64 ullSession,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseReportNewConn(CwxPackageReader* reader,
-        CwxMsgBlock const* msg, CWX_UINT64& ullSession, char* szErr2K = NULL);
-
+        CwxMsgBlock const* msg,
+        CWX_UINT64& ullSession,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packSyncData(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-        CWX_UINT32 uiTaskId, CWX_UINT64 ullSid, CWX_UINT32 uiTimeStamp,
-        CwxKeyValueItem const& data, char const* sign, bool zip,
-        CWX_UINT64 ullSeq, char* szErr2K = NULL);
+    static int packSyncData(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        CWX_UINT32 uiTaskId,
+        CWX_UINT64 ullSid,
+        CWX_UINT32 uiTimeStamp,
+        CwxKeyValueItem const& data,
+        char const* sign,
+        bool zip,
+        CWX_UINT64 ullSeq,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packSyncDataItem(CwxPackageWriter* writer, CWX_UINT64 ullSid,
-        CWX_UINT32 uiTimeStamp, CwxKeyValueItem const& data, char const* sign =
-            NULL, char* szErr2K = NULL);
-    static int packMultiSyncData(CWX_UINT32 uiTaskId, char const* szData,
-        CWX_UINT32 uiDataLen, CwxMsgBlock*& msg, CWX_UINT64 ullSeq, bool zip =
-            false, char* szErr2K = NULL);
+    static int packSyncDataItem(CwxPackageWriter* writer,
+        CWX_UINT64 ullSid,
+        CWX_UINT32 uiTimeStamp,
+        CwxKeyValueItem const& data,
+        char const* sign = NULL,
+        char* szErr2K = NULL);
+    static int packMultiSyncData(CWX_UINT32 uiTaskId,
+        char const* szData,
+        CWX_UINT32 uiDataLen,
+        CwxMsgBlock*& msg,
+        CWX_UINT64 ullSeq,
+        bool zip = false,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int parseSyncData(CwxPackageReader* reader, CwxMsgBlock const* msg,
-        CWX_UINT64& ullSid, CWX_UINT32& uiTimeStamp,
-        CwxKeyValueItem const*& data, char* szErr2K = NULL);
+    static int parseSyncData(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        CWX_UINT64& ullSid,
+        CWX_UINT32& uiTimeStamp,
+        CwxKeyValueItem const*& data,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int parseSyncData(CwxPackageReader* reader, char const* szData,
-        CWX_UINT32 uiDataLen, CWX_UINT64& ullSid, CWX_UINT32& uiTimeStamp,
-        CwxKeyValueItem const*& data, char* szErr2K = NULL);
-
+    static int parseSyncData(CwxPackageReader* reader,
+        char const* szData,
+        CWX_UINT32 uiDataLen,
+        CWX_UINT64& ullSid,
+        CWX_UINT32& uiTimeStamp,
+        CwxKeyValueItem const*& data,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packSyncDataReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-        CWX_UINT32 uiTaskId, CWX_UINT16 unMsgType, CWX_UINT64 ullSeq,
+    static int packSyncDataReply(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        CWX_UINT32 uiTaskId,
+        CWX_UINT16 unMsgType,
+        CWX_UINT64 ullSeq,
         char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseSyncDataReply(CwxPackageReader* reader,
-        CwxMsgBlock const* msg, CWX_UINT64& ullSeq, char* szErr2K = NULL);
+        CwxMsgBlock const* msg,
+        CWX_UINT64& ullSeq,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packFetchMq(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-        bool bBlock, char const* queue_name, char const* user = NULL,
-        char const* passwd = NULL, char* szErr2K = NULL);
+    static int packFetchMq(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        bool bBlock,
+        char const* queue_name,
+        char const* user = NULL,
+        char const* passwd = NULL,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int parseFetchMq(CwxPackageReader* reader, CwxMsgBlock const* msg,
-        bool& bBlock, char const*& queue_name, char const*& user,
-        char const*& passwd, char* szErr2K = NULL);
-
+    static int parseFetchMq(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        bool& bBlock,
+        char const*& queue_name,
+        char const*& user,
+        char const*& passwd,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packFetchMqReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-        int ret, char const* szErrMsg, CWX_UINT64 ullSid,
-        CWX_UINT32 uiTimeStamp, CwxKeyValueItem const& data, char* szErr2K =
-            NULL);
+    static int packFetchMqReply(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        int ret,
+        char const* szErrMsg,
+        CWX_UINT64 ullSid,
+        CWX_UINT32 uiTimeStamp,
+        CwxKeyValueItem const& data,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseFetchMqReply(CwxPackageReader* reader,
-        CwxMsgBlock const* msg, int& ret, char const*& szErrMsg,
-        CWX_UINT64& ullSid, CWX_UINT32& uiTimeStamp,
-        CwxKeyValueItem const*& data, char* szErr2K = NULL);
+        CwxMsgBlock const* msg,
+        int& ret,
+        char const*& szErrMsg,
+        CWX_UINT64& ullSid,
+        CWX_UINT32& uiTimeStamp,
+        CwxKeyValueItem const*& data,
+        char* szErr2K = NULL);
 
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseCreateQueue(CwxPackageReader* reader,
-        CwxMsgBlock const* msg, char const*& name, char const*& user,
-        char const*& passwd, char const*& auth_user, char const*& auth_passwd,
+        CwxMsgBlock const* msg,
+        char const*& name,
+        char const*& user,
+        char const*& passwd,
+        char const*& auth_user,
+        char const*& auth_passwd,
         CWX_UINT64& ullSid,  ///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
         char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packCreateQueue(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-        char const* name, char const* user, char const* passwd,
-        char const* auth_user, char const* auth_passwd, CWX_UINT64 ullSid = 0, ///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
+    static int packCreateQueue(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        char const* name,
+        char const* user,
+        char const* passwd,
+        char const* auth_user,
+        char const* auth_passwd,
+        CWX_UINT64 ullSid = 0, ///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
         char* szErr2K = NULL);
-
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseCreateQueueReply(CwxPackageReader* reader,
-        CwxMsgBlock const* msg, int& ret, char const*& szErrMsg, char* szErr2K =
-            NULL);
+        CwxMsgBlock const* msg,
+        int& ret,
+        char const*& szErrMsg,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packCreateQueueReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-        int ret, char const* szErrMsg, char* szErr2K = NULL);
-
+    static int packCreateQueueReply(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        int ret,
+        char const* szErrMsg,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int parseDelQueue(CwxPackageReader* reader, CwxMsgBlock const* msg,
-        char const*& name, char const*& user, char const*& passwd,
-        char const*& auth_user, char const*& auth_passwd, char* szErr2K = NULL);
+    static int parseDelQueue(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        char const*& name,
+        char const*& user,
+        char const*& passwd,
+        char const*& auth_user,
+        char const*& auth_passwd,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packDelQueue(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-        char const* name, char const* user, char const* passwd,
-        char const* auth_user, char const* auth_passwd, char* szErr2K = NULL);
-
+    static int packDelQueue(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        char const* name,
+        char const* user,
+        char const* passwd,
+        char const* auth_user,
+        char const* auth_passwd,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int parseDelQueueReply(CwxPackageReader* reader,
-        CwxMsgBlock const* msg, int& ret, char const*& szErrMsg, char* szErr2K =
-            NULL);
-
+        CwxMsgBlock const* msg,
+        int& ret,
+        char const*& szErrMsg,
+        char* szErr2K = NULL);
     ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
-    static int packDelQueueReply(CwxPackageWriter* writer, CwxMsgBlock*& msg,
-        int ret, char const* szErrMsg, char* szErr2K = NULL);
-
+    static int packDelQueueReply(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        int ret,
+        char const* szErrMsg,
+        char* szErr2K = NULL);
     ///pack report或sync的出错消息包。返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int packSyncErr(CwxPackageWriter* writer, ///<用于pack的writer
         CwxMsgBlock*& msg, ///<返回的消息包，对象由内部分配
@@ -204,7 +308,8 @@ class CwxMqPoco {
         char* szErr2K = NULL ///<解包时的错误信息
         );
     ///设置数据同步包的seq号
-    inline static void setSeq(char* szBuf, CWX_UINT64 ullSeq) {
+    inline static void setSeq(char* szBuf,
+        CWX_UINT64 ullSeq) {
       CWX_UINT32 byte4 = (CWX_UINT32) (ullSeq >> 32);
       byte4 = CWX_HTONL(byte4);
       memcpy(szBuf, &byte4, 4);
