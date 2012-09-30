@@ -11,10 +11,10 @@
 #include "CwxMqConfig.h"
 #include "CwxMqTss.h"
 #include "CwxMqPoco.h"
-#include "CwxMqBinAsyncHandler.h"
-#include "CwxMqBinRecvHandler.h"
+#include "CwxMqDispHandler.h"
+#include "CwxMqRecvHandler.h"
 #include "CwxMqMasterHandler.h"
-#include "CwxMqBinFetchHandler.h"
+#include "CwxMqQueueHandler.h"
 #include "CwxMqQueueMgr.h"
 #include "CwxThreadPool.h"
 
@@ -107,7 +107,7 @@ class CwxMqApp : public CwxAppFramework {
       return m_pMasterHandler;
     }
     ///获取master接收binlog的handler对象
-    inline CwxMqBinRecvHandler* getBinRecvHandler() {
+    inline CwxMqRecvHandler* getBinRecvHandler() {
       return m_pBinRecvHandler;
     }
     ///获取当前的时间
@@ -185,7 +185,7 @@ class CwxMqApp : public CwxAppFramework {
     CwxMqConfig m_config; ///<配置文件
     CwxBinLogMgr* m_pBinLogMgr; ///<binlog的管理对象
     CwxMqMasterHandler* m_pMasterHandler; ///<从master接收消息的handle
-    CwxMqBinRecvHandler* m_pBinRecvHandler; ///<bin协议接收binlog的handle。
+    CwxMqRecvHandler* m_pBinRecvHandler; ///<bin协议接收binlog的handle。
     CwxMqQueueMgr* m_queueMgr; ///<队列管理器
     CwxThreadPool* m_pRecvThreadPool; ///<消息接受的线程池对象
     CwxThreadPool* m_pAsyncDispThreadPool; ///<消息异步分发的线程池对象

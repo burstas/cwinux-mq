@@ -1,5 +1,5 @@
-#ifndef __CWX_MQ_BIN_RECV_HANDLER_H__
-#define __CWX_MQ_BIN_RECV_HANDLER_H__
+#ifndef __CWX_MQ_RECV_HANDLER_H__
+#define __CWX_MQ_RECV_HANDLER_H__
 /*
  版权声明：
  本软件遵循GNU GPL V3（http://www.gnu.org/licenses/gpl.html），
@@ -11,16 +11,16 @@
 class CwxMqApp;
 
 ///Dispatch master处理收到的bin协议的binlog handler
-class CwxMqBinRecvHandler : public CwxCmdOp {
+class CwxMqRecvHandler : public CwxCmdOp {
   public:
     ///构造函数
-    CwxMqBinRecvHandler(CwxMqApp* pApp) :
+    CwxMqRecvHandler(CwxMqApp* pApp) :
         m_pApp(pApp) {
       m_unzipBuf = NULL;
       m_uiBufLen = 0;
     }
     ///析构函数
-    virtual ~CwxMqBinRecvHandler() {
+    virtual ~CwxMqRecvHandler() {
       if (m_unzipBuf)
         delete[] m_unzipBuf;
     }

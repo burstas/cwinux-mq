@@ -1,19 +1,19 @@
-#include "CwxMqBinAsyncHandler.h"
+#include "CwxMqDispHandler.h"
 #include "CwxMqApp.h"
 
 // session的map，key为session id
-map<CWX_UINT64, CwxMqBinAsyncHandlerSession*> CwxMqBinAsyncHandler::m_sessionMap;
+map<CWX_UINT64, CwxMqDispSession*> CwxMqDispHandler::m_sessionMap;
 ///<需要关闭的session
-list<CwxMqBinAsyncHandlerSession*> CwxMqBinAsyncHandler::m_freeSession;
+list<CwxMqDispSession*> CwxMqDispHandler::m_freeSession;
 
 ///添加一个新连接
-void CwxMqBinAsyncHandlerSession::addConn(CwxMqBinAsyncHandler* conn) {
+void CwxMqDispSession::addConn(CwxMqDispHandler* conn) {
   CWX_ASSERT(m_conns.find(conn->getConnId()) == m_conns.end());
   m_conns[conn->getConnId()] = conn;
 }
 
 ///构造函数
-CwxMqBinAsyncHandler::CwxMqBinAsyncHandler(CwxMqApp* pApp,
+CwxMqDispHandler::CwxMqDispHandler(CwxMqApp* pApp,
     CwxAppChannel* channel, CWX_UINT32 uiConnId) :
     CwxAppHandler4Channel(channel) {
   m_bReport = false;
@@ -30,16 +30,16 @@ CwxMqBinAsyncHandler::CwxMqBinAsyncHandler(CwxMqApp* pApp,
 }
 
 ///析构函数
-CwxMqBinAsyncHandler::~CwxMqBinAsyncHandler() {
+CwxMqDispHandler::~CwxMqDispHandler() {
   if (m_recvMsgData)
     CwxMsgBlockAlloc::free(m_recvMsgData);
   m_recvMsgData = NULL;
 }
 
 ///释放资源
-void CwxMqBinAsyncHandler::destroy(CwxMqApp* app) {
+void CwxMqDispHandler::destroy(CwxMqApp* app) {
   {
-    map<CWX_UINT64, CwxMqBinAsyncHandlerSession*>::iterator iter =
+    map<CWX_UINT64, CwxMqDispSession*>::iterator iter =
         m_sessionMap.begin();
     while (iter != m_sessionMap.end()) {
       if (iter->second->m_pCursor)
@@ -51,7 +51,7 @@ void CwxMqBinAsyncHandler::destroy(CwxMqApp* app) {
   }
 }
 
-void CwxMqBinAsyncHandler::doEvent(CwxMqApp* app, CwxMqTss* tss,
+void CwxMqDispHandler::doEvent(CwxMqApp* app, CwxMqTss* tss,
     CwxMsgBlock*& msg) {
   if (CwxEventInfo::CONN_CREATED == msg->event().getEvent()) { ///连接建立
     CwxAppChannel* channel = app->getAsyncDispChannel();
@@ -61,7 +61,7 @@ void CwxMqBinAsyncHandler::doEvent(CwxMqApp* app, CwxMqTss* tss,
       app->stop();
       return;
     }
-    CwxMqBinAsyncHandler* pHandler = new CwxMqBinAsyncHandler(app, channel,
+    CwxMqDispHandler* pHandler = new CwxMqDispHandler(app, channel,
         app->reactor()->getNextConnId());
     ///获取连接的来源信息
     CwxINetAddr remoteAddr;
@@ -87,7 +87,7 @@ void CwxMqBinAsyncHandler::doEvent(CwxMqApp* app, CwxMqTss* tss,
     CWX_ASSERT(msg->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
     CWX_ASSERT(msg->event().getSvrId() == CwxMqApp::SVR_TYPE_ASYNC);
     //日志超时检查
-    map<CWX_UINT64, CwxMqBinAsyncHandlerSession*>::iterator iter =
+    map<CWX_UINT64, CwxMqDispSession*>::iterator iter =
         m_sessionMap.begin();
     while (iter != m_sessionMap.end()) {
       if (iter->second->m_sourceFile)
@@ -98,9 +98,9 @@ void CwxMqBinAsyncHandler::doEvent(CwxMqApp* app, CwxMqTss* tss,
 }
 
 ///释放关闭的session
-void CwxMqBinAsyncHandler::dealClosedSession(CwxMqApp* app, CwxMqTss*) {
-  list<CwxMqBinAsyncHandlerSession*>::iterator iter;
-  CwxMqBinAsyncHandler* handler;
+void CwxMqDispHandler::dealClosedSession(CwxMqApp* app, CwxMqTss*) {
+  list<CwxMqDispSession*>::iterator iter;
+  CwxMqDispHandler* handler;
   ///获取用户object对象
   if (m_freeSession.begin() != m_freeSession.end()) {
     iter = m_freeSession.begin();
@@ -111,7 +111,7 @@ void CwxMqBinAsyncHandler::dealClosedSession(CwxMqApp* app, CwxMqTss*) {
       ///将session从session的map中删除
       m_sessionMap.erase((*iter)->m_ullSessionId);
       ///开始关闭连接
-      map<CWX_UINT32, CwxMqBinAsyncHandler*>::iterator conn_iter =
+      map<CWX_UINT32, CwxMqDispHandler*>::iterator conn_iter =
           (*iter)->m_conns.begin();
       while (conn_iter != (*iter)->m_conns.end()) {
         handler = conn_iter->second;
@@ -134,7 +134,7 @@ void CwxMqBinAsyncHandler::dealClosedSession(CwxMqApp* app, CwxMqTss*) {
  @brief 连接可读事件，返回-1，close()会被调用
  @return -1：处理失败，会调用close()； 0：处理成功
  */
-int CwxMqBinAsyncHandler::onInput() {
+int CwxMqDispHandler::onInput() {
   ///接受消息
   int ret = CwxAppHandler4Channel::recvPackage(getHandle(), m_uiRecvHeadLen,
       m_uiRecvDataLen, m_szHeadBuf, m_header, m_recvMsgData);
@@ -153,13 +153,13 @@ int CwxMqBinAsyncHandler::onInput() {
 }
 
 //1：不从engine中移除注册；0：从engine中移除注册但不删除handler；-1：从engine中将handle移除并删除。
-int CwxMqBinAsyncHandler::onConnClosed() {
-  CWX_INFO(("CwxMqBinAsyncHandler: conn closed, conn_id=%u", m_uiConnId));
+int CwxMqDispHandler::onConnClosed() {
+  CWX_INFO(("CwxMqDispHandler: conn closed, conn_id=%u", m_uiConnId));
   ///一条连接关闭，则整个session失效
   if (m_syncSession) {
     ///如果连接对应的session存在
     if (m_sessionMap.find(m_ullSessionId) != m_sessionMap.end()) {
-      CWX_INFO(("CwxMqBinAsyncHandler: conn closed, conn_id=%u", m_uiConnId));
+      CWX_INFO(("CwxMqDispHandler: conn closed, conn_id=%u", m_uiConnId));
       if (!m_syncSession->m_bClosed) {
         ///将session标记为close
         m_syncSession->m_bClosed = true;
@@ -174,16 +174,16 @@ int CwxMqBinAsyncHandler::onConnClosed() {
 }
 
 ///收到消息
-int CwxMqBinAsyncHandler::recvMessage() {
+int CwxMqDispHandler::recvMessage() {
   if (CwxMqPoco::MSG_TYPE_SYNC_REPORT == m_header.getMsgType()) {
-    return recvSyncReport(m_tss);
+    return recvReport(m_tss);
   } else if (CwxMqPoco::MSG_TYPE_SYNC_SESSION_REPORT == m_header.getMsgType()) {
-    return recvSyncNewConnection(m_tss);
+    return recvNewConnection(m_tss);
   } else if (CwxMqPoco::MSG_TYPE_SYNC_DATA_REPLY == m_header.getMsgType()) {
-    return recvSyncReply(m_tss);
+    return recvReply(m_tss);
   } else if (CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK_REPLY
       == m_header.getMsgType()) {
-    return recvSyncChunkReply(m_tss);
+    return recvReply(m_tss);
   }
   ///直接关闭连接
   CWX_ERROR(
@@ -191,7 +191,7 @@ int CwxMqBinAsyncHandler::recvMessage() {
   return -1;
 }
 
-int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss) {
+int CwxMqDispHandler::recvReport(CwxMqTss* pTss) {
   int iRet = 0;
   CWX_UINT64 ullSid = 0;
   bool bNewly = false;
@@ -241,7 +241,7 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss) {
         break;
       }
     }
-    m_syncSession = new CwxMqBinAsyncHandlerSession();
+    m_syncSession = new CwxMqDispSession();
     m_syncSession->m_strHost = m_strPeerHost;
     m_syncSession->m_uiChunk = uiChunk;
     m_syncSession->m_bZip = bzip;
@@ -263,7 +263,7 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss) {
             ullSid--;
     }
     if (source) { ///检查source是否存在
-      map<CWX_UINT64, CwxMqBinAsyncHandlerSession*>::iterator iter =  m_sessionMap.begin();
+      map<CWX_UINT64, CwxMqDispSession*>::iterator iter =  m_sessionMap.begin();
       while (iter != m_sessionMap.end()) {
         if (iter->second->m_strSource == source) {
           iRet = CWX_MQ_ERR_ERROR;
@@ -395,7 +395,7 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss) {
   return 0;
 }
 
-int CwxMqBinAsyncHandler::recvSyncNewConnection(CwxMqTss* pTss) {
+int CwxMqDispHandler::recvNewConnection(CwxMqTss* pTss) {
   int iRet = 0;
   CWX_UINT64 ullSession = 0;
   CwxMsgBlock* msg = NULL;
@@ -467,7 +467,7 @@ int CwxMqBinAsyncHandler::recvSyncNewConnection(CwxMqTss* pTss) {
   return 0;
 }
 
-int CwxMqBinAsyncHandler::recvSyncReply(CwxMqTss* pTss) {
+int CwxMqDispHandler::recvReply(CwxMqTss* pTss) {
   int iRet = CWX_MQ_ERR_SUCCESS;
   CWX_UINT64 ullSeq = 0;
   CwxMsgBlock* msg = NULL;
@@ -548,15 +548,11 @@ int CwxMqBinAsyncHandler::recvSyncReply(CwxMqTss* pTss) {
   return 0;
 }
 
-int CwxMqBinAsyncHandler::recvSyncChunkReply(CwxMqTss* pTss) {
-  return recvSyncReply(pTss);
-}
-
 /**
  @brief Handler的redo事件，在每次dispatch时执行。
  @return -1：处理失败，会调用close()； 0：处理成功
  */
-int CwxMqBinAsyncHandler::onRedo() {
+int CwxMqDispHandler::onRedo() {
   ///判断是否有可发送的消息
   if (m_syncSession->m_ullSid < m_pApp->getBinLogMgr()->getMaxSid()) {
     ///发送下一条binlog
@@ -593,7 +589,7 @@ int CwxMqBinAsyncHandler::onRedo() {
 ///0：未发送一条binlog；
 ///1：发送了一条binlog；
 ///-1：失败；
-int CwxMqBinAsyncHandler::syncSendBinLog(CwxMqTss* pTss) {
+int CwxMqDispHandler::syncSendBinLog(CwxMqTss* pTss) {
   int iRet = 0;
   CwxMsgBlock* pBlock = NULL;
   CWX_UINT32 uiKeyLen = 0;
@@ -688,7 +684,7 @@ int CwxMqBinAsyncHandler::syncSendBinLog(CwxMqTss* pTss) {
 }
 
 //1：成功；0：太大；-1：错误
-int CwxMqBinAsyncHandler::syncSeekToReportSid(CwxMqTss* tss) {
+int CwxMqDispHandler::syncSeekToReportSid(CwxMqTss* tss) {
   int iRet = 0;
   if (m_syncSession->m_pCursor->isUnseek()) { //若binlog的读取cursor悬空，则定位
     if (m_syncSession->m_ullStartSid < m_pApp->getBinLogMgr()->getMaxSid()) {
@@ -721,7 +717,7 @@ int CwxMqBinAsyncHandler::syncSeekToReportSid(CwxMqTss* tss) {
 }
 
 ///-1：失败，1：成功
-int CwxMqBinAsyncHandler::syncPackOneBinLog(CwxPackageWriter* writer,
+int CwxMqDispHandler::syncPackOneBinLog(CwxPackageWriter* writer,
     CwxMsgBlock*& block,
     CWX_UINT64 ullSeq,
     CwxKeyValueItem const* pData,
@@ -741,7 +737,7 @@ int CwxMqBinAsyncHandler::syncPackOneBinLog(CwxPackageWriter* writer,
 }
 
 ///-1：失败，否则返回添加数据的尺寸
-int CwxMqBinAsyncHandler::syncPackMultiBinLog(CwxPackageWriter* writer,
+int CwxMqDispHandler::syncPackMultiBinLog(CwxPackageWriter* writer,
     CwxPackageWriter* writer_item, CwxKeyValueItem const* pData,
     CWX_UINT32& uiLen, char* szErr2K) {
   ///形成binlog发送的数据包
@@ -767,7 +763,7 @@ int CwxMqBinAsyncHandler::syncPackMultiBinLog(CwxPackageWriter* writer,
 }
 
 //1：发现记录；0：没有发现；-1：错误
-int CwxMqBinAsyncHandler::syncSeekToBinlog(CwxMqTss* tss) {
+int CwxMqDispHandler::syncSeekToBinlog(CwxMqTss* tss) {
   int iRet = 0;
   if (m_syncSession->m_bNext) {
     iRet = m_pApp->getBinLogMgr()->next(m_syncSession->m_pCursor);

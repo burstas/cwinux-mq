@@ -1,11 +1,11 @@
-#include "CwxMqBinFetchHandler.h"
+#include "CwxMqQueueHandler.h"
 #include "CwxMqApp.h"
 #include "CwxMsgHead.h"
 /**
  @brief 连接可读事件，返回-1，close()会被调用
  @return -1：处理失败，会调用close()； 0：处理成功
  */
-int CwxMqBinFetchHandler::onInput() {
+int CwxMqQueueHandler::onInput() {
   ///接受消息
   int ret = CwxAppHandler4Channel::recvPackage(getHandle(), m_uiRecvHeadLen,
       m_uiRecvDataLen, m_szHeadBuf, m_header, m_recvMsgData);
@@ -27,7 +27,7 @@ int CwxMqBinFetchHandler::onInput() {
  @brief 通知连接关闭。
  @return 1：不从engine中移除注册；0：从engine中移除注册但不删除handler；-1：从engine中将handle移除并删除。
  */
-int CwxMqBinFetchHandler::onConnClosed() {
+int CwxMqQueueHandler::onConnClosed() {
   return -1;
 }
 
@@ -35,7 +35,7 @@ int CwxMqBinFetchHandler::onConnClosed() {
  @brief Handler的redo事件，在每次dispatch时执行。
  @return -1：处理失败，会调用close()； 0：处理成功
  */
-int CwxMqBinFetchHandler::onRedo() {
+int CwxMqQueueHandler::onRedo() {
   ///获取tss实例
   CwxMqTss* tss = (CwxMqTss*) CwxTss::instance();
   int iRet = sentBinlog(tss);
@@ -58,7 +58,7 @@ int CwxMqBinFetchHandler::onRedo() {
  CwxMsgSendCtrl::RESUME_CONN：让连接从suspend状态变为数据接收状态。
  CwxMsgSendCtrl::SUSPEND_CONN：让连接从数据接收状态变为suspend状态
  */
-CWX_UINT32 CwxMqBinFetchHandler::onEndSendMsg(CwxMsgBlock*& msg) {
+CWX_UINT32 CwxMqQueueHandler::onEndSendMsg(CwxMsgBlock*& msg) {
   ///获取tss实例
   CwxMqTss* tss = (CwxMqTss*) CwxTss::instance();
   int iRet = m_pApp->getQueueMgr()->endSendMsg(m_conn.m_strQueueName,
@@ -81,7 +81,7 @@ CWX_UINT32 CwxMqBinFetchHandler::onEndSendMsg(CwxMsgBlock*& msg) {
  @param [in,out] msg 发送失败的消息，若返回NULL，则msg有上层释放，否则底层释放。
  @return void。
  */
-void CwxMqBinFetchHandler::onFailSendMsg(CwxMsgBlock*& msg) {
+void CwxMqQueueHandler::onFailSendMsg(CwxMsgBlock*& msg) {
   CwxMqTss* tss = (CwxMqTss*) CwxTss::instance();
   backMq(msg->event().m_ullArg, tss);
   //此msg由queue mgr负责管理，外层不能释放
@@ -89,7 +89,7 @@ void CwxMqBinFetchHandler::onFailSendMsg(CwxMsgBlock*& msg) {
 }
 
 ///收到一个消息，0：成功；-1：失败
-int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss) {
+int CwxMqQueueHandler::recvMessage(CwxMqTss* pTss) {
   if (CwxMqPoco::MSG_TYPE_FETCH_DATA == m_header.getMsgType()) {    ///mq的获取消息
     return fetchMq(pTss);
   } else if (CwxMqPoco::MSG_TYPE_CREATE_QUEUE == m_header.getMsgType()) { ///创建队列的消息
@@ -113,7 +113,7 @@ int CwxMqBinFetchHandler::recvMessage(CwxMqTss* pTss) {
 }
 
 ///fetch mq
-int CwxMqBinFetchHandler::fetchMq(CwxMqTss* pTss) {
+int CwxMqQueueHandler::fetchMq(CwxMqTss* pTss) {
   int iRet = CWX_MQ_ERR_SUCCESS;
   bool bBlock = false;
   bool bClose = false;
@@ -197,7 +197,7 @@ int CwxMqBinFetchHandler::fetchMq(CwxMqTss* pTss) {
 
 }
 ///create queue
-int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss) {
+int CwxMqQueueHandler::createQueue(CwxMqTss* pTss) {
   int iRet = CWX_MQ_ERR_SUCCESS;
   char const* queue_name = NULL;
   char const* user = NULL;
@@ -298,7 +298,7 @@ int CwxMqBinFetchHandler::createQueue(CwxMqTss* pTss) {
   return 0;
 }
 ///del queue
-int CwxMqBinFetchHandler::delQueue(CwxMqTss* pTss) {
+int CwxMqQueueHandler::delQueue(CwxMqTss* pTss) {
   int iRet = CWX_MQ_ERR_SUCCESS;
   char const* queue_name = NULL;
   char const* user = NULL;
@@ -374,7 +374,7 @@ int CwxMqBinFetchHandler::delQueue(CwxMqTss* pTss) {
   return 0;
 }
 
-CwxMsgBlock* CwxMqBinFetchHandler::packEmptyFetchMsg(CwxMqTss* pTss, int iRet,
+CwxMsgBlock* CwxMqQueueHandler::packEmptyFetchMsg(CwxMqTss* pTss, int iRet,
     char const* szErrMsg) {
   CwxMsgBlock* pBlock = NULL;
   CwxKeyValueItem kv;
@@ -383,7 +383,7 @@ CwxMsgBlock* CwxMqBinFetchHandler::packEmptyFetchMsg(CwxMqTss* pTss, int iRet,
   return pBlock;
 }
 
-int CwxMqBinFetchHandler::replyFetchMq(CwxMqTss* pTss, CwxMsgBlock* msg,
+int CwxMqQueueHandler::replyFetchMq(CwxMqTss* pTss, CwxMsgBlock* msg,
     bool bBinlog, bool bClose) {
   msg->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
   msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
@@ -416,7 +416,7 @@ int CwxMqBinFetchHandler::replyFetchMq(CwxMqTss* pTss, CwxMsgBlock* msg,
   return 0;
 }
 
-void CwxMqBinFetchHandler::backMq(CWX_UINT64 ullSid, CwxMqTss* pTss) {
+void CwxMqQueueHandler::backMq(CWX_UINT64 ullSid, CwxMqTss* pTss) {
   int iRet = m_pApp->getQueueMgr()->endSendMsg(m_conn.m_strQueueName, ullSid,
       false, pTss->m_szBuf2K);
   if (0 != iRet) {
@@ -431,7 +431,7 @@ void CwxMqBinFetchHandler::backMq(CWX_UINT64 ullSid, CwxMqTss* pTss) {
 }
 
 ///发送消息，0：没有消息发送；1：发送一个；-1：发送失败
-int CwxMqBinFetchHandler::sentBinlog(CwxMqTss* pTss) {
+int CwxMqQueueHandler::sentBinlog(CwxMqTss* pTss) {
   CwxMsgBlock* pBlock = NULL;
   int err_no = CWX_MQ_ERR_SUCCESS;
   int iState = 0;
