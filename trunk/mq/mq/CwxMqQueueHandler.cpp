@@ -286,7 +286,7 @@ int CwxMqQueueHandler::createQueue(CwxMqTss* pTss) {
     return -1;
   }
   block->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
-  block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
+  block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_QUEUE);
   block->send_ctrl().setHostId(0);
   block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
   ///将消息放到连接的发送队列等待发送
@@ -362,7 +362,7 @@ int CwxMqQueueHandler::delQueue(CwxMqTss* pTss) {
     return -1;
   }
   block->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
-  block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
+  block->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_QUEUE);
   block->send_ctrl().setHostId(0);
   block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
   ///将消息放到连接的发送队列等待发送
@@ -386,7 +386,7 @@ CwxMsgBlock* CwxMqQueueHandler::packEmptyFetchMsg(CwxMqTss* pTss, int iRet,
 int CwxMqQueueHandler::replyFetchMq(CwxMqTss* pTss, CwxMsgBlock* msg,
     bool bBinlog, bool bClose) {
   msg->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
-  msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_FETCH);
+  msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_QUEUE);
   msg->send_ctrl().setHostId(0);
   if (bBinlog) { ///如果是binlog，此时需要发送完毕的时候通知
     if (bClose) ///是否关闭连接

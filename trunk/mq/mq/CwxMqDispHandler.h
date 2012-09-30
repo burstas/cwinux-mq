@@ -168,7 +168,7 @@ class CwxMqDispHandler : public CwxAppHandler4Channel {
     CWX_UINT16 m_unPeerPort; ///<对端port
     CwxMqTss* m_tss;        ///<对象对应的tss对象
   private:
-    static map<CWX_UINT64, CwxMqDispSession*> m_sessionMap; ///<session的map，key为session id
+    static map<CWX_UINT64, CwxMqDispSession*> m_sessions; ///<session的map，key为session id
     static list<CwxMqDispSession*> m_freeSession; ///<需要关闭的session
 };
 
