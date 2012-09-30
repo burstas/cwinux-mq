@@ -79,51 +79,24 @@ public:
 
 
 ///分发的参数配置对象
-class CwxMqConfigDispatch {
+class CwxMcConfigSyncHost {
   public:
-    CwxMqConfigDispatch() {
-      m_uiFlushNum = 1;
-      m_uiFlushSecond = 10;
+    CwxMcConfigSyncHost() {
     }
   public:
-    CwxHostInfo m_async; ///<master bin协议异步分发端口信息
-    string m_strSourcePath; ///<source的路径
-    CWX_UINT32 m_uiFlushNum; ///<fetch多少条日志，必须flush获取点
-    CWX_UINT32 m_uiFlushSecond; ///<多少秒必须flush获取点
-
-};
-
-///配置文件的recv参数对象
-class CwxMqConfigRecv {
-  public:
-    CwxMqConfigRecv() {
-    }
-  public:
-    CwxHostInfo m_recv; ///<master recieve消息的listen信息
-};
-
-///配置文件的Master参数对象
-class CwxMqConfigMaster {
-  public:
-    CwxMqConfigMaster() {
-      m_bzip = false;
-    }
-  public:
-    CwxHostInfo m_master; ///<slave的master的连接信息
-    bool m_bzip; ///<是否zip压缩
-    string m_strSign; ///<签名类型
+    map<string, CwxHostInfo>  m_hosts;
 };
 
 
 ///配置文件加载对象
-class CwxMqConfig {
+class CwxMcConfig {
   public:
     ///构造函数
-    CwxMqConfig() {
+    CwxMcConfig() {
       m_szErrMsg[0] = 0x00;
     }
     ///析构函数
-    ~CwxMqConfig() {
+    ~CwxMcConfig() {
     }
   public:
     //加载配置文件.-1:failure, 0:success
@@ -132,43 +105,38 @@ class CwxMqConfig {
     void outputConfig() const;
   public:
     ///获取common配置信息
-    inline CwxMqConfigCmn const& getCommon() const {
+    inline CwxMcConfigCmn const& getCommon() const {
       return m_common;
     }
     ///获取binlog配置信息
-    inline CwxMqConfigBinLog const& getBinLog() const {
-      return m_binlog;
+    inline CwxMcConfigLog const& getLog() const {
+      return m_log;
     }
-    ///获取master配置信息
-    inline CwxMqConfigMaster const& getMaster() const {
-      return m_master;
-    }
-    ///获取分发的信息
-    inline CwxMqConfigDispatch const& getDispatch() const {
-      return m_dispatch;
-    }
-    ///获取消息接受的listen信息
-    inline CwxMqConfigRecv const& getRecv() const {
-      return m_recv;
-    }
-    inline CwxMqConfigMq const& getMq() const {
+    inline CwxMcConfigMq const& getMq() const {
       return m_mq;
+    }
+    ///获取sync的信息
+    CwxMcConfigSync const& getSync() const{
+        return m_sync;
+    }
+    ///获取sync host的信息
+    CwxMcConfigSyncHost const& getSyncHosts() const{
+        return m_syncHosts;
     }
     ///获取配置文件加载的失败原因
     inline char const* getErrMsg() const {
       return m_szErrMsg;
     }
-    ;
+
   private:
     bool fetchHost(CwxIniParse& cnf, string const& node, CwxHostInfo& host);
   private:
-    CwxMqConfigCmn    m_common; ///<common的配置信息
-    CwxMqConfigBinLog m_binlog; ///<binlog的配置信息
-    CwxMqConfigMaster m_master; ///<slave的master的数据同步配置信息
-    CwxMqConfigRecv   m_recv; ///<master的数据接收listen信息
-    CwxMqConfigDispatch m_dispatch; ///<dispatch的配置信息
-    CwxMqConfigMq     m_mq; ///<mq的fetch的配置信息
-    char              m_szErrMsg[2048]; ///<错误消息的buf
+    CwxMcConfigCmn       m_common; ///<common的配置信息
+    CwxMcConfigLog       m_log; ///<log的配置信息
+    CwxMcConfigMq        m_mq; ///<mq的配置信息
+    CwxMcConfigSync      m_sync; ///<sync的配置信息
+    CwxMcConfigSyncHost  m_syncHosts; ///<sync host的配置信息
+    char                m_szErrMsg[2048]; ///<错误消息的buf
 };
 
 #endif
