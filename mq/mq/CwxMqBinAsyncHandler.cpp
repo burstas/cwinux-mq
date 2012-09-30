@@ -509,7 +509,14 @@ int CwxMqBinAsyncHandler::recvSyncReply(CwxMqTss* pTss) {
       break;
     }
     if (m_syncSession->m_sourceFile){
-        if (-1 == m_syncSession->m_sourceFile->log(
+        if (-1 == m_syncSession->m_sourceFile->log(m_ullLastSid)){
+            iRet = CWX_MQ_ERR_ERROR;
+            CwxCommon::snprintf(pTss->m_szBuf2K, 2047,
+                "Falure to write source log file , err=%s", m_syncSession->m_sourceFile->getErrMsg());
+            CWX_ERROR(
+                ("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+            break;
+        }
     }
     ///发送下一条binlog
     int iState = syncSendBinLog(pTss);
