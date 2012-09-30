@@ -1,9 +1,9 @@
-#include "CwxMqBinRecvHandler.h"
+#include "CwxMqRecvHandler.h"
 #include "CwxMqApp.h"
 #include "CwxZlib.h"
 
 ///连接建立后，需要维护连接上数据的分发
-int CwxMqBinRecvHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss*) {
+int CwxMqRecvHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss*) {
   ///连接必须必须不存在
   CWX_ASSERT(m_clientMap.find(msg->event().getConnId()) == m_clientMap.end());
   m_clientMap[msg->event().getConnId()] = false;
@@ -12,7 +12,7 @@ int CwxMqBinRecvHandler::onConnCreated(CwxMsgBlock*& msg, CwxTss*) {
 }
 
 ///连接关闭后，需要清理环境
-int CwxMqBinRecvHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss*) {
+int CwxMqRecvHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss*) {
   map<CWX_UINT32, bool>::iterator iter = m_clientMap.find(
       msg->event().getConnId());
   ///连接必须存在
@@ -23,7 +23,7 @@ int CwxMqBinRecvHandler::onConnClosed(CwxMsgBlock*& msg, CwxTss*) {
 }
 
 ///echo请求的处理函数
-int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv) {
+int CwxMqRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv) {
   CwxMqTss* pTss = (CwxMqTss*) pThrEnv;
   int iRet = CWX_MQ_ERR_SUCCESS;
   char const* user = NULL;
@@ -148,12 +148,12 @@ int CwxMqBinRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv) {
 }
 
 ///对于同步dispatch，需要检查同步的超时
-int CwxMqBinRecvHandler::onTimeoutCheck(CwxMsgBlock*&, CwxTss*) {
+int CwxMqRecvHandler::onTimeoutCheck(CwxMsgBlock*&, CwxTss*) {
   m_pApp->getBinLogMgr()->timeout(m_pApp->getCurTime());
   return 1;
 }
 
-int CwxMqBinRecvHandler::commit(char* szErr2K) {
+int CwxMqRecvHandler::commit(char* szErr2K) {
   int iRet = 0;
   CWX_INFO(("Begin flush bin log......."));
   m_pApp->clearFirstBinLog();
@@ -162,7 +162,7 @@ int CwxMqBinRecvHandler::commit(char* szErr2K) {
   return iRet;
 }
 
-bool CwxMqBinRecvHandler::prepareUnzipBuf() {
+bool CwxMqRecvHandler::prepareUnzipBuf() {
   if (!m_unzipBuf) {
     m_uiBufLen = CWX_MQ_MAX_MSG_SIZE + 4096;
     if (m_uiBufLen < 1024 * 1024)

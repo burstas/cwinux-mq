@@ -1,5 +1,5 @@
-#ifndef __CWX_MQ_BIN_FETCH_HANDLER_H__
-#define __CWX_MQ_BIN_FETCH_HANDLER_H__
+#ifndef __CWX_MQ_QUEUE_HANDLER_H__
+#define __CWX_MQ_QUEUE_HANDLER_H__
 /*
  版权声明：
  本软件遵循GNU GPL V3（http://www.gnu.org/licenses/gpl.html），
@@ -18,10 +18,10 @@
 
 class CwxMqApp;
 
-class CwxMqBinFetchHandler : public CwxAppHandler4Channel {
+class CwxMqQueueHandler : public CwxAppHandler4Channel {
   public:
     ///构造函数
-    CwxMqBinFetchHandler(CwxMqApp* pApp, CwxAppChannel* channel) :
+    CwxMqQueueHandler(CwxMqApp* pApp, CwxAppChannel* channel) :
         CwxAppHandler4Channel(channel) {
       m_pApp = pApp;
       m_uiRecvHeadLen = 0;
@@ -30,7 +30,7 @@ class CwxMqBinFetchHandler : public CwxAppHandler4Channel {
 
     }
     ///析构函数
-    virtual ~CwxMqBinFetchHandler() {
+    virtual ~CwxMqQueueHandler() {
       if (m_recvMsgData)
         CwxMsgBlockAlloc::free(m_recvMsgData);
     }

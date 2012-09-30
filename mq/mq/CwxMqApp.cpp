@@ -90,7 +90,7 @@ int CwxMqApp::initRunEnv() {
   if (m_config.getCommon().m_bMaster) {
     ///注册数据接收handler
     if (m_config.getRecv().m_recv.getHostName().length()) {
-      m_pBinRecvHandler = new CwxMqBinRecvHandler(this);
+      m_pBinRecvHandler = new CwxMqRecvHandler(this);
       getCommander().regHandle(SVR_TYPE_RECV, m_pBinRecvHandler);
     }
   } else {
@@ -633,10 +633,10 @@ void* CwxMqApp::dispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg) {
       sleep(1);
     }
     ///检查关闭的连接
-    CwxMqBinAsyncHandler::dealClosedSession(app, (CwxMqTss*) tss);
+    CwxMqDispHandler::dealClosedSession(app, (CwxMqTss*) tss);
   }
   ///释放分发的资源
-  CwxMqBinAsyncHandler::destroy(app);
+  CwxMqDispHandler::destroy(app);
 
   app->getAsyncDispChannel()->stop();
   app->getAsyncDispChannel()->close();
@@ -655,7 +655,7 @@ int CwxMqApp::dealDispatchThreadQueueMsg(CwxTss* tss, CwxMsgQueue* queue,
     iRet = queue->dequeue(block);
     if (-1 == iRet)
       return -1;
-    CwxMqBinAsyncHandler::doEvent(app, (CwxMqTss*) tss, block);
+    CwxMqDispHandler::doEvent(app, (CwxMqTss*) tss, block);
     if (block)
       CwxMsgBlockAlloc::free(block);
     block = NULL;
@@ -708,7 +708,7 @@ int CwxMqApp::dealMqFetchThreadQueueMsg(CwxMsgQueue* queue, CwxMqApp* app,
           break;
         }
         if (block->event().getSvrId() == SVR_TYPE_FETCH) {
-          handler = new CwxMqBinFetchHandler(app, channel);
+          handler = new CwxMqQueueHandler(app, channel);
         } else {
           CWX_ERROR(
               ("Invalid svr_type[%d], close handle[%d]", block->event().getSvrId(), block->event().getIoHandle()));

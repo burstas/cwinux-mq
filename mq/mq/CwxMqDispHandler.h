@@ -1,5 +1,5 @@
-#ifndef __CWX_MQ_BIN_ASYNC_HANDLER_H__
-#define __CWX_MQ_BIN_ASYNC_HANDLER_H__
+#ifndef __CWX_MQ_DISP_HANDLER_H__
+#define __CWX_MQ_DISP_HANDLER_H__
 /*
  版权声明：
  本软件遵循GNU GPL V3（http://www.gnu.org/licenses/gpl.html），
@@ -15,13 +15,13 @@
 #include "CwxSidLogFile.h"
 
 class CwxMqApp;
-class CwxMqBinAsyncHandler;
+class CwxMqDispHandler;
 
 ///分发连接的sync session信息对象
-class CwxMqBinAsyncHandlerSession {
+class CwxMqDispSession {
   public:
     ///构造函数
-    CwxMqBinAsyncHandlerSession() {
+    CwxMqDispSession() {
       m_ullSeq = 0;
       m_ullSessionId = 0;
       m_bClosed = false;
@@ -33,14 +33,14 @@ class CwxMqBinAsyncHandlerSession {
       m_bZip = false;
       m_sourceFile = NULL;
     }
-    ~CwxMqBinAsyncHandlerSession() {
+    ~CwxMqDispSession() {
       if (m_sourceFile) {
         m_sourceFile->syncFile();
         delete m_sourceFile;
       }
     }
   public:
-    void addConn(CwxMqBinAsyncHandler* conn);
+    void addConn(CwxMqDispHandler* conn);
     ///重新形成session id，返回session id
     CWX_UINT64 reformSessionId() {
       CwxTimeValue timer;
@@ -53,7 +53,7 @@ class CwxMqBinAsyncHandlerSession {
     CWX_UINT64 m_ullSessionId; ///<session id
     CWX_UINT64 m_ullSeq; ///<当前的序列号，从0开始。
     bool m_bClosed; ///<是否需要关闭
-    map<CWX_UINT32, CwxMqBinAsyncHandler*> m_conns; ///<建立的连接
+    map<CWX_UINT32, CwxMqDispHandler*> m_conns; ///<建立的连接
     CwxBinLogCursor* m_pCursor; ///<binlog的读取cursor
     CWX_UINT32 m_uiChunk; ///<chunk大小
     CWX_UINT64 m_ullStartSid; ///<report的sid
@@ -67,13 +67,13 @@ class CwxMqBinAsyncHandlerSession {
 };
 
 ///异步binlog分发的消息处理handler
-class CwxMqBinAsyncHandler : public CwxAppHandler4Channel {
+class CwxMqDispHandler : public CwxAppHandler4Channel {
   public:
     ///构造函数
-    CwxMqBinAsyncHandler(CwxMqApp* pApp, CwxAppChannel* channel,
+    CwxMqDispHandler(CwxMqApp* pApp, CwxAppChannel* channel,
         CWX_UINT32 uiConnId);
     ///析构函数
-    virtual ~CwxMqBinAsyncHandler();
+    virtual ~CwxMqDispHandler();
   public:
     /**
      @brief 连接可读事件，返回-1，close()会被调用
@@ -142,20 +142,18 @@ class CwxMqBinAsyncHandler : public CwxAppHandler4Channel {
     ///收到一个消息并处理。返回值：0：成功；-1：失败
     int recvMessage();
 
-    ///收到sync report的消息。返回值：0：成功；-1：失败
-    int recvSyncReport(CwxMqTss* pTss);
+    ///收到report的消息。返回值：0：成功；-1：失败
+    int recvReport(CwxMqTss* pTss);
 
-    ///收到sync new conn的report消息。返回值：0：成功；-1：失败
-    int recvSyncNewConnection(CwxMqTss* pTss);
+    ///收到new conn的report消息。返回值：0：成功；-1：失败
+    int recvNewConnection(CwxMqTss* pTss);
 
-    ///收到binlog sync的reply消息。返回值：0：成功；-1：失败
-    int recvSyncReply(CwxMqTss* pTss);
+    ///收到sync的reply消息。返回值：0：成功；-1：失败
+    int recvReply(CwxMqTss* pTss);
 
-    ///收到chunk模式下的binlog sync reply消息。返回值：0：成功；-1：失败
-    int recvSyncChunkReply(CwxMqTss* pTss);
   private:
     bool m_bReport; ///<是否已经报告
-    CwxMqBinAsyncHandlerSession* m_syncSession; ///<连接对应的session
+    CwxMqDispSession* m_syncSession; ///<连接对应的session
     CWX_UINT64 m_ullSessionId; ///<session的id
     CWX_UINT64 m_ullSentSeq; ///<发送的序列号
     CWX_UINT64 m_ullLastSid; ///<发送的最后sid号
@@ -170,8 +168,8 @@ class CwxMqBinAsyncHandler : public CwxAppHandler4Channel {
     CWX_UINT16 m_unPeerPort; ///<对端port
     CwxMqTss* m_tss;        ///<对象对应的tss对象
   private:
-    static map<CWX_UINT64, CwxMqBinAsyncHandlerSession*> m_sessionMap; ///<session的map，key为session id
-    static list<CwxMqBinAsyncHandlerSession*> m_freeSession; ///<需要关闭的session
+    static map<CWX_UINT64, CwxMqDispSession*> m_sessionMap; ///<session的map，key为session id
+    static list<CwxMqDispSession*> m_freeSession; ///<需要关闭的session
 };
 
 #endif 
