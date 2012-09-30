@@ -525,8 +525,6 @@ CWX_UINT32 CwxMqApp::packMonitorInfo() {
   char szLine[4096];
   CWX_UINT32 uiLen = 0;
   CWX_UINT32 uiPos = 0;
-  //更新服务状态
-  updateAppRunState();
   do {
     //输出进程pid
     CwxCommon::snprintf(szLine, 4096, "STAT pid %d\r\n", getpid());
