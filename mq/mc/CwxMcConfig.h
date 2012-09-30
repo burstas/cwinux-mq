@@ -28,7 +28,7 @@ class CwxMcConfigLog {
   public:
     enum {
       DEF_BINLOG_MSIZE = 1024, ///<缺省的binlog大小
-      MIN_BINLOG_MSIZE = 64, ///<最小的binlog大小
+      MIN_BINLOG_MSIZE = 1, ///<最小的binlog大小
       MAX_BINLOG_MSIZE = 2048 ///<最大的binlog大小
     };
   public:
@@ -50,13 +50,14 @@ class CwxMcConfigLog {
 class CwxMcConfigMq {
 public:
     CwxMcConfigMq() {
-        m_uiFlushNum = 1;
-        m_uiFlushSecond = 30;
+        m_uiCacheMSize = 100;
+        m_uiCacheTimeout = 300;
     }
 public:
     CwxHostInfo     m_mq; ///<mq的fetch的配置信息
-    CWX_UINT32      m_uiMSize; ///<cache的MSize
-    CWX_UINT32      m_uiTimeout; ///<cache的数据时间
+    string          m_strName; ///<mq的名字
+    CWX_UINT32      m_uiCacheMSize; ///<cache的MSize
+    CWX_UINT32      m_uiCacheTimeout; ///<cache的数据时间
 };
 
 ///数据接收的配置
@@ -73,7 +74,7 @@ public:
     CWX_UINT32    m_uiSockBufKByte; ///<同步socket的buf大小
     CWX_UINT32    m_uiChunkKBye; ///<chunk的大小
     CWX_UINT32    m_uiConnNum; ///<同步的连接数量
-    bool          m_bZip; ///<是否压缩
+    bool          m_bzip; ///<是否压缩
     string        m_strSign; ///<签名的类型，为crc32或md5
 };
 
