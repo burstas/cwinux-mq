@@ -2,7 +2,7 @@
 #include "CwxMqApp.h"
 
 // session的map，key为session id
-map<CWX_UINT64, CwxMqDispSession*> CwxMqDispHandler::m_sessionMap;
+map<CWX_UINT64, CwxMqDispSession*> CwxMqDispHandler::m_sessions;
 ///<需要关闭的session
 list<CwxMqDispSession*> CwxMqDispHandler::m_freeSession;
 
@@ -40,21 +40,21 @@ CwxMqDispHandler::~CwxMqDispHandler() {
 void CwxMqDispHandler::destroy(CwxMqApp* app) {
   {
     map<CWX_UINT64, CwxMqDispSession*>::iterator iter =
-        m_sessionMap.begin();
-    while (iter != m_sessionMap.end()) {
+        m_sessions.begin();
+    while (iter != m_sessions.end()) {
       if (iter->second->m_pCursor)
         app->getBinLogMgr()->destoryCurser(iter->second->m_pCursor);
       delete iter->second;
       iter++;
     }
-    m_sessionMap.clear();
+    m_sessions.clear();
   }
 }
 
 void CwxMqDispHandler::doEvent(CwxMqApp* app, CwxMqTss* tss,
     CwxMsgBlock*& msg) {
   if (CwxEventInfo::CONN_CREATED == msg->event().getEvent()) { ///连接建立
-    CwxAppChannel* channel = app->getAsyncDispChannel();
+    CwxAppChannel* channel = app->getDispChannel();
     if (channel->isRegIoHandle(msg->event().getIoHandle())) {
       CWX_ERROR(
           ("Handler[%] is register, it's a big bug. exit....", msg->event().getIoHandle()));
@@ -85,11 +85,11 @@ void CwxMqDispHandler::doEvent(CwxMqApp* app, CwxMqTss* tss,
         ("Accept sync connection from %s:%u", pHandler->m_strPeerHost.c_str(), pHandler->m_unPeerPort));
   } else {
     CWX_ASSERT(msg->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
-    CWX_ASSERT(msg->event().getSvrId() == CwxMqApp::SVR_TYPE_ASYNC);
+    CWX_ASSERT(msg->event().getSvrId() == CwxMqApp::SVR_TYPE_DISP);
     //日志超时检查
     map<CWX_UINT64, CwxMqDispSession*>::iterator iter =
-        m_sessionMap.begin();
-    while (iter != m_sessionMap.end()) {
+        m_sessions.begin();
+    while (iter != m_sessions.end()) {
       if (iter->second->m_sourceFile)
         iter->second->m_sourceFile->timeout(app->getCurTime());
       ++iter;
@@ -109,7 +109,7 @@ void CwxMqDispHandler::dealClosedSession(CwxMqApp* app, CwxMqTss*) {
       CWX_ASSERT((*iter)->m_bClosed);
       CWX_INFO(("Close sync session from host:%s", (*iter)->m_strHost.c_str()));
       ///将session从session的map中删除
-      m_sessionMap.erase((*iter)->m_ullSessionId);
+      m_sessions.erase((*iter)->m_ullSessionId);
       ///开始关闭连接
       map<CWX_UINT32, CwxMqDispHandler*>::iterator conn_iter =
           (*iter)->m_conns.begin();
@@ -158,7 +158,7 @@ int CwxMqDispHandler::onConnClosed() {
   ///一条连接关闭，则整个session失效
   if (m_syncSession) {
     ///如果连接对应的session存在
-    if (m_sessionMap.find(m_ullSessionId) != m_sessionMap.end()) {
+    if (m_sessions.find(m_ullSessionId) != m_sessions.end()) {
       CWX_INFO(("CwxMqDispHandler: conn closed, conn_id=%u", m_uiConnId));
       if (!m_syncSession->m_bClosed) {
         ///将session标记为close
@@ -263,8 +263,8 @@ int CwxMqDispHandler::recvReport(CwxMqTss* pTss) {
             ullSid--;
     }
     if (source) { ///检查source是否存在
-      map<CWX_UINT64, CwxMqDispSession*>::iterator iter =  m_sessionMap.begin();
-      while (iter != m_sessionMap.end()) {
+      map<CWX_UINT64, CwxMqDispSession*>::iterator iter =  m_sessions.begin();
+      while (iter != m_sessions.end()) {
         if (iter->second->m_strSource == source) {
           iRet = CWX_MQ_ERR_ERROR;
           CwxCommon::snprintf(pTss->m_szBuf2K, 2048,
@@ -277,7 +277,7 @@ int CwxMqDispHandler::recvReport(CwxMqTss* pTss) {
       }
       ///如果中间有失败，则退出
       m_syncSession->m_strSource = m_pApp->getConfig().getDispatch().m_strSourcePath + source;
-      if (iter != m_sessionMap.end()) break;
+      if (iter != m_sessions.end()) break;
       m_syncSession->m_sourceFile = new CwxSidLogFile(
           m_pApp->getConfig().getDispatch().m_uiFlushNum,
           m_pApp->getConfig().getDispatch().m_uiFlushSecond,
@@ -312,11 +312,11 @@ int CwxMqDispHandler::recvReport(CwxMqTss* pTss) {
 
     m_syncSession->reformSessionId();
     ///将session加入到session的map
-    while (m_sessionMap.find(m_syncSession->m_ullSessionId)
-        != m_sessionMap.end()) {
+    while (m_sessions.find(m_syncSession->m_ullSessionId)
+        != m_sessions.end()) {
       m_syncSession->reformSessionId();
     }
-    m_sessionMap[m_syncSession->m_ullSessionId] = m_syncSession;
+    m_sessions[m_syncSession->m_ullSessionId] = m_syncSession;
     m_ullSessionId = m_syncSession->m_ullSessionId;
     m_syncSession->addConn(this);
     ///回复iRet的值
@@ -424,7 +424,7 @@ int CwxMqDispHandler::recvNewConnection(CwxMqTss* pTss) {
           ("Failure to parse report new conn msg, err=%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       break;
     }
-    if (m_sessionMap.find(ullSession) == m_sessionMap.end()) {
+    if (m_sessions.find(ullSession) == m_sessions.end()) {
       iRet = CWX_MQ_ERR_ERROR;
       char szTmp[64];
       CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Session[%s] doesn't exist",
@@ -433,7 +433,7 @@ int CwxMqDispHandler::recvNewConnection(CwxMqTss* pTss) {
           ("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       break;
     }
-    m_syncSession = m_sessionMap.find(ullSession)->second;
+    m_syncSession = m_sessions.find(ullSession)->second;
     m_ullSessionId = m_syncSession->m_ullSessionId;
     m_syncSession->addConn(this);
     ///发送下一条binlog
@@ -669,7 +669,7 @@ int CwxMqDispHandler::syncSendBinLog(CwxMqTss* pTss) {
   }
   ///根据svr类型，发送数据包
   pBlock->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
-  pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_ASYNC);
+  pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_DISP);
   pBlock->send_ctrl().setHostId(0);
   pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
   if (!putMsg(pBlock)) {

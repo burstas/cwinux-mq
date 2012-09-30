@@ -29,10 +29,10 @@ class CwxMqApp : public CwxAppFramework {
       MAX_MONITOR_REPLY_SIZE = 1024 * 1024, ///<监控的BUF空间大小
       LOG_FILE_SIZE = 30, ///<每个可循环使用日志文件的MByte
       LOG_FILE_NUM = 7, ///<可循环使用日志文件的数量
-      SVR_TYPE_RECV = CwxAppFramework::SVR_TYPE_USER_START, ///<master bin协议接收的svr type
-      SVR_TYPE_ASYNC = CwxAppFramework::SVR_TYPE_USER_START + 2, ///<master/slave bin协议异步分发的svr type
+      SVR_TYPE_RECV = CwxAppFramework::SVR_TYPE_USER_START, ///<master协议接收的svr type
+      SVR_TYPE_DISP = CwxAppFramework::SVR_TYPE_USER_START + 2, ///<master/slave 分发的svr type
       SVR_TYPE_MASTER = CwxAppFramework::SVR_TYPE_USER_START + 4, ///<slave 从master接收数据的svr type
-      SVR_TYPE_FETCH = CwxAppFramework::SVR_TYPE_USER_START + 5, ///<mq bin协议消息获取服务类型
+      SVR_TYPE_QUEUE = CwxAppFramework::SVR_TYPE_USER_START + 5, ///<mq协议消息获取服务类型
       SVR_TYPE_MONITOR = CwxAppFramework::SVR_TYPE_USER_START + 7 ///<监控监听的服务类型
     };
     ///构造函数
@@ -104,11 +104,7 @@ class CwxMqApp : public CwxAppFramework {
     }
     ///获取slave从master同步binlog的handler对象
     inline CwxMqMasterHandler* getMasterHandler() {
-      return m_pMasterHandler;
-    }
-    ///获取master接收binlog的handler对象
-    inline CwxMqRecvHandler* getBinRecvHandler() {
-      return m_pBinRecvHandler;
+      return m_masterHandler;
     }
     ///获取当前的时间
     inline CWX_UINT32 getCurTime() const {
@@ -123,8 +119,8 @@ class CwxMqApp : public CwxAppFramework {
           bValid = false;
           szReason = m_pBinLogMgr->getInvalidMsg();
           break;
-        } else if (m_pMasterHandler) {
-          if (!m_pMasterHandler->getSession()) {
+        } else if (m_masterHandler) {
+          if (!m_masterHandler->getSession()) {
             bValid = false;
             szReason = "Lost Master";
           }
@@ -139,8 +135,8 @@ class CwxMqApp : public CwxAppFramework {
       setAppRunFailReason(szReason);
     }
     ///获取分发的channel
-    CwxAppChannel* getAsyncDispChannel() {
-      return m_asyncDispChannel;
+    CwxAppChannel* getDispChannel() {
+      return m_dispChannel;
     }
     ///获取mq的channel
     CwxAppChannel* getMqChannel() {
@@ -184,13 +180,13 @@ class CwxMqApp : public CwxAppFramework {
     CWX_UINT64 m_uiCurSid; ///<当前的sid
     CwxMqConfig m_config; ///<配置文件
     CwxBinLogMgr* m_pBinLogMgr; ///<binlog的管理对象
-    CwxMqMasterHandler* m_pMasterHandler; ///<从master接收消息的handle
-    CwxMqRecvHandler* m_pBinRecvHandler; ///<bin协议接收binlog的handle。
+    CwxMqMasterHandler* m_masterHandler; ///<从master接收消息的handle
+    CwxMqRecvHandler* m_recvHandler; ///<bin协议接收binlog的handle。
     CwxMqQueueMgr* m_queueMgr; ///<队列管理器
-    CwxThreadPool* m_pRecvThreadPool; ///<消息接受的线程池对象
-    CwxThreadPool* m_pAsyncDispThreadPool; ///<消息异步分发的线程池对象
-    CwxAppChannel* m_asyncDispChannel; ///<消息异步分发的channel
-    CwxThreadPool* m_pMqThreadPool;       ///<mq获取的线程池对象
+    CwxThreadPool* m_recvThreadPool; ///<消息接受的线程池对象
+    CwxThreadPool* m_dispThreadPool; ///<消息异步分发的线程池对象
+    CwxAppChannel* m_dispChannel; ///<消息异步分发的channel
+    CwxThreadPool* m_mqThreadPool;       ///<mq获取的线程池对象
     CwxAppChannel* m_mqChannel;           ///<mq获取的channel
     string m_strStartTime; ///<启动时间
     volatile CWX_UINT32 m_ttCurTime; ///<当前的时间

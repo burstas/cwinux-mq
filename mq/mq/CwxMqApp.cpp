@@ -5,13 +5,13 @@ CwxMqApp::CwxMqApp() {
   m_bFirstBinLog = true;
   m_uiCurSid = 0;
   m_pBinLogMgr = NULL;
-  m_pMasterHandler = NULL;
-  m_pBinRecvHandler = NULL;
+  m_masterHandler = NULL;
+  m_recvHandler = NULL;
   m_queueMgr = NULL;
-  m_pRecvThreadPool = NULL;
-  m_pAsyncDispThreadPool = NULL;
-  m_asyncDispChannel = NULL;
-  m_pMqThreadPool = NULL;
+  m_recvThreadPool = NULL;
+  m_dispThreadPool = NULL;
+  m_dispChannel = NULL;
+  m_mqThreadPool = NULL;
   m_mqChannel = NULL;
   memset(m_szBuf, 0x00, MAX_MONITOR_REPLY_SIZE);
 }
@@ -90,13 +90,13 @@ int CwxMqApp::initRunEnv() {
   if (m_config.getCommon().m_bMaster) {
     ///注册数据接收handler
     if (m_config.getRecv().m_recv.getHostName().length()) {
-      m_pBinRecvHandler = new CwxMqRecvHandler(this);
-      getCommander().regHandle(SVR_TYPE_RECV, m_pBinRecvHandler);
+      m_recvHandler = new CwxMqRecvHandler(this);
+      getCommander().regHandle(SVR_TYPE_RECV, m_recvHandler);
     }
   } else {
     ///注册slave的master数据接收handler
-    m_pMasterHandler = new CwxMqMasterHandler(this);
-    getCommander().regHandle(SVR_TYPE_MASTER, m_pMasterHandler);
+    m_masterHandler = new CwxMqMasterHandler(this);
+    getCommander().regHandle(SVR_TYPE_MASTER, m_masterHandler);
   }
 
   ///启动网络连接与监听
@@ -105,7 +105,7 @@ int CwxMqApp::initRunEnv() {
 
   ///创建recv线程池对象，此线程池中线程的group-id为THREAD_GROUP_USER_START，
   ///线程池的线程数量为1。
-  m_pRecvThreadPool = new CwxThreadPool(
+  m_recvThreadPool = new CwxThreadPool(
       CwxAppFramework::THREAD_GROUP_USER_START, 1, getThreadPoolMgr(),
       &getCommander());
   ///创建线程的tss对象
@@ -113,21 +113,21 @@ int CwxMqApp::initRunEnv() {
   pTss[0] = new CwxMqTss();
   ((CwxMqTss*) pTss[0])->init();
   ///启动线程
-  if (0 != m_pRecvThreadPool->start(pTss)) {
+  if (0 != m_recvThreadPool->start(pTss)) {
     CWX_ERROR(("Failure to start recv thread pool"));
     return -1;
   }
   //创建分发线程池
   if (m_config.getDispatch().m_async.getHostName().length()) {
-    m_asyncDispChannel = new CwxAppChannel();
-    m_pAsyncDispThreadPool = new CwxThreadPool(
+    m_dispChannel = new CwxAppChannel();
+    m_dispThreadPool = new CwxThreadPool(
         CwxAppFramework::THREAD_GROUP_USER_START + 1, 1, getThreadPoolMgr(),
         &getCommander(), CwxMqApp::dispatchThreadMain, this);
     ///启动线程
     pTss = new CwxTss*[1];
     pTss[0] = new CwxMqTss();
     ((CwxMqTss*) pTss[0])->init();
-    if (0 != m_pAsyncDispThreadPool->start(pTss)) {
+    if (0 != m_dispThreadPool->start(pTss)) {
       CWX_ERROR(("Failure to start dispatch thread pool"));
       return -1;
     }
@@ -136,14 +136,14 @@ int CwxMqApp::initRunEnv() {
   if (m_config.getMq().m_mq.getHostName().length()
       || m_config.getMq().m_mq.getUnixDomain().length()) {
     m_mqChannel = new CwxAppChannel();
-    m_pMqThreadPool = new CwxThreadPool(
+    m_mqThreadPool = new CwxThreadPool(
         CwxAppFramework::THREAD_GROUP_USER_START + 2, 1, getThreadPoolMgr(),
         &getCommander(), CwxMqApp::mqFetchThreadMain, this);
     ///启动线程
     pTss = new CwxTss*[1];
     pTss[0] = new CwxMqTss();
     ((CwxMqTss*) pTss[0])->init();
-    if (0 != m_pMqThreadPool->start(pTss)) {
+    if (0 != m_mqThreadPool->start(pTss)) {
       CWX_ERROR(("Failure to start mq thread pool"));
       return -1;
     }
@@ -167,29 +167,29 @@ void CwxMqApp::onTime(CwxTimeValue const& current) {
       pBlock->event().setSvrId(SVR_TYPE_RECV);
       pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
       //将超时检查事件，放入事件队列
-      m_pRecvThreadPool->append(pBlock);
+      m_recvThreadPool->append(pBlock);
     } else {
       CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
       pBlock->event().setSvrId(SVR_TYPE_MASTER);
       pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
       //将超时检查事件，放入事件队列
-      m_pRecvThreadPool->append(pBlock);
+      m_recvThreadPool->append(pBlock);
     }
     //若存在分发线程池，则往分发线程池append TIMEOUT_CHECK
-    if (m_pAsyncDispThreadPool) {
+    if (m_dispThreadPool) {
       CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
-      pBlock->event().setSvrId(SVR_TYPE_ASYNC);
+      pBlock->event().setSvrId(SVR_TYPE_DISP);
       pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
       //将超时检查事件，放入事件队列
-      m_pAsyncDispThreadPool->append(pBlock);
+      m_dispThreadPool->append(pBlock);
     }
     //若存在mq程池，则往mq线程池append TIMEOUT_CHECK
-    if (m_pMqThreadPool) {
+    if (m_mqThreadPool) {
       CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
-      pBlock->event().setSvrId(SVR_TYPE_FETCH);
+      pBlock->event().setSvrId(SVR_TYPE_QUEUE);
       pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
       //将超时检查事件，放入事件队列
-      m_pMqThreadPool->append(pBlock);
+      m_mqThreadPool->append(pBlock);
     }
   }
 }
@@ -218,11 +218,11 @@ int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId, CWX_UINT32 uiHostId,
   msg->event().setIoHandle(handle);
   msg->event().setEvent(CwxEventInfo::CONN_CREATED);
   ///将消息放到线程池队列中，有内部的线程调用其处理handle来处理
-  if (SVR_TYPE_ASYNC == uiSvrId) {
-    if (m_pAsyncDispThreadPool->append(msg) <= 1)
-      m_asyncDispChannel->notice();
-  } else if (SVR_TYPE_FETCH == uiSvrId) {
-    if (m_pMqThreadPool->append(msg) <= 1)
+  if (SVR_TYPE_DISP == uiSvrId) {
+    if (m_dispThreadPool->append(msg) <= 1)
+      m_dispChannel->notice();
+  } else if (SVR_TYPE_QUEUE == uiSvrId) {
+    if (m_mqThreadPool->append(msg) <= 1)
       m_mqChannel->notice();
   } else {
     CWX_ASSERT(SVR_TYPE_MONITOR == uiSvrId);
@@ -241,7 +241,7 @@ int CwxMqApp::onConnCreated(CwxAppHandler4Msg& conn, bool&, bool&) {
     ///设置事件类型
     pBlock->event().setEvent(CwxEventInfo::CONN_CREATED);
     ///将事件添加到消息队列
-    m_pRecvThreadPool->append(pBlock);
+    m_recvThreadPool->append(pBlock);
   } else if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId()) { ///如果是监控的连接建立，则建立一个string的buf，用于缓存不完整的命令
     string* buf = new string();
     conn.getConnInfo().setUserData(buf);
@@ -261,7 +261,7 @@ int CwxMqApp::onConnClosed(CwxAppHandler4Msg& conn) {
     pBlock->event().setConnId(conn.getConnInfo().getConnId());
     ///设置事件类型
     pBlock->event().setEvent(CwxEventInfo::CONN_CLOSED);
-    m_pRecvThreadPool->append(pBlock);
+    m_recvThreadPool->append(pBlock);
   } else if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId()) { ///若是监控的连接关闭，则必须释放先前所创建的string对象。
     if (conn.getConnInfo().getUserData()) {
       delete (string*) conn.getConnInfo().getUserData();
@@ -286,7 +286,7 @@ int CwxMqApp::onRecvMsg(CwxMsgBlock* msg, CwxAppHandler4Msg& conn,
     ///设置事件类型
     msg->event().setEvent(CwxEventInfo::RECV_MSG);
     ///将消息放到线程池队列中，有内部的线程调用其处理handle来处理
-    m_pRecvThreadPool->append(msg);
+    m_recvThreadPool->append(msg);
     return 0;
   } else {
     CWX_ASSERT(0);
@@ -315,24 +315,24 @@ int CwxMqApp::onRecvMsg(CwxAppHandler4Msg& conn, bool&) {
 }
 
 void CwxMqApp::destroy() {
-  if (m_pRecvThreadPool) {
-    m_pRecvThreadPool->stop();
-    delete m_pRecvThreadPool;
-    m_pRecvThreadPool = NULL;
+  if (m_recvThreadPool) {
+    m_recvThreadPool->stop();
+    delete m_recvThreadPool;
+    m_recvThreadPool = NULL;
   }
-  if (m_pAsyncDispThreadPool) {
-    m_pAsyncDispThreadPool->stop();
-    delete m_pAsyncDispThreadPool;
-    m_pAsyncDispThreadPool = NULL;
+  if (m_dispThreadPool) {
+    m_dispThreadPool->stop();
+    delete m_dispThreadPool;
+    m_dispThreadPool = NULL;
   }
-  if (m_asyncDispChannel) {
-    delete m_asyncDispChannel;
-    m_asyncDispChannel = NULL;
+  if (m_dispChannel) {
+    delete m_dispChannel;
+    m_dispChannel = NULL;
   }
-  if (m_pMqThreadPool) {
-    m_pMqThreadPool->stop();
-    delete m_pMqThreadPool;
-    m_pMqThreadPool = NULL;
+  if (m_mqThreadPool) {
+    m_mqThreadPool->stop();
+    delete m_mqThreadPool;
+    m_mqThreadPool = NULL;
   }
   if (m_mqChannel) {
     delete m_mqChannel;
@@ -342,13 +342,13 @@ void CwxMqApp::destroy() {
     delete m_queueMgr;
     m_queueMgr = NULL;
   }
-  if (m_pMasterHandler) {
-    delete m_pMasterHandler;
-    m_pMasterHandler = NULL;
+  if (m_masterHandler) {
+    delete m_masterHandler;
+    m_masterHandler = NULL;
   }
-  if (m_pBinRecvHandler) {
-    delete m_pBinRecvHandler;
-    m_pBinRecvHandler = NULL;
+  if (m_recvHandler) {
+    delete m_recvHandler;
+    m_recvHandler = NULL;
   }
   if (m_pBinLogMgr) {
     m_pBinLogMgr->commit(true);
@@ -427,7 +427,7 @@ int CwxMqApp::startNetwork() {
   ///打开分发端口
   if (m_config.getDispatch().m_async.getHostName().length()) {
     if (0
-        > this->noticeTcpListen(SVR_TYPE_ASYNC,
+        > this->noticeTcpListen(SVR_TYPE_DISP,
             m_config.getDispatch().m_async.getHostName().c_str(),
             m_config.getDispatch().m_async.getPort(), false, CWX_APP_EVENT_MODE,
             CwxMqApp::setDispatchSockAttr, this)) {
@@ -439,7 +439,7 @@ int CwxMqApp::startNetwork() {
   //打开bin mq获取的监听端口
   if (m_config.getMq().m_mq.getHostName().length()) {
     if (0
-        > this->noticeTcpListen(SVR_TYPE_FETCH,
+        > this->noticeTcpListen(SVR_TYPE_QUEUE,
             m_config.getMq().m_mq.getHostName().c_str(),
             m_config.getMq().m_mq.getPort(), false, CWX_APP_EVENT_MODE,
             CwxMqApp::setMqSockAttr, this)) {
@@ -617,7 +617,7 @@ CWX_UINT32 CwxMqApp::packMonitorInfo() {
 ///分发channel的线程函数，arg为app对象
 void* CwxMqApp::dispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg) {
   CwxMqApp* app = (CwxMqApp*) arg;
-  if (0 != app->getAsyncDispChannel()->open()) {
+  if (0 != app->getDispChannel()->open()) {
     CWX_ERROR(("Failure to open async dispatch channel"));
     return NULL;
   }
@@ -625,9 +625,9 @@ void* CwxMqApp::dispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg) {
     //获取队列中的消息并处理
     if (0
         != dealDispatchThreadQueueMsg(tss, queue, app,
-            app->getAsyncDispChannel()))
+            app->getDispChannel()))
       break;
-    if (-1 == app->getAsyncDispChannel()->dispatch(1)) {
+    if (-1 == app->getDispChannel()->dispatch(1)) {
       CWX_ERROR(
           ("Failure to invoke async dispatch channel CwxAppChannel::dispatch()"));
       sleep(1);
@@ -638,8 +638,8 @@ void* CwxMqApp::dispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg) {
   ///释放分发的资源
   CwxMqDispHandler::destroy(app);
 
-  app->getAsyncDispChannel()->stop();
-  app->getAsyncDispChannel()->close();
+  app->getDispChannel()->stop();
+  app->getDispChannel()->close();
   if (!app->isStopped()) {
     CWX_INFO(("Stop app for disptch channel thread stopped."));
     app->stop();
@@ -702,12 +702,12 @@ int CwxMqApp::dealMqFetchThreadQueueMsg(CwxMsgQueue* queue, CwxMqApp* app,
       if (-1 == iRet)
         return -1;
       if ((block->event().getEvent() == CwxEventInfo::CONN_CREATED)
-          && (block->event().getSvrId() == SVR_TYPE_FETCH)) {
+          && (block->event().getSvrId() == SVR_TYPE_QUEUE)) {
         if (channel->isRegIoHandle(block->event().getIoHandle())) {
           CWX_ERROR(("Handler[%] is register", block->event().getIoHandle()));
           break;
         }
-        if (block->event().getSvrId() == SVR_TYPE_FETCH) {
+        if (block->event().getSvrId() == SVR_TYPE_QUEUE) {
           handler = new CwxMqQueueHandler(app, channel);
         } else {
           CWX_ERROR(
@@ -722,7 +722,7 @@ int CwxMqApp::dealMqFetchThreadQueueMsg(CwxMsgQueue* queue, CwxMqApp* app,
         }
       } else {
         CWX_ASSERT(block->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
-        CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_FETCH);
+        CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_QUEUE);
         app->getQueueMgr()->timeout(app->getCurTime());
       }
     } while (0);
