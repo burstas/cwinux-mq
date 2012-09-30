@@ -173,13 +173,13 @@ class CwxMqConfig {
   private:
     bool fetchHost(CwxIniParse& cnf, string const& node, CwxHostInfo& host);
   private:
-    CwxMqConfigCmn m_common; ///<common的配置信息
+    CwxMqConfigCmn    m_common; ///<common的配置信息
     CwxMqConfigBinLog m_binlog; ///<binlog的配置信息
     CwxMqConfigMaster m_master; ///<slave的master的数据同步配置信息
-    CwxMqConfigRecv m_recv; ///<master的数据接收listen信息
+    CwxMqConfigRecv   m_recv; ///<master的数据接收listen信息
     CwxMqConfigDispatch m_dispatch; ///<dispatch的配置信息
-    CwxMqConfigMq m_mq; ///<mq的fetch的配置信息
-    char m_szErrMsg[2048]; ///<错误消息的buf
+    CwxMqConfigMq     m_mq; ///<mq的fetch的配置信息
+    char              m_szErrMsg[2048]; ///<错误消息的buf
 };
 
 #endif

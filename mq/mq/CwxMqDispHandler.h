@@ -141,35 +141,40 @@ class CwxMqDispHandler : public CwxAppHandler4Channel {
   private:
     ///收到一个消息并处理。返回值：0：成功；-1：失败
     int recvMessage();
-
     ///收到report的消息。返回值：0：成功；-1：失败
     int recvReport(CwxMqTss* pTss);
-
     ///收到new conn的report消息。返回值：0：成功；-1：失败
     int recvNewConnection(CwxMqTss* pTss);
-
     ///收到sync的reply消息。返回值：0：成功；-1：失败
     int recvReply(CwxMqTss* pTss);
 
   private:
-    bool m_bReport; ///<是否已经报告
-    CwxMqDispSession* m_syncSession; ///<连接对应的session
-    CWX_UINT64 m_ullSessionId; ///<session的id
-    CWX_UINT64 m_ullSentSeq; ///<发送的序列号
-    CWX_UINT64 m_ullLastSid; ///<发送的最后sid号
-    CWX_UINT32 m_uiConnId; ///<连接id
-    CwxMqApp* m_pApp;  ///<app对象
-    CwxMsgHead m_header; ///<消息头
-    char m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN + 1]; ///<消息头的buf
-    CWX_UINT32 m_uiRecvHeadLen; ///<recieved msg header's byte number.
-    CWX_UINT32 m_uiRecvDataLen; ///<recieved data's byte number.
-    CwxMsgBlock* m_recvMsgData; ///<the recieved msg data
-    string m_strPeerHost; ///<对端host
-    CWX_UINT16 m_unPeerPort; ///<对端port
-    CwxMqTss* m_tss;        ///<对象对应的tss对象
+    // 是否已经报告
+    bool              m_bReport;
+    // 连接对应的session
+    CwxMqDispSession* m_syncSession;
+    // session的id
+    CWX_UINT64        m_ullSessionId;
+    // 发送的序列号
+    CWX_UINT64        m_ullSentSeq;
+    // 发送的最后sid号
+    CWX_UINT64        m_ullLastSid;
+    // 连接id
+    CWX_UINT32        m_uiConnId;
+    CwxMqApp*         m_pApp;
+    CwxMsgHead        m_header;
+    char              m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN + 1];
+    CWX_UINT32        m_uiRecvHeadLen;
+    CWX_UINT32        m_uiRecvDataLen;
+    CwxMsgBlock*      m_recvMsgData;
+    string            m_strPeerHost;
+    CWX_UINT16        m_unPeerPort;
+    CwxMqTss*         m_tss;
   private:
-    static map<CWX_UINT64, CwxMqDispSession*> m_sessions; ///<session的map，key为session id
-    static list<CwxMqDispSession*> m_freeSession; ///<需要关闭的session
+    //当前分发的session
+    static map<CWX_UINT64, CwxMqDispSession*> m_sessions;
+    // 需要关闭的session
+    static list<CwxMqDispSession*>            m_freeSession;
 };
 
 #endif 
