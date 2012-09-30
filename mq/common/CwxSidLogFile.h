@@ -41,7 +41,7 @@ class CwxSidLogFile {
         string const& strPasswd); ///<用户的口令
     // 加载log文件；1：成功；0：不存在；-1：失败
     int load();
-    // 写commit记录；-1：失败；否则返回已经写入的log数量
+    // 写commit记录；0：成功；-1：失败
     int log(CWX_UINT64 sid);
     // 时间commit检查；
     void timeout(CWX_UINT32 uiNow);

@@ -79,10 +79,6 @@ class CwxMqQueue {
 
 class CwxMqQueueMgr {
   public:
-    enum {
-      MQ_SWITCH_LOG_NUM = 100000
-    };
-  public:
     CwxMqQueueMgr(string const& strQueuePath, CWX_UINT32 uiFlushNum,
         CWX_UINT32 uiFlushSecond);
     ~CwxMqQueueMgr();

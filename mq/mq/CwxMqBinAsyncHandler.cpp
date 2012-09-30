@@ -229,8 +229,7 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss) {
           ("Failure to parse report msg, err=%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       break;
     }
-    CWX_INFO(
-        ("Recv report from:%s:%u, sid=%s, from_new=%s, chunk=%u, source=%s, user=%s, passwd=%s, sign=%s, zip=%s", m_strPeerHost.c_str(), m_unPeerPort, CwxCommon::toString(ullSid, pTss->m_szBuf2K, 10), bNewly?"yes":"no", uiChunk, source?source:"", user?user:"", passwd?passwd:"", sign?sign:"", bzip?"yes":"no"));
+    CWX_INFO(("Recv report from:%s:%u, sid=%s, from_new=%s, chunk=%u, source=%s, user=%s, passwd=%s, sign=%s, zip=%s", m_strPeerHost.c_str(), m_unPeerPort, CwxCommon::toString(ullSid, pTss->m_szBuf2K, 10), bNewly?"yes":"no", uiChunk, source?source:"", user?user:"", passwd?passwd:"", sign?sign:"", bzip?"yes":"no"));
     if (m_pApp->getConfig().getDispatch().m_async.getUser().length()) {
       if ((m_pApp->getConfig().getDispatch().m_async.getUser() != user)
           || (m_pApp->getConfig().getDispatch().m_async.getPasswd() != passwd)) {
@@ -258,6 +257,11 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss) {
         m_syncSession->m_uiChunk = CwxMqConfigCmn::MIN_CHUNK_SIZE_KB;
       m_syncSession->m_uiChunk *= 1024;
     }
+    if (bNewly) { ///不sid为空，则取当前最大sid-1
+        ullSid = m_pApp->getBinLogMgr()->getMaxSid();
+        if (ullSid)
+            ullSid--;
+    }
     if (source) { ///检查source是否存在
       map<CWX_UINT64, CwxMqBinAsyncHandlerSession*>::iterator iter =  m_sessionMap.begin();
       while (iter != m_sessionMap.end()) {
@@ -266,25 +270,46 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss) {
           CwxCommon::snprintf(pTss->m_szBuf2K, 2048,
               "Source[%s]'s connection exist, from[%s]", source,
               iter->second->m_strHost.c_str());
-          CWX_ERROR(
-              ("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+          CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
           break;
         }
         ++iter;
       }
       ///如果中间有失败，则退出
-      if (iter != m_sessionMap.end())
-        break;
-       m_syncSession->m_sourceFile = new CwxSidLogFile(
-       m_pApp->getConfig().getDispatch().m_uiFlushNum,
-       m_pApp->getConfig().getDispatch().m_uiFlushSecond);
+      m_syncSession->m_strSource = m_pApp->getConfig().getDispatch().m_strSourcePath + source;
+      if (iter != m_sessionMap.end()) break;
+      m_syncSession->m_sourceFile = new CwxSidLogFile(
+          m_pApp->getConfig().getDispatch().m_uiFlushNum,
+          m_pApp->getConfig().getDispatch().m_uiFlushSecond,
+          m_syncSession->m_strSource);
+      iRet = m_syncSession->m_sourceFile->load();
+      if (-1 == iRet) {
+          iRet = CWX_MQ_ERR_ERROR;
+          CwxCommon::snprintf(pTss->m_szBuf2K, 2048,
+              "Failure to load source file[%s], err=%s", source,
+              m_syncSession->m_sourceFile->getErrMsg());
+          CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+          break;
+      }else if (0 == iRet){
+          if (0 != m_syncSession->m_sourceFile->create(
+              source,
+              ullSid,
+              "",
+              ""))
+          {
+              iRet = CWX_MQ_ERR_ERROR;
+              CwxCommon::snprintf(pTss->m_szBuf2K, 2048,
+                  "Failure to create source file[%s], err=%s", source,
+                  m_syncSession->m_sourceFile->getErrMsg());
+              CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+              break;
+          }
+      }else{
+          ullSid = m_syncSession->m_sourceFile->getCurMaxSid();
+          bNewly = false;
+      }
     }
 
-    if (bNewly) { ///不sid为空，则取当前最大sid-1
-      ullSid = m_pApp->getBinLogMgr()->getMaxSid();
-      if (ullSid)
-        ullSid--;
-    }
     m_syncSession->reformSessionId();
     ///将session加入到session的map
     while (m_sessionMap.find(m_syncSession->m_ullSessionId)
@@ -305,7 +330,7 @@ int CwxMqBinAsyncHandler::recvSyncReport(CwxMqTss* pTss) {
           ("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       break;
     }
-    if (!bNewly) {
+    if (!bNewly && !source) {
       if (ullSid && ullSid < m_pApp->getBinLogMgr()->getMinSid()) {
         m_pApp->getBinLogMgr()->destoryCurser(pCursor);
         iRet = CWX_MQ_ERR_LOST_SYNC;
@@ -483,6 +508,9 @@ int CwxMqBinAsyncHandler::recvSyncReply(CwxMqTss* pTss) {
           ("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       break;
     }
+    if (m_syncSession->m_sourceFile){
+        if (-1 == m_syncSession->m_sourceFile->log(
+    }
     ///发送下一条binlog
     int iState = syncSendBinLog(pTss);
     if (-1 == iState) {
@@ -579,10 +607,12 @@ int CwxMqBinAsyncHandler::syncSendBinLog(CwxMqTss* pTss) {
     if (!m_syncSession->m_uiChunk) {
       iRet = syncPackOneBinLog(pTss->m_pWriter, pBlock, ullSeq,
           pTss->m_pBinlogData, pTss->m_szBuf2K);
+      m_ullLastSid = m_syncSession->m_pCursor->getHeader().getSid();
       break;
     } else {
       iRet = syncPackMultiBinLog(pTss->m_pWriter, pTss->m_pItemWriter,
           pTss->m_pBinlogData, uiKeyLen, pTss->m_szBuf2K);
+      m_ullLastSid = m_syncSession->m_pCursor->getHeader().getSid();
       if (1 == iRet) {
         uiTotalLen += uiKeyLen;
         if (uiTotalLen >= m_syncSession->m_uiChunk)
@@ -594,15 +624,12 @@ int CwxMqBinAsyncHandler::syncSendBinLog(CwxMqTss* pTss) {
     }
   }
 
-  if (-1 == iRet)
-    return -1;
+  if (-1 == iRet) return -1;
 
   if (!m_syncSession->m_uiChunk) { ///若不是chunk
-    if (0 == iRet)
-      return 0; ///没有数据
+    if (0 == iRet) return 0; ///没有数据
   } else {
-    if (0 == uiTotalLen)
-      return 0;
+    if (0 == uiTotalLen) return 0;
     //add sign
     if (m_syncSession->m_strSign.length()) {
       if (m_syncSession->m_strSign == CWX_MQ_CRC32) { //CRC32签名
@@ -688,7 +715,9 @@ int CwxMqBinAsyncHandler::syncSeekToReportSid(CwxMqTss* tss) {
 
 ///-1：失败，1：成功
 int CwxMqBinAsyncHandler::syncPackOneBinLog(CwxPackageWriter* writer,
-    CwxMsgBlock*& block, CWX_UINT64 ullSeq, CwxKeyValueItem const* pData,
+    CwxMsgBlock*& block,
+    CWX_UINT64 ullSeq,
+    CwxKeyValueItem const* pData,
     char* szErr2K) {
   ///形成binlog发送的数据包
   if (CWX_MQ_ERR_SUCCESS
