@@ -143,6 +143,16 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
       else
           m_sync.m_strSign = "";
   }
+  //load sync:newline
+  if (!cnf.getAttr("sync", "newline", value) || !value.length()) {
+      m_sync.m_bAppendNewLine = false;
+  } else {
+      if (value == "yes")
+          m_sync.m_bAppendNewLine = true;
+      else
+          m_sync.m_bAppendNewLine = false;
+  }
+
   //load sync_host
   list<pair<string, string> > hosts;
   if (!cnf.getAttr("sync_host", hosts) || !hosts.size()){
@@ -231,6 +241,7 @@ void CwxMcConfig::outputConfig() const {
   CWX_INFO(("sync_conn_num=%d",m_sync.m_uiConnNum));
   CWX_INFO(("zip=%u", m_sync.m_bzip?"yes":"no"));
   CWX_INFO(("sign=%s", m_sync.m_strSign.c_str()));
+  CWX_INFO(("newline=%s", m_sync.m_bAppendNewLine?"yes":"no"));
   CWX_INFO(("*****************sync_host*******************"));
   map<string, CwxHostInfo>::iterator iter = m_hosts.begin();
   while(iter != m_hosts.end()){

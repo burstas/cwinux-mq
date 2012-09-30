@@ -68,6 +68,7 @@ public:
         m_uiChunkKBye = 64;
         m_uiConnNum = 8;
         m_bZip = false;
+        m_bAppendNewLine = false;
     }
 public:
     string        m_strSource; ///<同步的source名字
@@ -76,6 +77,7 @@ public:
     CWX_UINT32    m_uiConnNum; ///<同步的连接数量
     bool          m_bzip; ///<是否压缩
     string        m_strSign; ///<签名的类型，为crc32或md5
+    bool          m_bAppendNewLine; ///<是否增加回车
 };
 
 
