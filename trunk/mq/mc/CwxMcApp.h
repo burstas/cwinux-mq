@@ -7,8 +7,7 @@
  */
 #include "CwxMqMacro.h"
 #include "CwxAppFramework.h"
-#include "CwxBinLogMgr.h"
-#include "CwxMqConfig.h"
+#include "CwxMcConfig.h"
 #include "CwxMqTss.h"
 #include "CwxMqPoco.h"
 #include "CwxMqDispHandler.h"
