@@ -10,19 +10,18 @@
 #include "CwxMcConfig.h"
 #include "CwxMqTss.h"
 #include "CwxMqPoco.h"
-#include "CwxMqDispHandler.h"
-#include "CwxMqRecvHandler.h"
-#include "CwxMqMasterHandler.h"
-#include "CwxMqQueueHandler.h"
-#include "CwxMqQueueMgr.h"
 #include "CwxThreadPool.h"
 
 ///应用信息定义
-#define CWX_MQ_VERSION "2.3.2"
-#define CWX_MQ_MODIFY_DATE "20120916142000"
+#define CWX_MC_VERSION "0.1.0"
+#define CWX_MC_MODIFY_DATE "20121006142000"
 
-///MQ服务的app对象
-class CwxMqApp : public CwxAppFramework {
+class CwxMcSyncInfo{
+
+};
+
+///MC服务的app对象
+class CwxMcApp : public CwxAppFramework {
   public:
     enum {
       // 监控的BUF空间大小
@@ -174,12 +173,8 @@ class CwxMqApp : public CwxAppFramework {
     ///设置mq连接的属性
     static int setMqSockAttr(CWX_HANDLE handle, void* arg);
   private:
-    // 是否是服务启动后收到的第一条binglog
-    bool                 m_bFirstBinLog;
-    // 当前的sid
-    CWX_UINT64           m_uiCurSid;
     // 配置信息
-    CwxMqConfig          m_config;
+    CwxMcConfig          m_config;
     // binlog的管理对象
     CwxBinLogMgr*        m_pBinLogMgr;
     // 从master接收消息的handler
