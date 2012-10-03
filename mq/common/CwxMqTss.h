@@ -20,7 +20,6 @@
 #include "CwxTss.h"
 #include "CwxPackageReader.h"
 #include "CwxPackageWriter.h"
-#include "CwxBinLogMgr.h"
 
 //mq的tss
 class CwxMqTss : public CwxTss {
@@ -30,8 +29,7 @@ class CwxMqTss : public CwxTss {
     };
   public:
     ///构造函数
-    CwxMqTss() :
-        CwxTss() {
+    CwxMqTss() : CwxTss() {
       m_pReader = NULL;
       m_pWriter = NULL;
       m_szDataBuf = NULL;
@@ -58,7 +56,7 @@ class CwxMqTss : public CwxTss {
     CwxPackageWriter*      m_pItemWriter; ///<chunk时的一个消息的数据包的pack对象
     CwxBinLogHeader        m_header; ///<mq fetch时，发送失败消息的header
     CwxKeyValueItem        m_kvData; ///<mq fetch时，发送失败消息的数据
-    CwxKeyValueItem const* m_pBinlogData; ///<binlog的data，用于binglog的分发
+    CwxKeyValueItem const*  m_pBinlogData; ///<binlog的data，用于binglog的分发
   private:
     char*                  m_szDataBuf; ///<数据buf
     CWX_UINT32             m_uiDataBufLen; ///<数据buf的空间大小

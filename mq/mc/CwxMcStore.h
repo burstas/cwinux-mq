@@ -7,8 +7,8 @@
 #include "CwxStl.h"
 #include "CwxStlFunc.h"
 
-/*注意：由于日志的文件名包含时间信息，日志的时间不能回退。 
-*数据存储对象，需要指定存储的path、文件的前缀及切换信息。
+/* 注意：由于日志的文件名包含时间信息，日志的时间不能回退。 
+* 数据存储对象，需要指定存储的path、文件的前缀及切换信息。
 * 文件的存储路径为 strPath/prefix/prefix_yyyymmddhhmmss.seq.log
 * 对于文件名部分，yyyymmddhhmmss为时间分割对应的时间边界，若以3600秒分割，
 * 则yyyymmddhhmmss就是yyyymmddhh0000。
@@ -96,7 +96,7 @@ private:
     /// 创建日志文件
     bool createLogFile(CWX_UINT32 uiTime);
     /// 获取文件的日期-序号值
-    inline CWX_UINT64 ((CWX_UINT32 uiTime, CWX_UINT32 seq){
+    inline CWX_UINT64 (CWX_UINT32 uiTime, CWX_UINT32 seq){
         CWX_UINT64 ullFileDateSeq = uiTime;
         ullFileDateSeq <<= 32;
         ullFileDateSeq += seq;

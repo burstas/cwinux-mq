@@ -1,30 +1,25 @@
-#ifndef __CWX_MQ_MASTER_HANDLER_H__
-#define __CWX_MQ_MASTER_HANDLER_H__
-/*
- 版权声明：
- 本软件遵循GNU GPL V3（http://www.gnu.org/licenses/gpl.html），
- 联系方式：email:cwinux@gmail.com；微博:http://t.sina.com.cn/cwinux
- */
+#ifndef __CWX_MC_MASTER_HANDLER_H__
+#define __CWX_MC_MASTER_HANDLER_H__
+
 #include "CwxCommander.h"
 #include "CwxMqMacro.h"
-#include "CwxPackageReader.h"
-#include "CwxPackageWriter.h"
 #include "CwxMsgBlock.h"
 #include "CwxMqTss.h"
+#include "CwxMcStore.h"
 
-class CwxMqApp;
+class CwxMcApp;
 
 ///binlog同步的session
-class CwxMqSyncSession {
+class CwxMcSyncSession {
   public:
     ///构造函数
-    CwxMqSyncSession(CWX_UINT32 uiHostId) {
+    CwxMcSyncSession(CWX_UINT32 uiHostId) {
       m_ullSessionId = 0;
       m_ullNextSeq = 0;
       m_uiReportDatetime = 0;
       m_uiHostId = uiHostId;
     }
-    ~CwxMqSyncSession() {
+    ~CwxMcSyncSession() {
       map<CWX_UINT64/*seq*/, CwxMsgBlock*>::iterator iter = m_msg.begin();
       while (iter != m_msg.end()) {
         CwxMsgBlockAlloc::free(iter->second);
@@ -69,19 +64,26 @@ class CwxMqSyncSession {
       return m_msg.begin()->second->event().getTimestamp() + uiTimeout < uiNow;
     }
   public:
-    CWX_UINT64 m_ullSessionId; ///<session id
-    CWX_UINT64 m_ullNextSeq; ///<下一个待接收的sid
-    CWX_UINT32 m_uiHostId; ///<host id
-    map<CWX_UINT64/*seq*/, CwxMsgBlock*> m_msg;   ///<等待排序的消息
+    CWX_UINT64                   m_ullSessionId; ///<session id
+    CWX_UINT64                   m_ullNextSeq; ///<下一个待接收的sid
+    CWX_UINT32                   m_uiHostId; ///<host id
+    map<CWX_UINT64/*seq*/, CwxMsgBlock*>   m_msg;   ///<等待排序的消息
     map<CWX_UINT32, bool/*是否已经report*/> m_conns; ///<建立的连接
-    CWX_UINT32 m_uiReportDatetime; ///<报告的时间戳，若过了指定的时间没有回复，则关闭
+    CWX_UINT32                   m_uiReportDatetime; ///<报告的时间戳，若过了指定的时间没有回复，则关闭
+
+    CwxThreadPool*               m_syncThreadPool;  ///<sync的线程池
+    CwxAppChannel*               m_syncChannel;     ///<sync的channel
+    CwxHostInfo*                 m_syncHost;       ///<数据同步的主机
+    CWX_UINT64                   m_ullSid;         ///<当前同步的sid
+    CwxMcApp*                    m_pApp;           ///<app对象
+    CwxMcStore*                  m_store;          ///<存储对象
 };
 
 ///slave从master接收binlog的处理handle
-class CwxMqMasterHandler : public CwxCmdOp {
+class CwxMcMasterHandler : public CwxCmdOp {
   public:
     ///构造函数
-    CwxMqMasterHandler(CwxMqApp* pApp) :
+    CwxMcMasterHandler(CwxMcSyncSession* pSessoin) :
         m_pApp(pApp) {
       m_unzipBuf = NULL;
       m_uiBufLen = 0;
@@ -138,12 +140,9 @@ class CwxMqMasterHandler : public CwxCmdOp {
     //获取unzip的buf
     bool prepareUnzipBuf();
   private:
-    CwxMqApp* m_pApp;  ///<app对象
-    CwxPackageReader m_reader; ///<解包的reader
-    unsigned char* m_unzipBuf; ///<解压的buffer
-    CWX_UINT32 m_uiBufLen; ///<解压buffer的大小，其为trunk的20倍，最小为20M。
-    CwxMqSyncSession* m_syncSession; ///<数据同步的session
-    CWX_UINT32 m_uiCurHostId; ///<当前的host id
+    CwxMcSyncSession*           m_syncSession; ///<数据同步的session
+    CWX_UINT32                 m_uiCurHostId; ///<当前的host id
+    bool                       m_bReport;    ///<是否已经report
 };
 
 #endif 
