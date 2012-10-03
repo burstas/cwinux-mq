@@ -1,34 +1,26 @@
-#include "CwxMqApp.h"
+#include "CwxMcApp.h"
 #include "CwxDate.h"
 ///构造函数
-CwxMqApp::CwxMqApp() {
-  m_bFirstBinLog = true;
-  m_uiCurSid = 0;
-  m_pBinLogMgr = NULL;
-  m_masterHandler = NULL;
-  m_recvHandler = NULL;
-  m_queueMgr = NULL;
-  m_recvThreadPool = NULL;
-  m_dispThreadPool = NULL;
-  m_dispChannel = NULL;
-  m_mqThreadPool = NULL;
-  m_mqChannel = NULL;
+CwxMcApp::CwxMcApp() {
+  m_queue = NULL;
+  m_queueThreadPool = NULL;
+  m_queueChannel = NULL;
+  m_ttCurTime = 0;
   memset(m_szBuf, 0x00, MAX_MONITOR_REPLY_SIZE);
 }
 
 ///析构函数
-CwxMqApp::~CwxMqApp() {
+CwxMcApp::~CwxMcApp() {
 }
 
 ///初始化
-int CwxMqApp::init(int argc, char** argv) {
+int CwxMcApp::init(int argc, char** argv) {
   string strErrMsg;
   ///首先调用架构的init api
-  if (CwxAppFramework::init(argc, argv) == -1)
-    return -1;
+  if (CwxAppFramework::init(argc, argv) == -1) return -1;
   ///检查是否通过-f指定了配置文件，若没有，则采用默认的配置文件
   if ((NULL == this->getConfFile()) || (strlen(this->getConfFile()) == 0)) {
-    this->setConfFile("mq.conf");
+    this->setConfFile("mc.conf");
   }
   ///加载配置文件，若失败则退出
   if (0 != m_config.loadConfig(getConfFile())) {
@@ -42,7 +34,7 @@ int CwxMqApp::init(int argc, char** argv) {
 }
 
 ///配置运行环境信息
-int CwxMqApp::initRunEnv() {
+int CwxMcApp::initRunEnv() {
   ///设置系统的时钟间隔，最小刻度为1ms，此为0.1s。
   this->setClick(100); //0.1s
   ///设置工作目录
@@ -78,79 +70,29 @@ int CwxMqApp::initRunEnv() {
   ///设置启动时间
   CwxDate::getDateY4MDHMS2(time(NULL), m_strStartTime);
 
-  //启动binlog管理器
-  if (0 != startBinLogMgr()) return -1;
-  if (m_config.getCommon().m_bMaster) {
-    ///注册数据接收handler
-    if (m_config.getRecv().m_recv.getHostName().length()) {
-      m_recvHandler = new CwxMqRecvHandler(this);
-      getCommander().regHandle(SVR_TYPE_RECV, m_recvHandler);
-    }
-  } else {
-    ///注册slave的master数据接收handler
-    m_masterHandler = new CwxMqMasterHandler(this);
-    getCommander().regHandle(SVR_TYPE_MASTER, m_masterHandler);
-  }
-
   ///启动网络连接与监听
   if (0 != startNetwork()) return -1;
-  ///创建recv线程池对象，此线程池中线程的group-id为THREAD_GROUP_USER_START，
-  ///线程池的线程数量为1。
-  m_recvThreadPool = new CwxThreadPool(CwxAppFramework::THREAD_GROUP_USER_START,
+  //创建queue线程池
+  m_queueChannel = new CwxAppChannel();
+  m_queueThreadPool = new CwxThreadPool(CwxAppFramework::THREAD_GROUP_USER_START + 2,
       1,
       getThreadPoolMgr(),
-      &getCommander());
-  ///创建线程的tss对象
-  CwxTss** pTss = new CwxTss*[1];
+      &getCommander(),
+      CwxMqApp::queueThreadMain,
+      this);
+  ///启动线程
+  CwxMqTss** pTss = new CwxTss*[1];
   pTss[0] = new CwxMqTss();
   ((CwxMqTss*) pTss[0])->init();
-  ///启动线程
-  if (0 != m_recvThreadPool->start(pTss)) {
-    CWX_ERROR(("Failure to start recv thread pool"));
-    return -1;
-  }
-  //创建分发线程池
-  if (m_config.getDispatch().m_async.getHostName().length()) {
-    m_dispChannel = new CwxAppChannel();
-    m_dispThreadPool = new CwxThreadPool(CwxAppFramework::THREAD_GROUP_USER_START + 1,
-        1,
-        getThreadPoolMgr(),
-        &getCommander(),
-        CwxMqApp::dispatchThreadMain,
-        this);
-    ///启动线程
-    pTss = new CwxTss*[1];
-    pTss[0] = new CwxMqTss();
-    ((CwxMqTss*) pTss[0])->init();
-    if (0 != m_dispThreadPool->start(pTss)) {
-      CWX_ERROR(("Failure to start dispatch thread pool"));
+  if (0 != m_queueThreadPool->start(pTss)) {
+      CWX_ERROR(("Failure to start queue thread pool"));
       return -1;
-    }
-  }
-  //创建mq线程池
-  if (m_config.getMq().m_mq.getHostName().length()
-      || m_config.getMq().m_mq.getUnixDomain().length()) {
-    m_mqChannel = new CwxAppChannel();
-    m_mqThreadPool = new CwxThreadPool(CwxAppFramework::THREAD_GROUP_USER_START + 2,
-        1,
-        getThreadPoolMgr(),
-        &getCommander(),
-        CwxMqApp::mqFetchThreadMain,
-        this);
-    ///启动线程
-    pTss = new CwxTss*[1];
-    pTss[0] = new CwxMqTss();
-    ((CwxMqTss*) pTss[0])->init();
-    if (0 != m_mqThreadPool->start(pTss)) {
-      CWX_ERROR(("Failure to start mq thread pool"));
-      return -1;
-    }
   }
   return 0;
 }
 
 ///时钟函数
-void CwxMqApp::onTime(CwxTimeValue const& current) {
+void CwxMcApp::onTime(CwxTimeValue const& current) {
   ///调用基类的onTime函数
   CwxAppFramework::onTime(current);
   m_ttCurTime = current.sec();
@@ -160,34 +102,13 @@ void CwxMqApp::onTime(CwxTimeValue const& current) {
   bool bClockBack = isClockBack(ttTimeBase, m_ttCurTime);
   if (bClockBack || (m_ttCurTime >= ttLastTime + 1)) {
     ttLastTime = m_ttCurTime;
-    if (m_config.getCommon().m_bMaster) {
-      CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
-      pBlock->event().setSvrId(SVR_TYPE_RECV);
-      pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
-      //将超时检查事件，放入事件队列
-      m_recvThreadPool->append(pBlock);
-    } else {
-      CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
-      pBlock->event().setSvrId(SVR_TYPE_MASTER);
-      pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
-      //将超时检查事件，放入事件队列
-      m_recvThreadPool->append(pBlock);
-    }
-    //若存在分发线程池，则往分发线程池append TIMEOUT_CHECK
-    if (m_dispThreadPool) {
-      CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
-      pBlock->event().setSvrId(SVR_TYPE_DISP);
-      pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
-      //将超时检查事件，放入事件队列
-      m_dispThreadPool->append(pBlock);
-    }
-    //若存在mq程池，则往mq线程池append TIMEOUT_CHECK
-    if (m_mqThreadPool) {
+    //往queue线程池append TIMEOUT_CHECK
+    if (m_queueThreadPool) {
       CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
       pBlock->event().setSvrId(SVR_TYPE_QUEUE);
       pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
       //将超时检查事件，放入事件队列
-      m_mqThreadPool->append(pBlock);
+      m_queueThreadPool->append(pBlock);
     }
   }
 }
@@ -207,10 +128,11 @@ void CwxMqApp::onSignal(int signum) {
   }
 }
 
-int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
+int CwxMcApp::onConnCreated(CWX_UINT32 uiSvrId,
     CWX_UINT32 uiHostId,
     CWX_HANDLE handle,
-    bool&) {
+    bool&)
+{
   CwxMsgBlock* msg = CwxMsgBlockAlloc::malloc(0);
   msg->event().setSvrId(uiSvrId);
   msg->event().setHostId(uiHostId);
@@ -218,12 +140,9 @@ int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
   msg->event().setIoHandle(handle);
   msg->event().setEvent(CwxEventInfo::CONN_CREATED);
   ///将消息放到线程池队列中，有内部的线程调用其处理handle来处理
-  if (SVR_TYPE_DISP == uiSvrId) {
-    if (m_dispThreadPool->append(msg) <= 1)
-      m_dispChannel->notice();
-  } else if (SVR_TYPE_QUEUE == uiSvrId) {
-    if (m_mqThreadPool->append(msg) <= 1)
-      m_mqChannel->notice();
+  if (SVR_TYPE_QUEUE == uiSvrId) {
+      if (m_mqThreadPool->append(msg) <= 1)
+          m_mqChannel->notice();
   } else {
     CWX_ASSERT(SVR_TYPE_MONITOR == uiSvrId);
   }
@@ -231,40 +150,19 @@ int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
 }
 
 ///连接建立
-int CwxMqApp::onConnCreated(CwxAppHandler4Msg& conn,
-    bool&,
-    bool&) {
-  if ((SVR_TYPE_RECV == conn.getConnInfo().getSvrId())
-      || (SVR_TYPE_MASTER == conn.getConnInfo().getSvrId())) {
-    CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
-    pBlock->event().setSvrId(conn.getConnInfo().getSvrId());
-    pBlock->event().setHostId(conn.getConnInfo().getHostId());
-    pBlock->event().setConnId(conn.getConnInfo().getConnId());
-    ///设置事件类型
-    pBlock->event().setEvent(CwxEventInfo::CONN_CREATED);
-    ///将事件添加到消息队列
-    m_recvThreadPool->append(pBlock);
-  } else if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId()) { ///如果是监控的连接建立，则建立一个string的buf，用于缓存不完整的命令
-    string* buf = new string();
-    conn.getConnInfo().setUserData(buf);
-  } else {
-    CWX_ASSERT(0);
-  }
-  return 0;
+int CwxMcApp::onConnCreated(CwxAppHandler4Msg& conn, bool&, bool&) {
+    if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId()) { ///如果是监控的连接建立，则建立一个string的buf，用于缓存不完整的命令
+        string* buf = new string();
+        conn.getConnInfo().setUserData(buf);
+    } else {
+        CWX_ASSERT(0);
+    }
+    return 0;
 }
 
 ///连接关闭
-int CwxMqApp::onConnClosed(CwxAppHandler4Msg& conn) {
-  if ((SVR_TYPE_RECV == conn.getConnInfo().getSvrId())
-      || (SVR_TYPE_MASTER == conn.getConnInfo().getSvrId())) {
-    CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
-    pBlock->event().setSvrId(conn.getConnInfo().getSvrId());
-    pBlock->event().setHostId(conn.getConnInfo().getHostId());
-    pBlock->event().setConnId(conn.getConnInfo().getConnId());
-    ///设置事件类型
-    pBlock->event().setEvent(CwxEventInfo::CONN_CLOSED);
-    m_recvThreadPool->append(pBlock);
-  } else if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId()) { ///若是监控的连接关闭，则必须释放先前所创建的string对象。
+int CwxMcApp::onConnClosed(CwxAppHandler4Msg& conn) {
+  if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId()) { ///若是监控的连接关闭，则必须释放先前所创建的string对象。
     if (conn.getConnInfo().getUserData()) {
       delete (string*) conn.getConnInfo().getUserData();
       conn.getConnInfo().setUserData(NULL);
@@ -275,31 +173,8 @@ int CwxMqApp::onConnClosed(CwxAppHandler4Msg& conn) {
   return 0;
 }
 
-///收到消息
-int CwxMqApp::onRecvMsg(CwxMsgBlock* msg,
-    CwxAppHandler4Msg& conn,
-    CwxMsgHead const& header,
-    bool&) {
-  if ((SVR_TYPE_RECV == conn.getConnInfo().getSvrId())
-      || (SVR_TYPE_MASTER == conn.getConnInfo().getSvrId())) {
-    msg->event().setSvrId(conn.getConnInfo().getSvrId());
-    msg->event().setHostId(conn.getConnInfo().getHostId());
-    msg->event().setConnId(conn.getConnInfo().getConnId());
-    ///保存消息头
-    msg->event().setMsgHeader(header);
-    ///设置事件类型
-    msg->event().setEvent(CwxEventInfo::RECV_MSG);
-    ///将消息放到线程池队列中，有内部的线程调用其处理handle来处理
-    m_recvThreadPool->append(msg);
-    return 0;
-  } else {
-    CWX_ASSERT(0);
-  }
-  return 0;
-}
-
 ///收到消息的响应函数
-int CwxMqApp::onRecvMsg(CwxAppHandler4Msg& conn, bool&) {
+int CwxMcApp::onRecvMsg(CwxAppHandler4Msg& conn, bool&) {
   if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId()) {
     char szBuf[1024];
     ssize_t recv_size = CwxSocket::recv(conn.getHandle(), szBuf, 1024);
@@ -318,7 +193,7 @@ int CwxMqApp::onRecvMsg(CwxAppHandler4Msg& conn, bool&) {
   return -1;
 }
 
-void CwxMqApp::destroy() {
+void CwxMcApp::destroy() {
   if (m_recvThreadPool) {
     m_recvThreadPool->stop();
     delete m_recvThreadPool;
@@ -360,48 +235,6 @@ void CwxMqApp::destroy() {
     m_pBinLogMgr = NULL;
   }
   CwxAppFramework::destroy();
-}
-
-///启动binlog管理器，-1：失败；0：成功
-int CwxMqApp::startBinLogMgr() {
-  ///初始化binlog
-  {
-    CWX_UINT64 ullBinLogSize = m_config.getBinLog().m_uiBinLogMSize;
-    ullBinLogSize *= 1024 * 1024;
-    if (ullBinLogSize > CwxBinLogMgr::MAX_BINLOG_FILE_SIZE)
-      ullBinLogSize = CwxBinLogMgr::MAX_BINLOG_FILE_SIZE;
-    m_pBinLogMgr = new CwxBinLogMgr(
-        m_config.getBinLog().m_strBinlogPath.c_str(),
-        m_config.getBinLog().m_strBinlogPrex.c_str(),
-        ullBinLogSize,
-        m_config.getBinLog().m_uiFlushNum,
-        m_config.getBinLog().m_uiFlushSecond,
-        m_config.getBinLog().m_bDelOutdayLogFile);
-    if (0 != m_pBinLogMgr->init(m_config.getBinLog().m_uiMgrFileNum,
-        true,
-        CWX_TSS_2K_BUF)){ ///<如果失败，则返回-1
-      CWX_ERROR(("Failure to init binlog manager, error:%s", CWX_TSS_2K_BUF));
-      return -1;
-    }
-    m_bFirstBinLog = true;
-    ///提取sid
-    m_uiCurSid = m_pBinLogMgr->getMaxSid() + CWX_MQ_MAX_BINLOG_FLUSH_COUNT + 1;
-  }
-  //初始化MQ
-  if (m_config.getMq().m_mq.getHostName().length()) {
-    //初始化队列管理器
-    if (m_queueMgr) delete m_queueMgr;
-    m_queueMgr = new CwxMqQueueMgr(m_config.getMq().m_strLogFilePath,
-        m_config.getMq().m_uiFlushNum,
-        m_config.getMq().m_uiFlushSecond);
-    if (0 != m_queueMgr->init(m_pBinLogMgr)) {
-      CWX_ERROR(("Failure to init mq queue manager, err=%s",
-          m_queueMgr->getErrMsg().c_str()));
-      return -1;
-    }
-  }
-  ///成功
-  return 0;
 }
 
 int CwxMqApp::startNetwork() {
