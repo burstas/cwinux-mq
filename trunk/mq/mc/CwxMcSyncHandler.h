@@ -19,6 +19,7 @@ public:
         m_ullNextSeq = 0;
         m_uiReportDatetime = 0;
         m_ullSid = 0;
+        m_uiHostId = 0;
         m_bClosed = true;
     }
     ~CwxMcSyncSession() {
@@ -65,6 +66,7 @@ public:
 public:
     CWX_UINT64                         m_ullSessionId; ///<session id
     CWX_UINT64                         m_ullNextSeq; ///<下一个待接收的sid
+    CWX_UINT32                         m_uiHostId; ///<主机的id
     map<CWX_UINT64/*seq*/, CwxMsgBlock*> m_msg;   ///<等待排序的消息
     map<CWX_UINT32, CwxMcSyncHandler*>   m_conns; ///<建立的连接
     CWX_UINT32                         m_uiReportDatetime; ///<报告的时间戳，若过了指定的时间没有回复，则关闭
@@ -72,6 +74,7 @@ public:
     CwxMcStore*                        m_store;          ///<存储对象
     CwxMcApp*                          m_pApp;           ///<app对象
     CWX_UINT64                         m_ullSid;         ///<当前同步的sid
+    CWX_UINT32                         m_uiTimeStamp;    ///<当前同步的时间点
     bool                              m_bClosed;        ///<session是否已经关闭
 };
 
@@ -131,6 +134,7 @@ private:
     CwxMsgHead              m_header; ///<消息头
     CwxMqTss*               m_pTss; ///<线程的tss对象
     CWX_UINT32              m_uiConnId; ///<连接id
+    CwxPackageReader         m_reader; ///<数据包的解包对象
     char                    m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN + 1]; ///<消息头的buf
     CWX_UINT32              m_uiRecvHeadLen; ///<received msg header's byte number.
     CWX_UINT32              m_uiRecvDataLen; ///<received data's byte number.

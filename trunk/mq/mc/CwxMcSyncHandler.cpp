@@ -221,7 +221,7 @@ int CwxMcSyncHandler::dealSyncData(CwxMsgBlock*& msg)
         ullSeq,
         m_pTss->m_szBuf2K))
     {
-        CWX_ERROR(("Failure to pack sync data reply, errno=%s", pTss->m_szBuf2K));
+        CWX_ERROR(("Failure to pack sync data reply, errno=%s", m_pTss->m_szBuf2K));
         return -1;
     }
     if (!pSession->m_conns.find(msg->event().getConnId())->second->putMsg(reply_block))
@@ -333,29 +333,33 @@ int CwxMcSyncHandler::dealSyncChunkData(CwxMsgBlock*& msg)
 //0：成功；-1：失败
 int CwxMcSyncHandler::saveBinlog(char const* szBinLog, CWX_UINT32 uiLen)
 {
+    CwxMcSyncSession* pSession = (CwxMcSyncSession*)m_pTss->m_userData;
     CWX_UINT32 ttTimestamp;
     CWX_UINT64 ullSid;
     CwxKeyValueItem const* data;
     ///获取binlog的数据
-    if (CWX_MQ_ERR_SUCCESS
-        != CwxMqPoco::parseSyncData(pTss->m_pReader, szBinLog, uiLen, ullSid,
-        ttTimestamp, data, pTss->m_szBuf2K)) {
-            CWX_ERROR(("Failure to parse binlog from master, err=%s", pTss->m_szBuf2K));
-            return -1;
+    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseSyncData(&m_reader,
+        szBinLog,
+        uiLen,
+        ullSid,
+        ttTimestamp,
+        data,
+        m_pTss->m_szBuf2K))
+    {
+        CWX_ERROR(("Failure to parse binlog from mq, err=%s", m_pTss->m_szBuf2K));
+        return -1;
     }
-    //add to binlog
-    pTss->m_pWriter->beginPack();
-    pTss->m_pWriter->addKeyValue(CWX_MQ_D, data->m_szData, data->m_uiDataLen,
-        data->m_bKeyValue);
-    pTss->m_pWriter->pack();
-    if (0
-        != m_pApp->getBinLogMgr()->append(ullSid, (time_t) ttTimestamp, 0,
-        pTss->m_pWriter->getMsg(), pTss->m_pWriter->getMsgSize(),
-        pTss->m_szBuf2K)) {
-            CWX_ERROR(
-                ("Failure to append binlog to binlog mgr, err=%s", pTss->m_szBuf2K));
-            return -1;
+    if (0 != pSession->m_store->append(ttTimestamp, data->m_szData, data->m_uiDataLen)){
+        CWX_ERROR(("Failure to write store, err=%s", pSession->m_store->getErrMsg()));
+        return -1;
     }
+    //add to queue
+    CwxMcQueueItem* log = CwxMcQueueItem::createItem(ullSid,
+        pSession->m_uiHostId,
+        ttTimestamp,
+        data->m_szData,
+        data->m_uiDataLen);
+    pSession->m_pApp->getQueue()->push(log);
     return 0;
 }
 
