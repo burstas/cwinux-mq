@@ -154,35 +154,49 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
       else
           m_sync.m_bAppendNewLine = false;
   }
-
-  //load sync_host
-  list<pair<string, string> > hosts;
-  if (!cnf.getAttr("sync_host", hosts) || !hosts.size()){
-      snprintf(m_szErrMsg, 2047, "Must set [sync_host].");
-      return -1;
-  }
-  list<pair<string, string> >::iterator iter = hosts.begin();
-  list<string> items;
-  list<string>::iterator item_iter;
-  CwxHostInfo hostInfo;
-  while(iter != hosts.end()){
-      CwxCommon::split(iter->second, items, ':');
-      if (items.size() != 4){
-          snprintf(m_szErrMsg, 2047, "[sync_host:%s]'s value[%s] is invalid, must be [ip:port:user:passwd].");
-          return -1;
-      }
-      item_iter = items.begin();
-      hostInfo.setHostName(*item_iter);
-      ++item_iter;
-      hostInfo.setPort(strtoul(item_iter->c_str()));
-      ++item_iter;
-      hostInfo.setUser(*item_iter);
-      ++item_iter;
-      hostInfo.setPassword(*item_iter);
-      m_syncHosts.m_hosts[iter->first] = hostInfo;
-      ++iter;
-  }
   return 0;
+}
+
+//加载sync的主机
+int CwxMcConfig::loadSyncHost(string const& strSyncHostFile){
+    CwxIniParse cnf;
+    string value;
+    string strErrMsg;
+    //解析配置文件
+    if (false == cnf.load(strSyncHostFile)) {
+        CwxCommon::snprintf(m_szErrMsg, 2047,
+            "Failure to Load conf file:%s. err:%s", strSyncHostFile.c_str(),
+            cnf.getErrMsg());
+        return -1;
+    }
+    //load sync_host
+    list<pair<string, string> > hosts;
+    if (!cnf.getAttr("host", hosts) || !hosts.size()){
+        snprintf(m_szErrMsg, 2047, "Must set [host].");
+        return -1;
+    }
+    list<pair<string, string> >::iterator iter = hosts.begin();
+    list<string> items;
+    list<string>::iterator item_iter;
+    CwxHostInfo hostInfo;
+    while(iter != hosts.end()){
+        CwxCommon::split(iter->second, items, ':');
+        if (items.size() != 4){
+            snprintf(m_szErrMsg, 2047, "[host:%s]'s value[%s] is invalid, must be [ip:port:user:passwd].");
+            return -1;
+        }
+        item_iter = items.begin();
+        hostInfo.setHostName(*item_iter);
+        ++item_iter;
+        hostInfo.setPort(strtoul(item_iter->c_str()));
+        ++item_iter;
+        hostInfo.setUser(*item_iter);
+        ++item_iter;
+        hostInfo.setPassword(*item_iter);
+        m_syncHosts.m_hosts[iter->first] = hostInfo;
+        ++iter;
+    }
+    return 0;
 }
 
 bool CwxMcConfig::fetchHost(CwxIniParse& cnf, string const& node,
@@ -244,16 +258,21 @@ void CwxMcConfig::outputConfig() const {
   CWX_INFO(("zip=%u", m_sync.m_bzip?"yes":"no"));
   CWX_INFO(("sign=%s", m_sync.m_strSign.c_str()));
   CWX_INFO(("newline=%s", m_sync.m_bAppendNewLine?"yes":"no"));
-  CWX_INFO(("*****************sync_host*******************"));
-  map<string, CwxHostInfo>::iterator iter = m_hosts.begin();
-  while(iter != m_hosts.end()){
-      CWX_INFO(("%s=%s:%u:%s:%s",
-          iter->first->c_str(),
-          iter->second.getHostName().c_str(),
-          iter->second.getPort(),
-          iter->second.getUser().c_str(),
-          iter->second.getPasswd().c_str()));
-      ++iter;
-  }
   CWX_INFO(("*****************END   CONFIG *******************"));
+}
+
+//输出host的配置
+void CwxMcConfig::outputSyncHost() const{
+    CWX_INFO(("*****************begin sync host*******************"));
+    map<string, CwxHostInfo>::iterator iter = m_hosts.begin();
+    while(iter != m_hosts.end()){
+        CWX_INFO(("%s=%s:%u:%s:%s",
+            iter->first->c_str(),
+            iter->second.getHostName().c_str(),
+            iter->second.getPort(),
+            iter->second.getUser().c_str(),
+            iter->second.getPasswd().c_str()));
+        ++iter;
+    }
+    CWX_INFO(("*****************end sync host*******************"));
 }
