@@ -29,7 +29,7 @@ int CwxMcApp::init(int argc, char** argv) {
   }
   ///设置运行日志的输出level
   setLogLevel(CwxLogger::LEVEL_ERROR | CwxLogger::LEVEL_INFO
-          | CwxLogger::LEVEL_WARNING);
+    | CwxLogger::LEVEL_WARNING);
   return 0;
 }
 
@@ -75,18 +75,18 @@ int CwxMcApp::initRunEnv() {
   //创建queue线程池
   m_queueChannel = new CwxAppChannel();
   m_queueThreadPool = new CwxThreadPool(CwxAppFramework::THREAD_GROUP_USER_START + 2,
-      1,
-      getThreadPoolMgr(),
-      &getCommander(),
-      CwxMqApp::queueThreadMain,
-      this);
+    1,
+    getThreadPoolMgr(),
+    &getCommander(),
+    CwxMqApp::queueThreadMain,
+    this);
   ///启动线程
   CwxMqTss** pTss = new CwxTss*[1];
   pTss[0] = new CwxMqTss();
   ((CwxMqTss*) pTss[0])->init();
   if (0 != m_queueThreadPool->start(pTss)) {
-      CWX_ERROR(("Failure to start queue thread pool"));
-      return -1;
+    CWX_ERROR(("Failure to start queue thread pool"));
+    return -1;
   }
   return 0;
 }
@@ -129,9 +129,9 @@ void CwxMqApp::onSignal(int signum) {
 }
 
 int CwxMcApp::onConnCreated(CWX_UINT32 uiSvrId,
-    CWX_UINT32 uiHostId,
-    CWX_HANDLE handle,
-    bool&)
+                            CWX_UINT32 uiHostId,
+                            CWX_HANDLE handle,
+                            bool&)
 {
   CwxMsgBlock* msg = CwxMsgBlockAlloc::malloc(0);
   msg->event().setSvrId(uiSvrId);
@@ -141,8 +141,8 @@ int CwxMcApp::onConnCreated(CWX_UINT32 uiSvrId,
   msg->event().setEvent(CwxEventInfo::CONN_CREATED);
   ///将消息放到线程池队列中，有内部的线程调用其处理handle来处理
   if (SVR_TYPE_QUEUE == uiSvrId) {
-      if (m_mqThreadPool->append(msg) <= 1)
-          m_mqChannel->notice();
+    if (m_mqThreadPool->append(msg) <= 1)
+      m_mqChannel->notice();
   } else {
     CWX_ASSERT(SVR_TYPE_MONITOR == uiSvrId);
   }
@@ -151,13 +151,13 @@ int CwxMcApp::onConnCreated(CWX_UINT32 uiSvrId,
 
 ///连接建立
 int CwxMcApp::onConnCreated(CwxAppHandler4Msg& conn, bool&, bool&) {
-    if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId()) { ///如果是监控的连接建立，则建立一个string的buf，用于缓存不完整的命令
-        string* buf = new string();
-        conn.getConnInfo().setUserData(buf);
-    } else {
-        CWX_ASSERT(0);
-    }
-    return 0;
+  if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId()) { ///如果是监控的连接建立，则建立一个string的buf，用于缓存不完整的命令
+    string* buf = new string();
+    conn.getConnInfo().setUserData(buf);
+  } else {
+    CWX_ASSERT(0);
+  }
+  return 0;
 }
 
 ///连接关闭
@@ -194,6 +194,7 @@ int CwxMcApp::onRecvMsg(CwxAppHandler4Msg& conn, bool&) {
 }
 
 void CwxMcApp::destroy() {
+
   if (m_queueThreadPool) {
     m_queueThreadPool->stop();
     delete m_queueThreadPool;
@@ -203,6 +204,8 @@ void CwxMcApp::destroy() {
     delete m_queueChannel;
     m_queueChannel = NULL;
   }
+
+
   CwxAppFramework::destroy();
 }
 
@@ -210,26 +213,26 @@ int CwxMcApp::startNetwork() {
   ///打开监听的服务器端口号
   if (m_config.getCommon().m_monitor.getHostName().length()) {
     if (0 > this->noticeTcpListen(SVR_TYPE_MONITOR,
-            m_config.getCommon().m_monitor.getHostName().c_str(),
-            m_config.getCommon().m_monitor.getPort(), true)) {
-      CWX_ERROR(("Can't register the monitor tcp accept listen: addr=%s, port=%d",
+      m_config.getCommon().m_monitor.getHostName().c_str(),
+      m_config.getCommon().m_monitor.getPort(), true)) {
+        CWX_ERROR(("Can't register the monitor tcp accept listen: addr=%s, port=%d",
           m_config.getCommon().m_monitor.getHostName().c_str(),
           m_config.getCommon().m_monitor.getPort()));
-      return -1;
+        return -1;
     }
   }
   //打开mq获取的监听端口
   if (m_config.getMq().m_mq.getHostName().length()) {
     if (0 > this->noticeTcpListen(SVR_TYPE_QUEUE,
-            m_config.getMq().m_mq.getHostName().c_str(),
-            m_config.getMq().m_mq.getPort(),
-            false,
-            CWX_APP_EVENT_MODE,
-            CwxMqApp::setMqSockAttr, this)) {
-      CWX_ERROR(("Can't register the queue tcp accept listen: addr=%s, port=%d",
+      m_config.getMq().m_mq.getHostName().c_str(),
+      m_config.getMq().m_mq.getPort(),
+      false,
+      CWX_APP_EVENT_MODE,
+      CwxMqApp::setMqSockAttr, this)) {
+        CWX_ERROR(("Can't register the queue tcp accept listen: addr=%s, port=%d",
           m_config.getMq().m_mq.getHostName().c_str(),
           m_config.getMq().m_mq.getPort()));
-      return -1;
+        return -1;
     }
   }
   return 0;
@@ -285,10 +288,10 @@ int CwxMqApp::monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHandler4
 }
 
 #define MQ_MONITOR_APPEND(){\
-    uiLen = strlen(szLine);\
-    if (uiPos + uiLen > MAX_MONITOR_REPLY_SIZE - 20) break;\
-    memcpy(m_szBuf + uiPos, szLine, uiLen);\
-    uiPos += uiLen; }
+  uiLen = strlen(szLine);\
+  if (uiPos + uiLen > MAX_MONITOR_REPLY_SIZE - 20) break;\
+  memcpy(m_szBuf + uiPos, szLine, uiLen);\
+  uiPos += uiLen; }
 
 CWX_UINT32 CwxMqApp::packMonitorInfo() {
   string strValue;
@@ -305,50 +308,50 @@ CWX_UINT32 CwxMqApp::packMonitorInfo() {
     MQ_MONITOR_APPEND();
     //版本号
     CwxCommon::snprintf(szLine, 4096, "STAT version %s\r\n",
-        this->getAppVersion().c_str());
+      this->getAppVersion().c_str());
     MQ_MONITOR_APPEND();
     //修改时间
     CwxCommon::snprintf(szLine, 4096, "STAT modify %s\r\n",
-        this->getLastModifyDatetime().c_str());
+      this->getLastModifyDatetime().c_str());
     MQ_MONITOR_APPEND();
     //编译时间
     CwxCommon::snprintf(szLine, 4096, "STAT compile %s\r\n",
-        this->getLastCompileDatetime().c_str());
+      this->getLastCompileDatetime().c_str());
     MQ_MONITOR_APPEND();
     //启动时间
     CwxCommon::snprintf(szLine, 4096, "STAT start %s\r\n",
-        m_strStartTime.c_str());
+      m_strStartTime.c_str());
     MQ_MONITOR_APPEND();
     //master
     CwxCommon::snprintf(szLine, 4096, "STAT server_type %s\r\n",
-        getConfig().getCommon().m_bMaster ? "master" : "slave");
+      getConfig().getCommon().m_bMaster ? "master" : "slave");
     MQ_MONITOR_APPEND();
     //binlog
     CwxCommon::snprintf(szLine, 4096, "STAT binlog_state %s\r\n",
-        m_pBinLogMgr->isInvalid() ? "invalid" : "valid");
+      m_pBinLogMgr->isInvalid() ? "invalid" : "valid");
     MQ_MONITOR_APPEND();
     CwxCommon::snprintf(szLine, 4096, "STAT binlog_error %s\r\n",
-        m_pBinLogMgr->isInvalid() ? m_pBinLogMgr->getInvalidMsg() : "");
+      m_pBinLogMgr->isInvalid() ? m_pBinLogMgr->getInvalidMsg() : "");
     MQ_MONITOR_APPEND();
     CwxCommon::snprintf(szLine, 4096, "STAT min_sid %s\r\n",
-        CwxCommon::toString(m_pBinLogMgr->getMinSid(), szTmp));
+      CwxCommon::toString(m_pBinLogMgr->getMinSid(), szTmp));
     MQ_MONITOR_APPEND();
     CwxDate::getDateY4MDHMS2(m_pBinLogMgr->getMinTimestamp(), strValue);
     CwxCommon::snprintf(szLine, 4096, "STAT min_sid_time %s\r\n",
-        strValue.c_str());
+      strValue.c_str());
     MQ_MONITOR_APPEND();
     CwxCommon::snprintf(szLine, 4096, "STAT min_binlog_file %s\r\n",
-        m_pBinLogMgr->getMinFile(strValue).c_str());
+      m_pBinLogMgr->getMinFile(strValue).c_str());
     MQ_MONITOR_APPEND();
     CwxCommon::snprintf(szLine, 4096, "STAT max_sid %s\r\n",
-        CwxCommon::toString(m_pBinLogMgr->getMaxSid(), szTmp));
+      CwxCommon::toString(m_pBinLogMgr->getMaxSid(), szTmp));
     MQ_MONITOR_APPEND();
     CwxDate::getDateY4MDHMS2(m_pBinLogMgr->getMaxTimestamp(), strValue);
     CwxCommon::snprintf(szLine, 4096, "STAT max_sid_time %s\r\n",
-        strValue.c_str());
+      strValue.c_str());
     MQ_MONITOR_APPEND();
     CwxCommon::snprintf(szLine, 4096, "STAT max_binlog_file %s\r\n",
-        m_pBinLogMgr->getMaxFile(strValue).c_str());
+      m_pBinLogMgr->getMaxFile(strValue).c_str());
     MQ_MONITOR_APPEND();
     char szSid1[64];
     char szSid2[64];
@@ -359,7 +362,7 @@ CWX_UINT32 CwxMqApp::packMonitorInfo() {
       CwxCommon::toString(iter->m_ullCursorSid, szSid1, 10);
       CwxCommon::toString(iter->m_ullLeftNum, szSid2, 10);
       CwxCommon::snprintf(szLine, 4096, "STAT name(%s)|sid(%s)|msg(%s)\r\n",
-          iter->m_strName.c_str(), szSid1, szSid2);
+        iter->m_strName.c_str(), szSid1, szSid2);
       MQ_MONITOR_APPEND();
       iter++;
     }
@@ -402,25 +405,25 @@ int CwxMcApp::dealQueueThreadMsg(CwxMsgQueue* queue, CwxMcApp* app, CwxAppChanne
       iRet = queue->dequeue(block);
       if (-1 == iRet) return -1;
       if ((block->event().getEvent() == CwxEventInfo::CONN_CREATED)
-          && (block->event().getSvrId() == SVR_TYPE_QUEUE)) {
-        if (channel->isRegIoHandle(block->event().getIoHandle())) {
-          CWX_ERROR(("Handler[%] is register", block->event().getIoHandle()));
-          break;
-        }
-        if (block->event().getSvrId() == SVR_TYPE_QUEUE) {
-          handler = new CwxMqQueueHandler(app, channel);
-        } else {
-          CWX_ERROR(("Invalid svr_type[%d], close handle[%d]",
+        && (block->event().getSvrId() == SVR_TYPE_QUEUE)) {
+          if (channel->isRegIoHandle(block->event().getIoHandle())) {
+            CWX_ERROR(("Handler[%] is register", block->event().getIoHandle()));
+            break;
+          }
+          if (block->event().getSvrId() == SVR_TYPE_QUEUE) {
+            handler = new CwxMqQueueHandler(app, channel);
+          } else {
+            CWX_ERROR(("Invalid svr_type[%d], close handle[%d]",
               block->event().getSvrId(),
               block->event().getIoHandle()));
-          ::close(block->event().getIoHandle());
-        }
-        handler->setHandle(block->event().getIoHandle());
-        if (0 != handler->open()) {
-          CWX_ERROR(("Failure to register handler[%d]", handler->getHandle()));
-          delete handler;
-          break;
-        }
+            ::close(block->event().getIoHandle());
+          }
+          handler->setHandle(block->event().getIoHandle());
+          if (0 != handler->open()) {
+            CWX_ERROR(("Failure to register handler[%d]", handler->getHandle()));
+            delete handler;
+            break;
+          }
       } else {
         CWX_ASSERT(block->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
         CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_QUEUE);
@@ -440,35 +443,35 @@ int CwxMcApp::setQueueSockAttr(CWX_HANDLE handle, void* arg) {
   CwxMcApp* app = (CwxMqApp*) arg;
   if (app->getConfig().getMq().m_mq.isKeepAlive()) {
     if (0 != CwxSocket::setKeepalive(handle,
-        true,
-        CWX_APP_DEF_KEEPALIVE_IDLE,
-        CWX_APP_DEF_KEEPALIVE_INTERNAL,
-        CWX_APP_DEF_KEEPALIVE_COUNT))
+      true,
+      CWX_APP_DEF_KEEPALIVE_IDLE,
+      CWX_APP_DEF_KEEPALIVE_INTERNAL,
+      CWX_APP_DEF_KEEPALIVE_COUNT))
     {
       CWX_ERROR(("Failure to set listen addr:%s, port:%u to keep-alive, errno=%d",
-          app->getConfig().getMq().m_mq.getHostName().c_str(),
-          app->getConfig().getMq().m_mq.getPort(),
-          errno));
+        app->getConfig().getMq().m_mq.getHostName().c_str(),
+        app->getConfig().getMq().m_mq.getPort(),
+        errno));
       return -1;
     }
   }
 
   int flags = 1;
   if (setsockopt(handle,
-      IPPROTO_TCP, TCP_NODELAY,
-      (void *) &flags,
-      sizeof(flags)) != 0) 
+    IPPROTO_TCP, TCP_NODELAY,
+    (void *) &flags,
+    sizeof(flags)) != 0) 
   {
     CWX_ERROR(("Failure to set listen addr:%s, port:%u NODELAY, errno=%d",
-        app->getConfig().getMq().m_mq.getHostName().c_str(),
-        app->getConfig().getMq().m_mq.getPort(), errno));
+      app->getConfig().getMq().m_mq.getHostName().c_str(),
+      app->getConfig().getMq().m_mq.getPort(), errno));
     return -1;
   }
   struct linger ling = { 0, 0 };
   if (setsockopt(handle, SOL_SOCKET, SO_LINGER, (void *) &ling, sizeof(ling)) != 0) {
     CWX_ERROR(("Failure to set listen addr:%s, port:%u LINGER, errno=%d",
-        app->getConfig().getMq().m_mq.getHostName().c_str(),
-        app->getConfig().getMq().m_mq.getPort(), errno));
+      app->getConfig().getMq().m_mq.getHostName().c_str(),
+      app->getConfig().getMq().m_mq.getPort(), errno));
     return -1;
   }
   return 0;
