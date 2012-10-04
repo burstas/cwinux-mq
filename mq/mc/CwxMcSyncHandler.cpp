@@ -209,9 +209,7 @@ int CwxMcSyncHandler::dealSyncData(CwxMsgBlock*& msg)
     } else {
         iRet = saveBinlog(msg->rd_ptr() + sizeof(ullSeq), msg->length() - sizeof(ullSeq));
     }
-    if (-1 == iRet) {
-        return -1;
-    }
+    if (-1 == iRet)  return -1;
     //回复发送者
     CwxMsgBlock* reply_block = NULL;
     if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(m_pTss->m_pWriter,
