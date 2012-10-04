@@ -91,13 +91,13 @@ class CwxMqQueueHandler : public CwxAppHandler4Channel {
     ///del queue,返回值,0：成功；-1：失败
     int delQueue(CwxMqTss* pTss);
   private:
-    CwxMqApp* m_pApp;  ///<app对象
-    CwxMqFetchConn m_conn; ///<mq fetch的连接
-    CwxMsgHead m_header; ///<消息头
-    char m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN + 1]; ///<消息头的buf
-    CWX_UINT32 m_uiRecvHeadLen; ///<received msg header's byte number.
-    CWX_UINT32 m_uiRecvDataLen; ///<received data's byte number.
-    CwxMsgBlock* m_recvMsgData; ///<the received msg data
+    CwxMqApp*             m_pApp;  ///<app对象
+    CwxMqFetchConn        m_conn; ///<mq fetch的连接
+    CwxMsgHead            m_header; ///<消息头
+    char                 m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN + 1]; ///<消息头的buf
+    CWX_UINT32            m_uiRecvHeadLen; ///<received msg header's byte number.
+    CWX_UINT32            m_uiRecvDataLen; ///<received data's byte number.
+    CwxMsgBlock*          m_recvMsgData; ///<the received msg data
 };
 
 #endif 
