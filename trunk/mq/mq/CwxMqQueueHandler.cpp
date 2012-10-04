@@ -7,17 +7,19 @@
  */
 int CwxMqQueueHandler::onInput() {
   ///接受消息
-  int ret = CwxAppHandler4Channel::recvPackage(getHandle(), m_uiRecvHeadLen,
-      m_uiRecvDataLen, m_szHeadBuf, m_header, m_recvMsgData);
-  if (1 != ret)
-    return ret; ///如果失败或者消息没有接收完，返回。
+  int ret = CwxAppHandler4Channel::recvPackage(getHandle(),
+      m_uiRecvHeadLen,
+      m_uiRecvDataLen,
+      m_szHeadBuf,
+      m_header,
+      m_recvMsgData);
+  if (1 != ret) return ret; ///如果失败或者消息没有接收完，返回。
   ///获取fetch 线程的tss对象
   CwxMqTss* tss = (CwxMqTss*) CwxTss::instance();
   ///通知收到一个消息
   ret = recvMessage(tss);
   ///如果m_recvMsgData没有释放，则是否m_recvMsgData等待接收下一个消息
-  if (m_recvMsgData)
-    CwxMsgBlockAlloc::free(m_recvMsgData);
+  if (m_recvMsgData) CwxMsgBlockAlloc::free(m_recvMsgData);
   this->m_recvMsgData = NULL;
   this->m_uiRecvHeadLen = 0;
   this->m_uiRecvDataLen = 0;
@@ -65,8 +67,7 @@ CWX_UINT32 CwxMqQueueHandler::onEndSendMsg(CwxMsgBlock*& msg) {
       msg->event().m_ullArg, true, tss->m_szBuf2K);
   //0：成功，-1：失败，-2：队列不存在
   if (-1 == iRet) {    //内部错误，此时必须关闭连接
-    CWX_ERROR(
-        ("Queue[%s]: Failure to endSendMsg， err: %s", m_conn.m_strQueueName.c_str(), tss->m_szBuf2K));
+    CWX_ERROR(("Queue[%s]: Failure to endSendMsg， err: %s", m_conn.m_strQueueName.c_str(), tss->m_szBuf2K));
   } else if (-2 == iRet) {    //队列不存在
     CWX_ERROR(("Queue[%s]: No queue"));
   }
@@ -107,8 +108,7 @@ int CwxMqQueueHandler::recvMessage(CwxMqTss* pTss) {
     CWX_ERROR(("No memory to malloc package"));
     return -1;
   }
-  if (-1 == replyFetchMq(pTss, block, false, true))
-    return -1;
+  if (-1 == replyFetchMq(pTss, block, false, true)) return -1;
   return 0;
 }
 
@@ -128,18 +128,22 @@ int CwxMqQueueHandler::fetchMq(CwxMqTss* pTss) {
       iRet = CWX_MQ_ERR_ERROR;
       break;
     }
-    iRet = CwxMqPoco::parseFetchMq(pTss->m_pReader, m_recvMsgData, bBlock,
-        queue_name, user, passwd, pTss->m_szBuf2K);
+    iRet = CwxMqPoco::parseFetchMq(pTss->m_pReader,
+        m_recvMsgData,
+        bBlock,
+        queue_name,
+        user, 
+        passwd,
+        pTss->m_szBuf2K);
     ///如果解析失败，则进入错误消息处理
-    if (CWX_MQ_ERR_SUCCESS != iRet)
-      break;
+    if (CWX_MQ_ERR_SUCCESS != iRet)  break;
     ///如果当前mq的获取处于waiting状态或还没有多的确认，则直接忽略
-    if (m_conn.m_bWaiting)
-      return 0;
+    if (m_conn.m_bWaiting)  return 0;
     ///如果是第一次获取或者改变了消息对了，则校验队列权限
     if (!m_conn.m_strQueueName.length() ||  ///第一次获取
         m_conn.m_strQueueName != queue_name ///新队列
-            ) {
+       )
+    {
       m_conn.m_strQueueName.erase(); ///清空当前队列
       string strQueue = queue_name ? queue_name : "";
       string strUser = user ? user : "";
@@ -421,11 +425,9 @@ void CwxMqQueueHandler::backMq(CWX_UINT64 ullSid, CwxMqTss* pTss) {
       false, pTss->m_szBuf2K);
   if (0 != iRet) {
     if (-1 == iRet) { ///队列错误
-      CWX_ERROR(
-          ("Failure to back queue[%s]'s message, err:%s", m_conn.m_strQueueName.c_str(), pTss->m_szBuf2K));
+      CWX_ERROR(("Failure to back queue[%s]'s message, err:%s", m_conn.m_strQueueName.c_str(), pTss->m_szBuf2K));
     } else { ///队列不存在
-      CWX_ERROR(
-          ("Failure to back queue[%s]'s message for no existing", m_conn.m_strQueueName.c_str()));
+      CWX_ERROR(("Failure to back queue[%s]'s message for no existing", m_conn.m_strQueueName.c_str()));
     }
   }
 }
