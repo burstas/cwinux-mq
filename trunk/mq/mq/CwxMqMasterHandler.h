@@ -109,7 +109,7 @@ class CwxMqMasterHandler : public CwxCmdOp {
     //关闭已有连接
     void closeSession();
     ///创建与master同步的连接。返回值：0：成功；-1：失败
-    int createSession(CwxMqTss* pTss); ///<tss对象
+    int createSession(CwxMqTss* pTss)
     ///收到一条消息的处理函数。返回值：0:成功；-1：失败
     int recvMsg(CwxMsgBlock*& msg, ///<收到的消息
         list<CwxMsgBlock*>& msgs ///<接收池中返回的可处理的消息。在list按照先后次序排序
