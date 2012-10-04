@@ -75,7 +75,7 @@ class CwxMcApp : public CwxAppFramework {
       return false;
     }
     ///获取配置信息对象
-    inline CwxMqConfig const& getConfig() const {
+    inline CwxMcConfig const& getConfig() const {
       return m_config;
     }
     ///获取queue对象
