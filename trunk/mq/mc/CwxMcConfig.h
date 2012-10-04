@@ -80,7 +80,6 @@ public:
     bool          m_bAppendNewLine; ///<是否增加回车
 };
 
-
 ///分发的参数配置对象
 class CwxMcConfigSyncHost {
   public:
@@ -104,8 +103,12 @@ class CwxMcConfig {
   public:
     //加载配置文件.-1:failure, 0:success
     int loadConfig(string const & strConfFile);
+    //加载sync的主机
+    int loadSyncHost(string const& strSyncHostFile);
     //输出加载的配置文件信息
     void outputConfig() const;
+    //输出host的配置
+    void outputSyncHost() const;
   public:
     ///获取common配置信息
     inline CwxMcConfigCmn const& getCommon() const {
