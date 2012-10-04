@@ -480,7 +480,6 @@ int CwxMqQueueHandler::sentBinlog(CwxMqTss* pTss) {
     CWX_ERROR(("No memory to malloc package"));
     return -1;
   }
-  if (0 != replyFetchMq(pTss, pBlock, false, false))
-    return -1;
+  if (0 != replyFetchMq(pTss, pBlock, false, false)) return -1;
   return 1;
 }
