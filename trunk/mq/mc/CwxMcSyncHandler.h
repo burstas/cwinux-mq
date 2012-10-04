@@ -79,7 +79,8 @@ class CwxMcSyncSession {
 class CwxMcSyncHandler : public CwxAppHandler4Channel {
   public:
     ///构造函数
-    CwxMcSyncHandler(CwxAppChannel* channel, CWX_UINT32 uiConnID) : CwxAppHandler4Channel(channel){
+    CwxMcSyncHandler(CwxMqTss* pTss, CwxAppChannel* channel, CWX_UINT32 uiConnID) : CwxAppHandler4Channel(channel){
+        m_pTss = pTss;
         m_uiConnId = uiConnID;
         m_uiRecvHeadLen = 0;
         m_uiRecvDataLen = 0;
@@ -105,8 +106,32 @@ class CwxMcSyncHandler : public CwxAppHandler4Channel {
   private:
       ///接收消息，0：成功；-1：失败
       int recvMessage(CwxMqTss* pTss);
+      ///从session中接受消息；0：成功；-1：失败
+      int recvMsg(CwxMsgBlock*& msg, list<CwxMsgBlock*>& msgs);
+      ///处理Sync report的reply消息。返回值：0：成功；-1：失败
+      int dealSyncReportReply(CwxMsgBlock*& msg, ///<收到的消息
+          CwxMqTss* pTss ///<tss对象
+          );
+      ///处理收到的sync data。返回值：0：成功；-1：失败
+      int dealSyncData(CwxMsgBlock*& msg, ///<收到的消息
+          CwxMqTss* pTss ///<tss对象
+          );
+      //处理收到的chunk模式下的sync data。返回值：0：成功；-1：失败
+      int dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
+          CwxMqTss* pTss ///<tss对象
+          );
+      //处理错误消息。返回值：0：成功；-1：失败
+      int dealErrMsg(CwxMsgBlock*& msg,  ///<收到的消息
+          CwxMqTss* pTss ///<tss对象
+          );
+      //0：成功；-1：失败
+      int saveBinlog(CwxMqTss* pTss, char const* szBinLog, CWX_UINT32 uiLen);
+      bool checkSign(char const* data, CWX_UINT32 uiDateLen, char const* szSign,
+          char const* sign);
+
   private:
       CwxMsgHead              m_header; ///<消息头
+      CwxMqTss*               m_pTss; ///<线程的tss对象
       CWX_UINT32              m_uiConnId; ///<连接id
       char                    m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN + 1]; ///<消息头的buf
       CWX_UINT32              m_uiRecvHeadLen; ///<received msg header's byte number.

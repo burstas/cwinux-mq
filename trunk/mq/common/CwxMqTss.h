@@ -57,6 +57,7 @@ class CwxMqTss : public CwxTss {
     CwxBinLogHeader        m_header; ///<mq fetch时，发送失败消息的header
     CwxKeyValueItem        m_kvData; ///<mq fetch时，发送失败消息的数据
     CwxKeyValueItem const*  m_pBinlogData; ///<binlog的data，用于binglog的分发
+    void*                 m_userData; ///<各线程的自定义数据对象指针
   private:
     char*                  m_szDataBuf; ///<数据buf
     CWX_UINT32             m_uiDataBufLen; ///<数据buf的空间大小

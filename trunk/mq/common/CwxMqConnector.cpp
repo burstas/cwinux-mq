@@ -1,7 +1,6 @@
 #include "CwxMqConnector.h"
 
 int CwxMqConnector::complete(set<int>& fds, CwxTimeouter* timeout) {
-
   fd_set handle_set;
   FD_ZERO(&handle_set);
   int select_width = 0;
