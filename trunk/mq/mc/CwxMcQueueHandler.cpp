@@ -2,17 +2,17 @@
 #include "CwxMcApp.h"
 #include "CwxMsgHead.h"
 /**
- @brief 连接可读事件，返回-1，close()会被调用
- @return -1：处理失败，会调用close()； 0：处理成功
- */
+@brief 连接可读事件，返回-1，close()会被调用
+@return -1：处理失败，会调用close()； 0：处理成功
+*/
 int CwxMcQueueHandler::onInput() {
   ///接受消息
   int ret = CwxAppHandler4Channel::recvPackage(getHandle(),
-      m_uiRecvHeadLen,
-      m_uiRecvDataLen,
-      m_szHeadBuf,
-      m_header,
-      m_recvMsgData);
+    m_uiRecvHeadLen,
+    m_uiRecvDataLen,
+    m_szHeadBuf,
+    m_header,
+    m_recvMsgData);
   if (1 != ret) return ret; ///如果失败或者消息没有接收完，返回。
   ///获取fetch 线程的tss对象
   CwxMqTss* tss = (CwxMqTss*) CwxTss::instance();
@@ -26,17 +26,17 @@ int CwxMcQueueHandler::onInput() {
   return ret;
 }
 /**
- @brief 通知连接关闭。
- @return 1：不从engine中移除注册；0：从engine中移除注册但不删除handler；-1：从engine中将handle移除并删除。
- */
+@brief 通知连接关闭。
+@return 1：不从engine中移除注册；0：从engine中移除注册但不删除handler；-1：从engine中将handle移除并删除。
+*/
 int CwxMcQueueHandler::onConnClosed() {
   return -1;
 }
 
 /**
- @brief Handler的redo事件，在每次dispatch时执行。
- @return -1：处理失败，会调用close()； 0：处理成功
- */
+@brief Handler的redo事件，在每次dispatch时执行。
+@return -1：处理失败，会调用close()； 0：处理成功
+*/
 int CwxMcQueueHandler::onRedo() {
   ///获取tss实例
   CwxMqTss* tss = (CwxMqTss*) CwxTss::instance();
@@ -58,11 +58,11 @@ int CwxMcQueueHandler::recvMessage(CwxMqTss* pTss) {
   }
   ///若其他消息，则返回错误
   CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u",
-      m_header.getMsgType());
+    m_header.getMsgType());
   CWX_ERROR((pTss->m_szBuf2K));
   CwxMsgBlock* block = packEmptyFetchMsg(pTss,
-      CWX_MQ_ERR_ERROR,
-      pTss->m_szBuf2K);
+    CWX_MQ_ERR_ERROR,
+    pTss->m_szBuf2K);
   if (!block) {
     CWX_ERROR(("No memory to malloc package"));
     return -1;
@@ -88,7 +88,7 @@ int CwxMcQueueHandler::fetchMq(CwxMqTss* pTss) {
       break;
     }
     iRet = CwxMqPoco::parseFetchMq(pTss->m_pReader, m_recvMsgData, bBlock,
-        queue_name, user, passwd, pTss->m_szBuf2K);
+      queue_name, user, passwd, pTss->m_szBuf2K);
     ///如果解析失败，则进入错误消息处理
     if (CWX_MQ_ERR_SUCCESS != iRet)
       break;
@@ -96,28 +96,28 @@ int CwxMcQueueHandler::fetchMq(CwxMqTss* pTss) {
     if (m_conn.m_bWaiting) return 0;
     ///检验队列名字
     if (m_pApp->getConfig().getMq().m_strName != queue_name){
-        iRet = CWX_MQ_ERR_ERROR;
-        CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "No queue:%s",
-            queue_name?queue_name:"");
-        CWX_DEBUG((pTss->m_szBuf2K));
-        break;
+      iRet = CWX_MQ_ERR_ERROR;
+      CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "No queue:%s",
+        queue_name?queue_name:"");
+      CWX_DEBUG((pTss->m_szBuf2K));
+      break;
     }
     ///如果是第一次获取或者改变了消息对了，则校验队列权限
     if (!m_conn.m_strQueueName.length()){
-        ///鉴权队列的用户名、口令
-        if (m_pApp->getConfig().getMq().m_mq.getUser().length()){
-            if ((m_pApp->getConfig().getMq().m_mq.getUser() != user) ||
-                (m_pApp->getConfig().getMq().m_mq.getPasswd() != passwd))
-            {
-                iRet = CWX_MQ_ERR_FAIL_AUTH;
-                CwxCommon::snprintf(pTss->m_szBuf2K, 2048,
-                    "Failure to auth user[%s] passwd[%s]",
-                    user?user:"",
-                    passwd?passwd:"");
-                CWX_DEBUG((pTss->m_szBuf2K));
-                break;
-            }
+      ///鉴权队列的用户名、口令
+      if (m_pApp->getConfig().getMq().m_mq.getUser().length()){
+        if ((m_pApp->getConfig().getMq().m_mq.getUser() != user) ||
+          (m_pApp->getConfig().getMq().m_mq.getPasswd() != passwd))
+        {
+          iRet = CWX_MQ_ERR_FAIL_AUTH;
+          CwxCommon::snprintf(pTss->m_szBuf2K, 2048,
+            "Failure to auth user[%s] passwd[%s]",
+            user?user:"",
+            passwd?passwd:"");
+          CWX_DEBUG((pTss->m_szBuf2K));
+          break;
         }
+      }
       ///设置队列名
       m_conn.m_strQueueName = queue_name;
     }
@@ -157,11 +157,11 @@ CwxMsgBlock* CwxMcQueueHandler::packEmptyFetchMsg(CwxMqTss* pTss,
   CwxMsgBlock* pBlock = NULL;
   CwxKeyValueItem kv;
   iRet = CwxMqPoco::packFetchMqReply(pTss->m_pWriter,
-      pBlock,
-      iRet,
-      szErrMsg,
-      kv,
-      pTss->m_szBuf2K);
+    pBlock,
+    iRet,
+    szErrMsg,
+    kv,
+    pTss->m_szBuf2K);
   return pBlock;
 }
 
@@ -173,9 +173,9 @@ int CwxMcQueueHandler::replyFetchMq(CwxMqTss* pTss,
   msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_QUEUE);
   msg->send_ctrl().setHostId(0);
   if (bClose)
-      msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::CLOSE_NOTICE);
+    msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::CLOSE_NOTICE);
   else
-      msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
+    msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
   ///将消息放到连接的发送队列等待发送
   if (!putMsg(msg)) { ///放发送队列失败
     CWX_ERROR(("Failure to reply fetch mq"));
@@ -209,15 +209,15 @@ int CwxMcQueueHandler::sentMq(CwxMqTss* pTss) {
   kv.m_uiDataLen = log->getDataSize();
   kv.m_bKeyValue = false;
   CwxMqPoco::packFetchMqReply(pTss->m_pWriter,
-      pBlock,
-      CWX_MQ_ERR_SUCCESS,
-      szErrMsg,
-      kv,
-      pTss->m_szBuf2K);
+    pBlock,
+    CWX_MQ_ERR_SUCCESS,
+    szErrMsg,
+    kv,
+    pTss->m_szBuf2K);
   CwxMcQueueItem::destoryItem(log);
   if (!pBlock) {
-      CWX_ERROR(("No memory to malloc package"));
-      return -1;
+    CWX_ERROR(("No memory to malloc package"));
+    return -1;
   }
   if (0 != replyFetchMq(pTss, pBlock, false))  return -1;
   return 1;
