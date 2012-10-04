@@ -187,22 +187,10 @@ int CwxMcQueueHandler::replyFetchMq(CwxMqTss* pTss,
 }
 
 ///发送消息，0：没有消息发送；1：发送一个；-1：发送失败
-int CwxMqQueueHandler::sentMq(CwxMqTss* pTss) {
+int CwxMcQueueHandler::sentMq(CwxMqTss* pTss) {
   CwxMsgBlock* pBlock = NULL;
-  int err_no = CWX_MQ_ERR_SUCCESS;
-  int iState = 0;
-  iState = m_pApp->getQueueMgr()->getNextBinlog(pTss, m_conn.m_strQueueName,
-      pBlock, err_no, pTss->m_szBuf2K);
-  if (-1 == iState) { ///获取消息失败
-    CWX_ERROR(("Failure to read binlog ,err:%s", pTss->m_szBuf2K));
-    pBlock = packEmptyFetchMsg(pTss, CWX_MQ_ERR_ERROR, pTss->m_szBuf2K);
-    if (!pBlock) {
-      CWX_ERROR(("No memory to malloc package"));
-      return -1;
-    }
-    if (0 != replyFetchMq(pTss, pBlock, false)) return -1;
-    return 1;
-  } else if (0 == iState) { ///已经完成
+  CwxMcQueueItem* log = m_pApp->getQueue()->pop();
+  if (!log){
     if (!m_conn.m_bBlock) { ///如果不是block类型，回复没有消息
       pBlock = packEmptyFetchMsg(pTss, CWX_MQ_ERR_ERROR, "No message");
       if (!pBlock) {
@@ -214,21 +202,23 @@ int CwxMqQueueHandler::sentMq(CwxMqTss* pTss) {
     }
     //未完成，等待block
     return 0;
-  } else if (1 == iState) { ///获取了一个消息
-    if (0 != replyFetchMq(pTss, pBlock, false))  return -1;
-    return 1;
-  } else if (2 == iState) { //未完成
-    return 0;
-  }
-  //此时，iState为-2
-  //no queue
-  CWX_ERROR(("Not find queue:%s", m_conn.m_strQueueName.c_str()));
-  string strErr = string("No queue:") + m_conn.m_strQueueName;
-  pBlock = packEmptyFetchMsg(pTss, CWX_MQ_ERR_ERROR, strErr.c_str());
+  } 
+  ///获取了一个消息
+  CwxKeyValueItem kv;
+  kv.m_szData = log->getData();
+  kv.m_uiDataLen = log->getDataSize();
+  kv.m_bKeyValue = false;
+  CwxMqPoco::packFetchMqReply(pTss->m_pWriter,
+      pBlock,
+      CWX_MQ_ERR_SUCCESS,
+      szErrMsg,
+      kv,
+      pTss->m_szBuf2K);
+  CwxMcQueueItem::destoryItem(log);
   if (!pBlock) {
-    CWX_ERROR(("No memory to malloc package"));
-    return -1;
+      CWX_ERROR(("No memory to malloc package"));
+      return -1;
   }
-  if (0 != replyFetchMq(pTss, pBlock, false)) return -1;
+  if (0 != replyFetchMq(pTss, pBlock, false))  return -1;
   return 1;
 }
