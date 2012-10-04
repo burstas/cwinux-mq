@@ -116,6 +116,8 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
       return -1;
   }
   m_sync.m_uiChunkSize = strtoul(value.c_str(), NULL, 10);
+  if (m_sync.m_uiChunkKBye > CWX_MQ_MAX_CHUNK_KSIZE)
+      m_sync.m_uiChunkKBye = CWX_MQ_MAX_CHUNK_KSIZE;
   //load sync:sync_conn_num
   if (!cnf.getAttr("sync", "sync_conn_num", value) || !value.length()) {
       snprintf(m_szErrMsg, 2047, "Must set [sync:sync_conn_num].");
