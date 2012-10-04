@@ -18,8 +18,7 @@ void CwxMqMasterHandler::closeSession() {
 }
 ///创建与master同步的连接。返回值：0：成功；-1：失败
 int CwxMqMasterHandler::createSession(CwxMqTss* pTss) {
-  if (m_syncSession)
-    closeSession();
+  if (m_syncSession) closeSession();
   ///重建所有连接
   CwxINetAddr addr;
   if (0 != addr.set(m_pApp->getConfig().getMaster().m_master.getPort(),
