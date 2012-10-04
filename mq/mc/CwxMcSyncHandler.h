@@ -6,6 +6,8 @@
 #include "CwxMsgBlock.h"
 #include "CwxMqTss.h"
 #include "CwxMcStore.h"
+#include "CwxThreadPool.h"
+#include "CwxAppChannel.h"
 
 class CwxMcApp;
 class CwxMcSyncHandler;
@@ -70,6 +72,8 @@ public:
     map<CWX_UINT64/*seq*/, CwxMsgBlock*> m_msg;   ///<等待排序的消息
     map<CWX_UINT32, CwxMcSyncHandler*>   m_conns; ///<建立的连接
     CWX_UINT32                         m_uiReportDatetime; ///<报告的时间戳，若过了指定的时间没有回复，则关闭
+    CwxThreadPool*                     m_threadPool; ///<session对应的线程池
+    CwxAppChannel*                     m_channel;  ///<session对应的channel
     CwxHostInfo                        m_syncHost;       ///<数据同步的主机
     CwxMcStore*                        m_store;          ///<存储对象
     CwxMcApp*                          m_pApp;           ///<app对象

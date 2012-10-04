@@ -358,6 +358,8 @@ int CwxMcSyncHandler::saveBinlog(char const* szBinLog, CWX_UINT32 uiLen)
         data->m_szData,
         data->m_uiDataLen);
     pSession->m_pApp->getQueue()->push(log);
+    pSession->m_ullSid = ullSid;
+    pSession->m_uiTimeStamp = ttTimestamp;
     return 0;
 }
 
