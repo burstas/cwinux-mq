@@ -29,8 +29,8 @@ class CwxMcApp : public CwxAppFramework {
       LOG_FILE_SIZE = 30,
       // 可循环使用日志文件的数量
       LOG_FILE_NUM = 7,
-      // 从mq master接收数据的svr type
-      SVR_TYPE_MASTER = CwxAppFramework::SVR_TYPE_USER_START,
+      // 从sync binlog的数据接收的svr type
+      SVR_TYPE_SYNC = CwxAppFramework::SVR_TYPE_USER_START,
       // queue消息获取svr type
       SVR_TYPE_QUEUE = CwxAppFramework::SVR_TYPE_USER_START + 1,
       // stats监听的服务类型

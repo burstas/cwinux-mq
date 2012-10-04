@@ -1,7 +1,116 @@
-#include "CwxMqMasterHandler.h"
-#include "CwxMqApp.h"
+#include "CwxMcSyncHandler.h"
+#include "CwxMcApp.h"
 #include "CwxZlib.h"
-#include "CwxMqConnector.h"
+
+/**
+@brief 连接可读事件，返回-1，close()会被调用
+@return -1：处理失败，会调用close()； 0：处理成功
+*/
+int CwxMcSyncHandler::onInput() {
+    ///接受消息
+    int ret = CwxAppHandler4Channel::recvPackage(getHandle(),
+        m_uiRecvHeadLen,
+        m_uiRecvDataLen,
+        m_szHeadBuf,
+        m_header,
+        m_recvMsgData);
+    if (1 != ret) return ret; ///如果失败或者消息没有接收完，返回。
+    ///获取fetch 线程的tss对象
+    CwxMqTss* tss = (CwxMqTss*) CwxTss::instance();
+    ///通知收到一个消息
+    ret = recvMessage(tss);
+    ///如果m_recvMsgData没有释放，则是否m_recvMsgData等待接收下一个消息
+    if (m_recvMsgData) CwxMsgBlockAlloc::free(m_recvMsgData);
+    this->m_recvMsgData = NULL;
+    this->m_uiRecvHeadLen = 0;
+    this->m_uiRecvDataLen = 0;
+    return ret;
+}
+/**
+@brief 通知连接关闭。
+@return 1：不从engine中移除注册；0：从engine中移除注册但不删除handler；-1：从engine中将handle移除并删除。
+*/
+int CwxMcSyncHandler::onConnClosed() {
+    CwxMqTss* tss = (CwxMqTss*) CwxTss::instance();
+    CwxMcSyncSession* pSession = (CwxMcSyncSession*)tss->m_userData;
+    ///将session的重连标志设置为true，以便进行重新连接
+    pSession->m_bClosed = true;
+    ///将连接从连接map中删除
+    pSession->m_conns.erase(m_uiConnId);
+    return -1;
+}
+
+///接收消息，0：成功；-1：失败
+int CwxMcSyncHandler::recvMessage(CwxMqTss* pTss){
+    CwxMcSyncSession* pSession = (CwxMcSyncSession*)tss->m_userData;
+    ///如果处于关闭状态，直接返回-1关闭连接
+    if (pSession->m_bClosed) return -1;
+    m_recvMsgData->event().setConnId(m_uiConnId);
+    int ret = -1;
+    do {
+        if (!msg || !msg->length()) {
+            CWX_ERROR(("Receive empty msg from master"));
+            break;
+        }
+        //SID报告的回复，此时，一定是报告失败
+        if (CwxMqPoco::MSG_TYPE_SYNC_DATA
+            == msg->event().getMsgHeader().getMsgType()
+            || CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK
+            == msg->event().getMsgHeader().getMsgType()) {
+                list<CwxMsgBlock*> msgs;
+                if (0 != recvMsg(msg, msgs))
+                    break;
+                msg = NULL;
+                CwxMsgBlock* block = NULL;
+                list<CwxMsgBlock*>::iterator msg_iter = msgs.begin();
+                while (msg_iter != msgs.end()) {
+                    block = *msg_iter;
+                    if (CwxMqPoco::MSG_TYPE_SYNC_DATA
+                        == block->event().getMsgHeader().getMsgType()) {
+                            ret = dealSyncData(block, pTss);
+                    } else {
+                        ret = dealSyncChunkData(block, pTss);
+                    }
+                    msgs.pop_front();
+                    msg_iter = msgs.begin();
+                    if (block)
+                        CwxMsgBlockAlloc::free(block);
+                    if (0 != ret)
+                        break;
+                    msg_iter++;
+                }
+                if (msg_iter != msgs.end()) {
+                    while (msg_iter != msgs.end()) {
+                        block = *msg_iter;
+                        CwxMsgBlockAlloc::free(block);
+                        msg_iter++;
+                    }
+                    break;
+                }
+        } else if (CwxMqPoco::MSG_TYPE_SYNC_REPORT_REPLY
+            == msg->event().getMsgHeader().getMsgType()) {
+                if (0 != dealSyncReportReply(msg, pTss))
+                    break;
+        } else if (CwxMqPoco::MSG_TYPE_SYNC_ERR
+            == msg->event().getMsgHeader().getMsgType()) {
+                dealErrMsg(msg, pTss);
+                break;
+        } else {
+            CWX_ERROR(
+                ("Receive invalid msg type from master, msg_type=%u", msg->event().getMsgHeader().getMsgType()));
+            break;
+        }
+        ret = 0;
+    } while (0);
+    if (0 != ret) {
+        closeSession();
+    }
+    return 1;
+}
+
+
+
+
 
 //关闭已有连接
 void CwxMqMasterHandler::closeSession() {

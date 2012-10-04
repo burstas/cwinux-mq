@@ -1,5 +1,5 @@
-#ifndef __CWX_MC_MASTER_HANDLER_H__
-#define __CWX_MC_MASTER_HANDLER_H__
+#ifndef __CWX_MC_SYNC_HANDLER_H__
+#define __CWX_MC_SYNC_HANDLER_H__
 
 #include "CwxCommander.h"
 #include "CwxMqMacro.h"
@@ -8,16 +8,18 @@
 #include "CwxMcStore.h"
 
 class CwxMcApp;
+class CwxMcSyncHandler;
 
 ///binlog同步的session
 class CwxMcSyncSession {
   public:
     ///构造函数
-    CwxMcSyncSession(CWX_UINT32 uiHostId) {
+    CwxMcSyncSession() {
       m_ullSessionId = 0;
       m_ullNextSeq = 0;
       m_uiReportDatetime = 0;
-      m_uiHostId = uiHostId;
+      m_ullSid = 0;
+      m_bClosed = true;
     }
     ~CwxMcSyncSession() {
       map<CWX_UINT64/*seq*/, CwxMsgBlock*>::iterator iter = m_msg.begin();
@@ -28,12 +30,10 @@ class CwxMcSyncSession {
     }
   public:
     ///接收新消息，返回已经收到的消息列表
-    bool recv(CWX_UINT64 ullSeq, CwxMsgBlock* msg,
-        list<CwxMsgBlock*>& finished) {
-      map<CWX_UINT32, bool>::iterator iter = m_conns.find(
-          msg->event().getConnId());
-      if ((iter == m_conns.end()) || !iter->second)
-        return false;
+    bool recv(CWX_UINT64 ullSeq,
+        CwxMsgBlock* msg,
+        list<CwxMsgBlock*>& finished)
+    {
       finished.clear();
       if (ullSeq == m_ullNextSeq) {
         finished.push_back(msg);
@@ -58,91 +58,60 @@ class CwxMcSyncSession {
 
     //检测是否超时
     bool isTimeout(CWX_UINT32 uiTimeout) const {
-      if (!m_msg.size())
-        return false;
+      if (!m_msg.size()) return false;
       CWX_UINT32 uiNow = time(NULL);
       return m_msg.begin()->second->event().getTimestamp() + uiTimeout < uiNow;
     }
   public:
-    CWX_UINT64                   m_ullSessionId; ///<session id
-    CWX_UINT64                   m_ullNextSeq; ///<下一个待接收的sid
-    CWX_UINT32                   m_uiHostId; ///<host id
-    map<CWX_UINT64/*seq*/, CwxMsgBlock*>   m_msg;   ///<等待排序的消息
-    map<CWX_UINT32, bool/*是否已经report*/> m_conns; ///<建立的连接
-    CWX_UINT32                   m_uiReportDatetime; ///<报告的时间戳，若过了指定的时间没有回复，则关闭
-
-    CwxThreadPool*               m_syncThreadPool;  ///<sync的线程池
-    CwxAppChannel*               m_syncChannel;     ///<sync的channel
-    CwxHostInfo*                 m_syncHost;       ///<数据同步的主机
-    CWX_UINT64                   m_ullSid;         ///<当前同步的sid
-    CwxMcApp*                    m_pApp;           ///<app对象
-    CwxMcStore*                  m_store;          ///<存储对象
+    CWX_UINT64                         m_ullSessionId; ///<session id
+    CWX_UINT64                         m_ullNextSeq; ///<下一个待接收的sid
+    map<CWX_UINT64/*seq*/, CwxMsgBlock*> m_msg;   ///<等待排序的消息
+    map<CWX_UINT32, CwxMcSyncHandler*>   m_conns; ///<建立的连接
+    CWX_UINT32                         m_uiReportDatetime; ///<报告的时间戳，若过了指定的时间没有回复，则关闭
+    CwxHostInfo                        m_syncHost;       ///<数据同步的主机
+    CwxMcStore*                        m_store;          ///<存储对象
+    CwxMcApp*                          m_pApp;           ///<app对象
+    CWX_UINT64                         m_ullSid;         ///<当前同步的sid
+    bool                              m_bClosed;        ///<session是否已经关闭
 };
 
-///slave从master接收binlog的处理handle
-class CwxMcMasterHandler : public CwxCmdOp {
+///从mq同步数据的处理handle
+class CwxMcSyncHandler : public CwxAppHandler4Channel {
   public:
     ///构造函数
-    CwxMcMasterHandler(CwxMcSyncSession* pSessoin) :
-        m_pApp(pApp) {
-      m_unzipBuf = NULL;
-      m_uiBufLen = 0;
-      m_uiCurHostId = 0;
-      m_syncSession = NULL;
+    CwxMcSyncHandler(CwxAppChannel* channel, CWX_UINT32 uiConnID) : CwxAppHandler4Channel(channel){
+        m_uiConnId = uiConnID;
+        m_uiRecvHeadLen = 0;
+        m_uiRecvDataLen = 0;
+        m_recvMsgData = NULL;
     }
     ///析构函数
-    virtual ~CwxMqMasterHandler() {
-      if (m_unzipBuf)
-        delete[] m_unzipBuf;
+    virtual ~CwxMcSyncHandler() {
+        if (m_recvMsgData) CwxMsgBlockAlloc::free(m_recvMsgData);
     }
   public:
-    ///master的连接关闭后，需要清理环境
-    virtual int onConnClosed(CwxMsgBlock*& msg, CwxTss* pThrEnv);
-    ///接收来自master的消息
-    virtual int onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv);
-    ///超时检查
-    virtual int onTimeoutCheck(CwxMsgBlock*& msg, CwxTss* pThrEnv);
-  public:
-    ///获取session
-    CwxMqSyncSession* getSession() {
-      return m_syncSession; ///<数据同步的session
-    }
-
+      /**
+      @brief 连接可读事件，返回-1，close()会被调用
+      @return -1：处理失败，会调用close()； 0：处理成功
+      */
+      virtual int onInput();
+      /**
+      @brief 通知连接关闭。
+      @return 1：不从engine中移除注册；0：从engine中移除注册但不删除handler；-1：从engine中将handle移除并删除。
+      */
+      virtual int onConnClosed();
+      /// 获取连接id
+      CWX_UINT32 getConnId() const { return m_uiConnId;}
   private:
-    //关闭已有连接
-    void closeSession();
-    ///创建与master同步的连接。返回值：0：成功；-1：失败
-    int createSession(CwxMqTss* pTss); ///<tss对象
-    ///收到一条消息的处理函数。返回值：0:成功；-1：失败
-    int recvMsg(CwxMsgBlock*& msg, ///<收到的消息
-        list<CwxMsgBlock*>& msgs ///<接收池中返回的可处理的消息。在list按照先后次序排序
-        );
-    ///处理Sync report的reply消息。返回值：0：成功；-1：失败
-    int dealSyncReportReply(CwxMsgBlock*& msg, ///<收到的消息
-        CwxMqTss* pTss ///<tss对象
-        );
-    ///处理收到的sync data。返回值：0：成功；-1：失败
-    int dealSyncData(CwxMsgBlock*& msg, ///<收到的消息
-        CwxMqTss* pTss ///<tss对象
-        );
-    //处理收到的chunk模式下的sync data。返回值：0：成功；-1：失败
-    int dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
-        CwxMqTss* pTss ///<tss对象
-        );
-    //处理错误消息。返回值：0：成功；-1：失败
-    int dealErrMsg(CwxMsgBlock*& msg,  ///<收到的消息
-        CwxMqTss* pTss ///<tss对象
-        );
-    //0：成功；-1：失败
-    int saveBinlog(CwxMqTss* pTss, char const* szBinLog, CWX_UINT32 uiLen);
-    bool checkSign(char const* data, CWX_UINT32 uiDateLen, char const* szSign,
-        char const* sign);
-    //获取unzip的buf
-    bool prepareUnzipBuf();
+      ///接收消息，0：成功；-1：失败
+      int recvMessage(CwxMqTss* pTss);
   private:
-    CwxMcSyncSession*           m_syncSession; ///<数据同步的session
-    CWX_UINT32                 m_uiCurHostId; ///<当前的host id
-    bool                       m_bReport;    ///<是否已经report
+      CwxMsgHead              m_header; ///<消息头
+      CWX_UINT32              m_uiConnId; ///<连接id
+      char                    m_szHeadBuf[CwxMsgHead::MSG_HEAD_LEN + 1]; ///<消息头的buf
+      CWX_UINT32              m_uiRecvHeadLen; ///<received msg header's byte number.
+      CWX_UINT32              m_uiRecvDataLen; ///<received data's byte number.
+      CwxMsgBlock*            m_recvMsgData; ///<the received msg data
 };
 
 #endif 
