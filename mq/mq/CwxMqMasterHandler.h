@@ -33,12 +33,12 @@ class CwxMqSyncSession {
     }
   public:
     ///接收新消息，返回已经收到的消息列表
-    bool recv(CWX_UINT64 ullSeq, CwxMsgBlock* msg,
-        list<CwxMsgBlock*>& finished) {
-      map<CWX_UINT32, bool>::iterator iter = m_conns.find(
-          msg->event().getConnId());
-      if ((iter == m_conns.end()) || !iter->second)
-        return false;
+    bool recv(CWX_UINT64 ullSeq,
+        CwxMsgBlock* msg,
+        list<CwxMsgBlock*>& finished)
+    {
+      map<CWX_UINT32, bool>::iterator conn_iter = m_conns.find(msg->event().getConnId());
+      if ((conn_iter == m_conns.end()) || !conn_iter->second) return false;
       finished.clear();
       if (ullSeq == m_ullNextSeq) {
         finished.push_back(msg);
@@ -63,18 +63,17 @@ class CwxMqSyncSession {
 
     //检测是否超时
     bool isTimeout(CWX_UINT32 uiTimeout) const {
-      if (!m_msg.size())
-        return false;
+      if (!m_msg.size()) return false;
       CWX_UINT32 uiNow = time(NULL);
       return m_msg.begin()->second->event().getTimestamp() + uiTimeout < uiNow;
     }
   public:
-    CWX_UINT64 m_ullSessionId; ///<session id
-    CWX_UINT64 m_ullNextSeq; ///<下一个待接收的sid
-    CWX_UINT32 m_uiHostId; ///<host id
-    map<CWX_UINT64/*seq*/, CwxMsgBlock*> m_msg;   ///<等待排序的消息
-    map<CWX_UINT32, bool/*是否已经report*/> m_conns; ///<建立的连接
-    CWX_UINT32 m_uiReportDatetime; ///<报告的时间戳，若过了指定的时间没有回复，则关闭
+    CWX_UINT64        m_ullSessionId; ///<session id
+    CWX_UINT64        m_ullNextSeq; ///<下一个待接收的sid
+    CWX_UINT32        m_uiHostId; ///<host id
+    map<CWX_UINT64/*seq*/, CwxMsgBlock*>    m_msg;   ///<等待排序的消息
+    map<CWX_UINT32, bool/*是否已经report*/>  m_conns; ///<建立的连接
+    CWX_UINT32                            m_uiReportDatetime; ///<报告的时间戳，若过了指定的时间没有回复，则关闭
 };
 
 ///slave从master接收binlog的处理handle
