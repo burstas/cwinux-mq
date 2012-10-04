@@ -19,10 +19,12 @@ public:
     CwxMcSyncSession() {
         m_ullSessionId = 0;
         m_ullNextSeq = 0;
-        m_uiReportDatetime = 0;
-        m_ullSid = 0;
+        m_ullLogSid = 0;
+        m_uiLogTimeStamp = 0;
         m_uiHostId = 0;
+        m_bNeedClosed = false;
         m_bClosed = true;
+        m_uiClosedTimestamp = 0;
     }
     ~CwxMcSyncSession() {
         map<CWX_UINT64/*seq*/, CwxMsgBlock*>::iterator iter = m_msg.begin();
@@ -65,21 +67,30 @@ public:
         CWX_UINT32 uiNow = time(NULL);
         return m_msg.begin()->second->event().getTimestamp() + uiTimeout < uiNow;
     }
+    //检查是否需要关闭session
+    inline bool isCloseSession() const{
+        return m_bNeedClosed;
+    }
+    //检查是否需要重建session
+    bool isNeedCreate() const{
+        return m_bClosed && (m_uiClosedTimestamp > CWX_MQ_DEF_TIMEOUT_SECOND);
+    }
 public:
     CWX_UINT64                         m_ullSessionId; ///<session id
     CWX_UINT64                         m_ullNextSeq; ///<下一个待接收的sid
     CWX_UINT32                         m_uiHostId; ///<主机的id
     map<CWX_UINT64/*seq*/, CwxMsgBlock*> m_msg;   ///<等待排序的消息
     map<CWX_UINT32, CwxMcSyncHandler*>   m_conns; ///<建立的连接
-    CWX_UINT32                         m_uiReportDatetime; ///<报告的时间戳，若过了指定的时间没有回复，则关闭
     CwxThreadPool*                     m_threadPool; ///<session对应的线程池
     CwxAppChannel*                     m_channel;  ///<session对应的channel
     CwxHostInfo                        m_syncHost;       ///<数据同步的主机
     CwxMcStore*                        m_store;          ///<存储对象
     CwxMcApp*                          m_pApp;           ///<app对象
-    CWX_UINT64                         m_ullSid;         ///<当前同步的sid
-    CWX_UINT32                         m_uiTimeStamp;    ///<当前同步的时间点
-    bool                              m_bClosed;        ///<session是否已经关闭
+    CWX_UINT64                         m_ullLogSid;         ///<当前同步的sid
+    CWX_UINT32                         m_uiLogTimeStamp;    ///<当前同步的时间点
+    bool                               m_bNeedClosed;   ///<session是否需要关闭
+    bool                               m_bClosed;        ///<session是否已经关闭
+    CWX_UINT32                         m_uiClosedTimestamp; ///<session关闭的时间
 };
 
 ///从mq同步数据的处理handle
@@ -110,6 +121,10 @@ public:
     virtual int onConnClosed();
     /// 获取连接id
     CWX_UINT32 getConnId() const { return m_uiConnId;}
+    //关闭已有连接
+    static void closeSession(CwxMqTss* pTss);
+    ///创建与mq同步的连接。返回值：0：成功；-1：失败
+    static int createSession(CwxMqTss* pTss);
 private:
     ///接收消息，0：成功；-1：失败
     int recvMessage(CwxMqTss* pTss);

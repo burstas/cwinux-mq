@@ -1,6 +1,7 @@
 #include "CwxMcSyncHandler.h"
 #include "CwxMcApp.h"
 #include "CwxZlib.h"
+#include "CwxMqConnector.h"
 
 /**
 @brief 连接可读事件，返回-1，close()会被调用
@@ -31,17 +32,131 @@ int CwxMcSyncHandler::onInput() {
 int CwxMcSyncHandler::onConnClosed() {
     CwxMcSyncSession* pSession = (CwxMcSyncSession*)m_pTss->m_userData;
     ///将session的重连标志设置为true，以便进行重新连接
-    pSession->m_bClosed = true;
+    pSession->m_bNeedClosed = true;
     ///将连接从连接map中删除
     pSession->m_conns.erase(m_uiConnId);
     return -1;
 }
 
+//关闭已有连接
+void CwxMcSyncHandler::closeSession(CwxMqTss* pTss){
+    CwxMcSyncSession* pSession = (CwxMcSyncSession*)pTss->m_userData;
+    ///将session的重连标志设置为true，以便进行重新连接
+    pSession->m_bClosed = true;
+    pSession->m_uiClosedTimestamp = time(NULL);
+    {// 关闭连接
+        map<CWX_UINT32, CwxMcSyncHandler*>::iterator iter = pSession->m_conns.begin();
+        while(iter != pSession->m_conns.end()){
+            iter->second->close();
+            ++iter;
+        }
+        pSession->m_conns.clear();
+    }
+    {// 释放消息
+        map<CWX_UINT64/*seq*/, CwxMsgBlock*>::iterator iter = pSession->m_msg.begin();
+        while (iter != m_msg.end()) {
+            CwxMsgBlockAlloc::free(iter->second);
+            iter++;
+        }
+    }
+    // 清理环境
+    pSession->m_bNeedClosed = false;
+    pSession->m_ullSessionId = 0;
+    pSession->m_ullNextSeq = 0;
+}
+
+///创建与mq同步的连接。返回值：0：成功；-1：失败
+int CwxMcSyncHandler::createSession(CwxMqTss* pTss){
+    CwxMcSyncSession* pSession = (CwxMcSyncSession*)pTss->m_userData;
+    CWX_ASSERT((pSession->m_bClosed));
+    ///重建所有连接
+    CwxINetAddr addr;
+    if (0 != addr.set(pSession->m_syncHost.getPort(), pSession->m_syncHost->getHostName().c_str())){
+        CWX_ERROR(("Failure to init addr, addr:%s, port:%u, err=%d",
+            pSession->m_syncHost->getHostName().c_str(),
+            pSession->m_syncHost.getPort(),
+            errno));
+        return -1;
+    }
+    CWX_UINT32 i = 0;
+    CWX_UINT32 unConnNum = pSession->m_pApp->getConfig().getSync().m_uiConnNum;
+    if (unConnNum < 1) unConnNum = 1;
+    int* fds = new int[unConnNum];
+    for (i = 0; i < unConnNum; i++) {
+        fds[i] = -1;
+    }
+    CwxTimeValue timeout(CWX_MQ_CONN_TIMEOUT_SECOND);
+    CwxTimeouter timeouter(&timeout);
+    if (0 != CwxMqConnector::connect(addr, unConnNum, fds, &timeouter, true)) {
+        CWX_ERROR(("Failure to connect to addr:%s, port:%u, err=%d",
+            pSession->m_syncHost->getHostName().c_str(),
+            pSession->m_syncHost.getPort(),
+            errno));
+        return -1;
+    }
+    ///注册连接id
+    int ret = 0;
+    CWX_UINT32 uiConnId = 0;
+    CwxAppHandler4Channel* handler = NULL;
+    for (i = 0; i < unConnNum; i++) {
+        uiConnId = i + 1;
+        handler = new CwxMcSyncHandler(pTss, pSession->m_channel, uiConnId);
+        handler->setHandle(fds[i]);
+        if (0 != handler->open()) {
+            CWX_ERROR(("Failure to register handler[%d]", handler->getHandle()));
+            delete handler;
+            break;
+        }
+        pSession->m_conns[uiConnId] = handler;
+    }
+    if (i != unConnNum) { ///失败
+        for (; i < unConnNum; i++)  ::close(fds[i]);
+        closeSession(pTss);
+        return -1;
+    }
+    ///发送report的消息
+    ///创建往master报告sid的通信数据包
+    CwxMsgBlock* pBlock = NULL;
+    ret = CwxMqPoco::packReportData(pTss->m_pWriter,
+        pBlock,
+        0,
+        pSession->m_ullLogSid,
+        false,
+        pSession->m_pApp->getConfig().getSync().m_uiChunkKBye,
+        pSession->m_pApp->getConfig().getSync().m_strSource.c_str(),
+        pSession->m_syncHost.getUser().c_str(),
+        pSession->m_syncHost.getPasswd().c_str(),
+        pSession->m_pApp->getConfig().getSync().m_strSign.c_str(),
+        pSession->m_pApp->getConfig().getSync().m_bzip,
+        pTss->m_szBuf2K);
+
+    //清空session 关闭相关的标记
+    pSession->m_bClosed = false;
+    pSession->m_bNeedClosed = false;
+
+    if (ret != CWX_MQ_ERR_SUCCESS) {    ///数据包创建失败
+        CWX_ERROR(("Failure to create report package, err:%s", pTss->m_szBuf2K));
+        closeSession();
+        return -1;
+    } else {
+        handler = pSession->m_conns.begin()->second;
+        pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
+        if (!handler->putMsg(pBlock)){
+            CWX_ERROR(("Failure to report sid to mq"));
+            CwxMsgBlockAlloc::free(pBlock);
+            closeSession();
+            return -1;
+        }
+    }
+    return 0;
+}
+
+
 ///接收消息，0：成功；-1：失败
 int CwxMcSyncHandler::recvMessage(){
     CwxMcSyncSession* pSession = (CwxMcSyncSession*)m_pTss->m_userData;
     ///如果处于关闭状态，直接返回-1关闭连接
-    if (pSession->m_bClosed) return -1;
+    if (pSession->m_bNeedClosed) return -1;
     m_recvMsgData->event().setConnId(m_uiConnId);
     if (!msg || !msg->length()) {
         CWX_ERROR(("Receive empty msg from master"));
@@ -159,6 +274,7 @@ int CwxMcSyncHandler::dealSyncReportReply(CwxMsgBlock*& msg)
                     m_pTss->m_szBuf2K));
                 return -1;
             } else {
+                pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
                 if (!iter->second->putMsg(pBlock)){
                     CWX_ERROR(("Failure to report new session connection to mq"));
                     CwxMsgBlockAlloc::free(pBlock);
@@ -222,6 +338,7 @@ int CwxMcSyncHandler::dealSyncData(CwxMsgBlock*& msg)
         CWX_ERROR(("Failure to pack sync data reply, errno=%s", m_pTss->m_szBuf2K));
         return -1;
     }
+    reply_block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
     if (!pSession->m_conns.find(msg->event().getConnId())->second->putMsg(reply_block))
     {
         CWX_ERROR(("Failure to send sync data reply to mq"));
@@ -319,6 +436,7 @@ int CwxMcSyncHandler::dealSyncChunkData(CwxMsgBlock*& msg)
         CWX_ERROR(("Failure to pack sync data reply, errno=%s", m_pTss->m_szBuf2K));
         return -1;
     }
+    reply_block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
     if (!pSession->m_conns.find(msg->event().getConnId())->second->putMsg(reply_block))
     {
         CWX_ERROR(("Failure to send sync data reply to mq"));
@@ -358,8 +476,8 @@ int CwxMcSyncHandler::saveBinlog(char const* szBinLog, CWX_UINT32 uiLen)
         data->m_szData,
         data->m_uiDataLen);
     pSession->m_pApp->getQueue()->push(log);
-    pSession->m_ullSid = ullSid;
-    pSession->m_uiTimeStamp = ttTimestamp;
+    pSession->m_ullLogSid = ullSid;
+    pSession->m_uiLogTimeStamp = ttTimestamp;
     return 0;
 }
 

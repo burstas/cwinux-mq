@@ -21,7 +21,6 @@ class CwxMqSyncSession {
     CwxMqSyncSession(CWX_UINT32 uiHostId) {
       m_ullSessionId = 0;
       m_ullNextSeq = 0;
-      m_uiReportDatetime = 0;
       m_uiHostId = uiHostId;
     }
     ~CwxMqSyncSession() {
@@ -73,7 +72,6 @@ class CwxMqSyncSession {
     CWX_UINT32        m_uiHostId; ///<host id
     map<CWX_UINT64/*seq*/, CwxMsgBlock*>    m_msg;   ///<等待排序的消息
     map<CWX_UINT32, bool/*是否已经report*/>  m_conns; ///<建立的连接
-    CWX_UINT32                            m_uiReportDatetime; ///<报告的时间戳，若过了指定的时间没有回复，则关闭
 };
 
 ///slave从master接收binlog的处理handle
