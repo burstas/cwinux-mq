@@ -6,6 +6,7 @@ CwxMcApp::CwxMcApp() {
   m_queueThreadPool = NULL;
   m_queueChannel = NULL;
   m_ttCurTime = 0;
+  m_uiSyncHostFileModifyTime = 0;
   memset(m_szBuf, 0x00, MAX_MONITOR_REPLY_SIZE);
 }
 
@@ -25,6 +26,10 @@ int CwxMcApp::init(int argc, char** argv) {
   ///加载配置文件，若失败则退出
   if (0 != m_config.loadConfig(getConfFile())) {
     CWX_ERROR((m_config.getErrMsg()));
+    return -1;
+  }
+  ///加载sync的host信息
+  if (-1 == loadSyncHostForChange(true)){
     return -1;
   }
   ///设置运行日志的输出level
@@ -47,6 +52,7 @@ int CwxMcApp::initRunEnv() {
   if (CwxAppFramework::initRunEnv() == -1) return -1;
   ///将加载的配置文件信息输出到日志文件中，以供查看检查
   m_config.outputConfig();
+  m_config.outputSyncHost();
   ///block各种signal
   this->blockSignal(SIGTERM);
   this->blockSignal(SIGUSR1);
@@ -88,6 +94,17 @@ int CwxMcApp::initRunEnv() {
     CWX_ERROR(("Failure to start queue thread pool"));
     return -1;
   }
+  //创建同步的线程池
+  {
+    CwxMcSyncSession* pSession = NULL;
+    map<string, CwxHostInfo>::const_iterator iter = m_config.getSyncHosts().m_hosts.begin();
+    while(iter != m_config.getSyncHosts().m_hosts.end()){
+      pSession = new CwxMcSyncSession();
+      ++iter;
+    }
+  }
+
+
   return 0;
 }
 
@@ -194,7 +211,7 @@ int CwxMcApp::onRecvMsg(CwxAppHandler4Msg& conn, bool&) {
 }
 
 void CwxMcApp::destroy() {
-
+  // 释放消息获取的线程池及channel
   if (m_queueThreadPool) {
     m_queueThreadPool->stop();
     delete m_queueThreadPool;
@@ -204,10 +221,91 @@ void CwxMcApp::destroy() {
     delete m_queueChannel;
     m_queueChannel = NULL;
   }
-
-
+  // 释放数据同步的线程池及channel
+  CwxMcSyncSession* pSession = NULL;
+  map<string, CwxMcSyncSession*>::iterator iter = m_syncs.begin();
+  while (iter != m_syncs.end()) {
+    stopSync(iter->first);
+    iter = m_syncs.begin();
+  }
   CwxAppFramework::destroy();
 }
+
+/// 停止sync。返回值，0：成功；-1：失败
+int CwxMcApp::stopSync(string const& strHostName){
+  map<string, CwxMcSyncSession*>::iterator iter = m_syncs.find(strHostName);
+  if (iter == m_syncs.end()) return 0;
+  // 将host从map中删除
+  m_syncs->erase(iter);
+  CwxMcSyncSession* pSession = iter->second;
+  // 停止线程
+  if (pSession->m_threadPool){
+    pSession->m_threadPool->stop();
+    delete pSession->m_threadPool;
+    pSession->m_threadPool = NULL;
+  }
+  // 关闭channel
+  if (pSession->m_channel){
+    delete pSession->m_channel;
+    pSession->m_channel = NULL;
+  }
+  // 关闭store
+  if (pSession->m_store){
+    pSession->m_store->flush();
+    delete pSession->m_store;
+    pSession->m_store = NULL;
+  }
+  // 删除session对象
+  delete pSession;
+  return 0;
+}
+
+/// 启动sync。返回值，0：成功；-1：失败
+int CwxMcApp::startSync(CwxHostInfo const& host){
+  if (m_syncs.find(host.getHostName()) != m_syncs.end()) {
+    CWX_ERROR(("Host[%s] exists.", host.getHostName().c_str()));
+    return -1;
+  }
+  CwxMcSyncSession* pSession = new CwxMcSyncSession();
+  m_syncs[host.getHostName()] = pSession;
+
+  pSession->m_syncHost = host;
+  pSession->m_bClosed = true;
+  pSession->m_bNeedClosed = false;
+  pSession->m_pApp = this;
+  pSession->m_store = new CwxMcStore(m_config.getLog().m_strPath,
+    host.getHostName(),
+    m_config.getLog().m_uiLogMSize,
+
+
+}
+/// 更新sync。返回值，0：成功；-1：失败
+int CwxMcApp::updateSync(CwxHostInfo const& host){
+
+}
+
+/// 检查sync host文件的变化，若变化则加载。
+/// 返回值，-1：失败；1：变化并加载；0：没有变化
+int CwxMcApp::loadSyncHostForChange(bool bForceLoad){
+  string strFile = m_config.getCommon().m_strWorkDir + "mc_sync_host.conf";
+  CWX_UINT32 uiModifyTime = CwxFile::getFileMTime(strFile);
+  if (0 == uiModifyTime){
+    CWX_ERROR(("Failure to get sync host file:%s, errno=%d",
+      strFile.c_str(), errno));
+    return -1;
+  }
+  if ((uiModifyTime != m_uiSyncHostFileModifyTime) || bForceLoad){
+    if (0 != m_config.loadSyncHost(strFile)){
+      CWX_ERROR(("Failure to load sync host file:%s, errno=%s",
+        strFile.c_str(), errno));
+      return -1;
+    }
+    m_uiSyncHostFileModifyTime = uiModifyTime;
+    return 1;
+  }
+  return 0;
+}
+
 
 int CwxMcApp::startNetwork() {
   ///打开监听的服务器端口号
@@ -371,6 +469,23 @@ CWX_UINT32 CwxMqApp::packMonitorInfo() {
   return strlen(m_szBuf);
 
 }
+
+///sync channel的线程函数，arg为app对象
+void* CwxMcApp::syncThreadMain(CwxTss* tss,
+                            CwxMsgQueue* queue,
+                            void* arg)
+{
+  return NULL;
+}
+///sync channel的队列消息函数。返回值：0：正常；-1：队列停止
+int CwxMcApp::dealSyncThreadMsg(CwxMsgQueue* queue,
+                             CwxMqApp* app,
+                             CwxAppChannel* channel)
+{
+
+  return 0;
+}
+
 
 ///queue channel的线程函数，arg为app对象
 void* CwxMcApp::queueThreadMain(CwxTss*, CwxMsgQueue* queue, void* arg) {

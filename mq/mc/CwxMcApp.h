@@ -89,7 +89,16 @@ protected:
   ///释放app资源
   virtual void destroy();
 private:
-  ///启动网络，-1：失败；0：成功
+  /// 停止sync。返回值，0：成功；-1：失败
+  int stopSync(string const& strHostName);
+  /// 启动sync。返回值，0：成功；-1：失败
+  int  startSync(CwxHostInfo const& host);
+  /// 更新sync。返回值，0：成功；-1：失败
+  int  updateSync(CwxHostInfo const& host);
+  /// 检查sync host文件的变化，若变化则加载。
+  /// 返回值，-1：失败；1：变化并加载；0：没有变化
+  int loadSyncHostForChange(bool bForceLoad=false);
+  /// 启动网络，-1：失败；0：成功
   int startNetwork();
   ///stats命令，-1：因为错误关闭连接；0：不关闭连接
   int monitorStats(char const* buf,
@@ -97,6 +106,14 @@ private:
     CwxAppHandler4Msg& conn);
   ///形成监控内容，返回监控内容的长度
   CWX_UINT32 packMonitorInfo();
+  ///sync channel的线程函数，arg为app对象
+  static void* syncThreadMain(CwxTss* tss,
+    CwxMsgQueue* queue,
+    void* arg);
+  ///sync channel的队列消息函数。返回值：0：正常；-1：队列停止
+  static int dealSyncThreadMsg(CwxMsgQueue* queue,
+    CwxMqApp* app,
+    CwxAppChannel* channel);
   ///queue channel的线程函数，arg为app对象
   static void* queueThreadMain(CwxTss* tss,
     CwxMsgQueue* queue,
@@ -112,6 +129,10 @@ private:
   CwxMcConfig          m_config;
   // 队列对象
   CwxMcQueue*          m_queue;
+  // sync host 文件的修改时间
+  CWX_UINT32           m_uiSyncHostFileModifyTime;
+  // sync host的host id
+  CWX_UINT32           m_uiHostId;
   // 数据收集对象的map
   map<string, CwxMcSyncSession*>   m_syncs;
   // queue获取的线程池对象

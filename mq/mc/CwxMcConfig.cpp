@@ -181,19 +181,18 @@ int CwxMcConfig::loadSyncHost(string const& strSyncHostFile){
   CwxHostInfo hostInfo;
   while(iter != hosts.end()){
     CwxCommon::split(iter->second, items, ':');
-    if (items.size() != 4){
-      snprintf(m_szErrMsg, 2047, "[host:%s]'s value[%s] is invalid, must be [ip:port:user:passwd].");
+    if (items.size() != 3){
+      snprintf(m_szErrMsg, 2047, "[host:%s]'s value[%s] is invalid, must be [port:user:passwd].");
       return -1;
     }
+    hostInfo.setHostName(iter->first);
     item_iter = items.begin();
-    hostInfo.setHostName(*item_iter);
-    ++item_iter;
     hostInfo.setPort(strtoul(item_iter->c_str()));
     ++item_iter;
     hostInfo.setUser(*item_iter);
     ++item_iter;
     hostInfo.setPassword(*item_iter);
-    m_syncHosts.m_hosts[iter->first] = hostInfo;
+    m_syncHosts.m_hosts[hostInfo.getHostName()] = hostInfo;
     ++iter;
   }
   return 0;

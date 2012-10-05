@@ -87,6 +87,7 @@ int CwxMcStore::append(CWX_UINT32 uiTime, char const* szData, CWX_UINT32 uiDataL
       m_strCurFileName.c_str(), errno);
     return -1;
   }
+  m_offCurFileSize += uiDataLen;
   if (m_bAppendReturn){
     if (1 != ::fwrite("\n", 1, 1, m_fd)){
       CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to write file:%s, errno=%d",
@@ -94,6 +95,7 @@ int CwxMcStore::append(CWX_UINT32 uiTime, char const* szData, CWX_UINT32 uiDataL
       return -1;
     }
   }
+  m_offCurFileSize++;
   m_uiCurUnflushLogNum++;
   if (m_uiMaxUnflushLogNum && (m_uiCurUnflushLogNum >= m_uiMaxUnflushLogNum)){
     flush();
