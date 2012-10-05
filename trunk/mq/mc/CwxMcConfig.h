@@ -37,6 +37,8 @@ public:
     m_uiSwitchSecond = 0;
     m_uiFlushNum = 100;
     m_uiFlushSecond = 30;
+    m_uiReserveDay = 0;
+    m_bAppendReturn = false;
   }
 public:
   string m_strPath; ///<log的目录
@@ -44,6 +46,8 @@ public:
   CWX_UINT32 m_uiSwitchSecond; ///<log文件切换的时间间隔，单位为s
   CWX_UINT32 m_uiFlushNum; ///<接收多少条记录后，flush binlog文件
   CWX_UINT32 m_uiFlushSecond; ///<间隔多少秒，必须flush binlog文件
+  CWX_UINT32 m_uiReserveDay; ///<保留的天数，若是0表示不删除
+  bool       m_bAppendReturn; ///<是否append return
 };
 
 ///配置文件的mq对象

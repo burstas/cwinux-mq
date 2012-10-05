@@ -91,10 +91,6 @@ protected:
 private:
   /// 停止sync。返回值，0：成功；-1：失败
   int stopSync(string const& strHostName);
-  /// 启动sync。返回值，0：成功；-1：失败
-  int  startSync(CwxHostInfo const& host);
-  /// 更新sync。返回值，0：成功；-1：失败
-  int  updateSync(CwxHostInfo const& host);
   /// 检查sync host文件的变化，若变化则加载。
   /// 返回值，-1：失败；1：变化并加载；0：没有变化
   int loadSyncHostForChange(bool bForceLoad=false);
@@ -131,8 +127,6 @@ private:
   CwxMcQueue*          m_queue;
   // sync host 文件的修改时间
   CWX_UINT32           m_uiSyncHostFileModifyTime;
-  // sync host的host id
-  CWX_UINT32           m_uiHostId;
   // 数据收集对象的map
   map<string, CwxMcSyncSession*>   m_syncs;
   // queue获取的线程池对象

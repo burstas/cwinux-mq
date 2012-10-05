@@ -25,6 +25,12 @@ public:
     m_bNeedClosed = false;
     m_bClosed = true;
     m_uiClosedTimestamp = 0;
+    m_unThreadPoolId = 0;
+    m_threadPool = NULL;
+    m_channel = NULL;
+    m_store = NULL;
+    m_pApp = NULL;
+
   }
   ~CwxMcSyncSession() {
     map<CWX_UINT64/*seq*/, CwxMsgBlock*>::iterator iter = m_msg.begin();
@@ -81,6 +87,7 @@ public:
   CWX_UINT32                         m_uiHostId; ///<主机的id
   map<CWX_UINT64/*seq*/, CwxMsgBlock*> m_msg;   ///<等待排序的消息
   map<CWX_UINT32, CwxMcSyncHandler*>   m_conns; ///<建立的连接
+  CWX_UINT16                         m_unThreadPoolId;
   CwxThreadPool*                     m_threadPool; ///<session对应的线程池
   CwxAppChannel*                     m_channel;  ///<session对应的channel
   CwxHostInfo                        m_syncHost;       ///<数据同步的主机
@@ -90,7 +97,7 @@ public:
   volatile CWX_UINT32                 m_uiLogTimeStamp;    ///<当前同步的时间点
   volatile bool                      m_bNeedClosed;   ///<session是否需要关闭
   volatile bool                      m_bClosed;        ///<session是否已经关闭
-  volatile CWX_UINT32                m_uiClosedTimestamp; ///<session关闭的时间
+  volatile CWX_UINT32                 m_uiClosedTimestamp; ///<session关闭的时间
 };
 
 ///从mq同步数据的处理handle
