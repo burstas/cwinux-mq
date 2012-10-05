@@ -32,15 +32,15 @@ public:
     bool bAppendReturn=false ///<是否在日志后append回车
     )
   {
-    if (!strPrefix.length()){
-      strPrefix = "log";
+    m_strPrefix = strPrefix;
+    if (!m_strPrefix.length()){
+      m_strPrefix = "log";
     }
     if ('/' == strPath[strPath.length() - 1]){
-      m_strPath = strPath + "/" + strPrefix;
+      m_strPath = strPath + "/" + m_strPrefix;
     }else{
-      m_strPath = strPath + strPrefix;
+      m_strPath = strPath + m_strPrefix;
     }
-    m_strPrefix = strPrefix;
     if (uiMaxFileMSize < MIN_LOG_FILE_MSIZE) {
       uiMaxFileMSize = MIN_LOG_FILE_MSIZE;
     } else if (uiMaxFileMSize > MAX_LOG_FILE_MSIZE){
@@ -123,7 +123,7 @@ public:
   CWX_UINT32  m_uiCurFileEndTime; ///<当前文件的结束时间
   CWX_UINT32  m_uiCurUnflushLogNum; ///<当前未flush的log数量
   CWX_UINT32  m_uiCurFlushTimestamp; ///<当前flush的时间
-  map<UINT64, string>  m_historyFiles; ///<历史文件信息
+  map<CWX_UINT64, string>  m_historyFiles; ///<历史文件信息
   FILE*       m_fd;           ///<当前文件的句柄
   char*       m_szErrMsg[2048]; ///<当前的操作错误
 };
