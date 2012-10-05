@@ -169,7 +169,7 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-SUBDIRS = mq test_fetch test_import tool
+SUBDIRS = mq mc test_fetch test_import tool
 all: all-recursive
 
 .SUFFIXES:
