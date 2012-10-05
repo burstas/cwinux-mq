@@ -126,7 +126,7 @@ int CwxMcApp::initRunEnv() {
         getThreadPoolMgr(),
         &getCommander(),
         CwxMqApp::syncThreadMain,
-        this);
+        pSession);
       ///启动线程
       pTss = new CwxTss*[1];
       pTss[0] = new CwxMqTss();
@@ -151,14 +151,24 @@ void CwxMcApp::onTime(CwxTimeValue const& current) {
   static CWX_UINT32 ttLastTime = m_ttCurTime; ///<上一次检查的时间
   bool bClockBack = isClockBack(ttTimeBase, m_ttCurTime);
   if (bClockBack || (m_ttCurTime >= ttLastTime + 1)) {
+    CwxMsgBlock* pBlock = NULL;
     ttLastTime = m_ttCurTime;
     //往queue线程池append TIMEOUT_CHECK
     if (m_queueThreadPool) {
-      CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
+      pBlock = CwxMsgBlockAlloc::malloc(0);
       pBlock->event().setSvrId(SVR_TYPE_QUEUE);
       pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
       //将超时检查事件，放入事件队列
       m_queueThreadPool->append(pBlock);
+    }
+    //往所有的sync线程池append TIMEOUT_CHECK
+    map<string, CwxMcSyncSession*>::iterator iter = m_syncs.begin();
+    while (iter != m_syncs.end()) {
+      pBlock = CwxMsgBlockAlloc::malloc(0);
+      pBlock->event().setSvrId(SVR_TYPE_SYNC);
+      pBlock->event().setEvent(CwxEventInfo::TIMEOUT_CHECK);
+      iter->second->m_threadPool->append(pBlock);
+      ++iter;
     }
   }
 }
@@ -429,50 +439,6 @@ CWX_UINT32 CwxMqApp::packMonitorInfo() {
     CwxCommon::snprintf(szLine, 4096, "STAT start %s\r\n",
       m_strStartTime.c_str());
     MQ_MONITOR_APPEND();
-    //master
-    CwxCommon::snprintf(szLine, 4096, "STAT server_type %s\r\n",
-      getConfig().getCommon().m_bMaster ? "master" : "slave");
-    MQ_MONITOR_APPEND();
-    //binlog
-    CwxCommon::snprintf(szLine, 4096, "STAT binlog_state %s\r\n",
-      m_pBinLogMgr->isInvalid() ? "invalid" : "valid");
-    MQ_MONITOR_APPEND();
-    CwxCommon::snprintf(szLine, 4096, "STAT binlog_error %s\r\n",
-      m_pBinLogMgr->isInvalid() ? m_pBinLogMgr->getInvalidMsg() : "");
-    MQ_MONITOR_APPEND();
-    CwxCommon::snprintf(szLine, 4096, "STAT min_sid %s\r\n",
-      CwxCommon::toString(m_pBinLogMgr->getMinSid(), szTmp));
-    MQ_MONITOR_APPEND();
-    CwxDate::getDateY4MDHMS2(m_pBinLogMgr->getMinTimestamp(), strValue);
-    CwxCommon::snprintf(szLine, 4096, "STAT min_sid_time %s\r\n",
-      strValue.c_str());
-    MQ_MONITOR_APPEND();
-    CwxCommon::snprintf(szLine, 4096, "STAT min_binlog_file %s\r\n",
-      m_pBinLogMgr->getMinFile(strValue).c_str());
-    MQ_MONITOR_APPEND();
-    CwxCommon::snprintf(szLine, 4096, "STAT max_sid %s\r\n",
-      CwxCommon::toString(m_pBinLogMgr->getMaxSid(), szTmp));
-    MQ_MONITOR_APPEND();
-    CwxDate::getDateY4MDHMS2(m_pBinLogMgr->getMaxTimestamp(), strValue);
-    CwxCommon::snprintf(szLine, 4096, "STAT max_sid_time %s\r\n",
-      strValue.c_str());
-    MQ_MONITOR_APPEND();
-    CwxCommon::snprintf(szLine, 4096, "STAT max_binlog_file %s\r\n",
-      m_pBinLogMgr->getMaxFile(strValue).c_str());
-    MQ_MONITOR_APPEND();
-    char szSid1[64];
-    char szSid2[64];
-    list<CwxMqQueueInfo> queues;
-    m_queueMgr->getQueuesInfo(queues);
-    list<CwxMqQueueInfo>::iterator iter = queues.begin();
-    while (iter != queues.end()) {
-      CwxCommon::toString(iter->m_ullCursorSid, szSid1, 10);
-      CwxCommon::toString(iter->m_ullLeftNum, szSid2, 10);
-      CwxCommon::snprintf(szLine, 4096, "STAT name(%s)|sid(%s)|msg(%s)\r\n",
-        iter->m_strName.c_str(), szSid1, szSid2);
-      MQ_MONITOR_APPEND();
-      iter++;
-    }
   } while (0);
   strcpy(m_szBuf + uiPos, "END\r\n");
   return strlen(m_szBuf);
@@ -484,14 +450,48 @@ void* CwxMcApp::syncThreadMain(CwxTss* tss,
                             CwxMsgQueue* queue,
                             void* arg)
 {
+  CwxMcSyncSession* pSession = (CwxMcSyncSession*) arg;
+  if (0 != pSession->m_channel->open()) {
+    CWX_ERROR(("Failure to open sync channel"));
+    //停止app
+    pSession->m_pApp->stop();
+    return NULL;
+  }
+  while (1) {
+    //获取队列中的消息并处理
+    if (0 != dealSyncThreadMsg(queue, pSession, pSession->m_channel)) break;
+    if (-1 == pSession->m_channel->dispatch(5)) {
+      CWX_ERROR(("Failure to invoke CwxAppChannel::dispatch()"));
+      sleep(1);
+    }
+  }
+  pSession->m_channel->stop();
+  pSession->m_channel->close();
+  if (!pSession->m_pApp->isStopped()) {
+    CWX_INFO(("Stop app for sync channel thread stopped."));
+    pSession->m_pApp->stop();
+  }
   return NULL;
 }
 ///sync channel的队列消息函数。返回值：0：正常；-1：队列停止
 int CwxMcApp::dealSyncThreadMsg(CwxMsgQueue* queue,
-                             CwxMqApp* app,
-                             CwxAppChannel* channel)
+                                CwxMcSyncSession* pSession,
+                                CwxAppChannel* channel)
 {
-
+  int iRet = 0;
+  CwxMsgBlock* block = NULL;
+  while (!queue->isEmpty()) {
+    do {
+      iRet = queue->dequeue(block);
+      if (-1 == iRet) return -1;
+      CWX_ASSERT(block->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
+      CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_SYNC);
+      pSession->m_store->timeout(pSession->m_pApp->getCurTime());
+    } while (0);
+    CwxMsgBlockAlloc::free(block);
+    block = NULL;
+  }
+  if (queue->isDeactived()) return -1;
   return 0;
 }
 

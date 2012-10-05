@@ -27,6 +27,7 @@ public:
     CWX_UINT32 uiMaxFileMSize,
     CWX_UINT32 uiMaxFileSecond,
     CWX_UINT32 uiMaxUnflushLogNum,
+    CWX_UINT32 uiMaxUnflushSecond,
     CWX_UINT32 uiReserveDay = 0, ///<保存日志文件的天数，0表示全部保存
     bool bAppendReturn=false ///<是否在日志后append回车
     )
@@ -51,6 +52,7 @@ public:
       m_uiMaxFileSecond = 24 * 3600;
     }
     m_uiMaxUnflushLogNum = uiMaxUnflushLogNum;
+    m_uiMaxUnflushSecond = uiMaxUnflushSecond;
     m_uiReserveDay = uiReserveDay;
     m_bAppendReturn = bAppendReturn;
     m_uiCurFileSeq = 0;
@@ -58,6 +60,7 @@ public:
     m_uiCurFileStartTime = 0;
     m_uiCurFileEndTime = 0;
     m_uiCurUnflushLogNum = 0;
+    m_uiCurFlushTimestamp = 0;
     m_fd = NULL;
     m_szErrMsg[0] = 0x00;
   }
@@ -76,6 +79,8 @@ public:
   int append(CWX_UINT32 uiTime, char const* szData, CWX_UINT32 uiDataLen);
   /// flush数据
   void flush();
+  /// 检查flush的时间间隔
+  void timeout(CWX_UINT32 uiTimeout);
   /// 获取当前错误的错误信息
   char const* getErrMsg() const {
     return m_szErrMsg;
@@ -108,6 +113,7 @@ public:
   off_t       m_offMaxFileSize; ///<文件的最大大小
   off_t       m_uiMaxFileSecond; ///<文件的切换时间
   CWX_UINT32  m_uiMaxUnflushLogNum; ///<最大flush的log的数量
+  CWX_UINT32  m_uiMaxUnflushSecond; ///<日志的flush时间间隔
   CWX_UINT32   m_uiReserveDay; ///<保存日志文件的天数
   bool        m_bAppendReturn; ///<是否增加回车符
   string      m_strCurFileName;  ///<当前的文件名
@@ -116,6 +122,7 @@ public:
   CWX_UINT32  m_uiCurFileStartTime; ///<当前文件的开始时间
   CWX_UINT32  m_uiCurFileEndTime; ///<当前文件的结束时间
   CWX_UINT32  m_uiCurUnflushLogNum; ///<当前未flush的log数量
+  CWX_UINT32  m_uiCurFlushTimestamp; ///<当前flush的时间
   map<UINT64, string>  m_historyFiles; ///<历史文件信息
   FILE*       m_fd;           ///<当前文件的句柄
   char*       m_szErrMsg[2048]; ///<当前的操作错误
