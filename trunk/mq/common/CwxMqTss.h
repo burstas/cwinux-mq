@@ -20,6 +20,7 @@
 #include "CwxTss.h"
 #include "CwxPackageReader.h"
 #include "CwxPackageWriter.h"
+#include "CwxBinLogMgr.h"
 
 //mq的tss
 class CwxMqTss : public CwxTss {
