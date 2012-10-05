@@ -176,7 +176,7 @@ bool CwxMcStore::createLogFile(CWX_UINT32 uiTime) {
   // 删除超过日期范围的文件
   if (m_uiReserveDay){
     CWX_UINT32 uiFileDate;
-    map<UINT64, string>::iterator iter = m_historyFiles.begin();
+    map<CWX_UINT64, string>::iterator iter = m_historyFiles.begin();
     while(iter != m_historyFiles.end()){
       uiFileDate = (iter->first >> 32);
       //必须大于m_uiReserveDay，因为若按天切换的话，前一天文件的开始时间是一样的。
