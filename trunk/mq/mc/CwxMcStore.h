@@ -125,7 +125,7 @@ public:
   CWX_UINT32  m_uiCurFlushTimestamp; ///<当前flush的时间
   map<CWX_UINT64, string>  m_historyFiles; ///<历史文件信息
   FILE*       m_fd;           ///<当前文件的句柄
-  char*       m_szErrMsg[2048]; ///<当前的操作错误
+  char        m_szErrMsg[2048]; ///<当前的操作错误
 };
 
 #endif
