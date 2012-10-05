@@ -107,7 +107,17 @@ int CwxMcStore::append(CWX_UINT32 uiTime, char const* szData, CWX_UINT32 uiDataL
 void CwxMcStore::flush() {
   if (m_fd) {
     m_uiCurUnflushLogNum = 0;
+    m_uiCurFlushTimestamp = time(NULL);
     ::fsync(fileno(m_fd));
+  }
+}
+/// 检查flush的时间间隔
+void CwxMcStore::timeout(CWX_UINT32 uiTimeout){
+  if ((uiTimeout < m_uiCurFlushTimestamp) || 
+    (m_uiCurFlushTimestamp + m_uiMaxUnflushSecond < uiTimeout))
+  {
+    flush();
+    m_uiCurFlushTimestamp = uiTimeout;
   }
 }
 

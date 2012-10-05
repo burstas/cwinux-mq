@@ -108,7 +108,7 @@ private:
     void* arg);
   ///sync channel的队列消息函数。返回值：0：正常；-1：队列停止
   static int dealSyncThreadMsg(CwxMsgQueue* queue,
-    CwxMqApp* app,
+    CwxMcSyncSession* pSession,
     CwxAppChannel* channel);
   ///queue channel的线程函数，arg为app对象
   static void* queueThreadMain(CwxTss* tss,
