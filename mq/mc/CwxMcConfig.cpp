@@ -50,6 +50,18 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
   if (m_log.m_uiMSize > CwxMcConfigLog::MAX_BINLOG_MSIZE) {
     m_log.m_uiMSize = CwxMcConfigLog::MAX_BINLOG_MSIZE;
   }
+  //load log:reserve_day
+  if (!cnf.getAttr("log", "reserve_day", value) || !value.length()) {
+    snprintf(m_szErrMsg, 2047, "Must set [log:reserve_day].");
+    return -1;
+  }
+  m_log.m_uiReserveDay = strtoul(value.c_str(), NULL, 10);
+  //load log:append_return
+  if (!cnf.getAttr("log", "append_return", value) || !value.length()) {
+    snprintf(m_szErrMsg, 2047, "Must set [log:append_return].");
+    return -1;
+  }
+  m_log.m_bAppendReturn = (value=="yes"?true:false);
   //load log:file_swith_second
   if (!cnf.getAttr("log", "file_swith_second", value) || !value.length()) {
     snprintf(m_szErrMsg, 2047, "Must set [log:file_swith_second].");

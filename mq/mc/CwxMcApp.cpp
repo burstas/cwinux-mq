@@ -80,7 +80,7 @@ int CwxMcApp::initRunEnv() {
   if (0 != startNetwork()) return -1;
   //创建queue线程池
   m_queueChannel = new CwxAppChannel();
-  m_queueThreadPool = new CwxThreadPool(CwxAppFramework::THREAD_GROUP_USER_START + 2,
+  m_queueThreadPool = new CwxThreadPool(CwxAppFramework::THREAD_GROUP_USER_START,
     1,
     getThreadPoolMgr(),
     &getCommander(),
@@ -94,17 +94,50 @@ int CwxMcApp::initRunEnv() {
     CWX_ERROR(("Failure to start queue thread pool"));
     return -1;
   }
+
   //创建同步的线程池
   {
+    CWX_UINT16  unThreadId = CwxAppFramework::THREAD_GROUP_USER_START;
     CwxMcSyncSession* pSession = NULL;
     map<string, CwxHostInfo>::const_iterator iter = m_config.getSyncHosts().m_hosts.begin();
     while(iter != m_config.getSyncHosts().m_hosts.end()){
       pSession = new CwxMcSyncSession();
+      m_syncs[iter->first] = pSession;
+      pSession->m_syncHost = iter->second;
+      pSession->m_bClosed = true;
+      pSession->m_bNeedClosed = false;
+      pSession->m_pApp = this;
+      pSession->m_store = new CwxMcStore(m_config.getLog().m_strPath,
+        host.getHostName(),
+        m_config.getLog().m_uiLogMSize,
+        m_config.getLog().m_uiSwitchSecond,
+        m_config.getLog().m_uiFlushNum,
+        m_config.getLog().m_uiReserveDay,
+        m_config.getLog().m_bAppendReturn);
+      if (0 != pSession->m_store->init()){
+        CWX_ERROR(("Failure to init host[%s]'s store, err=%s",
+          host.getHostName().c_str(), pSession->m_store->getErrMsg()));
+        return -1;
+      }
+      pSession->m_channel = new CwxAppChannel();
+      //创建线程池
+      pSession->m_threadPool = new CwxThreadPool(unThreadId++,
+        1,
+        getThreadPoolMgr(),
+        &getCommander(),
+        CwxMqApp::syncThreadMain,
+        this);
+      ///启动线程
+      pTss = new CwxTss*[1];
+      pTss[0] = new CwxMqTss();
+      ((CwxMqTss*) pTss[0])->init();
+      if (0 != pSession->m_threadPool->start(pTss)) {
+        CWX_ERROR(("Failure to start sync thread pool,"));
+        return -1;
+      }
       ++iter;
     }
   }
-
-
   return 0;
 }
 
@@ -258,30 +291,6 @@ int CwxMcApp::stopSync(string const& strHostName){
   // 删除session对象
   delete pSession;
   return 0;
-}
-
-/// 启动sync。返回值，0：成功；-1：失败
-int CwxMcApp::startSync(CwxHostInfo const& host){
-  if (m_syncs.find(host.getHostName()) != m_syncs.end()) {
-    CWX_ERROR(("Host[%s] exists.", host.getHostName().c_str()));
-    return -1;
-  }
-  CwxMcSyncSession* pSession = new CwxMcSyncSession();
-  m_syncs[host.getHostName()] = pSession;
-
-  pSession->m_syncHost = host;
-  pSession->m_bClosed = true;
-  pSession->m_bNeedClosed = false;
-  pSession->m_pApp = this;
-  pSession->m_store = new CwxMcStore(m_config.getLog().m_strPath,
-    host.getHostName(),
-    m_config.getLog().m_uiLogMSize,
-
-
-}
-/// 更新sync。返回值，0：成功；-1：失败
-int CwxMcApp::updateSync(CwxHostInfo const& host){
-
 }
 
 /// 检查sync host文件的变化，若变化则加载。
