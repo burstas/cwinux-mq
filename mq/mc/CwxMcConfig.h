@@ -71,7 +71,7 @@ public:
     m_uiSockBufKByte = 64;
     m_uiChunkKBye = 64;
     m_uiConnNum = 8;
-    m_bZip = false;
+    m_bzip = false;
     m_bAppendNewLine = false;
   }
 public:
