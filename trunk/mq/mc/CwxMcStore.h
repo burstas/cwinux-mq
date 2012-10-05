@@ -101,7 +101,7 @@ private:
   /// 创建日志文件
   bool createLogFile(CWX_UINT32 uiTime);
   /// 获取文件的日期-序号值
-  inline CWX_UINT64 (CWX_UINT32 uiTime, CWX_UINT32 seq){
+  inline CWX_UINT64 getFileTimeSeq(CWX_UINT32 uiTime, CWX_UINT32 seq){
     CWX_UINT64 ullFileDateSeq = uiTime;
     ullFileDateSeq <<= 32;
     ullFileDateSeq += seq;

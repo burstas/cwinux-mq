@@ -89,7 +89,7 @@ public:
     CwxMutexGuard<CwxMutexLock>  lock(&m_lock);
     if (m_queue.size()){
       CwxMcQueueItem* item = *m_queue.rbegin();
-      return item->m_uiLogTimestamp;
+      return item->getLogTimestamp();
     }
     return time(NULL);
   }
@@ -98,7 +98,7 @@ public:
     CwxMutexGuard<CwxMutexLock>  lock(&m_lock);
     if (m_queue.size()){
       CwxMcQueueItem* item = *m_queue.begin();
-      return item->m_uiLogTimestamp;
+      return item->getLogTimestamp();
     }
     return time(NULL);
   }
@@ -109,7 +109,7 @@ public:
   }
   ///获取空间大小
   inline CWX_UINT64 getSize() const{
-    return m_ullCurSize
+    return m_ullCurSize;
   }
   ///获取丢弃的日志数量
   inline CWX_UINT64 getDiscardNum() {
