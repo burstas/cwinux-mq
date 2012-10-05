@@ -56,6 +56,7 @@ AC_SUBST(cwinux_dir)
 # Write config.status and the Makefile
 AC_OUTPUT(Makefile)
 AC_OUTPUT(mq/Makefile)
+AC_OUTPUT(mc/Makefile)
 AC_OUTPUT(test_fetch/Makefile)
 AC_OUTPUT(test_import/Makefile)
 AC_OUTPUT(tool/Makefile)
