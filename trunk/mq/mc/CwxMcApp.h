@@ -116,7 +116,7 @@ private:
     void* arg);
   ///queue channel的队列消息函数。返回值：0：正常；-1：队列停止
   static int dealQueueThreadMsg(CwxMsgQueue* queue,
-    CwxMqApp* app,
+    CwxMcApp* app,
     CwxAppChannel* channel);
   ///设置queue的连接属性
   static int setQueueSockAttr(CWX_HANDLE handle, void* arg);
