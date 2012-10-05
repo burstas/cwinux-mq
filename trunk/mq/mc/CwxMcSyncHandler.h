@@ -86,11 +86,11 @@ public:
   CwxHostInfo                        m_syncHost;       ///<数据同步的主机
   CwxMcStore*                        m_store;          ///<存储对象
   CwxMcApp*                          m_pApp;           ///<app对象
-  CWX_UINT64                         m_ullLogSid;         ///<当前同步的sid
-  CWX_UINT32                         m_uiLogTimeStamp;    ///<当前同步的时间点
-  bool                               m_bNeedClosed;   ///<session是否需要关闭
-  bool                               m_bClosed;        ///<session是否已经关闭
-  CWX_UINT32                         m_uiClosedTimestamp; ///<session关闭的时间
+  volatile CWX_UINT64                 m_ullLogSid;         ///<当前同步的sid
+  volatile CWX_UINT32                 m_uiLogTimeStamp;    ///<当前同步的时间点
+  volatile bool                      m_bNeedClosed;   ///<session是否需要关闭
+  volatile bool                      m_bClosed;        ///<session是否已经关闭
+  volatile CWX_UINT32                m_uiClosedTimestamp; ///<session关闭的时间
 };
 
 ///从mq同步数据的处理handle
