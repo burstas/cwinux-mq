@@ -68,9 +68,9 @@ int CwxMcApp::initRunEnv() {
   this->blockSignal(SIGTTOU);
 
   //set version
-  this->setAppVersion(CWX_MQ_VERSION);
+  this->setAppVersion(CWX_MC_VERSION);
   //set last modify date
-  this->setLastModifyDatetime(CWX_MQ_MODIFY_DATE);
+  this->setLastModifyDatetime(CWX_MC_MODIFY_DATE);
   //set compile date
   this->setLastCompileDatetime(CWX_COMPILE_DATE(_BUILD_DATE));
   ///设置启动时间
@@ -84,7 +84,7 @@ int CwxMcApp::initRunEnv() {
     1,
     getThreadPoolMgr(),
     &getCommander(),
-    CwxMqApp::queueThreadMain,
+    CwxMcApp::queueThreadMain,
     this);
   ///启动线程
   CwxMqTss** pTss = new CwxTss*[1];
@@ -125,7 +125,7 @@ int CwxMcApp::initRunEnv() {
         1,
         getThreadPoolMgr(),
         &getCommander(),
-        CwxMqApp::syncThreadMain,
+        CwxMcApp::syncThreadMain,
         pSession);
       ///启动线程
       pTss = new CwxTss*[1];
@@ -174,7 +174,7 @@ void CwxMcApp::onTime(CwxTimeValue const& current) {
 }
 
 ///信号处理函数
-void CwxMqApp::onSignal(int signum) {
+void CwxMcApp::onSignal(int signum) {
   switch (signum) {
     case SIGQUIT:
       ///若监控进程通知退出，则推出
@@ -345,7 +345,7 @@ int CwxMcApp::startNetwork() {
       m_config.getMq().m_mq.getPort(),
       false,
       CWX_APP_EVENT_MODE,
-      CwxMqApp::setMqSockAttr, this)) {
+      CwxMcApp::setMqSockAttr, this)) {
         CWX_ERROR(("Can't register the queue tcp accept listen: addr=%s, port=%d",
           m_config.getMq().m_mq.getHostName().c_str(),
           m_config.getMq().m_mq.getPort()));
@@ -355,7 +355,7 @@ int CwxMcApp::startNetwork() {
   return 0;
 }
 
-int CwxMqApp::monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHandler4Msg& conn) {
+int CwxMcApp::monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHandler4Msg& conn) {
   string* strCmd = (string*) conn.getConnInfo().getUserData();
   strCmd->append(buf, uiDataLen);
   CwxMsgBlock* msg = NULL;
@@ -393,7 +393,7 @@ int CwxMqApp::monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHandler4
   } while (0);
 
   msg->send_ctrl().setConnId(conn.getConnInfo().getConnId());
-  msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_MONITOR);
+  msg->send_ctrl().setSvrId(CwxMcApp::SVR_TYPE_MONITOR);
   msg->send_ctrl().setHostId(0);
   msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
   if (-1 == sendMsgByConn(msg)) {
@@ -410,7 +410,7 @@ int CwxMqApp::monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHandler4
   memcpy(m_szBuf + uiPos, szLine, uiLen);\
   uiPos += uiLen; }
 
-CWX_UINT32 CwxMqApp::packMonitorInfo() {
+CWX_UINT32 CwxMcApp::packMonitorInfo() {
   string strValue;
   char szTmp[128];
   char szLine[4096];
@@ -498,7 +498,7 @@ int CwxMcApp::dealSyncThreadMsg(CwxMsgQueue* queue,
 
 ///queue channel的线程函数，arg为app对象
 void* CwxMcApp::queueThreadMain(CwxTss*, CwxMsgQueue* queue, void* arg) {
-  CwxMcApp* app = (CwxMqApp*) arg;
+  CwxMcApp* app = (CwxMcApp*) arg;
   if (0 != app->m_queueChannel->open()) {
     CWX_ERROR(("Failure to open queue channel"));
     return NULL;
@@ -564,7 +564,7 @@ int CwxMcApp::dealQueueThreadMsg(CwxMsgQueue* queue, CwxMcApp* app, CwxAppChanne
 
 ///设置mq连接的熟悉
 int CwxMcApp::setQueueSockAttr(CWX_HANDLE handle, void* arg) {
-  CwxMcApp* app = (CwxMqApp*) arg;
+  CwxMcApp* app = (CwxMcApp*) arg;
   if (app->getConfig().getMq().m_mq.isKeepAlive()) {
     if (0 != CwxSocket::setKeepalive(handle,
       true,
