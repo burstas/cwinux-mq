@@ -443,7 +443,7 @@ CWX_UINT32 CwxMcApp::packMonitorInfo() {
 }
 
 ///sync channel的线程函数，arg为app对象
-void* CwxMcApp::syncThreadMain(CwxTss* tss,
+void* CwxMcApp::syncThreadMain(CwxTss* ,
                             CwxMsgQueue* queue,
                             void* arg)
 {
@@ -548,7 +548,7 @@ int CwxMcApp::dealQueueThreadMsg(CwxMsgQueue* queue, CwxMcApp* app, CwxAppChanne
       } else {
         CWX_ASSERT(block->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
         CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_QUEUE);
-        app->getQueueMgr()->timeout(app->getCurTime());
+        app->getQueue()->checkTimeout(app->getCurTime());
       }
     } while (0);
     CwxMsgBlockAlloc::free(block);
