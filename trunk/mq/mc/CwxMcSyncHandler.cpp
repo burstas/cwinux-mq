@@ -43,7 +43,6 @@ void CwxMcSyncHandler::closeSession(CwxMqTss* pTss){
   CwxMcSyncSession* pSession = (CwxMcSyncSession*)pTss->m_userData;
   ///将session的重连标志设置为true，以便进行重新连接
   pSession->m_bClosed = true;
-  pSession->m_uiClosedTimestamp = time(NULL);
   {// 关闭连接
     map<CWX_UINT32, CwxMcSyncHandler*>::iterator iter = pSession->m_conns.begin();
     while(iter != pSession->m_conns.end()){
@@ -68,6 +67,7 @@ void CwxMcSyncHandler::closeSession(CwxMqTss* pTss){
 ///创建与mq同步的连接。返回值：0：成功；-1：失败
 int CwxMcSyncHandler::createSession(CwxMqTss* pTss){
   CwxMcSyncSession* pSession = (CwxMcSyncSession*)pTss->m_userData;
+  pSession->m_uiLastConnectTimestamp = time(NULL);
   CWX_ASSERT((pSession->m_bClosed));
   ///重建所有连接
   CwxINetAddr addr;
