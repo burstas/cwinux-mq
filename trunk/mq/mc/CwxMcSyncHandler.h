@@ -8,6 +8,7 @@
 #include "CwxMcStore.h"
 #include "CwxThreadPool.h"
 #include "CwxAppChannel.h"
+#include "CwxHostInfo.h"
 
 class CwxMcApp;
 class CwxMcSyncHandler;
@@ -134,7 +135,7 @@ public:
   static int createSession(CwxMqTss* pTss);
 private:
   ///接收消息，0：成功；-1：失败
-  int recvMessage(CwxMqTss* pTss);
+  int recvMessage();
   ///从session中接受消息；0：成功；-1：失败
   int recvMsg(CwxMsgBlock*& msg, list<CwxMsgBlock*>& msgs);
   ///处理Sync report的reply消息。返回值：0：成功；-1：失败
