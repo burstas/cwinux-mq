@@ -42,6 +42,12 @@ class CwxMqPoco {
       ///MQ Fetch服务类型的消息类型定义
       MSG_TYPE_FETCH_DATA = 13, ///<数据获取消息类型
       MSG_TYPE_FETCH_DATA_REPLY = 14, ///<回复数据获取消息类型
+      ///创建mq queue消息
+      MSG_TYPE_CREATE_QUEUE = 101, ///<创建MQ QUEUE的消息类型
+      MSG_TYPE_CREATE_QUEUE_REPLY = 102, ///<回复创建MQ QUEUE的消息类型
+      ///删除mq queue消息
+      MSG_TYPE_DEL_QUEUE = 103, ///<删除MQ QUEUE的消息类型
+      MSG_TYPE_DEL_QUEUE_REPLY = 104, ///<回复删除MQ QUEUE的消息类型
       ///错误消息
       MSG_TYPE_SYNC_ERR = 105  ///<数据同步错误消息
     };
@@ -217,6 +223,69 @@ class CwxMqPoco {
         int& ret,
         char const*& szErrMsg,
         CwxKeyValueItem const*& data,
+        char* szErr2K = NULL);
+
+    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
+    static int parseCreateQueue(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        char const*& name,
+        char const*& user,
+        char const*& passwd,
+        char const*& auth_user,
+        char const*& auth_passwd,
+        CWX_UINT64& ullSid,  ///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
+        char* szErr2K = NULL);
+    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
+    static int packCreateQueue(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        char const* name,
+        char const* user,
+        char const* passwd,
+        char const* auth_user,
+        char const* auth_passwd,
+        CWX_UINT64 ullSid = 0, ///< 0：当前最大值，若小于当前最小值，则采用当前最小sid值
+        char* szErr2K = NULL);
+    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
+    static int parseCreateQueueReply(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        int& ret,
+        char const*& szErrMsg,
+        char* szErr2K = NULL);
+    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
+    static int packCreateQueueReply(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        int ret,
+        char const* szErrMsg,
+        char* szErr2K = NULL);
+    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
+    static int parseDelQueue(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        char const*& name,
+        char const*& user,
+        char const*& passwd,
+        char const*& auth_user,
+        char const*& auth_passwd,
+        char* szErr2K = NULL);
+    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
+    static int packDelQueue(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        char const* name,
+        char const* user,
+        char const* passwd,
+        char const* auth_user,
+        char const* auth_passwd,
+        char* szErr2K = NULL);
+    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
+    static int parseDelQueueReply(CwxPackageReader* reader,
+        CwxMsgBlock const* msg,
+        int& ret,
+        char const*& szErrMsg,
+        char* szErr2K = NULL);
+    ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
+    static int packDelQueueReply(CwxPackageWriter* writer,
+        CwxMsgBlock*& msg,
+        int ret,
+        char const* szErrMsg,
         char* szErr2K = NULL);
     ///pack report或sync的出错消息包。返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
     static int packSyncErr(CwxPackageWriter* writer, ///<用于pack的writer
