@@ -116,7 +116,7 @@ int CwxMcApp::initRunEnv() {
         m_config.getLog().m_bAppendReturn);
       if (0 != pSession->m_store->init()){
         CWX_ERROR(("Failure to init host[%s]'s store, err=%s",
-          host.getHostName().c_str(), pSession->m_store->getErrMsg()));
+          iter->first.c_str(), pSession->m_store->getErrMsg()));
         return -1;
       }
       pSession->m_channel = new CwxAppChannel();
@@ -264,7 +264,6 @@ void CwxMcApp::destroy() {
     m_queueChannel = NULL;
   }
   // 释放数据同步的线程池及channel
-  CwxMcSyncSession* pSession = NULL;
   map<string, CwxMcSyncSession*>::iterator iter = m_syncs.begin();
   while (iter != m_syncs.end()) {
     stopSync(iter->first);
@@ -278,7 +277,7 @@ int CwxMcApp::stopSync(string const& strHostName){
   map<string, CwxMcSyncSession*>::iterator iter = m_syncs.find(strHostName);
   if (iter == m_syncs.end()) return 0;
   // 将host从map中删除
-  m_syncs->erase(iter);
+  m_syncs.erase(iter);
   CwxMcSyncSession* pSession = iter->second;
   // 停止线程
   if (pSession->m_threadPool){
@@ -306,7 +305,7 @@ int CwxMcApp::stopSync(string const& strHostName){
 /// 返回值，-1：失败；1：变化并加载；0：没有变化
 int CwxMcApp::loadSyncHostForChange(bool bForceLoad){
   string strFile = m_config.getCommon().m_strWorkDir + "mc_sync_host.conf";
-  CWX_UINT32 uiModifyTime = CwxFile::getFileMTime(strFile);
+  CWX_UINT32 uiModifyTime = CwxFile::getFileMTime(strFile.c_str());
   if (0 == uiModifyTime){
     CWX_ERROR(("Failure to get sync host file:%s, errno=%d",
       strFile.c_str(), errno));
@@ -411,7 +410,6 @@ int CwxMcApp::monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHandler4
 
 CWX_UINT32 CwxMcApp::packMonitorInfo() {
   string strValue;
-  char szTmp[128];
   char szLine[4096];
   CWX_UINT32 uiLen = 0;
   CWX_UINT32 uiPos = 0;
@@ -475,7 +473,7 @@ void* CwxMcApp::syncThreadMain(CwxTss* tss,
 ///sync channel的队列消息函数。返回值：0：正常；-1：队列停止
 int CwxMcApp::dealSyncThreadMsg(CwxMsgQueue* queue,
                                 CwxMcSyncSession* pSession,
-                                CwxAppChannel* channel)
+                                CwxAppChannel* )
 {
   int iRet = 0;
   CwxMsgBlock* block = NULL;
@@ -534,7 +532,7 @@ int CwxMcApp::dealQueueThreadMsg(CwxMsgQueue* queue, CwxMcApp* app, CwxAppChanne
             break;
           }
           if (block->event().getSvrId() == SVR_TYPE_QUEUE) {
-            handler = new CwxMqQueueHandler(app, channel);
+            handler = new CwxMcQueueHandler(app, channel);
           } else {
             CWX_ERROR(("Invalid svr_type[%d], close handle[%d]",
               block->event().getSvrId(),
