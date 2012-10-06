@@ -344,7 +344,7 @@ int CwxMcApp::startNetwork() {
       m_config.getMq().m_mq.getPort(),
       false,
       CWX_APP_EVENT_MODE,
-      CwxMcApp::setMqSockAttr, this)) {
+      CwxMcApp::setQueueSockAttr, this)) {
         CWX_ERROR(("Can't register the queue tcp accept listen: addr=%s, port=%d",
           m_config.getMq().m_mq.getHostName().c_str(),
           m_config.getMq().m_mq.getPort()));
