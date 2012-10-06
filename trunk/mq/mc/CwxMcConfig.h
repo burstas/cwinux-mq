@@ -27,13 +27,13 @@ public:
 class CwxMcConfigLog {
 public:
   enum {
-    DEF_BINLOG_MSIZE = 1024, ///<缺省的binlog大小
-    MIN_BINLOG_MSIZE = 1, ///<最小的binlog大小
-    MAX_BINLOG_MSIZE = 2048 ///<最大的binlog大小
+    DEF_LOG_MSIZE = 1024, ///<缺省的binlog大小
+    MIN_LOG_MSIZE = 1, ///<最小的binlog大小
+    MAX_LOG_MSIZE = 2048 ///<最大的binlog大小
   };
 public:
   CwxMcConfigLog() {
-    m_uiLogMSize = DEF_BINLOG_MSIZE;
+    m_uiLogMSize = DEF_LOG_MSIZE;
     m_uiSwitchSecond = 0;
     m_uiFlushNum = 100;
     m_uiFlushSecond = 30;
@@ -41,13 +41,13 @@ public:
     m_bAppendReturn = false;
   }
 public:
-  string m_strPath; ///<log的目录
-  CWX_UINT32 m_uiLogMSize; ///<log文件的最大大小，单位为M
-  CWX_UINT32 m_uiSwitchSecond; ///<log文件切换的时间间隔，单位为s
-  CWX_UINT32 m_uiFlushNum; ///<接收多少条记录后，flush binlog文件
-  CWX_UINT32 m_uiFlushSecond; ///<间隔多少秒，必须flush binlog文件
-  CWX_UINT32 m_uiReserveDay; ///<保留的天数，若是0表示不删除
-  bool       m_bAppendReturn; ///<是否append return
+  string          m_strPath; ///<log的目录
+  CWX_UINT32      m_uiLogMSize; ///<log文件的最大大小，单位为M
+  CWX_UINT32      m_uiSwitchSecond; ///<log文件切换的时间间隔，单位为s
+  CWX_UINT32      m_uiFlushNum; ///<接收多少条记录后，flush binlog文件
+  CWX_UINT32      m_uiFlushSecond; ///<间隔多少秒，必须flush binlog文件
+  CWX_UINT32      m_uiReserveDay; ///<保留的天数，若是0表示不删除
+  bool            m_bAppendReturn; ///<是否append return
 };
 
 ///配置文件的mq对象

@@ -43,12 +43,12 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
     snprintf(m_szErrMsg, 2047, "Must set [log:file_max_mbyte].");
     return -1;
   }
-  m_log.m_uiMSize = strtoul(value.c_str(), NULL, 10);
-  if (m_log.m_uiMSize < CwxMcConfigLog::MIN_BINLOG_MSIZE) {
-    m_log.m_uiMSize = CwxMcConfigLog::MIN_BINLOG_MSIZE;
+  m_log.m_uiLogMSize = strtoul(value.c_str(), NULL, 10);
+  if (m_log.m_uiLogMSize < CwxMcConfigLog::MIN_LOG_MSIZE) {
+    m_log.m_uiLogMSize = CwxMcConfigLog::MIN_LOG_MSIZE;
   }
-  if (m_log.m_uiMSize > CwxMcConfigLog::MAX_BINLOG_MSIZE) {
-    m_log.m_uiMSize = CwxMcConfigLog::MAX_BINLOG_MSIZE;
+  if (m_log.m_uiLogMSize > CwxMcConfigLog::MAX_LOG_MSIZE) {
+    m_log.m_uiLogMSize = CwxMcConfigLog::MAX_LOG_MSIZE;
   }
   //load log:reserve_day
   if (!cnf.getAttr("log", "reserve_day", value) || !value.length()) {
