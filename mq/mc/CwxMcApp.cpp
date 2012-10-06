@@ -349,12 +349,12 @@ void CwxMcApp::checkSyncHostModify(){
       sync_iter = m_syncs.find(iter->first);
       if (sync_iter == m_syncs.end()) { // 新加的host
         if(0 != startSync(iter->second)){
-          CWX_ERROR(("Failure to start sync[%s], exit.", iter->first->c_str()));
+          CWX_ERROR(("Failure to start sync[%s], exit.", iter->first.c_str()));
           this->stop();
           return;
         }
       }else{//检查是否改变
-        if ((iter->second.getPort() != sync_iter->second->m_syncHost.getPasswd()) ||
+        if ((iter->second.getPort() != sync_iter->second->m_syncHost.getPort()) ||
           (iter->second.getUser() != sync_iter->second->m_syncHost.getUser()) ||
           (iter->second.getPasswd() != sync_iter->second->m_syncHost.getPasswd()))
         {
