@@ -96,10 +96,7 @@ int CwxMqApp::initRunEnv() {
   if (0 != startNetwork()) return -1;
   ///创建recv线程池对象，此线程池中线程的group-id为THREAD_GROUP_USER_START，
   ///线程池的线程数量为1。
-  m_recvThreadPool = new CwxThreadPool(CwxAppFramework::THREAD_GROUP_USER_START,
-      1,
-      getThreadPoolMgr(),
-      &getCommander());
+  m_recvThreadPool = new CwxThreadPool(1, &getCommander());
   ///创建线程的tss对象
   CwxTss** pTss = new CwxTss*[1];
   pTss[0] = new CwxMqTss();
@@ -112,9 +109,7 @@ int CwxMqApp::initRunEnv() {
   //创建分发线程池
   if (m_config.getDispatch().m_async.getHostName().length()) {
     m_dispChannel = new CwxAppChannel();
-    m_dispThreadPool = new CwxThreadPool(CwxAppFramework::THREAD_GROUP_USER_START + 1,
-        1,
-        getThreadPoolMgr(),
+    m_dispThreadPool = new CwxThreadPool(1,
         &getCommander(),
         CwxMqApp::dispatchThreadMain,
         this);
@@ -131,9 +126,7 @@ int CwxMqApp::initRunEnv() {
   if (m_config.getMq().m_mq.getHostName().length()
       || m_config.getMq().m_mq.getUnixDomain().length()) {
     m_mqChannel = new CwxAppChannel();
-    m_mqThreadPool = new CwxThreadPool(CwxAppFramework::THREAD_GROUP_USER_START + 2,
-        1,
-        getThreadPoolMgr(),
+    m_mqThreadPool = new CwxThreadPool(1,
         &getCommander(),
         CwxMqApp::mqFetchThreadMain,
         this);

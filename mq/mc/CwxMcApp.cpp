@@ -80,9 +80,7 @@ int CwxMcApp::initRunEnv() {
   if (0 != startNetwork()) return -1;
   //创建queue线程池
   m_queueChannel = new CwxAppChannel();
-  m_queueThreadPool = new CwxThreadPool(CwxAppFramework::THREAD_GROUP_USER_START,
-    1,
-    getThreadPoolMgr(),
+  m_queueThreadPool = new CwxThreadPool(1,
     &getCommander(),
     CwxMcApp::queueThreadMain,
     this);
@@ -97,7 +95,6 @@ int CwxMcApp::initRunEnv() {
 
   //创建同步的线程池
   {
-    CWX_UINT16  unThreadId = CwxAppFramework::THREAD_GROUP_USER_START;
     CwxMcSyncSession* pSession = NULL;
     map<string, CwxHostInfo>::const_iterator iter = m_config.getSyncHosts().m_hosts.begin();
     while(iter != m_config.getSyncHosts().m_hosts.end()){
@@ -121,9 +118,7 @@ int CwxMcApp::initRunEnv() {
       }
       pSession->m_channel = new CwxAppChannel();
       //创建线程池
-      pSession->m_threadPool = new CwxThreadPool(unThreadId++,
-        1,
-        getThreadPoolMgr(),
+      pSession->m_threadPool = new CwxThreadPool(1,
         &getCommander(),
         CwxMcApp::syncThreadMain,
         pSession);
