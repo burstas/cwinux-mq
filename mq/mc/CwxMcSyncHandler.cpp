@@ -157,17 +157,17 @@ int CwxMcSyncHandler::recvMessage(){
   CwxMcSyncSession* pSession = (CwxMcSyncSession*)m_pTss->m_userData;
   ///如果处于关闭状态，直接返回-1关闭连接
   if (pSession->m_bNeedClosed) return -1;
-  m_recvMsgData->event().setConnId(m_uiConnId);
-  if (!msg || !msg->length()) {
+  if (!m_recvMsgData || !m_recvMsgData->length()) {
     CWX_ERROR(("Receive empty msg from master"));
     return -1;
   }
+  m_recvMsgData->event().setConnId(m_uiConnId);
   //SID报告的回复，此时，一定是报告失败
-  if (CwxMqPoco::MSG_TYPE_SYNC_DATA == msg->event().getMsgHeader().getMsgType() ||
-    CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK == msg->event().getMsgHeader().getMsgType())
+  if (CwxMqPoco::MSG_TYPE_SYNC_DATA == m_recvMsgData->event().getMsgHeader().getMsgType() ||
+    CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK == m_recvMsgData->event().getMsgHeader().getMsgType())
   {
     list<CwxMsgBlock*> msgs;
-    if (0 != recvMsg(msg, msgs)) return -1;
+    if (0 != recvMsg(m_recvMsgData, msgs)) return -1;
     msg = NULL;
     CwxMsgBlock* block = NULL;
     list<CwxMsgBlock*>::iterator msg_iter = msgs.begin();
@@ -192,13 +192,13 @@ int CwxMcSyncHandler::recvMessage(){
       }
       return -1;
     }
-  } else if (CwxMqPoco::MSG_TYPE_SYNC_REPORT_REPLY  == msg->event().getMsgHeader().getMsgType()) {
-    if (0 != dealSyncReportReply(msg))  return -1;
-  } else if (CwxMqPoco::MSG_TYPE_SYNC_ERR  == msg->event().getMsgHeader().getMsgType()) {
-    dealErrMsg(msg);
+  } else if (CwxMqPoco::MSG_TYPE_SYNC_REPORT_REPLY  == m_recvMsgData->event().getMsgHeader().getMsgType()) {
+    if (0 != dealSyncReportReply(m_recvMsgData))  return -1;
+  } else if (CwxMqPoco::MSG_TYPE_SYNC_ERR  == m_recvMsgData->event().getMsgHeader().getMsgType()) {
+    dealErrMsg(m_recvMsgData);
     return -1;
   } else {
-    CWX_ERROR(("Receive invalid msg type from master, msg_type=%u", msg->event().getMsgHeader().getMsgType()));
+    CWX_ERROR(("Receive invalid msg type from master, msg_type=%u", m_recvMsgData->event().getMsgHeader().getMsgType()));
     return -1;
   }
   return 1;
