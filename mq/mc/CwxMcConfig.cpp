@@ -280,7 +280,7 @@ void CwxMcConfig::outputSyncHost() const{
   CWX_INFO(("*****************begin sync host*******************"));
   map<string, CwxHostInfo>::const_iterator iter = m_syncHosts.m_hosts.begin();
   while(iter != m_syncHosts.m_hosts.end()){
-    CWX_INFO(("%s=%s:%u:%s:%s",
+    CWX_INFO(("%s=%u:%s:%s",
       iter->first.c_str(),
       iter->second.getPort(),
       iter->second.getUser().c_str(),
