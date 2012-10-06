@@ -207,7 +207,6 @@ int CwxMcConfig::loadSyncHost(string const& strSyncHostFile){
     ++item_iter;
     hostInfo.setPassword(*item_iter);
     m_syncHosts.m_hosts[hostInfo.getHostName()] = hostInfo;
-    ++iter;
   }
   return 0;
 }
@@ -282,7 +281,6 @@ void CwxMcConfig::outputSyncHost() const{
   while(iter != m_syncHosts.m_hosts.end()){
     CWX_INFO(("%s=%s:%u:%s:%s",
       iter->first.c_str(),
-      iter->second.getHostName().c_str(),
       iter->second.getPort(),
       iter->second.getUser().c_str(),
       iter->second.getPasswd().c_str()));
