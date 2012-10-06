@@ -78,6 +78,10 @@ public:
   inline CwxMcConfig const& getConfig() const {
     return m_config;
   }
+  ///获取当前时间
+  inline CWX_UINT32 getCurTime() const{
+    return m_ttCurTime;
+  }
   ///获取queue对象
   CwxMcQueue* getQueue() {
     return m_queue;
