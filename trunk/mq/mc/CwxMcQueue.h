@@ -66,11 +66,12 @@ private:
 class CwxMcQueue {
 public:
   CwxMcQueue(CWX_UINT32  uiTimeout, ///< 数据的超时时间
-    CWX_UINT64   ullMaxSize  ///<管理数据的数量
+    CWX_UINT32   uiMaxMSize  ///<管理数据的数量
     )
   {
     m_uiTimeout = uiTimeout;
-    m_ullMaxSize = ullMaxSize;
+    m_ullMaxSize = uiMaxMSize;
+    m_ullMaxSize *= 1024 * 1024;
     m_ullCurSize = 0;
     m_ullDiscardNum = 0;
   }
