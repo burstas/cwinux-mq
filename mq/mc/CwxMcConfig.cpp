@@ -174,6 +174,7 @@ int CwxMcConfig::loadSyncHost(string const& strSyncHostFile){
   CwxIniParse cnf;
   string value;
   string strErrMsg;
+  m_syncHosts.m_hosts.clear();
   //解析配置文件
   if (false == cnf.load(strSyncHostFile)) {
     CwxCommon::snprintf(m_szErrMsg, 2047,
