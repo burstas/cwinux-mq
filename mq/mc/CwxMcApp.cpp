@@ -117,7 +117,7 @@ void CwxMcApp::onTime(CwxTimeValue const& current) {
   if (bClockBack || (m_ttCurTime >= ttLastTime + 1)) {
     CwxMsgBlock* pBlock = NULL;
     ttLastTime = m_ttCurTime;
-    //往queue线程池append TIMEOUT_CHECK
+    // 往queue线程池append TIMEOUT_CHECK
     if (m_queueThreadPool) {
       pBlock = CwxMsgBlockAlloc::malloc(0);
       pBlock->event().setSvrId(SVR_TYPE_QUEUE);
@@ -125,7 +125,7 @@ void CwxMcApp::onTime(CwxTimeValue const& current) {
       //将超时检查事件，放入事件队列
       m_queueThreadPool->append(pBlock);
     }
-    //往所有的sync线程池append TIMEOUT_CHECK
+    // 往所有的sync线程池append TIMEOUT_CHECK
     map<string, CwxMcSyncSession*>::iterator iter = m_syncs.begin();
     while (iter != m_syncs.end()) {
       pBlock = CwxMsgBlockAlloc::malloc(0);
@@ -134,6 +134,8 @@ void CwxMcApp::onTime(CwxTimeValue const& current) {
       iter->second->m_threadPool->append(pBlock);
       ++iter;
     }
+    // 检查sync host是否改变
+    checkSyncHostModify();
   }
 }
 
@@ -287,7 +289,7 @@ int CwxMcApp::startSync(CwxHostInfo const& hostInfo){
   CwxMcSyncSession* pSession = NULL;
   pSession = new CwxMcSyncSession();
   m_syncs[iter->first] = pSession;
-  pSession->m_syncHost = iter->second;
+  pSession->m_syncHost = hostInfo;
   pSession->m_uiHostId = m_uiCurHostId;
   pSession->m_bClosed = true;
   pSession->m_bNeedClosed = false;
@@ -311,7 +313,7 @@ int CwxMcApp::startSync(CwxHostInfo const& hostInfo){
     CwxMcApp::syncThreadMain,
     pSession);
   ///启动线程
-  pTss = new CwxTss*[1];
+  CwxTss** pTss = new CwxTss*[1];
   pTss[0] = new CwxMqTss();
   ((CwxMqTss*) pTss[0])->init();
   if (0 != pSession->m_threadPool->start(pTss)) {
@@ -332,15 +334,61 @@ int CwxMcApp::updateSync(CwxHostInfo const& hostInfo){
   memcpy(pBlock->wr_ptr(), &host, sizeof(host));
   pBlock->wr_ptr(sizeof(host));
   pBlock->event().setSvrId(SVR_TYPE_SYNC);
-  pBlock->event().setEvent(CwxEventInfo::EVENT_TYPE_SYNC_CHANGE);
+  pBlock->event().setEvent(EVENT_TYPE_SYNC_CHANGE);
   iter->second->m_threadPool->append(pBlock);
   return 0;
+}
+
+/// 检查是否sync host发生了改变
+void CwxMcApp::checkSyncHostModify(){
+  int ret = loadSyncHostForChange(false);
+  if (1 == ret){
+    map<string, CwxMcSyncSession*>::iterator sync_iter;
+    map<string, CwxHostInfo>::const_iterator iter = m_config.getSyncHosts().m_hosts.begin();
+    while(iter != m_config.getSyncHosts().m_hosts.end()){
+      sync_iter = m_syncs.find(iter->first);
+      if (sync_iter == m_syncs.end()) { // 新加的host
+        if(0 != startSync(iter->second)){
+          CWX_ERROR(("Failure to start sync[%s], exit.", iter->first->c_str()));
+          this->stop();
+          return;
+        }
+      }else{//检查是否改变
+        if ((iter->second.getPort() != sync_iter->second->m_syncHost.getPasswd()) ||
+          (iter->second.getUser() != sync_iter->second->m_syncHost.getUser()) ||
+          (iter->second.getPasswd() != sync_iter->second->m_syncHost.getPasswd()))
+        {
+          if (0 != updateSync(iter->second)) {
+            CWX_ERROR(("Failure to update sync[%s], exit.", iter->first.c_str()));
+            this->stop();
+            return;
+          }
+        }
+      }
+      ++iter;
+    }
+    // 检查是否有sync被取消
+    sync_iter = m_syncs.begin();
+    while(sync_iter != m_syncs.end()){
+      if (m_config.getSyncHosts().m_hosts.find(sync_iter->first) == m_config.getSyncHosts().m_hosts.end()){
+        if (0 != stopSync(sync_iter->first)){
+          CWX_ERROR(("Failure to stop sync[%s], exit.", sync_iter->first.c_str()));
+          this->stop();
+          return;
+        }
+        sync_iter = m_syncs.begin();
+        continue;
+      }
+      ++sync_iter;
+    }
+  }
 }
 
 /// 检查sync host文件的变化，若变化则加载。
 /// 返回值，-1：失败；1：变化并加载；0：没有变化
 int CwxMcApp::loadSyncHostForChange(bool bForceLoad){
   string strFile = m_config.getCommon().m_strWorkDir + "mc_sync_host.conf";
+  CWX_DEBUG(("Check sync host file:%s", strFile.c_str()));
   CWX_UINT32 uiModifyTime = CwxFile::getFileMTime(strFile.c_str());
   if (0 == uiModifyTime){
     CWX_ERROR(("Failure to get sync host file:%s, errno=%d",
@@ -446,6 +494,7 @@ int CwxMcApp::monitorStats(char const* buf, CWX_UINT32 uiDataLen, CwxAppHandler4
 
 CWX_UINT32 CwxMcApp::packMonitorInfo() {
   string strValue;
+  char szTmp[64];
   char szLine[4096];
   CWX_UINT32 uiLen = 0;
   CWX_UINT32 uiPos = 0;
@@ -472,6 +521,44 @@ CWX_UINT32 CwxMcApp::packMonitorInfo() {
     CwxCommon::snprintf(szLine, 4096, "STAT start %s\r\n",
       m_strStartTime.c_str());
     MQ_MONITOR_APPEND();
+    //queue的名字
+    CwxCommon::snprintf(szLine, 4096, "STAT queue_name %s\r\n",
+      m_config.getMq().m_strName.c_str());
+    MQ_MONITOR_APPEND();
+    //size
+    CwxCommon::snprintf(szLine, 4096, "STAT queue_msize %u\r\n",
+      m_config.getMq().m_uiCacheMSize);
+    MQ_MONITOR_APPEND();
+    //queue的最大时间戳
+    CwxCommon::snprintf(szLine, 4096, "STAT queue_max_time %u\r\n",
+      m_queue->getMaxTimestamp());
+    MQ_MONITOR_APPEND();
+    //queue的最小时间戳
+    CwxCommon::snprintf(szLine, 4096, "STAT queue_min_time %u\r\n",
+      m_queue->getMinTimestamp());
+    MQ_MONITOR_APPEND();
+    //记录的数量
+    CwxCommon::snprintf(szLine, 4096, "STAT queue_count %u\r\n",
+      m_queue->getCount());
+    MQ_MONITOR_APPEND();
+    //占用的msize
+    CwxCommon::snprintf(szLine, 4096, "STAT queue_used_msize %u\r\n",
+      (CWX_UINT32)(m_queue->getSize()/(1024*1024)));
+    MQ_MONITOR_APPEND();
+    //丢弃的数量
+    CwxCommon::snprintf(szLine, 4096, "STAT queue_max_time %s\r\n",
+      CwxCommon::toString(m_queue->getDiscardNum(), szTmp, 10));
+    map<string, CwxMcSyncSession*>::iterator iter = m_syncs.begin();
+    while(iter != m_syncs.end()){
+      //输出sync的状态，格式为ip|sid|timestamp|valid
+      CwxCommon::snprintf(szLine, 4096, "STAT sync %s|%s|%u|%d\r\n",
+        iter->first.c_str(),
+        CwxCommon::toString(iter->second->m_ullLogSid, szTmp, 10),
+        iter->second->m_uiLogTimeStamp,
+        !iter->second->m_bNeedClosed && !iter->second->m_bClosed?1:0);
+      MQ_MONITOR_APPEND();
+      ++iter;
+    }
   } while (0);
   strcpy(m_szBuf + uiPos, "END\r\n");
   return strlen(m_szBuf);

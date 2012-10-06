@@ -103,6 +103,8 @@ private:
   int startSync(CwxHostInfo const& hostInfo);
   /// 更新sync。返回值，0：成功；-1：失败
   int updateSync(CwxHostInfo const& hostInfo);
+  /// 检查是否sync host发生了改变
+  void checkSyncHostModify()
   /// 检查sync host文件的变化，若变化则加载。
   /// 返回值，-1：失败；1：变化并加载；0：没有变化
   int loadSyncHostForChange(bool bForceLoad=false);
