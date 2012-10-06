@@ -80,7 +80,8 @@ public:
   }
   //检查是否需要重建session
   bool isNeedCreate() const{
-    return m_bClosed && (m_uiClosedTimestamp > CWX_MQ_DEF_TIMEOUT_SECOND);
+    return m_bClosed &&
+      (m_uiClosedTimestamp + CWX_MQ_DEF_TIMEOUT_SECOND < (CWX_UINT32)time(NULL));
   }
 public:
   CWX_UINT64                         m_ullSessionId; ///<session id
