@@ -207,6 +207,7 @@ int CwxMcConfig::loadSyncHost(string const& strSyncHostFile){
     ++item_iter;
     hostInfo.setPassword(*item_iter);
     m_syncHosts.m_hosts[hostInfo.getHostName()] = hostInfo;
+    ++iter;
   }
   return 0;
 }
