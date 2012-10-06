@@ -13,7 +13,7 @@
 struct CwxMcQueueItem{
 public:
   enum{
-    ALIGN_SIZE = 128  ///< 数据空间按照128对齐
+    ALIGN_SIZE = 32  ///< 数据空间按照128对齐
   };
 public:
   inline CWX_UINT64 getLogSid() const {
