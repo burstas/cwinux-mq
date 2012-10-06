@@ -17,8 +17,8 @@ int CwxMcStore::init(){
   m_historyFiles.clear();
 
   // 如果目录不存在，创建目录
-  if (!CwxFile::isDir(m_strPath)){
-    if (!CwxFile::createDir(m_strPath)){
+  if (!CwxFile::isDir(m_strPath.c_str())){
+    if (!CwxFile::createDir(m_strPath.c_str())){
       CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to create path:%s", m_strPath.c_str());
       return -1;
     }
@@ -163,7 +163,7 @@ bool CwxMcStore::createLogFile(CWX_UINT32 uiTime) {
   string strFileTime;
   char szTmp[32];
   CwxDate::getDateY4MDHMS2(m_uiCurFileStartTime, strFileTime);
-  CwxCommon::snprintf(szTmp, "%u", m_uiCurFileSeq);
+  sprintf(szTmp, "%u", m_uiCurFileSeq);
   m_strCurFileName = m_strPath + "/" + m_strPrefix + "_" + strFileTime + "." + szTmp + ".log";
   // 打开文件
   m_fd = ::fopen(m_strCurFileName.c_str(), "w+");
