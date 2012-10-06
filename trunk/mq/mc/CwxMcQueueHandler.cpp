@@ -165,12 +165,12 @@ CwxMsgBlock* CwxMcQueueHandler::packEmptyFetchMsg(CwxMqTss* pTss,
   return pBlock;
 }
 
-int CwxMcQueueHandler::replyFetchMq(CwxMqTss* pTss,
+int CwxMcQueueHandler::replyFetchMq(CwxMqTss* ,
                                     CwxMsgBlock* msg,
                                     bool bClose)
 {
   msg->send_ctrl().setConnId(CWX_APP_INVALID_CONN_ID);
-  msg->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_QUEUE);
+  msg->send_ctrl().setSvrId(CwxMcApp::SVR_TYPE_QUEUE);
   msg->send_ctrl().setHostId(0);
   if (bClose)
     msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::CLOSE_NOTICE);
@@ -211,7 +211,7 @@ int CwxMcQueueHandler::sentMq(CwxMqTss* pTss) {
   CwxMqPoco::packFetchMqReply(pTss->m_pWriter,
     pBlock,
     CWX_MQ_ERR_SUCCESS,
-    szErrMsg,
+    "",
     kv,
     pTss->m_szBuf2K);
   CwxMcQueueItem::destoryItem(log);
