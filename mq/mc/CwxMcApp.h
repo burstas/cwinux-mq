@@ -34,7 +34,11 @@ public:
     // queue消息获取svr type
     SVR_TYPE_QUEUE = CwxAppFramework::SVR_TYPE_USER_START + 1,
     // stats监听的服务类型
-    SVR_TYPE_MONITOR = CwxAppFramework::SVR_TYPE_USER_START + 2
+    SVR_TYPE_MONITOR = CwxAppFramework::SVR_TYPE_USER_START + 2,
+    // event类型的定义
+    // sync host信息改变的消息
+    EVENT_TYPE_SYNC_CHANGE = CwxEventInfo::SYS_EVENT_NUM + 1
+
   };
   ///构造函数
   CwxMcApp();
@@ -95,6 +99,10 @@ protected:
 private:
   /// 停止sync。返回值，0：成功；-1：失败
   int stopSync(string const& strHostName);
+  /// 启动sync。返回值，0：成功；-1：失败
+  int startSync(CwxHostInfo const& hostInfo);
+  /// 更新sync。返回值，0：成功；-1：失败
+  int updateSync(CwxHostInfo const& hostInfo);
   /// 检查sync host文件的变化，若变化则加载。
   /// 返回值，-1：失败；1：变化并加载；0：没有变化
   int loadSyncHostForChange(bool bForceLoad=false);
@@ -131,6 +139,8 @@ private:
   CwxMcQueue*          m_queue;
   // sync host 文件的修改时间
   CWX_UINT32           m_uiSyncHostFileModifyTime;
+  // 当前的host id
+  CWX_UINT32           m_uiCurHostId;
   // 数据收集对象的map
   map<string, CwxMcSyncSession*>   m_syncs;
   // queue获取的线程池对象
