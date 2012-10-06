@@ -121,13 +121,13 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
     snprintf(m_szErrMsg, 2047, "Must set [sync:sock_buf_kbyte].");
     return -1;
   }
-  m_sync.m_uiSockBufSize = strtoul(value.c_str(), NULL, 10);
+  m_sync.m_uiSockBufKByte = strtoul(value.c_str(), NULL, 10);
   //load sync:max_chunk_kbyte
   if (!cnf.getAttr("sync", "max_chunk_kbyte", value) || !value.length()) {
     snprintf(m_szErrMsg, 2047, "Must set [sync:max_chunk_kbyte].");
     return -1;
   }
-  m_sync.m_uiChunkSize = strtoul(value.c_str(), NULL, 10);
+  m_sync.m_uiChunkKBye = strtoul(value.c_str(), NULL, 10);
   if (m_sync.m_uiChunkKBye > CWX_MQ_MAX_CHUNK_KSIZE)
     m_sync.m_uiChunkKBye = CWX_MQ_MAX_CHUNK_KSIZE;
   //load sync:sync_conn_num
@@ -135,8 +135,8 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
     snprintf(m_szErrMsg, 2047, "Must set [sync:sync_conn_num].");
     return -1;
   }
-  m_sync.m_uiSyncConnNum = strtoul(value.c_str(), NULL, 10);
-  if (m_sync.m_uiSyncConnNum < 1) m_sync.m_uiSyncConnNum = 1;
+  m_sync.m_uiConnNum = strtoul(value.c_str(), NULL, 10);
+  if (m_sync.m_uiConnNum < 1) m_sync.m_uiConnNum = 1;
   //load sync:zip
   if (!cnf.getAttr("sync", "zip", value) || !value.length()) {
     m_sync.m_bzip = false;
@@ -194,7 +194,9 @@ int CwxMcConfig::loadSyncHost(string const& strSyncHostFile){
   while(iter != hosts.end()){
     CwxCommon::split(iter->second, items, ':');
     if (items.size() != 3){
-      snprintf(m_szErrMsg, 2047, "[host:%s]'s value[%s] is invalid, must be [port:user:passwd].");
+      snprintf(m_szErrMsg, 2047, "[host:%s]'s value[%s] is invalid, must be [port:user:passwd].",
+        iter->first,
+        iter->second);
       return -1;
     }
     hostInfo.setHostName(iter->first);
@@ -211,36 +213,37 @@ int CwxMcConfig::loadSyncHost(string const& strSyncHostFile){
 }
 
 bool CwxMcConfig::fetchHost(CwxIniParse& cnf, string const& node,
-                            CwxHostInfo& host) {
-                              string value;
-                              host.reset();
-                              //get listen
-                              if (cnf.getAttr(node, "listen", value) && value.length()) {
-                                if (!mqParseHostPort(value, host)) {
-                                  snprintf(m_szErrMsg, 2047,
-                                    "%s:listen must be [host:port], [%s] is invalid.", node.c_str(),
-                                    value.c_str());
-                                  return false;
-                                }
-                              }
-                              //load user
-                              if (cnf.getAttr(node, "user", value) && value.length()) {
-                                host.setUser(value);
-                              } else {
-                                host.setUser("");
-                              }
-                              //load passwd
-                              if (cnf.getAttr(node, "passwd", value) && value.length()) {
-                                host.setPassword(value);
-                              } else {
-                                host.setPassword("");
-                              }
-                              if (!host.getHostName().length()) {
-                                CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s]'s [listen].",
-                                  node.c_str());
-                                return false;
-                              }
-                              return true;
+                            CwxHostInfo& host)
+{
+  string value;
+  host.reset();
+  //get listen
+  if (cnf.getAttr(node, "listen", value) && value.length()) {
+    if (!mqParseHostPort(value, host)) {
+      snprintf(m_szErrMsg, 2047,
+        "%s:listen must be [host:port], [%s] is invalid.", node.c_str(),
+        value.c_str());
+      return false;
+    }
+  }
+  //load user
+  if (cnf.getAttr(node, "user", value) && value.length()) {
+    host.setUser(value);
+  } else {
+    host.setUser("");
+  }
+  //load passwd
+  if (cnf.getAttr(node, "passwd", value) && value.length()) {
+    host.setPassword(value);
+  } else {
+    host.setPassword("");
+  }
+  if (!host.getHostName().length()) {
+    CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s]'s [listen].",
+      node.c_str());
+    return false;
+  }
+  return true;
 }
 
 void CwxMcConfig::outputConfig() const {

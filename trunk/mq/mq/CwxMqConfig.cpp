@@ -253,15 +253,16 @@ int CwxMqConfig::loadConfig(string const & strConfFile) {
 }
 
 bool CwxMqConfig::fetchHost(CwxIniParse& cnf, string const& node,
-    CwxHostInfo& host) {
+    CwxHostInfo& host)
+{
   string value;
   host.reset();
   //get listen
   if (cnf.getAttr(node, "listen", value) && value.length()) {
     if (!mqParseHostPort(value, host)) {
       snprintf(m_szErrMsg, 2047,
-          "%s:listen must be [host:port], [%s] is invalid.", node.c_str(),
-          value.c_str());
+        "%s:listen must be [host:port], [%s] is invalid.", node.c_str(),
+        value.c_str());
       return false;
     }
   }
@@ -285,7 +286,7 @@ bool CwxMqConfig::fetchHost(CwxIniParse& cnf, string const& node,
   }
   if (!host.getHostName().length()) {
     CwxCommon::snprintf(m_szErrMsg, 2047, "Must set [%s]'s [listen].",
-        node.c_str());
+      node.c_str());
     return false;
   }
   return true;
