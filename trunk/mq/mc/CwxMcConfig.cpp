@@ -278,8 +278,8 @@ void CwxMcConfig::outputConfig() const {
 //输出host的配置
 void CwxMcConfig::outputSyncHost() const{
   CWX_INFO(("*****************begin sync host*******************"));
-  map<string, CwxHostInfo>::iterator iter = m_syncHosts.begin();
-  while(iter != m_syncHosts.end()){
+  map<string, CwxHostInfo>::iterator iter = m_syncHosts.m_hosts.begin();
+  while(iter != m_syncHosts.m_hosts.end()){
     CWX_INFO(("%s=%s:%u:%s:%s",
       iter->first.c_str(),
       iter->second.getHostName().c_str(),
