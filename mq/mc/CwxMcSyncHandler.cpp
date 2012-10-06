@@ -168,8 +168,9 @@ int CwxMcSyncHandler::recvMessage(){
   {
     list<CwxMsgBlock*> msgs;
     if (0 != recvMsg(m_recvMsgData, msgs)) return -1;
-    msg = NULL;
+    m_recvMsgData = NULL;
     CwxMsgBlock* block = NULL;
+    int ret = 0;
     list<CwxMsgBlock*>::iterator msg_iter = msgs.begin();
     while (msg_iter != msgs.end()) {
       block = *msg_iter;
@@ -314,7 +315,7 @@ int CwxMcSyncHandler::dealSyncData(CwxMsgBlock*& msg)
     }
     ulUnzipLen = uiBufLen;
     //解压
-    if (!CwxZlib::unzip(szBuf, ulUnzipLen,
+    if (!CwxZlib::unzip((unsigned char*)szBuf, ulUnzipLen,
       (const unsigned char*) (msg->rd_ptr() + sizeof(ullSeq)),
       msg->length() - sizeof(ullSeq))) 
     {
@@ -377,7 +378,7 @@ int CwxMcSyncHandler::dealSyncChunkData(CwxMsgBlock*& msg)
     }
     ulUnzipLen = uiBufLen;
     //解压
-    if (!CwxZlib::unzip(szBuf, ulUnzipLen,
+    if (!CwxZlib::unzip((unsigned char*)szBuf, ulUnzipLen,
       (const unsigned char*) (msg->rd_ptr() + sizeof(ullSeq)),
       msg->length() - sizeof(ullSeq)))
     {
