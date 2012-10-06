@@ -76,6 +76,11 @@ int CwxMcApp::initRunEnv() {
   this->setLastCompileDatetime(CWX_COMPILE_DATE(_BUILD_DATE));
   ///设置启动时间
   CwxDate::getDateY4MDHMS2(time(NULL), m_strStartTime);
+  
+  /// 创建队列
+  m_queue = new CwxMcQueue(m_config.getMq().m_uiCacheTimeout,
+    m_config.getMq().m_uiCacheMSize);
+
 
   ///启动网络连接与监听
   if (0 != startNetwork()) return -1;
@@ -234,6 +239,10 @@ void CwxMcApp::destroy() {
   while (iter != m_syncs.end()) {
     stopSync(iter->first);
     iter = m_syncs.begin();
+  }
+  if (m_queue){
+    delete m_queue;
+    m_queue = NULL;
   }
   CwxAppFramework::destroy();
 }
