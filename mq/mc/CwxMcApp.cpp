@@ -87,7 +87,7 @@ int CwxMcApp::initRunEnv() {
     CwxMcApp::queueThreadMain,
     this);
   ///启动线程
-  CwxMqTss** pTss = new CwxTss*[1];
+  CwxTss** pTss = new CwxTss*[1];
   pTss[0] = new CwxMqTss();
   ((CwxMqTss*) pTss[0])->init();
   if (0 != m_queueThreadPool->start(pTss)) {
@@ -108,7 +108,7 @@ int CwxMcApp::initRunEnv() {
       pSession->m_bNeedClosed = false;
       pSession->m_pApp = this;
       pSession->m_store = new CwxMcStore(m_config.getLog().m_strPath,
-        host.getHostName(),
+        iter->first,
         m_config.getLog().m_uiLogMSize,
         m_config.getLog().m_uiSwitchSecond,
         m_config.getLog().m_uiFlushNum,
@@ -201,8 +201,7 @@ int CwxMcApp::onConnCreated(CWX_UINT32 uiSvrId,
   msg->event().setEvent(CwxEventInfo::CONN_CREATED);
   ///将消息放到线程池队列中，有内部的线程调用其处理handle来处理
   if (SVR_TYPE_QUEUE == uiSvrId) {
-    if (m_mqThreadPool->append(msg) <= 1)
-      m_mqChannel->notice();
+    if (m_queueThreadPool->append(msg) <= 1) m_queueChannel->notice();
   } else {
     CWX_ASSERT(SVR_TYPE_MONITOR == uiSvrId);
   }
