@@ -583,6 +583,7 @@ void* CwxMcApp::syncThreadMain(CwxTss* tss,
 {
   CwxMqTss* pTss = (CwxMqTss*)tss;
   CwxMcSyncSession* pSession = (CwxMcSyncSession*) arg;
+  pTss->m_userData = arg;
   if (0 != pSession->m_channel->open()) {
     CWX_ERROR(("Failure to open sync channel"));
     //停止app
