@@ -12,7 +12,7 @@ CwxMcQueueItem* CwxMcQueueItem::createItem(CWX_UINT64 ullSid,
   CwxMcQueueItem* item = (CwxMcQueueItem*)malloc(uiSize);
   item->m_uiItemSize = uiSize;
   item->m_uiDataSize = uiDataLen;
-  item->m_ullLogSid - ullSid;
+  item->m_ullLogSid = ullSid;
   item->m_uiLogHostId = uiLogHostId;
   item->m_uiLogTimestamp = uiLogTimestamp;
   if (uiDataLen) memcpy(item->m_szLogData, szData, uiDataLen);
@@ -31,7 +31,7 @@ void CwxMcQueue::push(CwxMcQueueItem* log){
     log = *m_queue.begin();
     m_ullCurSize -= log->getItemSize();
     m_ullDiscardNum ++;
-    queue.erase(m_queue.begin());
+    m_queue.erase(m_queue.begin());
     CwxMcQueueItem::destoryItem(log);
   }
 }
@@ -41,7 +41,7 @@ CwxMcQueueItem* CwxMcQueue::pop(){
   if (m_queue.size()){
     CwxMcQueueItem* log = *m_queue.begin();
     m_ullCurSize -= log->getItemSize();
-    queue.erase(m_queue.begin());
+    m_queue.erase(m_queue.begin());
     return log;
   }
   return NULL;
@@ -52,13 +52,13 @@ void CwxMcQueue::checkTimeout(CWX_UINT32 uiTime){
   CwxMcQueueItem* log;
   CwxMutexGuard<CwxMutexLock>  lock(&m_lock);
   if (m_queue.size()){
-    log = *m_queue->rbegin();
+    log = *m_queue.rbegin();
     CWX_UINT32 uiTimeoutTime = log->getLogTimestamp();
     if (uiTimeoutTime > uiTime) uiTimeoutTime = uiTime;
     while(true){
-      log = *m_queue->begin();
+      log = *m_queue.begin();
       if (log->getLogTimestamp() + m_uiTimeout >= uiTimeoutTime) break;
-      m_queue->erase(m_queue->begin());
+      m_queue.erase(m_queue.begin());
       m_ullCurSize -= log->getItemSize();
       CwxMcQueueItem::destoryItem(log);
     }
