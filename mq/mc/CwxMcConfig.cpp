@@ -195,13 +195,13 @@ int CwxMcConfig::loadSyncHost(string const& strSyncHostFile){
     CwxCommon::split(iter->second, items, ':');
     if (items.size() != 3){
       snprintf(m_szErrMsg, 2047, "[host:%s]'s value[%s] is invalid, must be [port:user:passwd].",
-        iter->first,
-        iter->second);
+        iter->first.c_str(),
+        iter->second.c_str());
       return -1;
     }
     hostInfo.setHostName(iter->first);
     item_iter = items.begin();
-    hostInfo.setPort(strtoul(item_iter->c_str()));
+    hostInfo.setPort(strtoul(item_iter->c_str(), NULL, 10));
     ++item_iter;
     hostInfo.setUser(*item_iter);
     ++item_iter;
@@ -278,10 +278,10 @@ void CwxMcConfig::outputConfig() const {
 //输出host的配置
 void CwxMcConfig::outputSyncHost() const{
   CWX_INFO(("*****************begin sync host*******************"));
-  map<string, CwxHostInfo>::iterator iter = m_hosts.begin();
-  while(iter != m_hosts.end()){
+  map<string, CwxHostInfo>::iterator iter = m_syncHosts.begin();
+  while(iter != m_syncHosts.end()){
     CWX_INFO(("%s=%s:%u:%s:%s",
-      iter->first->c_str(),
+      iter->first.c_str(),
       iter->second.getHostName().c_str(),
       iter->second.getPort(),
       iter->second.getUser().c_str(),
