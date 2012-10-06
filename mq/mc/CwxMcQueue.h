@@ -34,7 +34,7 @@ public:
   inline char const* getData() const{
     return m_szLogData;
   }
-  bool operator < (CwxMcQueueItem const& item){
+  bool operator < (CwxMcQueueItem const& item) const{
     if (m_uiLogTimestamp < item.m_uiLogTimestamp) return true;
     if (m_uiLogTimestamp > item.m_uiLogTimestamp) return false;
     if (m_uiLogHostId < item.m_uiLogHostId) return true;
