@@ -18,6 +18,7 @@ cwx_mc_SOURCES = CwxMcApp.cpp\
 		../common/CwxMqDef.cpp\
                 ../common/CwxMqPoco.cpp\
 		../common/CwxMqTss.cpp\
+                ../common/CwxMqConnector.cpp.cpp\
                 ../common/CwxBinLogMgr.cpp
 cwx_mc_LDADD=
 cwx_mc_LDFLAGS =-L@cwinux_dir@/lib
