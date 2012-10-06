@@ -7,6 +7,7 @@ CwxMcApp::CwxMcApp() {
   m_queueChannel = NULL;
   m_ttCurTime = 0;
   m_uiSyncHostFileModifyTime = 0;
+  m_uiCurHostId = 0;
   memset(m_szBuf, 0x00, MAX_MONITOR_REPLY_SIZE);
 }
 
@@ -95,41 +96,9 @@ int CwxMcApp::initRunEnv() {
 
   //创建同步的线程池
   {
-    CwxMcSyncSession* pSession = NULL;
     map<string, CwxHostInfo>::const_iterator iter = m_config.getSyncHosts().m_hosts.begin();
     while(iter != m_config.getSyncHosts().m_hosts.end()){
-      pSession = new CwxMcSyncSession();
-      m_syncs[iter->first] = pSession;
-      pSession->m_syncHost = iter->second;
-      pSession->m_bClosed = true;
-      pSession->m_bNeedClosed = false;
-      pSession->m_pApp = this;
-      pSession->m_store = new CwxMcStore(m_config.getLog().m_strPath,
-        iter->first,
-        m_config.getLog().m_uiLogMSize,
-        m_config.getLog().m_uiSwitchSecond,
-        m_config.getLog().m_uiFlushNum,
-        m_config.getLog().m_uiReserveDay,
-        m_config.getLog().m_bAppendReturn);
-      if (0 != pSession->m_store->init()){
-        CWX_ERROR(("Failure to init host[%s]'s store, err=%s",
-          iter->first.c_str(), pSession->m_store->getErrMsg()));
-        return -1;
-      }
-      pSession->m_channel = new CwxAppChannel();
-      //创建线程池
-      pSession->m_threadPool = new CwxThreadPool(1,
-        &getCommander(),
-        CwxMcApp::syncThreadMain,
-        pSession);
-      ///启动线程
-      pTss = new CwxTss*[1];
-      pTss[0] = new CwxMqTss();
-      ((CwxMqTss*) pTss[0])->init();
-      if (0 != pSession->m_threadPool->start(pTss)) {
-        CWX_ERROR(("Failure to start sync thread pool,"));
-        return -1;
-      }
+      if (0 != startSync(iter->second)) return -1;
       ++iter;
     }
   }
@@ -296,6 +265,78 @@ int CwxMcApp::stopSync(string const& strHostName){
   return 0;
 }
 
+/// 启动sync。返回值，0：成功；-1：失败
+int CwxMcApp::startSync(CwxHostInfo const& hostInfo){
+  if (m_syncs.find(hostInfo.getHostName()) != m_syncs.end()){
+    CWX_ERROR(("Host[%s] exist.", hostInfo.getHostName().c_str()));
+    return -1;
+  }
+  set<CWX_UINT32> hostIds;
+  map<string, CwxMcSyncSession*>::iterator iter = m_syncs.begin();
+  while(iter != m_syncs.end()){
+    hostIds.insert(iter->second->m_uiHostId);
+    ++iter;
+  }
+  // 选取host id
+  while(true){
+    m_uiCurHostId++;
+    if (!m_uiCurHostId) m_uiCurHostId = 1;
+    if (hostIds.find(m_uiCurHostId) == hostIds.end()) break;
+  }
+
+  CwxMcSyncSession* pSession = NULL;
+  pSession = new CwxMcSyncSession();
+  m_syncs[iter->first] = pSession;
+  pSession->m_syncHost = iter->second;
+  pSession->m_uiHostId = m_uiCurHostId;
+  pSession->m_bClosed = true;
+  pSession->m_bNeedClosed = false;
+  pSession->m_pApp = this;
+  pSession->m_store = new CwxMcStore(m_config.getLog().m_strPath,
+    iter->first,
+    m_config.getLog().m_uiLogMSize,
+    m_config.getLog().m_uiSwitchSecond,
+    m_config.getLog().m_uiFlushNum,
+    m_config.getLog().m_uiReserveDay,
+    m_config.getLog().m_bAppendReturn);
+  if (0 != pSession->m_store->init()){
+    CWX_ERROR(("Failure to init host[%s]'s store, err=%s",
+      iter->first.c_str(), pSession->m_store->getErrMsg()));
+    return -1;
+  }
+  pSession->m_channel = new CwxAppChannel();
+  //创建线程池
+  pSession->m_threadPool = new CwxThreadPool(1,
+    &getCommander(),
+    CwxMcApp::syncThreadMain,
+    pSession);
+  ///启动线程
+  pTss = new CwxTss*[1];
+  pTss[0] = new CwxMqTss();
+  ((CwxMqTss*) pTss[0])->init();
+  if (0 != pSession->m_threadPool->start(pTss)) {
+    CWX_ERROR(("Failure to start sync thread pool,"));
+    return -1;
+  }
+  return 0;
+}
+/// 更新sync。返回值，0：成功；-1：失败
+int CwxMcApp::updateSync(CwxHostInfo const& hostInfo){
+  map<string, CwxMcSyncSession*>::iterator iter = m_syncs.find(hostInfo.getHostName());
+  if (iter == m_syncs.end()){
+    CWX_ERROR(("Host[%s] doesn't exist.", hostInfo.getHostName().c_str()));
+    return -1;
+  }
+  CwxHostInfo* host = new CwxHostInfo(hostInfo);
+  CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(sizeof(CwxHostInfo*));
+  memcpy(pBlock->wr_ptr(), &host, sizeof(host));
+  pBlock->wr_ptr(sizeof(host));
+  pBlock->event().setSvrId(SVR_TYPE_SYNC);
+  pBlock->event().setEvent(CwxEventInfo::EVENT_TYPE_SYNC_CHANGE);
+  iter->second->m_threadPool->append(pBlock);
+  return 0;
+}
+
 /// 检查sync host文件的变化，若变化则加载。
 /// 返回值，-1：失败；1：变化并加载；0：没有变化
 int CwxMcApp::loadSyncHostForChange(bool bForceLoad){
@@ -438,10 +479,11 @@ CWX_UINT32 CwxMcApp::packMonitorInfo() {
 }
 
 ///sync channel的线程函数，arg为app对象
-void* CwxMcApp::syncThreadMain(CwxTss* ,
+void* CwxMcApp::syncThreadMain(CwxTss* tss,
                             CwxMsgQueue* queue,
                             void* arg)
 {
+  CwxMqTss* pTss = (CwxMqTss*)tss;
   CwxMcSyncSession* pSession = (CwxMcSyncSession*) arg;
   if (0 != pSession->m_channel->open()) {
     CWX_ERROR(("Failure to open sync channel"));
@@ -455,6 +497,13 @@ void* CwxMcApp::syncThreadMain(CwxTss* ,
     if (-1 == pSession->m_channel->dispatch(5)) {
       CWX_ERROR(("Failure to invoke CwxAppChannel::dispatch()"));
       sleep(1);
+    }
+    if (pSession->isCloseSession()){
+      CwxMcSyncHandler::closeSession(pTss);
+    }else if (pSession->isNeedCreate()){
+      CwxMcSyncHandler::createSession(pTss);
+    }else if (pSession->isTimeout(pSession->m_pApp->getCurTime())){
+      CwxMcSyncHandler::closeSession(pTss);
     }
   }
   pSession->m_channel->stop();
@@ -476,9 +525,17 @@ int CwxMcApp::dealSyncThreadMsg(CwxMsgQueue* queue,
     do {
       iRet = queue->dequeue(block);
       if (-1 == iRet) return -1;
-      CWX_ASSERT(block->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
       CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_SYNC);
-      pSession->m_store->timeout(pSession->m_pApp->getCurTime());
+      if (block->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK){
+        pSession->m_store->timeout(pSession->m_pApp->getCurTime());
+      }else if (block->event().getEvent() == EVENT_TYPE_SYNC_CHANGE){
+        CwxHostInfo* host = NULL;
+        memcpy(&host, block->rd_ptr(), sizeof(host));
+        pSession->m_syncHost = *host;
+        pSession->m_bNeedClosed = true;
+      }else{
+        CWX_ERROR(("Unknown event type[%d] for sync thread pool.", block->event().getEvent()));
+      }
     } while (0);
     CwxMsgBlockAlloc::free(block);
     block = NULL;
