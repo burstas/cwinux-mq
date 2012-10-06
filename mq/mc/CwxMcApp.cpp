@@ -288,7 +288,7 @@ int CwxMcApp::startSync(CwxHostInfo const& hostInfo){
 
   CwxMcSyncSession* pSession = NULL;
   pSession = new CwxMcSyncSession();
-  m_syncs[hostInfo->getHostName()] = pSession;
+  m_syncs[hostInfo.getHostName()] = pSession;
   pSession->m_syncHost = hostInfo;
   pSession->m_uiHostId = m_uiCurHostId;
   pSession->m_bClosed = true;
