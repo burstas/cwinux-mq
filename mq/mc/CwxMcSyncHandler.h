@@ -25,7 +25,7 @@ public:
     m_uiHostId = 0;
     m_bNeedClosed = false;
     m_bClosed = true;
-    m_uiClosedTimestamp = 0;
+    m_uiLastConnectTimestamp = 0;
     m_unThreadPoolId = 0;
     m_threadPool = NULL;
     m_channel = NULL;
@@ -81,7 +81,7 @@ public:
   //检查是否需要重建session
   bool isNeedCreate() const{
     return m_bClosed &&
-      (m_uiClosedTimestamp + CWX_MQ_DEF_TIMEOUT_SECOND < (CWX_UINT32)time(NULL));
+      (m_uiLastConnectTimestamp + CWX_MQ_DEF_TIMEOUT_SECOND < (CWX_UINT32)time(NULL));
   }
 public:
   CWX_UINT64                         m_ullSessionId; ///<session id
@@ -99,7 +99,7 @@ public:
   volatile CWX_UINT32                 m_uiLogTimeStamp;    ///<当前同步的时间点
   volatile bool                      m_bNeedClosed;   ///<session是否需要关闭
   volatile bool                      m_bClosed;        ///<session是否已经关闭
-  volatile CWX_UINT32                 m_uiClosedTimestamp; ///<session关闭的时间
+  volatile CWX_UINT32                 m_uiLastConnectTimestamp; ///<上一次连接的时间
 };
 
 ///从mq同步数据的处理handle
