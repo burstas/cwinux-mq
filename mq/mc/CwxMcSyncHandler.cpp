@@ -54,7 +54,7 @@ void CwxMcSyncHandler::closeSession(CwxMqTss* pTss){
   }
   {// 释放消息
     map<CWX_UINT64/*seq*/, CwxMsgBlock*>::iterator iter = pSession->m_msg.begin();
-    while (iter != m_msg.end()) {
+    while (iter != pSession->m_msg.end()) {
       CwxMsgBlockAlloc::free(iter->second);
       iter++;
     }
@@ -71,9 +71,9 @@ int CwxMcSyncHandler::createSession(CwxMqTss* pTss){
   CWX_ASSERT((pSession->m_bClosed));
   ///重建所有连接
   CwxINetAddr addr;
-  if (0 != addr.set(pSession->m_syncHost.getPort(), pSession->m_syncHost->getHostName().c_str())){
+  if (0 != addr.set(pSession->m_syncHost.getPort(), pSession->m_syncHost.getHostName().c_str())){
     CWX_ERROR(("Failure to init addr, addr:%s, port:%u, err=%d",
-      pSession->m_syncHost->getHostName().c_str(),
+      pSession->m_syncHost.getHostName().c_str(),
       pSession->m_syncHost.getPort(),
       errno));
     return -1;
@@ -89,7 +89,7 @@ int CwxMcSyncHandler::createSession(CwxMqTss* pTss){
   CwxTimeouter timeouter(&timeout);
   if (0 != CwxMqConnector::connect(addr, unConnNum, fds, &timeouter, true)) {
     CWX_ERROR(("Failure to connect to addr:%s, port:%u, err=%d",
-      pSession->m_syncHost->getHostName().c_str(),
+      pSession->m_syncHost.getHostName().c_str(),
       pSession->m_syncHost.getPort(),
       errno));
     return -1;
@@ -107,7 +107,7 @@ int CwxMcSyncHandler::createSession(CwxMqTss* pTss){
       delete handler;
       break;
     }
-    pSession->m_conns[uiConnId] = handler;
+    pSession->m_conns[uiConnId] = (CwxMcSyncHandler*)handler;
   }
   if (i != unConnNum) { ///失败
     for (; i < unConnNum; i++)  ::close(fds[i]);
@@ -136,7 +136,7 @@ int CwxMcSyncHandler::createSession(CwxMqTss* pTss){
 
   if (ret != CWX_MQ_ERR_SUCCESS) {    ///数据包创建失败
     CWX_ERROR(("Failure to create report package, err:%s", pTss->m_szBuf2K));
-    closeSession();
+    closeSession(pTss);
     return -1;
   } else {
     handler = pSession->m_conns.begin()->second;
@@ -144,7 +144,7 @@ int CwxMcSyncHandler::createSession(CwxMqTss* pTss){
     if (!handler->putMsg(pBlock)){
       CWX_ERROR(("Failure to report sid to mq"));
       CwxMsgBlockAlloc::free(pBlock);
-      closeSession();
+      closeSession(pTss);
       return -1;
     }
   }
