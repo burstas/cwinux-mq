@@ -607,10 +607,6 @@ void* CwxMcApp::syncThreadMain(CwxTss* tss,
   }
   pSession->m_channel->stop();
   pSession->m_channel->close();
-  if (!pSession->m_pApp->isStopped()) {
-    CWX_INFO(("Stop app for sync channel thread stopped."));
-    pSession->m_pApp->stop();
-  }
   return NULL;
 }
 ///sync channel的队列消息函数。返回值：0：正常；-1：队列停止
