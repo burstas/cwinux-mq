@@ -294,13 +294,15 @@ int CwxMcApp::startSync(CwxHostInfo const& hostInfo){
   pSession->m_bClosed = true;
   pSession->m_bNeedClosed = false;
   pSession->m_pApp = this;
+
   pSession->m_store = new CwxMcStore(m_config.getLog().m_strPath,
-    iter->first,
+    hostInfo.getHostName(),
     m_config.getLog().m_uiLogMSize,
     m_config.getLog().m_uiSwitchSecond,
     m_config.getLog().m_uiFlushNum,
     m_config.getLog().m_uiReserveDay,
     m_config.getLog().m_bAppendReturn);
+
   if (0 != pSession->m_store->init()){
     CWX_ERROR(("Failure to init host[%s]'s store, err=%s",
       iter->first.c_str(), pSession->m_store->getErrMsg()));
