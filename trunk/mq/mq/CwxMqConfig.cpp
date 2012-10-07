@@ -8,8 +8,8 @@ int CwxMqConfig::loadConfig(string const & strConfFile) {
   //解析配置文件
   if (false == cnf.load(strConfFile)) {
     CwxCommon::snprintf(m_szErrMsg, 2047,
-        "Failure to Load conf file:%s. err:%s", strConfFile.c_str(),
-        cnf.getErrMsg());
+      "Failure to Load conf file:%s. err:%s", strConfFile.c_str(),
+      cnf.getErrMsg());
     return -1;
   }
 
@@ -33,7 +33,7 @@ int CwxMqConfig::loadConfig(string const & strConfFile) {
     m_common.m_bMaster = false;
   } else {
     CwxCommon::snprintf(m_szErrMsg, 2047,
-        "[cmn:server_type] must be [master] or [slave].");
+      "[cmn:server_type] must be [master] or [slave].");
     return -1;
   }
 
@@ -79,7 +79,7 @@ int CwxMqConfig::loadConfig(string const & strConfFile) {
   } else {
     if (!mqParseHostPort(value, m_common.m_monitor)) {
       snprintf(m_szErrMsg, 2047,
-          "cmn:monitor must be [host:port], [%s] is invalid.", value.c_str());
+        "cmn:monitor must be [host:port], [%s] is invalid.", value.c_str());
       return -1;
     }
   }
@@ -168,9 +168,9 @@ int CwxMqConfig::loadConfig(string const & strConfFile) {
     m_dispatch.m_strSourcePath = value;
     //load dispatch:source_flush_num
     if (!cnf.getAttr("dispatch", "source_flush_num", value)
-        || !value.length()) {
-      snprintf(m_szErrMsg, 2047, "Must set [dispatch:source_flush_num].");
-      return -1;
+      || !value.length()) {
+        snprintf(m_szErrMsg, 2047, "Must set [dispatch:source_flush_num].");
+        return -1;
     }
     m_dispatch.m_uiFlushNum = strtoul(value.c_str(), NULL, 10);
     if (m_dispatch.m_uiFlushNum < 1) {
@@ -178,9 +178,9 @@ int CwxMqConfig::loadConfig(string const & strConfFile) {
     }
     //load dispatch:source_flush_second
     if (!cnf.getAttr("dispatch", "source_flush_second", value)
-        || !value.length()) {
-      snprintf(m_szErrMsg, 2047, "Must set [dispatch:source_flush_second].");
-      return -1;
+      || !value.length()) {
+        snprintf(m_szErrMsg, 2047, "Must set [dispatch:source_flush_second].");
+        return -1;
     }
     m_dispatch.m_uiFlushSecond = strtoul(value.c_str(), NULL, 10);
     if (m_dispatch.m_uiFlushSecond < 1) {
@@ -253,7 +253,7 @@ int CwxMqConfig::loadConfig(string const & strConfFile) {
 }
 
 bool CwxMqConfig::fetchHost(CwxIniParse& cnf, string const& node,
-    CwxHostInfo& host)
+                            CwxHostInfo& host)
 {
   string value;
   host.reset();
@@ -300,8 +300,7 @@ void CwxMqConfig::outputConfig() const {
   CWX_INFO(("sock_buf_kbyte=%u", m_common.m_uiSockBufSize));
   CWX_INFO(("max_chunk_kbyte=%u", m_common.m_uiChunkSize));
   CWX_INFO(("sync_conn_num=%u", m_common.m_uiSyncConnNum));
-  CWX_INFO(
-      ("monitor=%s:%u", m_common.m_monitor.getHostName().c_str(), m_common.m_monitor.getPort()));
+  CWX_INFO(("monitor=%s:%u", m_common.m_monitor.getHostName().c_str(), m_common.m_monitor.getPort()));
   CWX_INFO(("*****************binlog*******************"));
   CWX_INFO(("path=%s", m_binlog.m_strBinlogPath.c_str()));
   CWX_INFO(("file_prefix=%s", m_binlog.m_strBinlogPrex.c_str()));
@@ -314,22 +313,20 @@ void CwxMqConfig::outputConfig() const {
   CWX_INFO(("user=%s", m_dispatch.m_async.getUser().c_str()));
   CWX_INFO(("passwd=%s", m_dispatch.m_async.getPasswd().c_str()));
   CWX_INFO(
-      ("listen=%s:%u", m_dispatch.m_async.getHostName().c_str(), m_dispatch.m_async.getPort()));
+    ("listen=%s:%u", m_dispatch.m_async.getHostName().c_str(), m_dispatch.m_async.getPort()));
   CWX_INFO(("source_path=%s", m_dispatch.m_strSourcePath.c_str()));
-  CWX_INFO(("source_flush_num=%s", m_dispatch.m_uiFlushNum));
-  CWX_INFO(("source_flush_second=%s", m_dispatch.m_uiFlushSecond));
+  CWX_INFO(("source_flush_num=%u", m_dispatch.m_uiFlushNum));
+  CWX_INFO(("source_flush_second=%u", m_dispatch.m_uiFlushSecond));
   if (m_common.m_bMaster) {
     CWX_INFO(("*****************recv*******************"));
     CWX_INFO(("user=%s", m_recv.m_recv.getUser().c_str()));
     CWX_INFO(("passwd=%s", m_recv.m_recv.getPasswd().c_str()));
-    CWX_INFO(
-        ("listen=%s:%u", m_recv.m_recv.getHostName().c_str(), m_recv.m_recv.getPort()));
+    CWX_INFO(("listen=%s:%u", m_recv.m_recv.getHostName().c_str(), m_recv.m_recv.getPort()));
   } else {
     CWX_INFO(("*****************master*******************"));
     CWX_INFO(("user=%s", m_master.m_master.getUser().c_str()));
     CWX_INFO(("passwd=%s", m_master.m_master.getPasswd().c_str()));
-    CWX_INFO(
-        ("listen=%s:%u", m_master.m_master.getHostName().c_str(), m_master.m_master.getPort()));
+    CWX_INFO(("listen=%s:%u", m_master.m_master.getHostName().c_str(), m_master.m_master.getPort()));
     CWX_INFO(("zip=%s", m_master.m_bzip?"yes":"no"));
     CWX_INFO(("sign=%s", m_master.m_strSign.c_str()));
   }
@@ -337,8 +334,7 @@ void CwxMqConfig::outputConfig() const {
     CWX_INFO(("*****************mq*******************"));
     CWX_INFO(("user=%s", m_mq.m_mq.getUser().c_str()));
     CWX_INFO(("passwd=%s", m_mq.m_mq.getPasswd().c_str()));
-    CWX_INFO(
-        ("listen=%s:%u",m_mq.m_mq.getHostName().c_str(), m_mq.m_mq.getPort()));
+    CWX_INFO(("listen=%s:%u",m_mq.m_mq.getHostName().c_str(), m_mq.m_mq.getPort()));
     CWX_INFO(("log_path=%s", m_mq.m_strLogFilePath.c_str()));
     CWX_INFO(("log_flush_num=%u", m_mq.m_uiFlushNum));
     CWX_INFO(("log_flush_second=%u", m_mq.m_uiFlushSecond));
