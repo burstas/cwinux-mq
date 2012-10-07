@@ -558,8 +558,9 @@ CWX_UINT32 CwxMcApp::packMonitorInfo() {
       (CWX_UINT32)(m_queue->getSize()/(1024*1024)));
     MQ_MONITOR_APPEND();
     //丢弃的数量
-    CwxCommon::snprintf(szLine, 4096, "STAT queue_max_time %s\r\n",
+    CwxCommon::snprintf(szLine, 4096, "STAT queue_discard %s\r\n",
       CwxCommon::toString(m_queue->getDiscardNum(), szTmp, 10));
+    MQ_MONITOR_APPEND();
     map<string, CwxMcSyncSession*>::iterator iter = m_syncs.begin();
     while(iter != m_syncs.end()){
       //输出sync的状态，格式为ip|sid|timestamp|valid
