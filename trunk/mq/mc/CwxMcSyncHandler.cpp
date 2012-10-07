@@ -46,8 +46,8 @@ void CwxMcSyncHandler::closeSession(CwxMqTss* pTss){
   {// 关闭连接
     map<CWX_UINT32, CwxMcSyncHandler*>::iterator iter = pSession->m_conns.begin();
     while(iter != pSession->m_conns.end()){
-      iter->second->close();
-      ++iter;
+      iter->second->close(); // CwxMcSyncHandler::onConnClosed会将连接删除
+      iter = pSession->m_conns.begin();
     }
     pSession->m_conns.clear();
   }
