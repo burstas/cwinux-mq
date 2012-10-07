@@ -186,8 +186,7 @@ int CwxMqDispHandler::recvMessage() {
     return recvReply(m_tss);
   }
   ///直接关闭连接
-  CWX_ERROR(
-      ("Recv invalid msg type:%u from host:%s:%u, close connection.", m_header.getMsgType(), m_strPeerHost.c_str(), m_unPeerPort));
+  CWX_ERROR(("Recv invalid msg type:%u from host:%s:%u, close connection.", m_header.getMsgType(), m_strPeerHost.c_str(), m_unPeerPort));
   return -1;
 }
 

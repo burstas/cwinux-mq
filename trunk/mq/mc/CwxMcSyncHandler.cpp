@@ -202,7 +202,7 @@ int CwxMcSyncHandler::recvMessage(){
     CWX_ERROR(("Receive invalid msg type from master, msg_type=%u", m_header.getMsgType()));
     return -1;
   }
-  return 1;
+  return 0;
 }
 
 int CwxMcSyncHandler::recvMsg(CwxMsgBlock*& msg, list<CwxMsgBlock*>& msgs) {
