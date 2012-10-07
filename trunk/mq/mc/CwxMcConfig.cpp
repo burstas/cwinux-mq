@@ -61,7 +61,15 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
     snprintf(m_szErrMsg, 2047, "Must set [log:append_return].");
     return -1;
   }
-  m_log.m_bAppendReturn = (value=="yes"?true:false);
+  if (value=="yes"){
+    m_log.m_bAppendReturn = true;
+  }else if (value=="no"){
+    m_log.m_bAppendReturn = true;
+  }else{
+    snprintf(m_szErrMsg, 2047, "Invalid [log:append_return]'s value[%s], must be yes/no.", value.c_str());
+    return -1;
+
+  }
   //load log:file_swith_second
   if (!cnf.getAttr("log", "file_swith_second", value) || !value.length()) {
     snprintf(m_szErrMsg, 2047, "Must set [log:file_swith_second].");
