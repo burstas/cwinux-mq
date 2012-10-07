@@ -64,7 +64,7 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
   if (value=="yes"){
     m_log.m_bAppendReturn = true;
   }else if (value=="no"){
-    m_log.m_bAppendReturn = true;
+    m_log.m_bAppendReturn = false;
   }else{
     snprintf(m_szErrMsg, 2047, "Invalid [log:append_return]'s value[%s], must be yes/no.", value.c_str());
     return -1;
@@ -165,15 +165,6 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
     else
       m_sync.m_strSign = "";
   }
-  //load sync:newline
-  if (!cnf.getAttr("sync", "newline", value) || !value.length()) {
-    m_sync.m_bAppendNewLine = false;
-  } else {
-    if (value == "yes")
-      m_sync.m_bAppendNewLine = true;
-    else
-      m_sync.m_bAppendNewLine = false;
-  }
   return 0;
 }
 
@@ -264,6 +255,7 @@ void CwxMcConfig::outputConfig() const {
   CWX_INFO(("path=%s", m_log.m_strPath.c_str()));
   CWX_INFO(("file_max_mbyte=%u", m_log.m_uiLogMSize));
   CWX_INFO(("file_swith_second=%u", m_log.m_uiSwitchSecond));
+  CWX_INFO(("append_return=%s", m_log.m_bAppendReturn?"yes":"no"));
   CWX_INFO(("flush_log_num=%u", m_log.m_uiFlushNum));
   CWX_INFO(("flush_log_second=%u", m_log.m_uiFlushSecond));
   CWX_INFO(("*****************mq*******************"));
@@ -280,7 +272,6 @@ void CwxMcConfig::outputConfig() const {
   CWX_INFO(("sync_conn_num=%d",m_sync.m_uiConnNum));
   CWX_INFO(("zip=%u", m_sync.m_bzip?"yes":"no"));
   CWX_INFO(("sign=%s", m_sync.m_strSign.c_str()));
-  CWX_INFO(("newline=%s", m_sync.m_bAppendNewLine?"yes":"no"));
   CWX_INFO(("*****************END   CONFIG *******************"));
 }
 
