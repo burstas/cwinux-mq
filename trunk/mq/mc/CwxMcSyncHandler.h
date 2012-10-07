@@ -156,7 +156,7 @@ private:
     char const* sign);
   // 获取压缩的buf大小
   inline CWX_UINT32 getBufLen() const{
-    return CWX_MQ_MAX_CHUNK_KSIZE * 2;
+    return CWX_MQ_MAX_CHUNK_KSIZE * 2 * 1024;
   }
 private:
   CwxMsgHead              m_header; ///<消息头
