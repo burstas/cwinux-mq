@@ -309,6 +309,7 @@ int CwxMcApp::startSync(CwxHostInfo const& hostInfo){
     m_config.getLog().m_uiLogMSize,
     m_config.getLog().m_uiSwitchSecond,
     m_config.getLog().m_uiFlushNum,
+    m_config.getLog().m_uiFlushSecond,
     m_config.getLog().m_uiReserveDay,
     m_config.getLog().m_bAppendReturn);
 
