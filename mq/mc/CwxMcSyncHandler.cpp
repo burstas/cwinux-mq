@@ -193,16 +193,15 @@ int CwxMcSyncHandler::recvMessage(){
       }
       return -1;
     }
+    return 0;
   } else if (CwxMqPoco::MSG_TYPE_SYNC_REPORT_REPLY  == m_header.getMsgType()) {
-    if (0 != dealSyncReportReply(m_recvMsgData))  return -1;
+    return (0 != dealSyncReportReply(m_recvMsgData))?-1:0;
   } else if (CwxMqPoco::MSG_TYPE_SYNC_ERR  == m_header.getMsgType()) {
     dealErrMsg(m_recvMsgData);
     return -1;
-  } else {
-    CWX_ERROR(("Receive invalid msg type from master, msg_type=%u", m_header.getMsgType()));
-    return -1;
   }
-  return 0;
+  CWX_ERROR(("Receive invalid msg type from master, msg_type=%u", m_header.getMsgType()));
+  return -1;
 }
 
 int CwxMcSyncHandler::recvMsg(CwxMsgBlock*& msg, list<CwxMsgBlock*>& msgs) {
