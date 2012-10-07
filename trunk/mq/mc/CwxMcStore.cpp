@@ -150,7 +150,7 @@ bool CwxMcStore::createLogFile(CWX_UINT32 uiTime) {
     CWX_UINT64 ullFileDateSeq = getFileTimeSeq(m_uiCurFileStartTime, m_uiCurFileSeq);
     m_historyFiles[ullFileDateSeq] = m_strCurFileName;
   }
-  uiTime /= m_uiMaxFileSecond;
+  uiTime -= (uiTime%m_uiMaxFileSecond);
   if (uiTime <= m_uiCurFileStartTime){
     // 还是当前的时间，文件序号加1
     m_uiCurFileSeq ++;
@@ -159,7 +159,7 @@ bool CwxMcStore::createLogFile(CWX_UINT32 uiTime) {
     m_uiCurFileStartTime = uiTime;
   }
   // 设置文件的结束时间
-  m_uiCurFileEndTime = m_uiCurFileEndTime + m_uiMaxFileSecond;
+  m_uiCurFileEndTime = m_uiCurFileStartTime + m_uiMaxFileSecond;
   string strFileTime;
   char szTmp[32];
   CwxDate::getDateY4MDHMS2(m_uiCurFileStartTime, strFileTime);

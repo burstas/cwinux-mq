@@ -46,7 +46,8 @@ public:
     } else if (uiMaxFileMSize > MAX_LOG_FILE_MSIZE){
       uiMaxFileMSize = MAX_LOG_FILE_MSIZE;
     }
-    m_offMaxFileSize = uiMaxFileMSize * 1024 * 1024;
+    m_offMaxFileSize = uiMaxFileMSize;
+    m_offMaxFileSize *= 1024 * 1024;
     m_uiMaxFileSecond = uiMaxFileSecond;
     if (!m_uiMaxFileSecond || (m_uiMaxFileSecond > (24 * 3600))){
       m_uiMaxFileSecond = 24 * 3600;
