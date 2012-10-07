@@ -404,7 +404,7 @@ int CwxMcSyncHandler::dealSyncChunkData(CwxMsgBlock*& msg)
     CwxKeyValueItem const* pItem = m_pTss->m_pReader->getKey(pSession->m_pApp->getConfig().getSync().m_strSign.c_str());
     if (pItem) {        //存在签名key
       if (!checkSign(m_pTss->m_pReader->getMsg(),
-        pItem->m_szKey - CwxPackage::getKeyOffset() - m_reader.getMsg(),
+        pItem->m_szKey - CwxPackage::getKeyOffset() - m_pTss->m_pReader->getMsg(),
         pItem->m_szData,
         pSession->m_pApp->getConfig().getSync().m_strSign.c_str()))
       {
