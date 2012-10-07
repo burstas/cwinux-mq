@@ -28,8 +28,8 @@ public:
     CWX_UINT32 uiMaxFileSecond,
     CWX_UINT32 uiMaxUnflushLogNum,
     CWX_UINT32 uiMaxUnflushSecond,
-    CWX_UINT32 uiReserveDay = 0, ///<保存日志文件的天数，0表示全部保存
-    bool bAppendReturn=false ///<是否在日志后append回车
+    CWX_UINT32 uiReserveDay, ///<保存日志文件的天数，0表示全部保存
+    bool bAppendReturn ///<是否在日志后append回车
     )
   {
     m_strPrefix = strPrefix;
