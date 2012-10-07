@@ -163,8 +163,8 @@ int CwxMcSyncHandler::recvMessage(){
   }
   m_recvMsgData->event().setConnId(m_uiConnId);
   //SID报告的回复，此时，一定是报告失败
-  if (CwxMqPoco::MSG_TYPE_SYNC_DATA == m_recvMsgData->event().getMsgHeader().getMsgType() ||
-    CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK == m_recvMsgData->event().getMsgHeader().getMsgType())
+  if (CwxMqPoco::MSG_TYPE_SYNC_DATA == m_header.getMsgType() ||
+    CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK == m_header.getMsgType())
   {
     list<CwxMsgBlock*> msgs;
     if (0 != recvMsg(m_recvMsgData, msgs)) return -1;
@@ -193,13 +193,13 @@ int CwxMcSyncHandler::recvMessage(){
       }
       return -1;
     }
-  } else if (CwxMqPoco::MSG_TYPE_SYNC_REPORT_REPLY  == m_recvMsgData->event().getMsgHeader().getMsgType()) {
+  } else if (CwxMqPoco::MSG_TYPE_SYNC_REPORT_REPLY  == m_header.getMsgType()) {
     if (0 != dealSyncReportReply(m_recvMsgData))  return -1;
-  } else if (CwxMqPoco::MSG_TYPE_SYNC_ERR  == m_recvMsgData->event().getMsgHeader().getMsgType()) {
+  } else if (CwxMqPoco::MSG_TYPE_SYNC_ERR  == m_header.getMsgType()) {
     dealErrMsg(m_recvMsgData);
     return -1;
   } else {
-    CWX_ERROR(("Receive invalid msg type from master, msg_type=%u", m_recvMsgData->event().getMsgHeader().getMsgType()));
+    CWX_ERROR(("Receive invalid msg type from master, msg_type=%u", m_header.getMsgType()));
     return -1;
   }
   return 1;
