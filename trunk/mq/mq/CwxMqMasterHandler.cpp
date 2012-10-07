@@ -155,13 +155,15 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv) {
         if (0 != ret) break;
         msg_iter++;
       }
-      if (msg_iter != msgs.end()) {
-        while (msg_iter != msgs.end()) {
-          block = *msg_iter;
-          CwxMsgBlockAlloc::free(block);
-          msg_iter++;
+      if (0 != ret){
+        if (msg_iter != msgs.end()) {
+          while (msg_iter != msgs.end()) {
+            block = *msg_iter;
+            CwxMsgBlockAlloc::free(block);
+            msg_iter++;
+          }
+          break;
         }
-        break;
       }
     } else if (CwxMqPoco::MSG_TYPE_SYNC_REPORT_REPLY == msg->event().getMsgHeader().getMsgType()) {
       if (0 != dealSyncReportReply(msg, pTss)) break;

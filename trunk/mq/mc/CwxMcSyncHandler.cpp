@@ -174,7 +174,7 @@ int CwxMcSyncHandler::recvMessage(){
     list<CwxMsgBlock*>::iterator msg_iter = msgs.begin();
     while (msg_iter != msgs.end()) {
       block = *msg_iter;
-      if (CwxMqPoco::MSG_TYPE_SYNC_DATA  == block->event().getMsgHeader().getMsgType()) {
+      if (CwxMqPoco::MSG_TYPE_SYNC_DATA  == m_header.getMsgType()) {
         ret = dealSyncData(block);
       } else {
         ret = dealSyncChunkData(block);
@@ -185,11 +185,13 @@ int CwxMcSyncHandler::recvMessage(){
       if (0 != ret) break;
       msg_iter++;
     }
-    if (msg_iter != msgs.end()) {
-      while (msg_iter != msgs.end()) {
-        block = *msg_iter;
-        CwxMsgBlockAlloc::free(block);
-        msg_iter++;
+    if (0 != ret){
+      if (msg_iter != msgs.end()) {
+        while (msg_iter != msgs.end()) {
+          block = *msg_iter;
+          CwxMsgBlockAlloc::free(block);
+          msg_iter++;
+        }
       }
       return -1;
     }
@@ -297,7 +299,7 @@ int CwxMcSyncHandler::dealSyncData(CwxMsgBlock*& msg)
   }
   unsigned long ulUnzipLen = 0;
   CWX_UINT64 ullSeq = CwxMqPoco::getSeq(msg->rd_ptr());
-  bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
+  bool bZip = m_header.isAttr(CwxMsgHead::ATTR_COMPRESS);
   if (!msg) {
     CWX_ERROR(("received sync data is empty."));
     return -1;
@@ -330,7 +332,7 @@ int CwxMcSyncHandler::dealSyncData(CwxMsgBlock*& msg)
   CwxMsgBlock* reply_block = NULL;
   if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(m_pTss->m_pWriter,
     reply_block,
-    msg->event().getMsgHeader().getTaskId(),
+    m_header.getTaskId(),
     CwxMqPoco::MSG_TYPE_SYNC_DATA_REPLY,
     ullSeq,
     m_pTss->m_szBuf2K))
@@ -359,7 +361,7 @@ int CwxMcSyncHandler::dealSyncChunkData(CwxMsgBlock*& msg)
 
   unsigned long ulUnzipLen = 0;
   CWX_UINT64 ullSeq = CwxMqPoco::getSeq(msg->rd_ptr());
-  bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
+  bool bZip = m_header.isAttr(CwxMsgHead::ATTR_COMPRESS);
   if (!msg) {
     CWX_ERROR(("received sync data is empty."));
     return -1;
@@ -428,7 +430,7 @@ int CwxMcSyncHandler::dealSyncChunkData(CwxMsgBlock*& msg)
   CwxMsgBlock* reply_block = NULL;
   if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(m_pTss->m_pWriter,
     reply_block,
-    msg->event().getMsgHeader().getTaskId(),
+    m_header.getTaskId(),
     CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK_REPLY,
     ullSeq,
     m_pTss->m_szBuf2K))
