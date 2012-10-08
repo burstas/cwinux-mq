@@ -34,11 +34,14 @@ class CwxMqImportApp : public CwxAppFramework {
     //信号响应函数
     virtual void onSignal(int signum);
     //echo连接建立函数
-    virtual int onConnCreated(CwxAppHandler4Msg& conn, bool& bSuspendConn,
-        bool& bSuspendListen);
+    virtual int onConnCreated(CwxAppHandler4Msg& conn,
+      bool& bSuspendConn,
+      bool& bSuspendListen);
     //echo返回的响应函数
-    virtual int onRecvMsg(CwxMsgBlock* msg, CwxAppHandler4Msg& conn,
-        CwxMsgHead const& header, bool& bSuspendConn);
+    virtual int onRecvMsg(CwxMsgBlock* msg,
+      CwxAppHandler4Msg& conn,
+      CwxMsgHead const& header,
+      bool& bSuspendConn);
     //tss
     virtual CwxTss* onTssEnv();
   protected:
@@ -46,8 +49,9 @@ class CwxMqImportApp : public CwxAppFramework {
     virtual int initRunEnv();
   private:
     //发送echo请求
-    void sendNextMsg(CWX_UINT32 uiSvrId, CWX_UINT32 uiHostId,
-        CWX_UINT32 uiConnId);
+    void sendNextMsg(CWX_UINT32 uiSvrId,
+      CWX_UINT32 uiHostId,
+      CWX_UINT32 uiConnId);
     ///设置连接的属性
     static int setSockAttr(CWX_HANDLE handle, void* arg);
   private:

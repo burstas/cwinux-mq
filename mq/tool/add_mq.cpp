@@ -143,20 +143,25 @@ int main(int argc, char** argv) {
   char szErr2K[2048];
   char const* pErrMsg = NULL;
   do {
-    if (CWX_MQ_ERR_SUCCESS
-      != CwxMqPoco::packCreateQueue(&writer, block, g_queue.c_str(),
-      g_user.c_str(), g_passwd.c_str(), g_auth_user.c_str(),
-      g_auth_passwd.c_str(), g_sid, szErr2K)) {
-        printf("failure to pack create-queue package, err=%s\n", szErr2K);
-        iRet = 1;
-        break;
+    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packCreateQueue(&writer,
+      block, g_queue.c_str(),
+      g_user.c_str(),
+      g_passwd.c_str(),
+      g_auth_user.c_str(),
+      g_auth_passwd.c_str(),
+      g_sid, szErr2K))
+    {
+      printf("failure to pack create-queue package, err=%s\n", szErr2K);
+      iRet = 1;
+      break;
     }
-    if (block->length()
-      != (CWX_UINT32) CwxSocket::write_n(stream.getHandle(), block->rd_ptr(),
-      block->length())) {
-        printf("failure to send message, errno=%d\n", errno);
-        iRet = 1;
-        break;
+    if (block->length() != (CWX_UINT32) CwxSocket::write_n(stream.getHandle(),
+      block->rd_ptr(),
+      block->length()))
+    {
+      printf("failure to send message, errno=%d\n", errno);
+      iRet = 1;
+      break;
     }
     CwxMsgBlockAlloc::free(block);
     block = NULL;
@@ -170,14 +175,16 @@ int main(int argc, char** argv) {
       printf("recv a unknow msg type, msg_type=%u\n", head.getMsgType());
       iRet = 1;
       break;
-
     }
-    if (CWX_MQ_ERR_SUCCESS
-      != CwxMqPoco::parseCreateQueueReply(&reader, block, iRet, pErrMsg,
-      szErr2K)) {
-        printf("failure to unpack reply msg, err=%s\n", szErr2K);
-        iRet = 1;
-        break;
+    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseCreateQueueReply(&reader,
+      block,
+      iRet,
+      pErrMsg,
+      szErr2K))
+    {
+      printf("failure to unpack reply msg, err=%s\n", szErr2K);
+      iRet = 1;
+      break;
     }
     if (CWX_MQ_ERR_SUCCESS != iRet) {
       printf("failure to create queue[%s], err_code=%d, err=%s\n",

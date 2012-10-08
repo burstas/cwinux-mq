@@ -113,10 +113,8 @@ int parseArg(int argc, char**argv) {
 int main(int argc, char** argv) {
   int iRet = parseArg(argc, argv);
 
-  if (0 == iRet)
-    return 0;
-  if (-1 == iRet)
-    return 1;
+  if (0 == iRet)  return 0;
+  if (-1 == iRet)  return 1;
 
   CwxSockStream stream;
   CwxINetAddr addr(g_unPort, g_strHost.c_str());
@@ -134,20 +132,26 @@ int main(int argc, char** argv) {
   char const* pErrMsg = NULL;
 
   do {
-    if (CWX_MQ_ERR_SUCCESS
-      != CwxMqPoco::packDelQueue(&writer, block, g_queue.c_str(),
-      g_user.c_str(), g_passwd.c_str(), g_auth_user.c_str(),
-      g_auth_passwd.c_str(), szErr2K)) {
-        printf("failure to pack delete-queue package, err=%s\n", szErr2K);
-        iRet = 1;
-        break;
+    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packDelQueue(&writer,
+      block,
+      g_queue.c_str(),
+      g_user.c_str(),
+      g_passwd.c_str(),
+      g_auth_user.c_str(),
+      g_auth_passwd.c_str(),
+      szErr2K))
+    {
+      printf("failure to pack delete-queue package, err=%s\n", szErr2K);
+      iRet = 1;
+      break;
     }
-    if (block->length()
-      != (CWX_UINT32) CwxSocket::write_n(stream.getHandle(), block->rd_ptr(),
-      block->length())) {
-        printf("failure to send message, errno=%d\n", errno);
-        iRet = 1;
-        break;
+    if (block->length() != (CWX_UINT32) CwxSocket::write_n(stream.getHandle(),
+      block->rd_ptr(),
+      block->length()))
+    {
+      printf("failure to send message, errno=%d\n", errno);
+      iRet = 1;
+      break;
     }
     CwxMsgBlockAlloc::free(block);
     block = NULL;
@@ -163,12 +167,15 @@ int main(int argc, char** argv) {
       break;
 
     }
-    if (CWX_MQ_ERR_SUCCESS
-      != CwxMqPoco::parseDelQueueReply(&reader, block, iRet, pErrMsg,
-      szErr2K)) {
-        printf("failure to unpack reply msg, err=%s\n", szErr2K);
-        iRet = 1;
-        break;
+    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseDelQueueReply(&reader,
+      block,
+      iRet,
+      pErrMsg,
+      szErr2K))
+    {
+      printf("failure to unpack reply msg, err=%s\n", szErr2K);
+      iRet = 1;
+      break;
     }
     if (CWX_MQ_ERR_SUCCESS != iRet) {
       printf("failure to delete queue[%s], err_code=%d, err=%s\n",
@@ -180,8 +187,7 @@ int main(int argc, char** argv) {
     printf("success to delete queue[%s],user=%s,passwd=%s\n", g_queue.c_str(),
       g_user.c_str(), g_passwd.c_str());
   } while (0);
-  if (block)
-    CwxMsgBlockAlloc::free(block);
+  if (block) CwxMsgBlockAlloc::free(block);
   stream.close();
   return iRet;
 }

@@ -194,22 +194,6 @@ int CwxBinlogOp::doCommand(char* szCmd) {
     }
     iter++;
     doSave(*iter);
-    /*    }else if(0 == strcasecmp((*iter).c_str(), "dump")){
-    bool bHead = false;
-    if (1 == uiItemNum){
-    printf("Invalid dump command, using: save [-h] file.\n");
-    return 1;
-    }
-    iter++;
-    if (0 == strcasecmp((*iter).c_str(), "-h")){
-    bHead = true;
-    if (2 == uiItemNum){
-    printf("Invalid dump command, using: save [-h] file.\n");
-    return 1;
-    }
-    iter++;
-    }
-    doDump(bHead, *iter);*/
   } else if (0 == strcasecmp((*iter).c_str(), "exit")) {
     return 0;
   } else {
@@ -232,9 +216,7 @@ void CwxBinlogOp::doHelp() {
   printf("head:             print binlog's header\n");
   printf("data:             print binlog's data.\n");
   printf("save file:        save the current binlog to the file.\n");
-  //    printf("dump [-h] file:   dump binlog file to [file].-h:just dump binlog head.\n");
-  printf(
-    "zip n:            set the compress bit[0~31] in head's attr. clear if no bit.\n");
+  printf("zip n:            set the compress bit[0~31] in head's attr. clear if no bit.\n");
   printf("exit:             exit.\n");
 }
 
@@ -456,12 +438,10 @@ void CwxBinlogOp::doData() {
   printf("Binlog data:\n");
 
   pBuf = getData(uiLen);
-  if (!pBuf)
-    return;
+  if (!pBuf)  return;
   pBuf[uiLen] = 0x00;
   if (CwxPackage::isValidPackage(pBuf, uiLen)) {
-    if (!prepareDumpBuf(uiLen + 64 * 1024))
-      return;
+    if (!prepareDumpBuf(uiLen + 64 * 1024)) return;
     uiDumpLen = m_uiDumpBufLen;
     CwxPackage::dump(pBuf, uiLen, m_pDumpBuf, uiDumpLen);
     m_pDumpBuf[uiDumpLen] = 0x00;
@@ -479,12 +459,10 @@ void CwxBinlogOp::doSave(string const& strFileName) {
   printf("Save binlog \n");
 
   pBuf = getData(uiLen);
-  if (!pBuf)
-    return;
+  if (!pBuf) return;
   pBuf[uiLen] = 0x00;
   if (CwxPackage::isValidPackage(pBuf, uiLen)) {
-    if (!prepareDumpBuf(uiLen + 64 * 1024))
-      return;
+    if (!prepareDumpBuf(uiLen + 64 * 1024)) return;
     uiDumpLen = m_uiDumpBufLen;
     CwxPackage::dump(pBuf, uiLen, m_pDumpBuf, uiDumpLen);
     m_pDumpBuf[uiDumpLen] = 0x00;
@@ -512,11 +490,6 @@ void CwxBinlogOp::doSave(string const& strFileName) {
   fprintf(pFile, "%s\n", pBuf);
   fclose(pFile);
 }
-/*
-void CwxBinlogOp::doDump(bool bHead, string const& strFileName){
-
-}
-*/
 
 bool CwxBinlogOp::prepareBuf(CWX_UINT32 uiLen) {
   if (uiLen + 1 > m_uiBufLen) {

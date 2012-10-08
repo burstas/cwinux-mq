@@ -134,19 +134,24 @@ int main(int argc, char** argv) {
   CwxKeyValueItem const* item = NULL;
   do {
     while (1) {
-      if (CWX_MQ_ERR_SUCCESS
-        != CwxMqPoco::packFetchMq(&writer, block, g_block, g_queue.c_str(),
-        g_user.c_str(), g_passwd.c_str(), szErr2K)) {
-          printf("failure to pack fetch-queue package, err=%s\n", szErr2K);
-          iRet = 1;
-          break;
+      if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packFetchMq(&writer,
+        block, g_block,
+        g_queue.c_str(),
+        g_user.c_str(),
+        g_passwd.c_str(),
+        szErr2K))
+      {
+        printf("failure to pack fetch-queue package, err=%s\n", szErr2K);
+        iRet = 1;
+        break;
       }
-      if (block->length()
-        != (CWX_UINT32) CwxSocket::write_n(stream.getHandle(),
-        block->rd_ptr(), block->length())) {
-          printf("failure to send message, errno=%d\n", errno);
-          iRet = 1;
-          break;
+      if (block->length() != (CWX_UINT32) CwxSocket::write_n(stream.getHandle(),
+        block->rd_ptr(),
+        block->length()))
+      {
+        printf("failure to send message, errno=%d\n", errno);
+        iRet = 1;
+        break;
       }
       CwxMsgBlockAlloc::free(block);
       block = NULL;
@@ -158,16 +163,19 @@ int main(int argc, char** argv) {
       }
       if (CwxMqPoco::MSG_TYPE_FETCH_DATA_REPLY == head.getMsgType()) {
         num++;
-        if (CWX_MQ_ERR_SUCCESS
-          != CwxMqPoco::parseFetchMqReply(&reader, block, iRet, pErrMsg,
-          item, szErr2K)) {
-            printf("failure to unpack recieve msg, err=%s\n", szErr2K);
-            iRet = 1;
-            break;
+        if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseFetchMqReply(&reader,
+          block,
+          iRet,
+          pErrMsg,
+          item,
+          szErr2K))
+        {
+          printf("failure to unpack recieve msg, err=%s\n", szErr2K);
+          iRet = 1;
+          break;
         }
         if (CWX_MQ_ERR_SUCCESS != iRet) {
-          printf("failure to fetch mq, err-code=%u, errmsg=%s\n", iRet,
-            pErrMsg);
+          printf("failure to fetch mq, err-code=%u, errmsg=%s\n", iRet, pErrMsg);
           iRet = 1;
           break;
         }
@@ -188,8 +196,7 @@ int main(int argc, char** argv) {
     }
   } while (0);
 
-  if (block)
-    CwxMsgBlockAlloc::free(block);
+  if (block) CwxMsgBlockAlloc::free(block);
   stream.close();
   return iRet;
 }

@@ -78,11 +78,12 @@ int main(int argc, char** argv) {
   }
   //写stats数据
   char const* szStats = "stats\r\n";
-  if (strlen(szStats)
-    != (CWX_UINT32) CwxSocket::write_n(stream.getHandle(), szStats,
-    strlen(szStats))) {
-      printf("Failure to send stats command, errno=%d\n", errno);
-      return 1;
+  if (strlen(szStats) != (CWX_UINT32) CwxSocket::write_n(stream.getHandle(),
+    szStats,
+    strlen(szStats)))
+  {
+    printf("Failure to send stats command, errno=%d\n", errno);
+    return 1;
   }
   string strReply;
   char buf[1024];
