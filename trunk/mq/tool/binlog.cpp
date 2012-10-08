@@ -6,8 +6,7 @@ int main(int argc, char** argv) {
     return 0;
   }
   CwxBinlogOp binlogOp;
-  if (0 != binlogOp.init(argv[1]))
-    return 0;
+  if (0 != binlogOp.init(argv[1])) return 0;
   binlogOp.run();
   return 0;
 }

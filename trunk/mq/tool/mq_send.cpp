@@ -155,10 +155,8 @@ int parseArg(int argc, char**argv) {
 int main(int argc, char** argv) {
   int iRet = parseArg(argc, argv);
 
-  if (0 == iRet)
-    return 0;
-  if (-1 == iRet)
-    return 1;
+  if (0 == iRet)  return 0;
+  if (-1 == iRet) return 1;
 
   CwxSockStream stream;
   CwxINetAddr addr(g_unPort, g_strHost.c_str());
@@ -184,19 +182,26 @@ int main(int argc, char** argv) {
     item.m_uiDataLen = g_data.length();
   }
   do {
-    if (CWX_MQ_ERR_SUCCESS
-      != CwxMqPoco::packRecvData(&writer, block, 0, item, g_user.c_str(),
-      g_passwd.c_str(), g_sign.c_str(), g_zip, szErr2K)) {
-        printf("failure to pack message package, err=%s\n", szErr2K);
-        iRet = 1;
-        break;
+    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packRecvData(&writer,
+      block,
+      0,
+      item,
+      g_user.c_str(),
+      g_passwd.c_str(),
+      g_sign.c_str(),
+      g_zip,
+      szErr2K))
+    {
+      printf("failure to pack message package, err=%s\n", szErr2K);
+      iRet = 1;
+      break;
     }
-    if (block->length()
-      != (CWX_UINT32) CwxSocket::write_n(stream.getHandle(), block->rd_ptr(),
-      block->length())) {
-        printf("failure to send message, errno=%d\n", errno);
-        iRet = 1;
-        break;
+    if (block->length() != (CWX_UINT32) CwxSocket::write_n(stream.getHandle(), block->rd_ptr(),
+      block->length()))
+    {
+      printf("failure to send message, errno=%d\n", errno);
+      iRet = 1;
+      break;
     }
     CwxMsgBlockAlloc::free(block);
     block = NULL;
@@ -212,12 +217,16 @@ int main(int argc, char** argv) {
       break;
     }
     CWX_UINT64 ullSid;
-    if (CWX_MQ_ERR_SUCCESS
-      != CwxMqPoco::parseRecvDataReply(&reader, block, iRet, ullSid, pErrMsg,
-      szErr2K)) {
-        printf("failure to unpack reply msg, err=%s\n", szErr2K);
-        iRet = 1;
-        break;
+    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseRecvDataReply(&reader,
+      block,
+      iRet,
+      ullSid,
+      pErrMsg,
+      szErr2K))
+    {
+      printf("failure to unpack reply msg, err=%s\n", szErr2K);
+      iRet = 1;
+      break;
     }
     if (CWX_MQ_ERR_SUCCESS != iRet) {
       printf("failure to send message, err_code=%d, err=%s\n", iRet, pErrMsg);
@@ -228,10 +237,8 @@ int main(int argc, char** argv) {
     printf("success to send msg, data's sid=%s\n",
       CwxCommon::toString(ullSid, szErr2K, 10));
   } while (0);
-  if (g_szData)
-    free(g_szData);
-  if (block)
-    CwxMsgBlockAlloc::free(block);
+  if (g_szData) free(g_szData);
+  if (block) CwxMsgBlockAlloc::free(block);
   stream.close();
   return iRet;
 }
