@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
     ssize_t file_size = CwxFile::getFileSize(g_strCrc32File.c_str());
     if (-1 == file_size) {
       printf("failure to get file size,  file:%s, errno=%d\n",
-          g_strCrc32File.c_str(), errno);
+        g_strCrc32File.c_str(), errno);
       return -1;
     }
     char* buf = (char*) malloc(file_size);
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
     if (!fd) {
       free(buf);
       printf("failure to open file :%s, errno=%d\n", g_strCrc32File.c_str(),
-          errno);
+        errno);
       return -1;
     }
     fread(buf, 1, file_size, fd);

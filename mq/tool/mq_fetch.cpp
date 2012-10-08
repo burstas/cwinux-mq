@@ -27,9 +27,9 @@ int parseArg(int argc, char**argv) {
         printf("-p: queue's user password.\n");
         printf("-q: queue's name.\n");
         printf(
-            "-b: block sign. with this option, fetch will be blocked if no message; otherwize, it will return right now.\n");
+          "-b: block sign. with this option, fetch will be blocked if no message; otherwize, it will return right now.\n");
         printf(
-            "-n: message number to fetch. default is 1. 0 for fetching all.\n");
+          "-n: message number to fetch. default is 1. 0 for fetching all.\n");
         printf("-h: help\n");
         return 0;
       case 'H':
@@ -121,7 +121,7 @@ int main(int argc, char** argv) {
   CwxSockConnector conn;
   if (0 != conn.connect(stream, addr)) {
     printf("failure to connect ip:port: %s:%u, errno=%d\n", g_strHost.c_str(),
-        g_unPort, errno);
+      g_unPort, errno);
     return 1;
   }
   CwxPackageWriter writer;
@@ -135,18 +135,18 @@ int main(int argc, char** argv) {
   do {
     while (1) {
       if (CWX_MQ_ERR_SUCCESS
-          != CwxMqPoco::packFetchMq(&writer, block, g_block, g_queue.c_str(),
-              g_user.c_str(), g_passwd.c_str(), szErr2K)) {
-        printf("failure to pack fetch-queue package, err=%s\n", szErr2K);
-        iRet = 1;
-        break;
+        != CwxMqPoco::packFetchMq(&writer, block, g_block, g_queue.c_str(),
+        g_user.c_str(), g_passwd.c_str(), szErr2K)) {
+          printf("failure to pack fetch-queue package, err=%s\n", szErr2K);
+          iRet = 1;
+          break;
       }
       if (block->length()
-          != (CWX_UINT32) CwxSocket::write_n(stream.getHandle(),
-              block->rd_ptr(), block->length())) {
-        printf("failure to send message, errno=%d\n", errno);
-        iRet = 1;
-        break;
+        != (CWX_UINT32) CwxSocket::write_n(stream.getHandle(),
+        block->rd_ptr(), block->length())) {
+          printf("failure to send message, errno=%d\n", errno);
+          iRet = 1;
+          break;
       }
       CwxMsgBlockAlloc::free(block);
       block = NULL;
@@ -159,15 +159,15 @@ int main(int argc, char** argv) {
       if (CwxMqPoco::MSG_TYPE_FETCH_DATA_REPLY == head.getMsgType()) {
         num++;
         if (CWX_MQ_ERR_SUCCESS
-            != CwxMqPoco::parseFetchMqReply(&reader, block, iRet, pErrMsg,
-               item, szErr2K)) {
-          printf("failure to unpack recieve msg, err=%s\n", szErr2K);
-          iRet = 1;
-          break;
+          != CwxMqPoco::parseFetchMqReply(&reader, block, iRet, pErrMsg,
+          item, szErr2K)) {
+            printf("failure to unpack recieve msg, err=%s\n", szErr2K);
+            iRet = 1;
+            break;
         }
         if (CWX_MQ_ERR_SUCCESS != iRet) {
           printf("failure to fetch mq, err-code=%u, errmsg=%s\n", iRet,
-              pErrMsg);
+            pErrMsg);
           iRet = 1;
           break;
         }

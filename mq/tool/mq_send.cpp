@@ -32,7 +32,7 @@ int parseArg(int argc, char**argv) {
         printf("-p: mq server's recieve user password.\n");
         printf("-d: message's data.\n");
         printf("-m: signature type, %s or %s. no signature by default\n",
-            CWX_MQ_MD5, CWX_MQ_CRC32);
+          CWX_MQ_MD5, CWX_MQ_CRC32);
         printf("-f: file name which contains message's data.\n");
         printf("-z: compress sign. no compress by default.\n");
         printf("-h: help\n");
@@ -128,7 +128,7 @@ int parseArg(int argc, char**argv) {
     off_t size = CwxFile::getFileSize(g_file.c_str());
     if (-1 == size) {
       printf("Failure to get file size, file=%s, errno=%d\n", g_file.c_str(),
-          errno);
+        errno);
       return -1;
     }
     if (size > CWX_MQ_MAX_MSG_SIZE) {
@@ -165,7 +165,7 @@ int main(int argc, char** argv) {
   CwxSockConnector conn;
   if (0 != conn.connect(stream, addr)) {
     printf("failure to connect ip:port: %s:%u, errno=%d\n", g_strHost.c_str(),
-        g_unPort, errno);
+      g_unPort, errno);
     return 1;
   }
   CwxPackageWriter writer;
@@ -185,18 +185,18 @@ int main(int argc, char** argv) {
   }
   do {
     if (CWX_MQ_ERR_SUCCESS
-        != CwxMqPoco::packRecvData(&writer, block, 0, item, g_user.c_str(),
-            g_passwd.c_str(), g_sign.c_str(), g_zip, szErr2K)) {
-      printf("failure to pack message package, err=%s\n", szErr2K);
-      iRet = 1;
-      break;
+      != CwxMqPoco::packRecvData(&writer, block, 0, item, g_user.c_str(),
+      g_passwd.c_str(), g_sign.c_str(), g_zip, szErr2K)) {
+        printf("failure to pack message package, err=%s\n", szErr2K);
+        iRet = 1;
+        break;
     }
     if (block->length()
-        != (CWX_UINT32) CwxSocket::write_n(stream.getHandle(), block->rd_ptr(),
-            block->length())) {
-      printf("failure to send message, errno=%d\n", errno);
-      iRet = 1;
-      break;
+      != (CWX_UINT32) CwxSocket::write_n(stream.getHandle(), block->rd_ptr(),
+      block->length())) {
+        printf("failure to send message, errno=%d\n", errno);
+        iRet = 1;
+        break;
     }
     CwxMsgBlockAlloc::free(block);
     block = NULL;
@@ -213,11 +213,11 @@ int main(int argc, char** argv) {
     }
     CWX_UINT64 ullSid;
     if (CWX_MQ_ERR_SUCCESS
-        != CwxMqPoco::parseRecvDataReply(&reader, block, iRet, ullSid, pErrMsg,
-            szErr2K)) {
-      printf("failure to unpack reply msg, err=%s\n", szErr2K);
-      iRet = 1;
-      break;
+      != CwxMqPoco::parseRecvDataReply(&reader, block, iRet, ullSid, pErrMsg,
+      szErr2K)) {
+        printf("failure to unpack reply msg, err=%s\n", szErr2K);
+        iRet = 1;
+        break;
     }
     if (CWX_MQ_ERR_SUCCESS != iRet) {
       printf("failure to send message, err_code=%d, err=%s\n", iRet, pErrMsg);
@@ -226,7 +226,7 @@ int main(int argc, char** argv) {
     }
     iRet = 0;
     printf("success to send msg, data's sid=%s\n",
-        CwxCommon::toString(ullSid, szErr2K, 10));
+      CwxCommon::toString(ullSid, szErr2K, 10));
   } while (0);
   if (g_szData)
     free(g_szData);

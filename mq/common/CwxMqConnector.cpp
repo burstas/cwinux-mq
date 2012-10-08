@@ -20,7 +20,7 @@ int CwxMqConnector::complete(set<int>& fds, CwxTimeouter* timeout) {
     }
     select_width++;
     result = CwxSocket::select(select_width, NULL, &handle_set, NULL, timeout,
-        true);
+      true);
     if (0 > result) {
       return -1;
     } else if (0 == result) {
@@ -35,7 +35,7 @@ int CwxMqConnector::complete(set<int>& fds, CwxTimeouter* timeout) {
         iter = fds.upper_bound(fd);
         sock_err_len = sizeof(sock_err);
         sockopt_ret = ::getsockopt(fd, SOL_SOCKET, SO_ERROR, &sock_err,
-            &sock_err_len);
+          &sock_err_len);
         if ((sockopt_ret < 0) || sock_err) {
           errno = sock_err;
           return -1;
@@ -49,10 +49,14 @@ int CwxMqConnector::complete(set<int>& fds, CwxTimeouter* timeout) {
   return 0;
 }
 
-int CwxMqConnector::connect(CwxINetAddr const& addr, CWX_UINT16 unConnNum,
-    int* fd, CwxTimeouter* timeout, bool reuse_addr,
-    CWX_NET_SOCKET_ATTR_FUNC fn, ///<socket设置的function
-    void* fnArg) {
+int CwxMqConnector::connect(CwxINetAddr const& addr,
+                            CWX_UINT16 unConnNum,
+                            int* fd,
+                            CwxTimeouter* timeout,
+                            bool reuse_addr,
+                            CWX_NET_SOCKET_ATTR_FUNC fn, ///<socket设置的function
+                            void* fnArg)
+{
   CWX_UINT16 i;
   bool bRet = false;
   CwxSockStream stream;
@@ -76,7 +80,7 @@ int CwxMqConnector::connect(CwxINetAddr const& addr, CWX_UINT16 unConnNum,
         break;
       }
       int result = ::connect(fd[i],
-          reinterpret_cast<sockaddr *>(addr.getAddr()), addr.getSize());
+        reinterpret_cast<sockaddr *>(addr.getAddr()), addr.getSize());
 
       if (result == -1 && timeout != 0) {
         // Check whether the connection is in progress.

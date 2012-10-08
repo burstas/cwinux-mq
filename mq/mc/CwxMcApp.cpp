@@ -76,7 +76,7 @@ int CwxMcApp::initRunEnv() {
   this->setLastCompileDatetime(CWX_COMPILE_DATE(_BUILD_DATE));
   ///设置启动时间
   CwxDate::getDateY4MDHMS2(time(NULL), m_strStartTime);
-  
+
   /// 创建队列
   m_queue = new CwxMcQueue(m_config.getMq().m_uiCacheTimeout,
     m_config.getMq().m_uiCacheMSize);
@@ -580,8 +580,8 @@ CWX_UINT32 CwxMcApp::packMonitorInfo() {
 
 ///sync channel的线程函数，arg为app对象
 void* CwxMcApp::syncThreadMain(CwxTss* tss,
-                            CwxMsgQueue* queue,
-                            void* arg)
+                               CwxMsgQueue* queue,
+                               void* arg)
 {
   CwxMqTss* pTss = (CwxMqTss*)tss;
   CwxMcSyncSession* pSession = (CwxMcSyncSession*) arg;

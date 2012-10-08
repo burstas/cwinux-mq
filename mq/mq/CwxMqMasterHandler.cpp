@@ -22,7 +22,7 @@ int CwxMqMasterHandler::createSession(CwxMqTss* pTss) {
   ///重建所有连接
   CwxINetAddr addr;
   if (0 != addr.set(m_pApp->getConfig().getMaster().m_master.getPort(),
-          m_pApp->getConfig().getMaster().m_master.getHostName().c_str()))
+    m_pApp->getConfig().getMaster().m_master.getHostName().c_str()))
   {
     CWX_ERROR(("Failure to init addr, addr:%s, port:%u, err=%d", m_pApp->getConfig().getMaster().m_master.getHostName().c_str(), m_pApp->getConfig().getMaster().m_master.getPort(), errno));
     return -1;
@@ -47,7 +47,7 @@ int CwxMqMasterHandler::createSession(CwxMqTss* pTss) {
   int ret = 0;
   for (i = 0; i < unConnNum; i++) {
     if ((ret = m_pApp->noticeHandle4Msg(CwxMqApp::SVR_TYPE_MASTER,
-        m_uiCurHostId, fds[i])) < 0)
+      m_uiCurHostId, fds[i])) < 0)
     {
       CWX_ERROR(("Failure to register sync handler to framework."));
       break;
@@ -65,16 +65,16 @@ int CwxMqMasterHandler::createSession(CwxMqTss* pTss) {
   ///创建往master报告sid的通信数据包
   CwxMsgBlock* pBlock = NULL;
   ret = CwxMqPoco::packReportData(pTss->m_pWriter,
-      pBlock,
-      0,
-      m_pApp->getBinLogMgr()->getMaxSid(),
-      false,
-      m_pApp->getConfig().getCommon().m_uiChunkSize,
-      NULL,
-      m_pApp->getConfig().getMaster().m_master.getUser().c_str(),
-      m_pApp->getConfig().getMaster().m_master.getPasswd().c_str(),
-      m_pApp->getConfig().getMaster().m_strSign.c_str(),
-      m_pApp->getConfig().getMaster().m_bzip, pTss->m_szBuf2K);
+    pBlock,
+    0,
+    m_pApp->getBinLogMgr()->getMaxSid(),
+    false,
+    m_pApp->getConfig().getCommon().m_uiChunkSize,
+    NULL,
+    m_pApp->getConfig().getMaster().m_master.getUser().c_str(),
+    m_pApp->getConfig().getMaster().m_master.getPasswd().c_str(),
+    m_pApp->getConfig().getMaster().m_strSign.c_str(),
+    m_pApp->getConfig().getMaster().m_bzip, pTss->m_szBuf2K);
   if (ret != CWX_MQ_ERR_SUCCESS) {    ///数据包创建失败
     CWX_ERROR(("Failure to create report package, err:%s", pTss->m_szBuf2K));
     closeSession();
@@ -135,7 +135,7 @@ int CwxMqMasterHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv) {
     }
     //SID报告的回复，此时，一定是报告失败
     if (CwxMqPoco::MSG_TYPE_SYNC_DATA == msg->event().getMsgHeader().getMsgType() ||
-        CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK == msg->event().getMsgHeader().getMsgType())
+      CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK == msg->event().getMsgHeader().getMsgType())
     {
       list<CwxMsgBlock*> msgs;
       if (0 != recvMsg(msg, msgs)) break;
@@ -193,7 +193,7 @@ int CwxMqMasterHandler::recvMsg(CwxMsgBlock*& msg, list<CwxMsgBlock*>& msgs) {
     return -1;
   }
   map<CWX_UINT32, bool/*是否已经report*/>::iterator conn_iter =
-      m_syncSession->m_conns.find(msg->event().getConnId());
+    m_syncSession->m_conns.find(msg->event().getConnId());
   if (conn_iter == m_syncSession->m_conns.end()) {
     CWX_ERROR(("Conn-id[%u] doesn't exist.", msg->event().getConnId()));
     return -1;
@@ -210,10 +210,10 @@ int CwxMqMasterHandler::dealErrMsg(CwxMsgBlock*& msg, CwxMqTss* pTss) {
   int ret = 0;
   char const* szErrMsg;
   if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseSyncErr(pTss->m_pReader,
-      msg,
-      ret,
-      szErrMsg,
-      pTss->m_szBuf2K))
+    msg,
+    ret,
+    szErrMsg,
+    pTss->m_szBuf2K))
   {
     CWX_ERROR(("Failure to parse err msg from master, err=%s", pTss->m_szBuf2K));
     return -1;
@@ -224,8 +224,8 @@ int CwxMqMasterHandler::dealErrMsg(CwxMsgBlock*& msg, CwxMqTss* pTss) {
 
 ///处理Sync report的reply消息。返回值：0：成功；-1：失败
 int CwxMqMasterHandler::dealSyncReportReply(CwxMsgBlock*& msg, ///<收到的消息
-    CwxMqTss* pTss ///<tss对象
-    )
+                                            CwxMqTss* pTss ///<tss对象
+                                            )
 {
   char szTmp[64];
   ///此时，对端会关闭连接
@@ -239,9 +239,9 @@ int CwxMqMasterHandler::dealSyncReportReply(CwxMsgBlock*& msg, ///<收到的消�
     return -1;
   }
   if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseReportDataReply(pTss->m_pReader,
-      msg,
-      ullSessionId,
-      pTss->m_szBuf2K))
+    msg,
+    ullSessionId,
+    pTss->m_szBuf2K))
   {
     CWX_ERROR(("Failure to parse report-reply msg from master, err=%s", pTss->m_szBuf2K));
     return -1;
@@ -254,10 +254,10 @@ int CwxMqMasterHandler::dealSyncReportReply(CwxMsgBlock*& msg, ///<收到的消�
     if (iter->first != msg->event().getConnId()) {
       CwxMsgBlock* pBlock = NULL;
       int ret = CwxMqPoco::packReportNewConn(pTss->m_pWriter,
-          pBlock,
-          0,
-          ullSessionId,
-          pTss->m_szBuf2K);
+        pBlock,
+        0,
+        ullSessionId,
+        pTss->m_szBuf2K);
       if (ret != CWX_MQ_ERR_SUCCESS) { ///数据包创建失败
         CWX_ERROR(("Failure to create report package, err:%s", pTss->m_szBuf2K));
         return -1;
@@ -282,8 +282,9 @@ int CwxMqMasterHandler::dealSyncReportReply(CwxMsgBlock*& msg, ///<收到的消�
 
 ///处理收到的sync data。返回值：0：成功；-1：失败
 int CwxMqMasterHandler::dealSyncData(CwxMsgBlock*& msg, ///<收到的消息
-    CwxMqTss* pTss ///<tss对象
-    ) {
+                                     CwxMqTss* pTss ///<tss对象
+                                     )
+{
   unsigned long ulUnzipLen = 0;
   CWX_UINT64 ullSeq = CwxMqPoco::getSeq(msg->rd_ptr());
   bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
@@ -302,9 +303,9 @@ int CwxMqMasterHandler::dealSyncData(CwxMsgBlock*& msg, ///<收到的消息
     ulUnzipLen = m_uiBufLen;
     //解压
     if (!CwxZlib::unzip(m_unzipBuf,
-        ulUnzipLen,
-        (const unsigned char*) (msg->rd_ptr() + sizeof(ullSeq)),
-        msg->length() - sizeof(ullSeq)))
+      ulUnzipLen,
+      (const unsigned char*) (msg->rd_ptr() + sizeof(ullSeq)),
+      msg->length() - sizeof(ullSeq)))
     {
       CWX_ERROR(("Failure to unzip recv msg, msg size:%u, buf size:%u", msg->length() - sizeof(ullSeq), m_uiBufLen));
       return -1;
@@ -312,7 +313,7 @@ int CwxMqMasterHandler::dealSyncData(CwxMsgBlock*& msg, ///<收到的消息
     iRet = saveBinlog(pTss, (char*) m_unzipBuf, ulUnzipLen);
   } else {
     iRet = saveBinlog(pTss, msg->rd_ptr() + sizeof(ullSeq),
-        msg->length() - sizeof(ullSeq));
+      msg->length() - sizeof(ullSeq));
   }
   if (-1 == iRet) {
     return -1;
@@ -320,11 +321,11 @@ int CwxMqMasterHandler::dealSyncData(CwxMsgBlock*& msg, ///<收到的消息
   //回复发送者
   CwxMsgBlock* reply_block = NULL;
   if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(pTss->m_pWriter,
-      reply_block,
-      msg->event().getMsgHeader().getTaskId(),
-      CwxMqPoco::MSG_TYPE_SYNC_DATA_REPLY,
-      ullSeq,
-      pTss->m_szBuf2K))
+    reply_block,
+    msg->event().getMsgHeader().getTaskId(),
+    CwxMqPoco::MSG_TYPE_SYNC_DATA_REPLY,
+    ullSeq,
+    pTss->m_szBuf2K))
   {
     CWX_ERROR(("Failure to pack sync data reply, errno=%s", pTss->m_szBuf2K));
     return -1;
@@ -343,8 +344,8 @@ int CwxMqMasterHandler::dealSyncData(CwxMsgBlock*& msg, ///<收到的消息
 
 //处理收到的chunk模式下的sync data。返回值：0：成功；-1：失败
 int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
-    CwxMqTss* pTss ///<tss对象
-    )
+                                          CwxMqTss* pTss ///<tss对象
+                                          )
 {
   unsigned long ulUnzipLen = 0;
   CWX_UINT64 ullSeq = CwxMqPoco::getSeq(msg->rd_ptr());
@@ -364,9 +365,9 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
     ulUnzipLen = m_uiBufLen;
     //解压
     if (!CwxZlib::unzip(m_unzipBuf,
-        ulUnzipLen,
-        (const unsigned char*) (msg->rd_ptr() + sizeof(ullSeq)),
-        msg->length() - sizeof(ullSeq)))
+      ulUnzipLen,
+      (const unsigned char*) (msg->rd_ptr() + sizeof(ullSeq)),
+      msg->length() - sizeof(ullSeq)))
     {
       CWX_ERROR(("Failure to unzip recv msg, msg size:%u, buf size:%u", msg->length() - sizeof(ullSeq), m_uiBufLen));
       return -1;
@@ -377,9 +378,9 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
     }
   } else {
     if (!m_reader.unpack(msg->rd_ptr() + sizeof(ullSeq),
-        msg->length() - sizeof(ullSeq),
-        false,
-        true))
+      msg->length() - sizeof(ullSeq),
+      false,
+      true))
     {
       CWX_ERROR(("Failure to unpack master multi-binlog, err:%s", m_reader.getErrMsg()));
       return -1;
@@ -391,8 +392,8 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
     CwxKeyValueItem const* pItem = m_reader.getKey(m_pApp->getConfig().getMaster().m_strSign.c_str());
     if (pItem) {        //存在签名key
       if (!checkSign(m_reader.getMsg(),
-          pItem->m_szKey - CwxPackage::getKeyOffset() - m_reader.getMsg(),
-          pItem->m_szData, m_pApp->getConfig().getMaster().m_strSign.c_str()))
+        pItem->m_szKey - CwxPackage::getKeyOffset() - m_reader.getMsg(),
+        pItem->m_szData, m_pApp->getConfig().getMaster().m_strSign.c_str()))
       {
         CWX_ERROR(("Failure to check %s sign", m_pApp->getConfig().getMaster().m_strSign.c_str()));
         return -1;
@@ -406,8 +407,8 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
       return -1;
     }
     if (-1 == saveBinlog(pTss,
-        m_reader.getKey(i)->m_szData,
-        m_reader.getKey(i)->m_uiDataLen))
+      m_reader.getKey(i)->m_szData,
+      m_reader.getKey(i)->m_uiDataLen))
     {
       return -1;
     }
@@ -416,11 +417,11 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
   //回复发送者
   CwxMsgBlock* reply_block = NULL;
   if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncDataReply(pTss->m_pWriter,
-      reply_block,
-      msg->event().getMsgHeader().getTaskId(),
-      CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK_REPLY,
-      ullSeq,
-      pTss->m_szBuf2K))
+    reply_block,
+    msg->event().getMsgHeader().getTaskId(),
+    CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK_REPLY,
+    ullSeq,
+    pTss->m_szBuf2K))
   {
     CWX_ERROR(("Failure to pack sync data reply, errno=%s", pTss->m_szBuf2K));
     return -1;
@@ -446,12 +447,12 @@ int CwxMqMasterHandler::saveBinlog(CwxMqTss* pTss,
   CwxKeyValueItem const* data;
   ///获取binlog的数据
   if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseSyncData(pTss->m_pReader,
-      szBinLog,
-      uiLen,
-      ullSid,
-      ttTimestamp,
-      data,
-      pTss->m_szBuf2K))
+    szBinLog,
+    uiLen,
+    ullSid,
+    ttTimestamp,
+    data,
+    pTss->m_szBuf2K))
   {
     CWX_ERROR(("Failure to parse binlog from master, err=%s", pTss->m_szBuf2K));
     return -1;
@@ -461,11 +462,11 @@ int CwxMqMasterHandler::saveBinlog(CwxMqTss* pTss,
   pTss->m_pWriter->addKeyValue(CWX_MQ_D, data->m_szData, data->m_uiDataLen, data->m_bKeyValue);
   pTss->m_pWriter->pack();
   if (0 != m_pApp->getBinLogMgr()->append(ullSid,
-      (time_t) ttTimestamp,
-      0,
-      pTss->m_pWriter->getMsg(),
-      pTss->m_pWriter->getMsgSize(),
-      pTss->m_szBuf2K))
+    (time_t) ttTimestamp,
+    0,
+    pTss->m_pWriter->getMsg(),
+    pTss->m_pWriter->getMsgSize(),
+    pTss->m_szBuf2K))
   {
     CWX_ERROR(("Failure to append binlog to binlog mgr, err=%s", pTss->m_szBuf2K));
     return -1;

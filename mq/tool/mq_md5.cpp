@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
     ssize_t file_size = CwxFile::getFileSize(g_strMd5File.c_str());
     if (-1 == file_size) {
       printf("failure to get file size,  file:%s, errno=%d\n",
-          g_strMd5File.c_str(), errno);
+        g_strMd5File.c_str(), errno);
       return -1;
     }
     unsigned char* buf = (unsigned char*) malloc(file_size);
@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
     if (!fd) {
       free(buf);
       printf("failure to open file :%s, errno=%d\n", g_strMd5File.c_str(),
-          errno);
+        errno);
       return -1;
     }
     fread(buf, 1, file_size, fd);

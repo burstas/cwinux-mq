@@ -1,19 +1,19 @@
 #ifndef __CWX_MQ_MACRO_H__
 #define __CWX_MQ_MACRO_H__
 /*
- 版权声明：
- 本软件遵循GNU GPL V3（http://www.gnu.org/licenses/gpl.html），
- 联系方式：email:cwinux@gmail.com；微博:http://t.sina.com.cn/cwinux
- */
+版权声明：
+本软件遵循GNU GPL V3（http://www.gnu.org/licenses/gpl.html），
+联系方式：email:cwinux@gmail.com；微博:http://t.sina.com.cn/cwinux
+*/
 /**
- @file CwxMqMacro.h
- @brief MQ系列服务的宏定义文件。
- @author cwinux@gmail.com
- @version 1.0
- @date 2010-09-23
- @warning
- @bug
- */
+@file CwxMqMacro.h
+@brief MQ系列服务的宏定义文件。
+@author cwinux@gmail.com
+@version 1.0
+@date 2010-09-23
+@warning
+@bug
+*/
 #include "CwxGlobalMacro.h"
 #include "CwxType.h"
 #include "CwxStl.h"

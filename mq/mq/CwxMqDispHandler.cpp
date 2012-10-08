@@ -52,49 +52,50 @@ void CwxMqDispHandler::destroy(CwxMqApp* app) {
 }
 
 void CwxMqDispHandler::doEvent(CwxMqApp* app, CwxMqTss* tss,
-                               CwxMsgBlock*& msg) {
-                                 if (CwxEventInfo::CONN_CREATED == msg->event().getEvent()) { ///连接建立
-                                   CwxAppChannel* channel = app->getDispChannel();
-                                   if (channel->isRegIoHandle(msg->event().getIoHandle())) {
-                                     CWX_ERROR(
-                                       ("Handler[%] is register, it's a big bug. exit....", msg->event().getIoHandle()));
-                                     app->stop();
-                                     return;
-                                   }
-                                   CwxMqDispHandler* pHandler = new CwxMqDispHandler(app, channel,
-                                     app->reactor()->getNextConnId());
-                                   ///获取连接的来源信息
-                                   CwxINetAddr remoteAddr;
-                                   CwxSockStream stream(msg->event().getIoHandle());
-                                   stream.getRemoteAddr(remoteAddr);
-                                   pHandler->m_unPeerPort = remoteAddr.getPort();
-                                   if (remoteAddr.getHostIp(tss->m_szBuf2K, 2047)) {
-                                     pHandler->m_strPeerHost = tss->m_szBuf2K;
-                                   }
-                                   ///设置handle的io后，open handler
-                                   pHandler->setHandle(msg->event().getIoHandle());
-                                   if (0 != pHandler->open()) {
-                                     CWX_ERROR(
-                                       ("Failure to register sync handler[%d], from:%s:%u", pHandler->getHandle(), pHandler->m_strPeerHost.c_str(), pHandler->m_unPeerPort));
-                                     delete pHandler;
-                                     return;
-                                   }
-                                   ///设置对象的tss对象
-                                   pHandler->m_tss = (CwxMqTss*) CwxTss::instance();
-                                   CWX_INFO(
-                                     ("Accept sync connection from %s:%u", pHandler->m_strPeerHost.c_str(), pHandler->m_unPeerPort));
-                                 } else {
-                                   CWX_ASSERT(msg->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
-                                   CWX_ASSERT(msg->event().getSvrId() == CwxMqApp::SVR_TYPE_DISP);
-                                   //日志超时检查
-                                   map<CWX_UINT64, CwxMqDispSession*>::iterator iter =
-                                     m_sessions.begin();
-                                   while (iter != m_sessions.end()) {
-                                     if (iter->second->m_sourceFile)
-                                       iter->second->m_sourceFile->timeout(app->getCurTime());
-                                     ++iter;
-                                   }
-                                 }
+                               CwxMsgBlock*& msg)
+{
+  if (CwxEventInfo::CONN_CREATED == msg->event().getEvent()) { ///连接建立
+    CwxAppChannel* channel = app->getDispChannel();
+    if (channel->isRegIoHandle(msg->event().getIoHandle())) {
+      CWX_ERROR(
+        ("Handler[%] is register, it's a big bug. exit....", msg->event().getIoHandle()));
+      app->stop();
+      return;
+    }
+    CwxMqDispHandler* pHandler = new CwxMqDispHandler(app, channel,
+      app->reactor()->getNextConnId());
+    ///获取连接的来源信息
+    CwxINetAddr remoteAddr;
+    CwxSockStream stream(msg->event().getIoHandle());
+    stream.getRemoteAddr(remoteAddr);
+    pHandler->m_unPeerPort = remoteAddr.getPort();
+    if (remoteAddr.getHostIp(tss->m_szBuf2K, 2047)) {
+      pHandler->m_strPeerHost = tss->m_szBuf2K;
+    }
+    ///设置handle的io后，open handler
+    pHandler->setHandle(msg->event().getIoHandle());
+    if (0 != pHandler->open()) {
+      CWX_ERROR(
+        ("Failure to register sync handler[%d], from:%s:%u", pHandler->getHandle(), pHandler->m_strPeerHost.c_str(), pHandler->m_unPeerPort));
+      delete pHandler;
+      return;
+    }
+    ///设置对象的tss对象
+    pHandler->m_tss = (CwxMqTss*) CwxTss::instance();
+    CWX_INFO(
+      ("Accept sync connection from %s:%u", pHandler->m_strPeerHost.c_str(), pHandler->m_unPeerPort));
+  } else {
+    CWX_ASSERT(msg->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
+    CWX_ASSERT(msg->event().getSvrId() == CwxMqApp::SVR_TYPE_DISP);
+    //日志超时检查
+    map<CWX_UINT64, CwxMqDispSession*>::iterator iter =
+      m_sessions.begin();
+    while (iter != m_sessions.end()) {
+      if (iter->second->m_sourceFile)
+        iter->second->m_sourceFile->timeout(app->getCurTime());
+      ++iter;
+    }
+  }
 }
 
 ///释放关闭的session
@@ -722,45 +723,49 @@ int CwxMqDispHandler::syncPackOneBinLog(CwxPackageWriter* writer,
                                         CwxMsgBlock*& block,
                                         CWX_UINT64 ullSeq,
                                         CwxKeyValueItem const* pData,
-                                        char* szErr2K) {
-                                          ///形成binlog发送的数据包
-                                          if (CWX_MQ_ERR_SUCCESS
-                                            != CwxMqPoco::packSyncData(writer, block, 0,
-                                            m_syncSession->m_pCursor->getHeader().getSid(),
-                                            m_syncSession->m_pCursor->getHeader().getDatetime(), *pData,
-                                            m_syncSession->m_strSign.c_str(), m_syncSession->m_bZip, ullSeq,
-                                            szErr2K)) {
-                                              ///形成数据包失败
-                                              CWX_ERROR(("Failure to pack binlog package, err:%s", szErr2K));
-                                              return -1;
-                                          }
-                                          return 1;
+                                        char* szErr2K)
+{
+  ///形成binlog发送的数据包
+  if (CWX_MQ_ERR_SUCCESS
+    != CwxMqPoco::packSyncData(writer, block, 0,
+    m_syncSession->m_pCursor->getHeader().getSid(),
+    m_syncSession->m_pCursor->getHeader().getDatetime(), *pData,
+    m_syncSession->m_strSign.c_str(), m_syncSession->m_bZip, ullSeq,
+    szErr2K)) {
+      ///形成数据包失败
+      CWX_ERROR(("Failure to pack binlog package, err:%s", szErr2K));
+      return -1;
+  }
+  return 1;
 }
 
 ///-1：失败，否则返回添加数据的尺寸
 int CwxMqDispHandler::syncPackMultiBinLog(CwxPackageWriter* writer,
-                                          CwxPackageWriter* writer_item, CwxKeyValueItem const* pData,
-                                          CWX_UINT32& uiLen, char* szErr2K) {
-                                            ///形成binlog发送的数据包
-                                            if (CWX_MQ_ERR_SUCCESS
-                                              != CwxMqPoco::packSyncDataItem(writer_item,
-                                              m_syncSession->m_pCursor->getHeader().getSid(),
-                                              m_syncSession->m_pCursor->getHeader().getDatetime(), *pData, NULL,
-                                              szErr2K)) {
-                                                ///形成数据包失败
-                                                CWX_ERROR(("Failure to pack binlog package, err:%s", szErr2K));
-                                                return -1;
-                                            }
-                                            if (!writer->addKeyValue(CWX_MQ_M, writer_item->getMsg(),
-                                              writer_item->getMsgSize(), true)) {
-                                                ///形成数据包失败
-                                                CwxCommon::snprintf(szErr2K, 2047, "Failure to pack binlog package, err:%s",
-                                                  writer->getErrMsg());
-                                                CWX_ERROR((szErr2K));
-                                                return -1;
-                                            }
-                                            uiLen = CwxPackage::getKvLen(strlen(CWX_MQ_M), writer_item->getMsgSize());
-                                            return 1;
+                                          CwxPackageWriter* writer_item,
+                                          CwxKeyValueItem const* pData,
+                                          CWX_UINT32& uiLen,
+                                          char* szErr2K)
+{
+  ///形成binlog发送的数据包
+  if (CWX_MQ_ERR_SUCCESS
+    != CwxMqPoco::packSyncDataItem(writer_item,
+    m_syncSession->m_pCursor->getHeader().getSid(),
+    m_syncSession->m_pCursor->getHeader().getDatetime(), *pData, NULL,
+    szErr2K)) {
+      ///形成数据包失败
+      CWX_ERROR(("Failure to pack binlog package, err:%s", szErr2K));
+      return -1;
+  }
+  if (!writer->addKeyValue(CWX_MQ_M, writer_item->getMsg(),
+    writer_item->getMsgSize(), true)) {
+      ///形成数据包失败
+      CwxCommon::snprintf(szErr2K, 2047, "Failure to pack binlog package, err:%s",
+        writer->getErrMsg());
+      CWX_ERROR((szErr2K));
+      return -1;
+  }
+  uiLen = CwxPackage::getKvLen(strlen(CWX_MQ_M), writer_item->getMsgSize());
+  return 1;
 }
 
 //1：发现记录；0：没有发现；-1：错误
