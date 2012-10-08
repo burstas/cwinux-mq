@@ -54,11 +54,8 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_ERR_ERROR            1  ///<错误
 #define CWX_MQ_ERR_FAIL_AUTH        2 ///<鉴权失败
 #define CWX_MQ_ERR_LOST_SYNC        3 ///<失去了同步状态
-#define CWX_MQ_PROXY_NO_AUTH_GROUP    100 ///<消息的group没有被允许
-#define CWX_MQ_PROXY_FORBID_GROUP     101 ///<消息的group被禁止
-#define CWX_MQ_PROXY_NO_AUTH          102 ///<消息的group被禁止
-#define CWX_MQ_PROXY_TIMEOUT          103 ///<发送超时
-#define CWX_MQ_PROXY_MQ_INVALID       104 ///<mq服务不可用
+
+
 #define CWX_MQ_CONN_TIMEOUT_SECOND    5  ///<mq的同步连接的连接超时时间
 #define CWX_MQ_MIN_TIMEOUT_SECOND     1 ///<最小的超时秒数
 #define CWX_MQ_MAX_TIMEOUT_SECOND     1800 ///<最大的超时秒数
