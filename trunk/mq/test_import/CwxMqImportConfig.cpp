@@ -6,7 +6,7 @@ int CwxMqImportConfig::loadConfig(string const & strConfFile) {
   //解析配置文件
   if (false == cnf.load(strConfFile)) {
     CwxCommon::snprintf(m_szError, 2047, "Failure to Load conf file:%s. err:%s",
-        strConfFile.c_str(), cnf.getErrMsg());
+      strConfFile.c_str(), cnf.getErrMsg());
     return -1;
   }
 
@@ -25,7 +25,7 @@ int CwxMqImportConfig::loadConfig(string const & strConfFile) {
   }
   if (!mqParseHostPort(value, m_listen)) {
     snprintf(m_szError, 2047,
-        "import:listen must be [host:port], [%s] is invalid.", value.c_str());
+      "import:listen must be [host:port], [%s] is invalid.", value.c_str());
     return -1;
   }
   //load import:unix
@@ -85,7 +85,7 @@ void CwxMqImportConfig::outputConfig() {
   CWX_INFO(("\n*****************BEGIN CONFIG*******************"));
   CWX_INFO(("home=%s", m_strWorkDir.c_str()));
   CWX_INFO(
-      ("listen=%s:%u", m_listen.getHostName().c_str(), m_listen.getPort()));
+    ("listen=%s:%u", m_listen.getHostName().c_str(), m_listen.getPort()));
   CWX_INFO(("unix=%s", m_strUnixPathFile.c_str()));
   CWX_INFO(("user=%s", m_strUser.c_str()));
   CWX_INFO(("passwd=%s", m_strPasswd.c_str()));

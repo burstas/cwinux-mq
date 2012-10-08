@@ -43,8 +43,8 @@ int CwxBinlogOp::init(string const& strBinLogFileName) {
   while (1 == (iRet = m_pCursor->next())) {
     m_uiRecNum++;
     uiOffset = m_pCursor->getHeader().getOffset()
-        + CwxBinLogHeader::BIN_LOG_HEADER_SIZE
-        + m_pCursor->getHeader().getLogLen();
+      + CwxBinLogHeader::BIN_LOG_HEADER_SIZE
+      + m_pCursor->getHeader().getLogLen();
     if (1 == m_uiRecNum) {
       m_ullMinSid = m_pCursor->getHeader().getSid();
     }
@@ -52,7 +52,7 @@ int CwxBinlogOp::init(string const& strBinLogFileName) {
     uiEndOffset = m_pCursor->getHeader().getOffset();
     if ((1 == m_uiRecNum) || (0 == m_uiRecNum % BINLOG_INDEX_INTERNAL)) {
       m_sidIndex[m_pCursor->getHeader().getSid()] =
-          m_pCursor->getHeader().getOffset();
+        m_pCursor->getHeader().getOffset();
       m_recIndex[m_uiRecNum] = m_pCursor->getHeader().getOffset();
     }
   }
@@ -64,7 +64,7 @@ int CwxBinlogOp::init(string const& strBinLogFileName) {
 
   if (0 != iRet) {
     printf("Failure to read binlog(offset:%u, record:%u), err:%s\n", uiOffset,
-        m_uiRecNum, m_pCursor->getErrMsg());
+      m_uiRecNum, m_pCursor->getErrMsg());
     return -1;
   } else {
     printf("Success to load binlog file\n");
@@ -111,7 +111,7 @@ void CwxBinlogOp::clear() {
 void CwxBinlogOp::prompt() {
   char szBuf[64];
   printf("%u/%s>", m_pCursor->getHeader().getLogNo(),
-      CwxCommon::toString(m_pCursor->getHeader().getSid(), szBuf));
+    CwxCommon::toString(m_pCursor->getHeader().getSid(), szBuf));
 }
 
 //0：exit，1：continue
@@ -195,21 +195,21 @@ int CwxBinlogOp::doCommand(char* szCmd) {
     iter++;
     doSave(*iter);
     /*    }else if(0 == strcasecmp((*iter).c_str(), "dump")){
-     bool bHead = false;
-     if (1 == uiItemNum){
-     printf("Invalid dump command, using: save [-h] file.\n");
-     return 1;
-     }
-     iter++;
-     if (0 == strcasecmp((*iter).c_str(), "-h")){
-     bHead = true;
-     if (2 == uiItemNum){
-     printf("Invalid dump command, using: save [-h] file.\n");
-     return 1;
-     }
-     iter++;
-     }
-     doDump(bHead, *iter);*/
+    bool bHead = false;
+    if (1 == uiItemNum){
+    printf("Invalid dump command, using: save [-h] file.\n");
+    return 1;
+    }
+    iter++;
+    if (0 == strcasecmp((*iter).c_str(), "-h")){
+    bHead = true;
+    if (2 == uiItemNum){
+    printf("Invalid dump command, using: save [-h] file.\n");
+    return 1;
+    }
+    iter++;
+    }
+    doDump(bHead, *iter);*/
   } else if (0 == strcasecmp((*iter).c_str(), "exit")) {
     return 0;
   } else {
@@ -232,9 +232,9 @@ void CwxBinlogOp::doHelp() {
   printf("head:             print binlog's header\n");
   printf("data:             print binlog's data.\n");
   printf("save file:        save the current binlog to the file.\n");
-//    printf("dump [-h] file:   dump binlog file to [file].-h:just dump binlog head.\n");
+  //    printf("dump [-h] file:   dump binlog file to [file].-h:just dump binlog head.\n");
   printf(
-      "zip n:            set the compress bit[0~31] in head's attr. clear if no bit.\n");
+    "zip n:            set the compress bit[0~31] in head's attr. clear if no bit.\n");
   printf("exit:             exit.\n");
 }
 
@@ -256,7 +256,7 @@ void CwxBinlogOp::doNext(CWX_UINT32 uiNum) {
   }
   if (0 > iRet) {
     printf("Failure to skip [%u] binlog backword, err:%s\n", uiNum,
-        m_pCursor->getErrMsg());
+      m_pCursor->getErrMsg());
   } else if (!iRet && uiNum) {
     printf("Skip to end\n");
   }
@@ -272,7 +272,7 @@ void CwxBinlogOp::doPrev(CWX_UINT32 uiNum) {
   }
   if (0 > iRet) {
     printf("Failure to skip [%u] binlog forward, err:%s\n", uiNum,
-        m_pCursor->getErrMsg());
+      m_pCursor->getErrMsg());
   } else if (!iRet && uiNum) {
     printf("Skip to begin\n");
   }
@@ -286,14 +286,14 @@ void CwxBinlogOp::doSid(CWX_UINT64 ullSid) {
 
   if (ullSid < m_ullMinSid) {
     printf("Sid[%s] is less than min sid[%s], it doesn't exist\n",
-        CwxCommon::toString(ullSid, szBuf1),
-        CwxCommon::toString(m_ullMinSid, szBuf2));
+      CwxCommon::toString(ullSid, szBuf1),
+      CwxCommon::toString(m_ullMinSid, szBuf2));
     return;
   }
   if (ullSid > m_ullMaxSid) {
     printf("Sid[%s] is more than max sid[%s], it doesn't exist\n",
-        CwxCommon::toString(ullSid, szBuf1),
-        CwxCommon::toString(m_ullMaxSid, szBuf2));
+      CwxCommon::toString(ullSid, szBuf1),
+      CwxCommon::toString(m_ullMaxSid, szBuf2));
     return;
   }
   iter = m_sidIndex.lower_bound(ullSid);
@@ -345,7 +345,7 @@ void CwxBinlogOp::doRecord(CWX_UINT32 uiRecord) {
   map<CWX_UINT32/*rec_no*/, CWX_UINT32/*offset*/>::iterator iter;
   if (uiRecord + 1 > m_uiRecNum) {
     printf("Record Index[%u] doesn't exist, total record is %u\n", uiRecord,
-        m_uiRecNum);
+      m_uiRecNum);
     return;
   }
   iter = m_recIndex.lower_bound(uiRecord + 1);
@@ -375,7 +375,7 @@ void CwxBinlogOp::doRecord(CWX_UINT32 uiRecord) {
       return;
     } else if (0 > iRet) {
       printf("Failure to seek binlog, record index [%u], err=%s\n", uiRecord,
-          m_pCursor->getErrMsg());
+        m_pCursor->getErrMsg());
       m_pCursor->seek(ullOldSid);
       return;
     }
@@ -396,7 +396,7 @@ void CwxBinlogOp::doGroup(CWX_UINT32 uiGroup) {
       return;
     } else if (0 > iRet) {
       printf("Failure to iterator binlog file, error: %s\n",
-          m_pCursor->getErrMsg());
+        m_pCursor->getErrMsg());
       return;
     }
   }
@@ -438,9 +438,9 @@ void CwxBinlogOp::doHead() {
   CwxDate::getDate((time_t) m_pCursor->getHeader().getDatetime(), strDatetime);
   printf("binlog head info:\n");
   printf("sid: %s\n",
-      CwxCommon::toString(m_pCursor->getHeader().getSid(), szBuf));
+    CwxCommon::toString(m_pCursor->getHeader().getSid(), szBuf));
   printf("timestamp: %s[%d]\n", strDatetime.c_str(),
-      m_pCursor->getHeader().getDatetime());
+    m_pCursor->getHeader().getDatetime());
   printf("offset: %u\n", m_pCursor->getHeader().getOffset());
   printf("log length: %u\n", m_pCursor->getHeader().getLogLen());
   printf("log no: %u\n", m_pCursor->getHeader().getLogNo());
@@ -500,10 +500,10 @@ void CwxBinlogOp::doSave(string const& strFileName) {
   string strDatetime;
   fprintf(pFile, "Head:\n");
   fprintf(pFile, "sid: %s\n",
-      CwxCommon::toString(m_pCursor->getHeader().getSid(), szBuf));
+    CwxCommon::toString(m_pCursor->getHeader().getSid(), szBuf));
   CwxDate::getDate(m_pCursor->getHeader().getDatetime(), strDatetime);
   fprintf(pFile, "timestamp: %s[%d]\n", strDatetime.c_str(),
-      m_pCursor->getHeader().getDatetime());
+    m_pCursor->getHeader().getDatetime());
   fprintf(pFile, "offset: %u\n", m_pCursor->getHeader().getOffset());
   fprintf(pFile, "Log Length: %u\n", m_pCursor->getHeader().getLogLen());
   fprintf(pFile, "Log NO: %u\n", m_pCursor->getHeader().getLogNo());
@@ -513,10 +513,10 @@ void CwxBinlogOp::doSave(string const& strFileName) {
   fclose(pFile);
 }
 /*
- void CwxBinlogOp::doDump(bool bHead, string const& strFileName){
+void CwxBinlogOp::doDump(bool bHead, string const& strFileName){
 
- }
- */
+}
+*/
 
 bool CwxBinlogOp::prepareBuf(CWX_UINT32 uiLen) {
   if (uiLen + 1 > m_uiBufLen) {

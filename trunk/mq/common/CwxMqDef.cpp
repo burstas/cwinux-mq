@@ -22,6 +22,6 @@ bool mqParseHostPort(string const& strHostPort, CwxHostInfo& host) {
     return false;
   host.setHostName(strHostPort.substr(0, strHostPort.find(':')));
   host.setPort(
-      strtoul(strHostPort.substr(strHostPort.find(':') + 1).c_str(), NULL, 10));
+    strtoul(strHostPort.substr(strHostPort.find(':') + 1).c_str(), NULL, 10));
   return true;
 }

@@ -37,7 +37,7 @@ int CwxMqApp::init(int argc, char** argv) {
   }
   ///设置运行日志的输出level
   setLogLevel(CwxLogger::LEVEL_ERROR | CwxLogger::LEVEL_INFO
-          | CwxLogger::LEVEL_WARNING);
+    | CwxLogger::LEVEL_WARNING);
   return 0;
 }
 
@@ -110,9 +110,9 @@ int CwxMqApp::initRunEnv() {
   if (m_config.getDispatch().m_async.getHostName().length()) {
     m_dispChannel = new CwxAppChannel();
     m_dispThreadPool = new CwxThreadPool(1,
-        &getCommander(),
-        CwxMqApp::dispatchThreadMain,
-        this);
+      &getCommander(),
+      CwxMqApp::dispatchThreadMain,
+      this);
     ///启动线程
     pTss = new CwxTss*[1];
     pTss[0] = new CwxMqTss();
@@ -124,20 +124,20 @@ int CwxMqApp::initRunEnv() {
   }
   //创建mq线程池
   if (m_config.getMq().m_mq.getHostName().length()
-      || m_config.getMq().m_mq.getUnixDomain().length()) {
-    m_mqChannel = new CwxAppChannel();
-    m_mqThreadPool = new CwxThreadPool(1,
+    || m_config.getMq().m_mq.getUnixDomain().length()) {
+      m_mqChannel = new CwxAppChannel();
+      m_mqThreadPool = new CwxThreadPool(1,
         &getCommander(),
         CwxMqApp::mqFetchThreadMain,
         this);
-    ///启动线程
-    pTss = new CwxTss*[1];
-    pTss[0] = new CwxMqTss();
-    ((CwxMqTss*) pTss[0])->init();
-    if (0 != m_mqThreadPool->start(pTss)) {
-      CWX_ERROR(("Failure to start mq thread pool"));
-      return -1;
-    }
+      ///启动线程
+      pTss = new CwxTss*[1];
+      pTss[0] = new CwxMqTss();
+      ((CwxMqTss*) pTss[0])->init();
+      if (0 != m_mqThreadPool->start(pTss)) {
+        CWX_ERROR(("Failure to start mq thread pool"));
+        return -1;
+      }
   }
   return 0;
 }
@@ -201,9 +201,10 @@ void CwxMqApp::onSignal(int signum) {
 }
 
 int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
-    CWX_UINT32 uiHostId,
-    CWX_HANDLE handle,
-    bool&) {
+                            CWX_UINT32 uiHostId,
+                            CWX_HANDLE handle,
+                            bool&)
+{
   CwxMsgBlock* msg = CwxMsgBlockAlloc::malloc(0);
   msg->event().setSvrId(uiSvrId);
   msg->event().setHostId(uiHostId);
@@ -225,18 +226,19 @@ int CwxMqApp::onConnCreated(CWX_UINT32 uiSvrId,
 
 ///连接建立
 int CwxMqApp::onConnCreated(CwxAppHandler4Msg& conn,
-    bool&,
-    bool&) {
+                            bool&,
+                            bool&)
+{
   if ((SVR_TYPE_RECV == conn.getConnInfo().getSvrId())
-      || (SVR_TYPE_MASTER == conn.getConnInfo().getSvrId())) {
-    CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
-    pBlock->event().setSvrId(conn.getConnInfo().getSvrId());
-    pBlock->event().setHostId(conn.getConnInfo().getHostId());
-    pBlock->event().setConnId(conn.getConnInfo().getConnId());
-    ///设置事件类型
-    pBlock->event().setEvent(CwxEventInfo::CONN_CREATED);
-    ///将事件添加到消息队列
-    m_recvThreadPool->append(pBlock);
+    || (SVR_TYPE_MASTER == conn.getConnInfo().getSvrId())) {
+      CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
+      pBlock->event().setSvrId(conn.getConnInfo().getSvrId());
+      pBlock->event().setHostId(conn.getConnInfo().getHostId());
+      pBlock->event().setConnId(conn.getConnInfo().getConnId());
+      ///设置事件类型
+      pBlock->event().setEvent(CwxEventInfo::CONN_CREATED);
+      ///将事件添加到消息队列
+      m_recvThreadPool->append(pBlock);
   } else if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId()) { ///如果是监控的连接建立，则建立一个string的buf，用于缓存不完整的命令
     string* buf = new string();
     conn.getConnInfo().setUserData(buf);
@@ -249,14 +251,14 @@ int CwxMqApp::onConnCreated(CwxAppHandler4Msg& conn,
 ///连接关闭
 int CwxMqApp::onConnClosed(CwxAppHandler4Msg& conn) {
   if ((SVR_TYPE_RECV == conn.getConnInfo().getSvrId())
-      || (SVR_TYPE_MASTER == conn.getConnInfo().getSvrId())) {
-    CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
-    pBlock->event().setSvrId(conn.getConnInfo().getSvrId());
-    pBlock->event().setHostId(conn.getConnInfo().getHostId());
-    pBlock->event().setConnId(conn.getConnInfo().getConnId());
-    ///设置事件类型
-    pBlock->event().setEvent(CwxEventInfo::CONN_CLOSED);
-    m_recvThreadPool->append(pBlock);
+    || (SVR_TYPE_MASTER == conn.getConnInfo().getSvrId())) {
+      CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(0);
+      pBlock->event().setSvrId(conn.getConnInfo().getSvrId());
+      pBlock->event().setHostId(conn.getConnInfo().getHostId());
+      pBlock->event().setConnId(conn.getConnInfo().getConnId());
+      ///设置事件类型
+      pBlock->event().setEvent(CwxEventInfo::CONN_CLOSED);
+      m_recvThreadPool->append(pBlock);
   } else if (SVR_TYPE_MONITOR == conn.getConnInfo().getSvrId()) { ///若是监控的连接关闭，则必须释放先前所创建的string对象。
     if (conn.getConnInfo().getUserData()) {
       delete (string*) conn.getConnInfo().getUserData();
@@ -270,21 +272,22 @@ int CwxMqApp::onConnClosed(CwxAppHandler4Msg& conn) {
 
 ///收到消息
 int CwxMqApp::onRecvMsg(CwxMsgBlock* msg,
-    CwxAppHandler4Msg& conn,
-    CwxMsgHead const& header,
-    bool&) {
+                        CwxAppHandler4Msg& conn,
+                        CwxMsgHead const& header,
+                        bool&)
+{
   if ((SVR_TYPE_RECV == conn.getConnInfo().getSvrId())
-      || (SVR_TYPE_MASTER == conn.getConnInfo().getSvrId())) {
-    msg->event().setSvrId(conn.getConnInfo().getSvrId());
-    msg->event().setHostId(conn.getConnInfo().getHostId());
-    msg->event().setConnId(conn.getConnInfo().getConnId());
-    ///保存消息头
-    msg->event().setMsgHeader(header);
-    ///设置事件类型
-    msg->event().setEvent(CwxEventInfo::RECV_MSG);
-    ///将消息放到线程池队列中，有内部的线程调用其处理handle来处理
-    m_recvThreadPool->append(msg);
-    return 0;
+    || (SVR_TYPE_MASTER == conn.getConnInfo().getSvrId())) {
+      msg->event().setSvrId(conn.getConnInfo().getSvrId());
+      msg->event().setHostId(conn.getConnInfo().getHostId());
+      msg->event().setConnId(conn.getConnInfo().getConnId());
+      ///保存消息头
+      msg->event().setMsgHeader(header);
+      ///设置事件类型
+      msg->event().setEvent(CwxEventInfo::RECV_MSG);
+      ///将消息放到线程池队列中，有内部的线程调用其处理handle来处理
+      m_recvThreadPool->append(msg);
+      return 0;
   } else {
     CWX_ASSERT(0);
   }
@@ -364,17 +367,17 @@ int CwxMqApp::startBinLogMgr() {
     if (ullBinLogSize > CwxBinLogMgr::MAX_BINLOG_FILE_SIZE)
       ullBinLogSize = CwxBinLogMgr::MAX_BINLOG_FILE_SIZE;
     m_pBinLogMgr = new CwxBinLogMgr(
-        m_config.getBinLog().m_strBinlogPath.c_str(),
-        m_config.getBinLog().m_strBinlogPrex.c_str(),
-        ullBinLogSize,
-        m_config.getBinLog().m_uiFlushNum,
-        m_config.getBinLog().m_uiFlushSecond,
-        m_config.getBinLog().m_bDelOutdayLogFile);
+      m_config.getBinLog().m_strBinlogPath.c_str(),
+      m_config.getBinLog().m_strBinlogPrex.c_str(),
+      ullBinLogSize,
+      m_config.getBinLog().m_uiFlushNum,
+      m_config.getBinLog().m_uiFlushSecond,
+      m_config.getBinLog().m_bDelOutdayLogFile);
     if (0 != m_pBinLogMgr->init(m_config.getBinLog().m_uiMgrFileNum,
-        true,
-        CWX_TSS_2K_BUF)){ ///<如果失败，则返回-1
-      CWX_ERROR(("Failure to init binlog manager, error:%s", CWX_TSS_2K_BUF));
-      return -1;
+      true,
+      CWX_TSS_2K_BUF)){ ///<如果失败，则返回-1
+        CWX_ERROR(("Failure to init binlog manager, error:%s", CWX_TSS_2K_BUF));
+        return -1;
     }
     m_bFirstBinLog = true;
     ///提取sid
@@ -385,11 +388,11 @@ int CwxMqApp::startBinLogMgr() {
     //初始化队列管理器
     if (m_queueMgr) delete m_queueMgr;
     m_queueMgr = new CwxMqQueueMgr(m_config.getMq().m_strLogFilePath,
-        m_config.getMq().m_uiFlushNum,
-        m_config.getMq().m_uiFlushSecond);
+      m_config.getMq().m_uiFlushNum,
+      m_config.getMq().m_uiFlushSecond);
     if (0 != m_queueMgr->init(m_pBinLogMgr)) {
       CWX_ERROR(("Failure to init mq queue manager, err=%s",
-          m_queueMgr->getErrMsg().c_str()));
+        m_queueMgr->getErrMsg().c_str()));
       return -1;
     }
   }
@@ -401,63 +404,64 @@ int CwxMqApp::startNetwork() {
   ///打开监听的服务器端口号
   if (m_config.getCommon().m_monitor.getHostName().length()) {
     if (0 > this->noticeTcpListen(SVR_TYPE_MONITOR,
-            m_config.getCommon().m_monitor.getHostName().c_str(),
-            m_config.getCommon().m_monitor.getPort(), true)) {
-      CWX_ERROR(("Can't register the monitor tcp accept listen: addr=%s, port=%d",
+      m_config.getCommon().m_monitor.getHostName().c_str(),
+      m_config.getCommon().m_monitor.getPort(), true)) {
+        CWX_ERROR(("Can't register the monitor tcp accept listen: addr=%s, port=%d",
           m_config.getCommon().m_monitor.getHostName().c_str(),
           m_config.getCommon().m_monitor.getPort()));
-      return -1;
+        return -1;
     }
   }
   ///打开连接
   if (m_config.getCommon().m_bMaster) {
     ///打开bin协议消息接收的listen
     if (0 > this->noticeTcpListen(SVR_TYPE_RECV,
-            m_config.getRecv().m_recv.getHostName().c_str(),
-            m_config.getRecv().m_recv.getPort(),
-            false,
-            CWX_APP_MSG_MODE,
-            CwxMqApp::setMasterRecvSockAttr, this)) {
-      CWX_ERROR(("Can't register the recv tcp accept listen: addr=%s, port=%d",
+      m_config.getRecv().m_recv.getHostName().c_str(),
+      m_config.getRecv().m_recv.getPort(),
+      false,
+      CWX_APP_MSG_MODE,
+      CwxMqApp::setMasterRecvSockAttr, this)) {
+        CWX_ERROR(("Can't register the recv tcp accept listen: addr=%s, port=%d",
           m_config.getRecv().m_recv.getHostName().c_str(),
           m_config.getRecv().m_recv.getPort()));
-      return -1;
+        return -1;
     }
   }
   ///打开分发端口
   if (m_config.getDispatch().m_async.getHostName().length()) {
     if (0 > this->noticeTcpListen(SVR_TYPE_DISP,
-            m_config.getDispatch().m_async.getHostName().c_str(),
-            m_config.getDispatch().m_async.getPort(),
-            false,
-            CWX_APP_EVENT_MODE,
-            CwxMqApp::setDispatchSockAttr, this)) {
-      CWX_ERROR(("Can't register the async-dispatch tcp accept listen: addr=%s, port=%d",
+      m_config.getDispatch().m_async.getHostName().c_str(),
+      m_config.getDispatch().m_async.getPort(),
+      false,
+      CWX_APP_EVENT_MODE,
+      CwxMqApp::setDispatchSockAttr, this)) {
+        CWX_ERROR(("Can't register the async-dispatch tcp accept listen: addr=%s, port=%d",
           m_config.getDispatch().m_async.getHostName().c_str(),
           m_config.getDispatch().m_async.getPort()));
-      return -1;
+        return -1;
     }
   }
   //打开bin mq获取的监听端口
   if (m_config.getMq().m_mq.getHostName().length()) {
     if (0 > this->noticeTcpListen(SVR_TYPE_QUEUE,
-            m_config.getMq().m_mq.getHostName().c_str(),
-            m_config.getMq().m_mq.getPort(),
-            false,
-            CWX_APP_EVENT_MODE,
-            CwxMqApp::setMqSockAttr, this)) {
-      CWX_ERROR(("Can't register the mq-fetch tcp accept listen: addr=%s, port=%d",
+      m_config.getMq().m_mq.getHostName().c_str(),
+      m_config.getMq().m_mq.getPort(),
+      false,
+      CWX_APP_EVENT_MODE,
+      CwxMqApp::setMqSockAttr, this)) {
+        CWX_ERROR(("Can't register the mq-fetch tcp accept listen: addr=%s, port=%d",
           m_config.getMq().m_mq.getHostName().c_str(),
           m_config.getMq().m_mq.getPort()));
-      return -1;
+        return -1;
     }
   }
   return 0;
 }
 
 int CwxMqApp::monitorStats(char const* buf,
-    CWX_UINT32 uiDataLen,
-    CwxAppHandler4Msg& conn) {
+                           CWX_UINT32 uiDataLen,
+                           CwxAppHandler4Msg& conn)
+{
   string* strCmd = (string*) conn.getConnInfo().getUserData();
   strCmd->append(buf, uiDataLen);
   CwxMsgBlock* msg = NULL;
@@ -507,10 +511,10 @@ int CwxMqApp::monitorStats(char const* buf,
 }
 
 #define MQ_MONITOR_APPEND(){\
-    uiLen = strlen(szLine);\
-    if (uiPos + uiLen > MAX_MONITOR_REPLY_SIZE - 20) break;\
-    memcpy(m_szBuf + uiPos, szLine, uiLen);\
-    uiPos += uiLen; }
+  uiLen = strlen(szLine);\
+  if (uiPos + uiLen > MAX_MONITOR_REPLY_SIZE - 20) break;\
+  memcpy(m_szBuf + uiPos, szLine, uiLen);\
+  uiPos += uiLen; }
 
 CWX_UINT32 CwxMqApp::packMonitorInfo() {
   string strValue;
@@ -527,50 +531,50 @@ CWX_UINT32 CwxMqApp::packMonitorInfo() {
     MQ_MONITOR_APPEND();
     //版本号
     CwxCommon::snprintf(szLine, 4096, "STAT version %s\r\n",
-        this->getAppVersion().c_str());
+      this->getAppVersion().c_str());
     MQ_MONITOR_APPEND();
     //修改时间
     CwxCommon::snprintf(szLine, 4096, "STAT modify %s\r\n",
-        this->getLastModifyDatetime().c_str());
+      this->getLastModifyDatetime().c_str());
     MQ_MONITOR_APPEND();
     //编译时间
     CwxCommon::snprintf(szLine, 4096, "STAT compile %s\r\n",
-        this->getLastCompileDatetime().c_str());
+      this->getLastCompileDatetime().c_str());
     MQ_MONITOR_APPEND();
     //启动时间
     CwxCommon::snprintf(szLine, 4096, "STAT start %s\r\n",
-        m_strStartTime.c_str());
+      m_strStartTime.c_str());
     MQ_MONITOR_APPEND();
     //master
     CwxCommon::snprintf(szLine, 4096, "STAT server_type %s\r\n",
-        getConfig().getCommon().m_bMaster ? "master" : "slave");
+      getConfig().getCommon().m_bMaster ? "master" : "slave");
     MQ_MONITOR_APPEND();
     //binlog
     CwxCommon::snprintf(szLine, 4096, "STAT binlog_state %s\r\n",
-        m_pBinLogMgr->isInvalid() ? "invalid" : "valid");
+      m_pBinLogMgr->isInvalid() ? "invalid" : "valid");
     MQ_MONITOR_APPEND();
     CwxCommon::snprintf(szLine, 4096, "STAT binlog_error %s\r\n",
-        m_pBinLogMgr->isInvalid() ? m_pBinLogMgr->getInvalidMsg() : "");
+      m_pBinLogMgr->isInvalid() ? m_pBinLogMgr->getInvalidMsg() : "");
     MQ_MONITOR_APPEND();
     CwxCommon::snprintf(szLine, 4096, "STAT min_sid %s\r\n",
-        CwxCommon::toString(m_pBinLogMgr->getMinSid(), szTmp));
+      CwxCommon::toString(m_pBinLogMgr->getMinSid(), szTmp));
     MQ_MONITOR_APPEND();
     CwxDate::getDateY4MDHMS2(m_pBinLogMgr->getMinTimestamp(), strValue);
     CwxCommon::snprintf(szLine, 4096, "STAT min_sid_time %s\r\n",
-        strValue.c_str());
+      strValue.c_str());
     MQ_MONITOR_APPEND();
     CwxCommon::snprintf(szLine, 4096, "STAT min_binlog_file %s\r\n",
-        m_pBinLogMgr->getMinFile(strValue).c_str());
+      m_pBinLogMgr->getMinFile(strValue).c_str());
     MQ_MONITOR_APPEND();
     CwxCommon::snprintf(szLine, 4096, "STAT max_sid %s\r\n",
-        CwxCommon::toString(m_pBinLogMgr->getMaxSid(), szTmp));
+      CwxCommon::toString(m_pBinLogMgr->getMaxSid(), szTmp));
     MQ_MONITOR_APPEND();
     CwxDate::getDateY4MDHMS2(m_pBinLogMgr->getMaxTimestamp(), strValue);
     CwxCommon::snprintf(szLine, 4096, "STAT max_sid_time %s\r\n",
-        strValue.c_str());
+      strValue.c_str());
     MQ_MONITOR_APPEND();
     CwxCommon::snprintf(szLine, 4096, "STAT max_binlog_file %s\r\n",
-        m_pBinLogMgr->getMaxFile(strValue).c_str());
+      m_pBinLogMgr->getMaxFile(strValue).c_str());
     MQ_MONITOR_APPEND();
     char szSid1[64];
     char szSid2[64];
@@ -581,7 +585,7 @@ CWX_UINT32 CwxMqApp::packMonitorInfo() {
       CwxCommon::toString(iter->m_ullCursorSid, szSid1, 10);
       CwxCommon::toString(iter->m_ullLeftNum, szSid2, 10);
       CwxCommon::snprintf(szLine, 4096, "STAT name(%s)|sid(%s)|msg(%s)\r\n",
-          iter->m_strName.c_str(), szSid1, szSid2);
+        iter->m_strName.c_str(), szSid1, szSid2);
       MQ_MONITOR_APPEND();
       iter++;
     }
@@ -601,10 +605,10 @@ void* CwxMqApp::dispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg) {
   while (1) {
     //获取队列中的消息并处理
     if (0!= dealDispatchThreadQueueMsg(tss,
-        queue,
-        app,
-        app->getDispChannel())) {
-      break;
+      queue,
+      app,
+      app->getDispChannel())) {
+        break;
     }
     if (-1 == app->getDispChannel()->dispatch(1)) {
       CWX_ERROR(("Failure to CwxAppChannel::dispatch()"));
@@ -626,9 +630,10 @@ void* CwxMqApp::dispatchThreadMain(CwxTss* tss, CwxMsgQueue* queue, void* arg) {
 }
 ///分发channel的队列消息函数。返回值：0：正常；-1：队列停止
 int CwxMqApp::dealDispatchThreadQueueMsg(CwxTss* tss,
-    CwxMsgQueue* queue,
-    CwxMqApp* app,
-    CwxAppChannel*) {
+                                         CwxMsgQueue* queue,
+                                         CwxMqApp* app,
+                                         CwxAppChannel*)
+{
   int iRet = 0;
   CwxMsgBlock* block = NULL;
   while (!queue->isEmpty()) {
@@ -644,8 +649,9 @@ int CwxMqApp::dealDispatchThreadQueueMsg(CwxTss* tss,
 
 ///分发mq channel的线程函数，arg为app对象
 void* CwxMqApp::mqFetchThreadMain(CwxTss*,
-    CwxMsgQueue* queue,
-    void* arg) {
+                                  CwxMsgQueue* queue,
+                                  void* arg)
+{
   CwxMqApp* app = (CwxMqApp*) arg;
   if (0 != app->getMqChannel()->open()) {
     CWX_ERROR(("Failure to open queue channel"));
@@ -671,8 +677,9 @@ void* CwxMqApp::mqFetchThreadMain(CwxTss*,
 }
 ///分发mq channel的队列消息函数。返回值：0：正常；-1：队列停止
 int CwxMqApp::dealMqFetchThreadQueueMsg(CwxMsgQueue* queue,
-    CwxMqApp* app,
-    CwxAppChannel* channel) {
+                                        CwxMqApp* app,
+                                        CwxAppChannel* channel)
+{
   int iRet = 0;
   CwxMsgBlock* block = NULL;
   CwxAppHandler4Channel* handler = NULL;
@@ -681,25 +688,25 @@ int CwxMqApp::dealMqFetchThreadQueueMsg(CwxMsgQueue* queue,
       iRet = queue->dequeue(block);
       if (-1 == iRet) return -1;
       if ((block->event().getEvent() == CwxEventInfo::CONN_CREATED)
-          && (block->event().getSvrId() == SVR_TYPE_QUEUE)) {
-        if (channel->isRegIoHandle(block->event().getIoHandle())) {
-          CWX_ERROR(("Handler[%] is register", block->event().getIoHandle()));
-          break;
-        }
-        if (block->event().getSvrId() == SVR_TYPE_QUEUE) {
-          handler = new CwxMqQueueHandler(app, channel);
-        } else {
-          CWX_ERROR(("Invalid svr_type[%d], close handle[%d]",
+        && (block->event().getSvrId() == SVR_TYPE_QUEUE)) {
+          if (channel->isRegIoHandle(block->event().getIoHandle())) {
+            CWX_ERROR(("Handler[%] is register", block->event().getIoHandle()));
+            break;
+          }
+          if (block->event().getSvrId() == SVR_TYPE_QUEUE) {
+            handler = new CwxMqQueueHandler(app, channel);
+          } else {
+            CWX_ERROR(("Invalid svr_type[%d], close handle[%d]",
               block->event().getSvrId(),
               block->event().getIoHandle()));
-          ::close(block->event().getIoHandle());
-        }
-        handler->setHandle(block->event().getIoHandle());
-        if (0 != handler->open()) {
-          CWX_ERROR(("Failure to register handler[%d]", handler->getHandle()));
-          delete handler;
-          break;
-        }
+            ::close(block->event().getIoHandle());
+          }
+          handler->setHandle(block->event().getIoHandle());
+          if (0 != handler->open()) {
+            CWX_ERROR(("Failure to register handler[%d]", handler->getHandle()));
+            delete handler;
+            break;
+          }
       } else {
         CWX_ASSERT(block->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
         CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_QUEUE);
@@ -715,35 +722,36 @@ int CwxMqApp::dealMqFetchThreadQueueMsg(CwxMsgQueue* queue,
 
 ///设置master recv连接的属性
 int CwxMqApp::setMasterRecvSockAttr(CWX_HANDLE handle,
-    void* arg) {
+                                    void* arg)
+{
   CwxMqApp* app = (CwxMqApp*) arg;
   if (app->getConfig().getRecv().m_recv.isKeepAlive()) {
     if (0 != CwxSocket::setKeepalive(handle,
-        true,
-        CWX_APP_DEF_KEEPALIVE_IDLE,
-        CWX_APP_DEF_KEEPALIVE_INTERNAL,
-        CWX_APP_DEF_KEEPALIVE_COUNT)) {
-      CWX_ERROR(("Failure to set listen addr:%s, port:%u to keep-alive, errno=%d",
+      true,
+      CWX_APP_DEF_KEEPALIVE_IDLE,
+      CWX_APP_DEF_KEEPALIVE_INTERNAL,
+      CWX_APP_DEF_KEEPALIVE_COUNT)) {
+        CWX_ERROR(("Failure to set listen addr:%s, port:%u to keep-alive, errno=%d",
           app->getConfig().getRecv().m_recv.getHostName().c_str(),
           app->getConfig().getRecv().m_recv.getPort(), errno));
-      return -1;
+        return -1;
     }
   }
 
   int flags = 1;
   if (setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, (void *) &flags,
-      sizeof(flags)) != 0) {
-    CWX_ERROR(("Failure to set listen addr:%s, port:%u NODELAY, errno=%d",
+    sizeof(flags)) != 0) {
+      CWX_ERROR(("Failure to set listen addr:%s, port:%u NODELAY, errno=%d",
         app->getConfig().getRecv().m_recv.getHostName().c_str(),
         app->getConfig().getRecv().m_recv.getPort(),
         errno));
-    return -1;
+      return -1;
   }
   struct linger ling = { 0, 0 };
   if (setsockopt(handle, SOL_SOCKET, SO_LINGER, (void *) &ling, sizeof(ling)) != 0) {
     CWX_ERROR(("Failure to set listen addr:%s, port:%u LINGER, errno=%d",
-        app->getConfig().getRecv().m_recv.getHostName().c_str(),
-        app->getConfig().getRecv().m_recv.getPort(), errno));
+      app->getConfig().getRecv().m_recv.getHostName().c_str(),
+      app->getConfig().getRecv().m_recv.getPort(), errno));
     return -1;
   }
   return 0;
@@ -756,46 +764,46 @@ int CwxMqApp::setDispatchSockAttr(CWX_HANDLE handle, void* arg) {
     int iSockBuf = (app->getConfig().getCommon().m_uiSockBufSize + 1023) / 1024;
     iSockBuf *= 1024;
     while (setsockopt(handle, SOL_SOCKET, SO_SNDBUF, (void*) &iSockBuf,
-        sizeof(iSockBuf)) < 0) {
-      iSockBuf -= 1024;
-      if (iSockBuf <= 1024) break;
+      sizeof(iSockBuf)) < 0) {
+        iSockBuf -= 1024;
+        if (iSockBuf <= 1024) break;
     }
     iSockBuf = (app->getConfig().getCommon().m_uiSockBufSize + 1023) / 1024;
     iSockBuf *= 1024;
     while (setsockopt(handle, SOL_SOCKET, SO_RCVBUF, (void *) &iSockBuf,
-        sizeof(iSockBuf)) < 0) {
-      iSockBuf -= 1024;
-      if (iSockBuf <= 1024)
-        break;
+      sizeof(iSockBuf)) < 0) {
+        iSockBuf -= 1024;
+        if (iSockBuf <= 1024)
+          break;
     }
   }
 
   if (app->getConfig().getDispatch().m_async.isKeepAlive()) {
     if (0!= CwxSocket::setKeepalive(handle,
-        true,
-        CWX_APP_DEF_KEEPALIVE_IDLE,
-        CWX_APP_DEF_KEEPALIVE_INTERNAL,
-        CWX_APP_DEF_KEEPALIVE_COUNT)) {
-      CWX_ERROR(("Failure to set listen addr:%s, port:%u to keep-alive, errno=%d",
+      true,
+      CWX_APP_DEF_KEEPALIVE_IDLE,
+      CWX_APP_DEF_KEEPALIVE_INTERNAL,
+      CWX_APP_DEF_KEEPALIVE_COUNT)) {
+        CWX_ERROR(("Failure to set listen addr:%s, port:%u to keep-alive, errno=%d",
           app->getConfig().getDispatch().m_async.getHostName().c_str(),
           app->getConfig().getDispatch().m_async.getPort(), errno));
-      return -1;
+        return -1;
     }
   }
 
   int flags = 1;
   if (setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, (void *) &flags,
-      sizeof(flags)) != 0) {
-    CWX_ERROR(("Failure to set listen addr:%s, port:%u NODELAY, errno=%d",
+    sizeof(flags)) != 0) {
+      CWX_ERROR(("Failure to set listen addr:%s, port:%u NODELAY, errno=%d",
         app->getConfig().getDispatch().m_async.getHostName().c_str(),
         app->getConfig().getDispatch().m_async.getPort(), errno));
-    return -1;
+      return -1;
   }
   struct linger ling = { 0, 0 };
   if (setsockopt(handle, SOL_SOCKET, SO_LINGER, (void *) &ling, sizeof(ling)) != 0) {
     CWX_ERROR(("Failure to set listen addr:%s, port:%u LINGER, errno=%d",
-        app->getConfig().getDispatch().m_async.getHostName().c_str(),
-        app->getConfig().getDispatch().m_async.getPort(), errno));
+      app->getConfig().getDispatch().m_async.getHostName().c_str(),
+      app->getConfig().getDispatch().m_async.getPort(), errno));
     return -1;
   }
   return 0;
@@ -808,44 +816,44 @@ int CwxMqApp::setSlaveReportSockAttr(CWX_HANDLE handle, void* arg) {
     int iSockBuf = (app->getConfig().getCommon().m_uiSockBufSize + 1023) / 1024;
     iSockBuf *= 1024;
     while (setsockopt(handle, SOL_SOCKET, SO_SNDBUF, (void*) &iSockBuf,
-        sizeof(iSockBuf)) < 0) {
-      iSockBuf -= 1024;
-      if (iSockBuf <= 1024) break;
+      sizeof(iSockBuf)) < 0) {
+        iSockBuf -= 1024;
+        if (iSockBuf <= 1024) break;
     }
     iSockBuf = (app->getConfig().getCommon().m_uiSockBufSize + 1023) / 1024;
     iSockBuf *= 1024;
     while (setsockopt(handle, SOL_SOCKET, SO_RCVBUF, (void *) &iSockBuf,
-        sizeof(iSockBuf)) < 0) {
-      iSockBuf -= 1024;
-      if (iSockBuf <= 1024) break;
+      sizeof(iSockBuf)) < 0) {
+        iSockBuf -= 1024;
+        if (iSockBuf <= 1024) break;
     }
   }
 
   if (app->getConfig().getMaster().m_master.isKeepAlive()) {
     if (0 != CwxSocket::setKeepalive(handle,
-        true,
-        CWX_APP_DEF_KEEPALIVE_IDLE,
-        CWX_APP_DEF_KEEPALIVE_INTERNAL,
-        CWX_APP_DEF_KEEPALIVE_COUNT)) {
-      CWX_ERROR(("Failure to set listen addr:%s, port:%u to keep-alive, errno=%d",
+      true,
+      CWX_APP_DEF_KEEPALIVE_IDLE,
+      CWX_APP_DEF_KEEPALIVE_INTERNAL,
+      CWX_APP_DEF_KEEPALIVE_COUNT)) {
+        CWX_ERROR(("Failure to set listen addr:%s, port:%u to keep-alive, errno=%d",
           app->getConfig().getMaster().m_master.getHostName().c_str(),
           app->getConfig().getMaster().m_master.getPort(), errno));
-      return -1;
+        return -1;
     }
   }
 
   int flags = 1;
   if (setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, (void *) &flags, sizeof(flags)) != 0) {
     CWX_ERROR(("Failure to set listen addr:%s, port:%u NODELAY, errno=%d",
-        app->getConfig().getMaster().m_master.getHostName().c_str(),
-        app->getConfig().getMaster().m_master.getPort(), errno));
+      app->getConfig().getMaster().m_master.getHostName().c_str(),
+      app->getConfig().getMaster().m_master.getPort(), errno));
     return -1;
   }
   struct linger ling = { 0, 0 };
   if (setsockopt(handle, SOL_SOCKET, SO_LINGER, (void *) &ling, sizeof(ling)) != 0) {
     CWX_ERROR(("Failure to set listen addr:%s, port:%u LINGER, errno=%d",
-        app->getConfig().getMaster().m_master.getHostName().c_str(),
-        app->getConfig().getMaster().m_master.getPort(), errno));
+      app->getConfig().getMaster().m_master.getHostName().c_str(),
+      app->getConfig().getMaster().m_master.getPort(), errno));
     return -1;
   }
   return 0;
@@ -856,33 +864,33 @@ int CwxMqApp::setMqSockAttr(CWX_HANDLE handle, void* arg) {
   CwxMqApp* app = (CwxMqApp*) arg;
   if (app->getConfig().getMq().m_mq.isKeepAlive()) {
     if (0 != CwxSocket::setKeepalive(handle,
-        true,
-        CWX_APP_DEF_KEEPALIVE_IDLE,
-        CWX_APP_DEF_KEEPALIVE_INTERNAL,
-        CWX_APP_DEF_KEEPALIVE_COUNT)) {
-      CWX_ERROR(("Failure to set listen addr:%s, port:%u to keep-alive, errno=%d",
+      true,
+      CWX_APP_DEF_KEEPALIVE_IDLE,
+      CWX_APP_DEF_KEEPALIVE_INTERNAL,
+      CWX_APP_DEF_KEEPALIVE_COUNT)) {
+        CWX_ERROR(("Failure to set listen addr:%s, port:%u to keep-alive, errno=%d",
           app->getConfig().getMq().m_mq.getHostName().c_str(),
           app->getConfig().getMq().m_mq.getPort(),
           errno));
-      return -1;
+        return -1;
     }
   }
 
   int flags = 1;
   if (setsockopt(handle,
-      IPPROTO_TCP, TCP_NODELAY,
-      (void *) &flags,
-      sizeof(flags)) != 0) {
-    CWX_ERROR(("Failure to set listen addr:%s, port:%u NODELAY, errno=%d",
+    IPPROTO_TCP, TCP_NODELAY,
+    (void *) &flags,
+    sizeof(flags)) != 0) {
+      CWX_ERROR(("Failure to set listen addr:%s, port:%u NODELAY, errno=%d",
         app->getConfig().getMq().m_mq.getHostName().c_str(),
         app->getConfig().getMq().m_mq.getPort(), errno));
-    return -1;
+      return -1;
   }
   struct linger ling = { 0, 0 };
   if (setsockopt(handle, SOL_SOCKET, SO_LINGER, (void *) &ling, sizeof(ling)) != 0) {
     CWX_ERROR(("Failure to set listen addr:%s, port:%u LINGER, errno=%d",
-        app->getConfig().getMq().m_mq.getHostName().c_str(),
-        app->getConfig().getMq().m_mq.getPort(), errno));
+      app->getConfig().getMq().m_mq.getHostName().c_str(),
+      app->getConfig().getMq().m_mq.getPort(), errno));
     return -1;
   }
   return 0;

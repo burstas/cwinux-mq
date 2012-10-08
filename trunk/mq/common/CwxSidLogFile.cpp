@@ -1,8 +1,10 @@
 #include "CwxSidLogFile.h"
 #include "CwxDate.h"
 
-CwxSidLogFile::CwxSidLogFile(CWX_UINT32 uiFlushRecord, CWX_UINT32 uiFlushSecond,
-    string const& strFileName) {
+CwxSidLogFile::CwxSidLogFile(CWX_UINT32 uiFlushRecord,
+                             CWX_UINT32 uiFlushSecond,
+                             string const& strFileName)
+{
   m_strFileName = strFileName; ///<系统文件名字
   m_strOldFileName = strFileName + ".old"; ///<旧系统文件名字
   m_strNewFileName = strFileName + ".new"; ///<新系统文件的名字
@@ -25,8 +27,11 @@ CwxSidLogFile::~CwxSidLogFile() {
 }
 
 ///创建log文件；0：成功；-1：失败
-int CwxSidLogFile::create(string const& strName, CWX_UINT64 ullMaxSid,
-    string const& strUserName, string const& strPasswd) {
+int CwxSidLogFile::create(string const& strName,
+                          CWX_UINT64 ullMaxSid,
+                          string const& strUserName,
+                          string const& strPasswd)
+{
   m_strUserName = strName;
   m_ullMaxSid = ullMaxSid;
   m_strUserName = strUserName;
@@ -50,8 +55,8 @@ int CwxSidLogFile::load() {
   bRet = CwxFile::readTxtLine(m_fd, line);
   if (!bRet) {
     CwxCommon::snprintf(m_szErr2K, 2047,
-        "Failure to read sid log file[%s], errno=%d", m_strFileName.c_str(),
-        errno);
+      "Failure to read sid log file[%s], errno=%d", m_strFileName.c_str(),
+      errno);
     return -1;
   }
   if (line.empty()) return 0;
@@ -68,8 +73,8 @@ int CwxSidLogFile::load() {
   }
   if (!bRet) {
     CwxCommon::snprintf(m_szErr2K, 2047,
-        "Failure to read queue file[%s], errno=%d", m_strFileName.c_str(),
-        errno);
+      "Failure to read queue file[%s], errno=%d", m_strFileName.c_str(),
+      errno);
     return -1;
   }
   m_uiLastSyncTime = time(NULL);
@@ -81,11 +86,11 @@ int CwxSidLogFile::save() {
   if (!m_fd) return -1;
   //写新文件
   int fd = ::open(m_strNewFileName.c_str(), O_RDWR | O_CREAT | O_TRUNC,
-      S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
   if (-1 == fd) {
     CwxCommon::snprintf(m_szErr2K, 2047,
-        "Failure to open new sys file:%s, errno=%d", m_strNewFileName.c_str(),
-        errno);
+      "Failure to open new sys file:%s, errno=%d", m_strNewFileName.c_str(),
+      errno);
     closeFile(true);
     return -1;
   }
@@ -95,12 +100,12 @@ int CwxSidLogFile::save() {
   ssize_t len = 0;
   //name=log name|sid=12345|u=u_q1|p=p_q1
   len = CwxCommon::snprintf(line, 1023, "name=%s|sid=%s|u=%s|p=%s\n",
-      m_strName.c_str(), CwxCommon::toString(m_ullMaxSid, szSid, 10),
-      m_strUserName.c_str(), m_strPasswd.c_str());
+    m_strName.c_str(), CwxCommon::toString(m_ullMaxSid, szSid, 10),
+    m_strUserName.c_str(), m_strPasswd.c_str());
   if (len != write(fd, line, len)) {
     CwxCommon::snprintf(m_szErr2K, 2047,
-        "Failure to write new sys file:%s, errno=%d", m_strNewFileName.c_str(),
-        errno);
+      "Failure to write new sys file:%s, errno=%d", m_strNewFileName.c_str(),
+      errno);
     closeFile(true);
     return -1;
   }
@@ -108,27 +113,27 @@ int CwxSidLogFile::save() {
   ::close(fd);
   //确保旧文件删除
   if (CwxFile::isFile(m_strOldFileName.c_str())
-      && !CwxFile::rmFile(m_strOldFileName.c_str())) {
-    CwxCommon::snprintf(m_szErr2K, 2047,
+    && !CwxFile::rmFile(m_strOldFileName.c_str())) {
+      CwxCommon::snprintf(m_szErr2K, 2047,
         "Failure to rm old sys file:%s, errno=%d", m_strOldFileName.c_str(),
         errno);
-    closeFile(true);
-    return -1;
+      closeFile(true);
+      return -1;
   }
   //关闭当前文件
   closeFile(true);
   //将当前文件move为old文件
   if (!CwxFile::moveFile(m_strFileName.c_str(), m_strOldFileName.c_str())) {
     CwxCommon::snprintf(m_szErr2K, 2047,
-        "Failure to move current sys file:%s to old sys file:%s, errno=%d",
-        m_strFileName.c_str(), m_strOldFileName.c_str(), errno);
+      "Failure to move current sys file:%s to old sys file:%s, errno=%d",
+      m_strFileName.c_str(), m_strOldFileName.c_str(), errno);
     return -1;
   }
   //将新文件移为当前文件
   if (!CwxFile::moveFile(m_strNewFileName.c_str(), m_strFileName.c_str())) {
     CwxCommon::snprintf(m_szErr2K, 2047,
-        "Failure to move new sys file:%s to current sys file:%s, errno=%d",
-        m_strNewFileName.c_str(), m_strFileName.c_str(), errno);
+      "Failure to move new sys file:%s to current sys file:%s, errno=%d",
+      m_strNewFileName.c_str(), m_strFileName.c_str(), errno);
     return -1;
   }
   //删除旧文件
@@ -138,14 +143,14 @@ int CwxSidLogFile::save() {
   m_fd = ::fopen(m_strFileName.c_str(), "a+");
   if (!m_fd) {
     CwxCommon::snprintf(m_szErr2K, 2047,
-        "Failure to open sys file:[%s], errno=%d", m_strFileName.c_str(),
-        errno);
+      "Failure to open sys file:[%s], errno=%d", m_strFileName.c_str(),
+      errno);
     return -1;
   }
   if (!CwxFile::lock(fileno(m_fd))) {
     CwxCommon::snprintf(m_szErr2K, 2047,
-        "Failure to lock sys file:[%s], errno=%d", m_strFileName.c_str(),
-        errno);
+      "Failure to lock sys file:[%s], errno=%d", m_strFileName.c_str(),
+      errno);
     return -1;
   }
   m_bLock = true;
@@ -161,12 +166,12 @@ int CwxSidLogFile::log(CWX_UINT64 sid) {
     char szBuf[128];
     char szSid[64];
     size_t len = CwxCommon::snprintf(szBuf, 127, "sid=%s\n",
-        CwxCommon::toString(sid, szSid, 10));
+      CwxCommon::toString(sid, szSid, 10));
     if (len != fwrite(szBuf, 1, len, m_fd)) {
       closeFile(false);
       CwxCommon::snprintf(m_szErr2K, 2047,
-          "Failure to write log to file[%s], errno=%d", m_strFileName.c_str(),
-          errno);
+        "Failure to write log to file[%s], errno=%d", m_strFileName.c_str(),
+        errno);
       return -1;
     }
     m_uiCurLogCount++;
@@ -181,9 +186,9 @@ int CwxSidLogFile::log(CWX_UINT64 sid) {
 // 时间commit检查
 void CwxSidLogFile::timeout(CWX_UINT32 uiNow) {
   if ((uiNow < m_uiLastSyncTime)
-      || (m_uiLastSyncTime + m_uiFlushSecond < uiNow)) {
-    m_uiLastSyncTime = uiNow;
-    syncFile();
+    || (m_uiLastSyncTime + m_uiFlushSecond < uiNow)) {
+      m_uiLastSyncTime = uiNow;
+      syncFile();
   }
 }
 
@@ -251,24 +256,24 @@ int CwxSidLogFile::prepare() {
     if (bExistOld) { //采用旧文件
       if (!CwxFile::moveFile(m_strOldFileName.c_str(), m_strFileName.c_str())) {
         CwxCommon::snprintf(m_szErr2K, 2047,
-            "Failure to move old sys file[%s] to cur sys file:[%s], errno=%d",
-            m_strOldFileName.c_str(), m_strFileName.c_str(), errno);
+          "Failure to move old sys file[%s] to cur sys file:[%s], errno=%d",
+          m_strOldFileName.c_str(), m_strFileName.c_str(), errno);
         return -1;
       }
     } else if (bExistNew) { //采用新文件
       if (!CwxFile::moveFile(m_strNewFileName.c_str(), m_strFileName.c_str())) {
         CwxCommon::snprintf(m_szErr2K, 2047,
-            "Failure to move new sys file[%s] to cur sys file:[%s], errno=%d",
-            2047, m_strNewFileName.c_str(), m_strFileName.c_str(), errno);
+          "Failure to move new sys file[%s] to cur sys file:[%s], errno=%d",
+          2047, m_strNewFileName.c_str(), m_strFileName.c_str(), errno);
         return -1;
       }
     } else { //创建空的当前文件
       int fd = ::open(m_strFileName.c_str(), O_RDWR | O_CREAT | O_TRUNC,
-          S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+        S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
       if (-1 == fd) {
         CwxCommon::snprintf(m_szErr2K, 2047,
-            "Failure to create cur sys file:[%s], errno=%d",
-            m_strFileName.c_str(), errno);
+          "Failure to create cur sys file:[%s], errno=%d",
+          m_strFileName.c_str(), errno);
         return -1;
       }
       ::close(fd);
@@ -278,14 +283,14 @@ int CwxSidLogFile::prepare() {
   m_fd = ::fopen(m_strFileName.c_str(), "a+");
   if (!m_fd) {
     CwxCommon::snprintf(m_szErr2K, 2047,
-        "Failure to open sys file:[%s], errno=%d", m_strFileName.c_str(),
-        errno);
+      "Failure to open sys file:[%s], errno=%d", m_strFileName.c_str(),
+      errno);
     return -1;
   }
   if (!CwxFile::lock(fileno(m_fd))) {
     CwxCommon::snprintf(m_szErr2K, 2047,
-        "Failure to lock sys file:[%s], errno=%d", m_strFileName.c_str(),
-        errno);
+      "Failure to lock sys file:[%s], errno=%d", m_strFileName.c_str(),
+      errno);
     return -1;
   }
   //删除旧文件

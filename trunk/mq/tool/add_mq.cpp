@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
   CwxSockConnector conn;
   if (0 != conn.connect(stream, addr)) {
     printf("failure to connect ip:port: %s:%u, errno=%d\n", g_strHost.c_str(),
-        g_unPort, errno);
+      g_unPort, errno);
     return 1;
   }
   CwxPackageWriter writer;
@@ -144,19 +144,19 @@ int main(int argc, char** argv) {
   char const* pErrMsg = NULL;
   do {
     if (CWX_MQ_ERR_SUCCESS
-        != CwxMqPoco::packCreateQueue(&writer, block, g_queue.c_str(),
-            g_user.c_str(), g_passwd.c_str(), g_auth_user.c_str(),
-            g_auth_passwd.c_str(), g_sid, szErr2K)) {
-      printf("failure to pack create-queue package, err=%s\n", szErr2K);
-      iRet = 1;
-      break;
+      != CwxMqPoco::packCreateQueue(&writer, block, g_queue.c_str(),
+      g_user.c_str(), g_passwd.c_str(), g_auth_user.c_str(),
+      g_auth_passwd.c_str(), g_sid, szErr2K)) {
+        printf("failure to pack create-queue package, err=%s\n", szErr2K);
+        iRet = 1;
+        break;
     }
     if (block->length()
-        != (CWX_UINT32) CwxSocket::write_n(stream.getHandle(), block->rd_ptr(),
-            block->length())) {
-      printf("failure to send message, errno=%d\n", errno);
-      iRet = 1;
-      break;
+      != (CWX_UINT32) CwxSocket::write_n(stream.getHandle(), block->rd_ptr(),
+      block->length())) {
+        printf("failure to send message, errno=%d\n", errno);
+        iRet = 1;
+        break;
     }
     CwxMsgBlockAlloc::free(block);
     block = NULL;
@@ -173,22 +173,22 @@ int main(int argc, char** argv) {
 
     }
     if (CWX_MQ_ERR_SUCCESS
-        != CwxMqPoco::parseCreateQueueReply(&reader, block, iRet, pErrMsg,
-            szErr2K)) {
-      printf("failure to unpack reply msg, err=%s\n", szErr2K);
-      iRet = 1;
-      break;
+      != CwxMqPoco::parseCreateQueueReply(&reader, block, iRet, pErrMsg,
+      szErr2K)) {
+        printf("failure to unpack reply msg, err=%s\n", szErr2K);
+        iRet = 1;
+        break;
     }
     if (CWX_MQ_ERR_SUCCESS != iRet) {
       printf("failure to create queue[%s], err_code=%d, err=%s\n",
-          g_queue.c_str(), iRet, pErrMsg);
+        g_queue.c_str(), iRet, pErrMsg);
       iRet = 1;
       break;
     }
     iRet = 0;
     printf("success to create queue[%s],user=%s,passwd=%s,sid=%s\n",
-        g_queue.c_str(), g_user.c_str(), g_passwd.c_str(),
-        CwxCommon::toString(g_sid, szErr2K, 10));
+      g_queue.c_str(), g_user.c_str(), g_passwd.c_str(),
+      CwxCommon::toString(g_sid, szErr2K, 10));
   } while (0);
   if (block)
     CwxMsgBlockAlloc::free(block);
