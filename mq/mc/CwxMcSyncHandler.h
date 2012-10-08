@@ -80,8 +80,7 @@ public:
   }
   //检查是否需要重建session
   bool isNeedCreate() const{
-    return m_bClosed &&
-      (m_uiLastConnectTimestamp + CWX_MQ_DEF_TIMEOUT_SECOND < (CWX_UINT32)time(NULL));
+    return m_bClosed && (m_uiLastConnectTimestamp + CWX_MQ_DEF_TIMEOUT_SECOND < (CWX_UINT32)time(NULL));
   }
 public:
   CWX_UINT64                         m_ullSessionId; ///<session id
@@ -156,7 +155,7 @@ private:
     char const* sign);
   // 获取压缩的buf大小
   inline CWX_UINT32 getBufLen() const{
-    return CWX_MQ_MAX_CHUNK_KSIZE * 2 * 1024;
+    return CWX_MQ_MAX_CHUNK_KSIZE  * 1024 + CWX_MQ_MAX_MSG_SIZE;
   }
 private:
   CwxMsgHead              m_header; ///<消息头

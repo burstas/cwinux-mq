@@ -35,89 +35,94 @@ int CwxMqRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv) {
   CWX_UINT64 ullSid = 0;
   do {
     ///binlog数据接收消息
-    if (CwxMqPoco::MSG_TYPE_RECV_DATA
-      == msg->event().getMsgHeader().getMsgType()) {
-        CwxKeyValueItem const* pData;
-        if (m_pApp->getBinLogMgr()->isInvalid()) {
-          ///如果binlog mgr无效，则停止接收
+    if (CwxMqPoco::MSG_TYPE_RECV_DATA == msg->event().getMsgHeader().getMsgType()) {
+      CwxKeyValueItem const* pData;
+      if (m_pApp->getBinLogMgr()->isInvalid()) {
+        ///如果binlog mgr无效，则停止接收
+        iRet = CWX_MQ_ERR_ERROR;
+        strcpy(pTss->m_szBuf2K, m_pApp->getBinLogMgr()->getInvalidMsg());
+        break;
+      }
+      if (!msg) {
+        strcpy(pTss->m_szBuf2K, "No data.");
+        CWX_DEBUG((pTss->m_szBuf2K));
+        iRet = CWX_MQ_ERR_ERROR;
+        break;
+      }
+      unsigned long ulUnzipLen = 0;
+      bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
+      //判断是否压缩数据
+      if (bZip) { //压缩数据，需要解压
+        //首先准备解压的buf
+        if (!prepareUnzipBuf()) {
           iRet = CWX_MQ_ERR_ERROR;
-          strcpy(pTss->m_szBuf2K, m_pApp->getBinLogMgr()->getInvalidMsg());
+          CwxCommon::snprintf(pTss->m_szBuf2K, 2047,
+            "Failure to prepare unzip buf, size:%u", m_uiBufLen);
+          CWX_ERROR((pTss->m_szBuf2K));
           break;
         }
-        if (!msg) {
-          strcpy(pTss->m_szBuf2K, "No data.");
-          CWX_DEBUG((pTss->m_szBuf2K));
-          iRet = CWX_MQ_ERR_ERROR;
-          break;
-        }
-        unsigned long ulUnzipLen = 0;
-        bool bZip = msg->event().getMsgHeader().isAttr(CwxMsgHead::ATTR_COMPRESS);
-        //判断是否压缩数据
-        if (bZip) { //压缩数据，需要解压
-          //首先准备解压的buf
-          if (!prepareUnzipBuf()) {
+        ulUnzipLen = m_uiBufLen;
+        //解压
+        if (!CwxZlib::unzip(m_unzipBuf, ulUnzipLen,
+          (const unsigned char*) msg->rd_ptr(), msg->length())) {
             iRet = CWX_MQ_ERR_ERROR;
             CwxCommon::snprintf(pTss->m_szBuf2K, 2047,
-              "Failure to prepare unzip buf, size:%u", m_uiBufLen);
+              "Failure to unzip recv msg, msg size:%u, buf size:%u",
+              msg->length(), m_uiBufLen);
             CWX_ERROR((pTss->m_szBuf2K));
             break;
-          }
-          ulUnzipLen = m_uiBufLen;
-          //解压
-          if (!CwxZlib::unzip(m_unzipBuf, ulUnzipLen,
-            (const unsigned char*) msg->rd_ptr(), msg->length())) {
-              iRet = CWX_MQ_ERR_ERROR;
-              CwxCommon::snprintf(pTss->m_szBuf2K, 2047,
-                "Failure to unzip recv msg, msg size:%u, buf size:%u",
-                msg->length(), m_uiBufLen);
-              CWX_ERROR((pTss->m_szBuf2K));
-              break;
-          }
         }
-
-        if (CWX_MQ_ERR_SUCCESS
-          != (iRet = CwxMqPoco::parseRecvData(pTss->m_pReader,
-          bZip ? (char const*) m_unzipBuf : msg->rd_ptr(),
-          bZip ? ulUnzipLen : msg->length(), pData, user, passwd,
-          pTss->m_szBuf2K))) {
-            //如果是无效数据，返回
-            CWX_DEBUG(
-              ("Failure to parse the recieve msg, err=%s", pTss->m_szBuf2K));
-            break;
+      }
+      if (CWX_MQ_ERR_SUCCESS != (iRet = CwxMqPoco::parseRecvData(pTss->m_pReader,
+        bZip ? (char const*) m_unzipBuf : msg->rd_ptr(),
+        bZip ? ulUnzipLen : msg->length(),
+        pData,
+        user,
+        passwd,
+        pTss->m_szBuf2K)))
+      {
+        //如果是无效数据，返回
+        CWX_DEBUG(("Failure to parse the recieve msg, err=%s", pTss->m_szBuf2K));
+        break;
+      }
+      if (!bAuth && m_pApp->getConfig().getRecv().m_recv.getUser().length()) {
+        if ((m_pApp->getConfig().getRecv().m_recv.getUser() != user)
+          || (m_pApp->getConfig().getRecv().m_recv.getPasswd() != passwd))
+        {
+          CwxCommon::snprintf(pTss->m_szBuf2K, 2048,
+            "Failure to auth user[%s] passwd[%s]", user, passwd);
+          CWX_DEBUG((pTss->m_szBuf2K));
+          iRet = CWX_MQ_ERR_FAIL_AUTH;
+          break;
         }
-        if (!bAuth && m_pApp->getConfig().getRecv().m_recv.getUser().length()) {
-          if ((m_pApp->getConfig().getRecv().m_recv.getUser() != user)
-            || (m_pApp->getConfig().getRecv().m_recv.getPasswd() != passwd)) {
-              CwxCommon::snprintf(pTss->m_szBuf2K, 2048,
-                "Failure to auth user[%s] passwd[%s]", user, passwd);
-              CWX_DEBUG((pTss->m_szBuf2K));
-              iRet = CWX_MQ_ERR_FAIL_AUTH;
-              break;
-          }
-          conn_iter->second = true;
+        conn_iter->second = true;
+      }
+      pTss->m_pWriter->beginPack();
+      pTss->m_pWriter->addKeyValue(CWX_MQ_D,
+        pData->m_szData,
+        pData->m_uiDataLen,
+        pData->m_bKeyValue);
+      pTss->m_pWriter->pack();
+      ullSid = m_pApp->nextSid();
+      if (0 != m_pApp->getBinLogMgr()->append(ullSid, time(NULL),
+        0,
+        pTss->m_pWriter->getMsg(),
+        pTss->m_pWriter->getMsgSize(),
+        pTss->m_szBuf2K))
+      {
+        CWX_ERROR((pTss->m_szBuf2K));
+        iRet = CWX_MQ_ERR_ERROR;
+        break;
+      }
+      ///auto commit
+      if (m_pApp->isFirstBinLog()) {
+        ///若达到提交的数量或第一次提交，则提交
+        if (0 != commit(pTss->m_szBuf2K)) {
+          CWX_ERROR((pTss->m_szBuf2K));
+          iRet = CWX_MQ_ERR_ERROR;
+          break;
         }
-        pTss->m_pWriter->beginPack();
-        pTss->m_pWriter->addKeyValue(CWX_MQ_D, pData->m_szData,
-          pData->m_uiDataLen, pData->m_bKeyValue);
-        pTss->m_pWriter->pack();
-        ullSid = m_pApp->nextSid();
-        if (0
-          != m_pApp->getBinLogMgr()->append(ullSid, time(NULL), 0,
-          pTss->m_pWriter->getMsg(), pTss->m_pWriter->getMsgSize(),
-          pTss->m_szBuf2K)) {
-            CWX_ERROR((pTss->m_szBuf2K));
-            iRet = CWX_MQ_ERR_ERROR;
-            break;
-        }
-        ///auto commit
-        if (m_pApp->isFirstBinLog()) {
-          ///若达到提交的数量或第一次提交，则提交
-          if (0 != commit(pTss->m_szBuf2K)) {
-            CWX_ERROR((pTss->m_szBuf2K));
-            iRet = CWX_MQ_ERR_ERROR;
-            break;
-          }
-        }
+      }
     } else {
       CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Invalid msg type:%u",
         msg->event().getMsgHeader().getMsgType());
@@ -127,13 +132,17 @@ int CwxMqRecvHandler::onRecvMsg(CwxMsgBlock*& msg, CwxTss* pThrEnv) {
     }
   } while (0);
   CwxMsgBlock* pBlock = NULL;
-  if (CWX_MQ_ERR_SUCCESS
-    != CwxMqPoco::packRecvDataReply(pTss->m_pWriter, pBlock,
-    msg->event().getMsgHeader().getTaskId(), iRet, ullSid,
-    pTss->m_szBuf2K, pTss->m_szBuf2K)) {
-      CWX_ERROR(("Failure to pack mq reply msg, err=%s", pTss->m_szBuf2K));
-      m_pApp->noticeCloseConn(msg->event().getConnId());
-      return 1;
+  if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packRecvDataReply(pTss->m_pWriter,
+    pBlock,
+    msg->event().getMsgHeader().getTaskId(),
+    iRet,
+    ullSid,
+    pTss->m_szBuf2K,
+    pTss->m_szBuf2K))
+  {
+    CWX_ERROR(("Failure to pack mq reply msg, err=%s", pTss->m_szBuf2K));
+    m_pApp->noticeCloseConn(msg->event().getConnId());
+    return 1;
   }
   pBlock->send_ctrl().setConnId(conn_iter->first);
   pBlock->send_ctrl().setSvrId(CwxMqApp::SVR_TYPE_RECV);
