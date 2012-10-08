@@ -70,9 +70,9 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
     return -1;
 
   }
-  //load log:file_swith_second
-  if (!cnf.getAttr("log", "file_swith_second", value) || !value.length()) {
-    snprintf(m_szErrMsg, 2047, "Must set [log:file_swith_second].");
+  //load log:file_max_second
+  if (!cnf.getAttr("log", "file_max_second", value) || !value.length()) {
+    snprintf(m_szErrMsg, 2047, "Must set [log:file_max_second].");
     return -1;
   }
   m_log.m_uiSwitchSecond = strtoul(value.c_str(), NULL, 10);
@@ -254,7 +254,7 @@ void CwxMcConfig::outputConfig() const {
   CWX_INFO(("*****************log*******************"));
   CWX_INFO(("path=%s", m_log.m_strPath.c_str()));
   CWX_INFO(("file_max_mbyte=%u", m_log.m_uiLogMSize));
-  CWX_INFO(("file_swith_second=%u", m_log.m_uiSwitchSecond));
+  CWX_INFO(("file_max_second=%u", m_log.m_uiSwitchSecond));
   CWX_INFO(("append_return=%s", m_log.m_bAppendReturn?"yes":"no"));
   CWX_INFO(("flush_log_num=%u", m_log.m_uiFlushNum));
   CWX_INFO(("flush_log_second=%u", m_log.m_uiFlushSecond));
