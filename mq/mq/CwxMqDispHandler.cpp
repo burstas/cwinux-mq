@@ -259,7 +259,7 @@ int CwxMqDispHandler::recvReport(CwxMqTss* pTss) {
       ullSid = m_pApp->getBinLogMgr()->getMaxSid();
       if (ullSid) ullSid--;
     }
-    if (source) { ///检查source是否存在
+    if (source && strlen(source)) { ///检查source是否存在
       map<CWX_UINT64, CwxMqDispSession*>::iterator iter =  m_sessions.begin();
       while (iter != m_sessions.end()) {
         if (iter->second->m_strSource == source) {
@@ -384,9 +384,9 @@ int CwxMqDispHandler::recvReport(CwxMqTss* pTss) {
     CWX_ERROR(("Failure to create binlog reply package, err:%s", pTss->m_szBuf2K));
     return -1;
   }
-  msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::CLOSE_NOTICE);
-  if (!putMsg(msg)) {
-    CwxMsgBlockAlloc::free(msg);
+  pBlock->send_ctrl().setMsgAttr(CwxMsgSendCtrl::CLOSE_NOTICE);
+  if (!putMsg(pBlock)) {
+    CwxMsgBlockAlloc::free(pBlock);
     CWX_ERROR(("Failure push msg to send queue. from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
     return -1;
   }
