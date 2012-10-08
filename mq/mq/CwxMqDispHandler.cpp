@@ -488,7 +488,6 @@ int CwxMqDispHandler::recvReply(CwxMqTss* pTss) {
       CWX_ERROR(("Failure to parse sync_data reply package, err:%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       break;
     }
-    CWX_INFO(("Reply slave reply, seq=%s", CwxCommon::toString(ullSeq, pTss->m_szBuf2K, 10)));
     if (ullSeq != m_ullSentSeq) {
       char szTmp1[64];
       char szTmp2[64];
