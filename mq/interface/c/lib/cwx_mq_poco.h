@@ -51,19 +51,18 @@ extern "C" {
 #define CWX_MQ_MSG_TYPE_SYNC_ERR              105  ///<数据同步错误消息
 
 ///协议的key定义
-#define CWX_MQ_KEY_DATA "data"
+#define CWX_MQ_KEY_D "d"
 #define CWX_MQ_KEY_RET  "ret"
 #define CWX_MQ_KEY_SID  "sid"
 #define CWX_MQ_KEY_ERR  "err"
-#define CWX_MQ_KEY_BLOCK "block"
-#define CWX_MQ_KEY_TIMESTAMP  "timestamp"
-#define CWX_MQ_KEY_USER  "user"
-#define CWX_MQ_KEY_PASSWD "passwd"
-#define CWX_MQ_KEY_SUBSCRIBE "subscribe"
-#define CWX_MQ_KEY_QUEUE "queue"
-#define CWX_MQ_KEY_GROUP "group"
+#define CWX_MQ_KEY_B "b"
+#define CWX_MQ_KEY_T  "timestamp"
+#define CWX_MQ_KEY_U  "user"
+#define CWX_MQ_KEY_P "passwd"
+#define CWX_MQ_KEY_SOURCE "source"
+#define CWX_MQ_KEY_Q "q"
+#define CWX_MQ_KEY_G "g"
 #define CWX_MQ_KEY_CHUNK "chunk"
-#define CWX_MQ_KEY_WINDOW "window"
 #define CWX_MQ_KEY_M       "m"
 #define CWX_MQ_KEY_SIGN   "sign"
 #define CWX_MQ_KEY_CRC32  "crc32"
@@ -82,34 +81,9 @@ extern "C" {
 
 ///协议错误代码定义
 #define CWX_MQ_ERR_SUCCESS          0  ///<成功
-#define CWX_MQ_ERR_ERROR           1   ///<没有数据
-#define CWX_MQ_ERR_ERROR      2 ///<接收到的数据包无效，也就是不是kv结构
-#define CWX_MQ_ERR_ERROR   3///<接收到的binlog数据无效
-#define CWX_MQ_ERR_ERROR       4 ///<接收到的binlog，没有【data】的key
-#define CWX_MQ_ERR_ERROR   5 ///<data的可以为key/value，但格式非法
-#define CWX_MQ_ERR_ERROR            6 ///<接收到的report数据包中，没有【sid】的key
-#define CWX_MQ_ERR_ERROR            7 ///<接收到的数据包中，没有【ret】
-#define CWX_MQ_ERR_ERROR            8 ///<接收到的数据包中，没有【err】
-#define CWX_MQ_ERR_ERROR      9 ///<接收到的数据中，没有【timestamp】
-#define CWX_MQ_ERR_FAIL_AUTH         10 ///<鉴权失败
-#define CWX_MQ_ERR_ERROR 11 ///<binlog的type错误
-#define CWX_MQ_ERR_ERROR   12 ///<接收到的消息类型无效
-#define CWX_MQ_ERR_ERROR        13  ///<回复的sid无效
-#define CWX_MQ_ERR_ERROR    14 ///<往binglog mgr中添加binlog失败
-#define CWX_MQ_ERR_ERROR        15 ///<队列不存在
-#define CWX_MQ_ERR_ERROR 16 ///<无效的消息订阅类型
-#define CWX_MQ_ERR_ERROR        17 ///<其他内部错误，一般为内存
-#define CWX_MQ_ERR_ERROR      18 ///<MD5校验失败
-#define CWX_MQ_ERR_ERROR    19 ///<CRC32校验失败
-#define CWX_MQ_ERR_ERROR          20 ///<没有name字段
-#define CWX_MQ_ERR_ERROR          21 ///<commit队列类型的消息commit超时
-#define CWX_MQ_ERR_ERROR   22 ///<commit命令无效
-#define CWX_MQ_ERR_ERROR     23 ///<队列的用户名太长
-#define CWX_MQ_ERR_ERROR   24 ///<队列的口令太长
-#define CWX_MQ_ERR_ERROR   25 ///<队列名字太长
-#define CWX_MQ_ERR_ERROR   26 ///<队列订阅表达式太长
-#define CWX_MQ_ERR_ERROR        27 ///<队列的名字为空
-#define CWX_MQ_ERR_ERROR       28 ///<队列存在
+#define CWX_MQ_ERR_ERROR            1   ///<错误
+#define CWX_MQ_ERR_FAIL_AUTH         2 ///<鉴权失败
+#define CWX_MQ_ERR_LOST_SYNC        3 ///<失去了同步状态
 
 /**
  *@brief 形成mq的一个消息包
@@ -118,7 +92,6 @@ extern "C" {
  *@param [out] buf 输出形成的数据包。
  *@param [in out] buf_len 传入buf的空间大小，返回形成的数据包的大小。
  *@param [in] data msg的data。
- *@param [in] group msg的group。
  *@param [in] type msg的type。
  *@param [in] user 接收mq的user，若为空，则表示没有用户。
  *@param [in] passwd 接收mq的passwd，若为空，则表示没有口令。
@@ -132,7 +105,6 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
     char* buf,
     CWX_UINT32* buf_len,
     struct CWX_KEY_VALUE_ITEM_S const* data,
-    CWX_UINT32 group,
     char const* user,
     char const* passwd,
     char const* sign,
@@ -145,7 +117,6 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
  *@param [in] msg 接收到的mq消息，不包括msg header。
  *@param [in] msg_len msg的长度。
  *@param [out] data 返回msg的data。
- *@param [out] group msg的group。
  *@param [out] user 返回msg中的用户，0表示不存在。
  *@param [out] passwd 返回msg中的用户口令，0表示不存在。
  *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
@@ -155,7 +126,6 @@ int cwx_mq_parse_mq(struct CWX_PG_READER* reader,
     char const* msg,
     CWX_UINT32 msg_len,
     struct CWX_KEY_VALUE_ITEM_S const** data,
-    CWX_UINT32* group,
     char const** user,
     char const** passwd,
     char* szErr2K);
@@ -197,77 +167,6 @@ int cwx_mq_parse_mq_reply(struct CWX_PG_READER* reader,
     CWX_UINT32 msg_len,
     int* ret,
     CWX_UINT64* ullSid,
-    char const** szErrMsg,
-    char* szErr2K);
-
-/**
- *@brief pack mq的commit消息包
- *@param [in] writer package的writer。
- *@param [in] uiTaskId 消息的task-id。
- *@param [out] buf 输出形成的数据包。
- *@param [in out] buf_len 传入buf的空间大小，返回形成的数据包的大小。
- *@param [in] user 接收的mq的user，若为空，则表示没有用户。
- *@param [in] passwd 接收的mq的passwd，若为空，则表示没有口令。
- *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
- *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
- */
-int cwx_mq_pack_commit(struct CWX_PG_WRITER * writer,
-    CWX_UINT32 uiTaskId,
-    char* buf,
-    CWX_UINT32* buf_len,
-    char const* user,
-    char const* passwd,
-    char* szErr2K);
-/**
- *@brief 解析mq的一个commit消息包
- *@param [in] reader package的reader。
- *@param [in] msg 接收到的mq消息，不包括msg header。
- *@param [in] msg_len msg的长度。
- *@param [out] user 返回msg中的用户，0表示不存在。
- *@param [out] passwd 返回msg中的用户口令，0表示不存在。
- *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
- *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
- */
-int cwx_mq_parse_commit(struct CWX_PG_READER* reader,
-    char const* msg,
-    CWX_UINT32 msg_len,
-    char const** user,
-    char const** passwd,
-    char* szErr2K);
-
-/**
- *@brief pack mq的commit reply的消息包
- *@param [in] writer package的writer。
- *@param [in] uiTaskId 收到消息的task-id，原样返回。
- *@param [out] buf 输出形成的数据包。
- *@param [in out] buf_len 传入buf的空间大小，返回形成的数据包的大小。
- *@param [in] ret 执行状态码。
- *@param [in] szErrMsg 执行失败时的错误消息。
- *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
- *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
- */
-int cwx_mq_pack_commit_reply(struct CWX_PG_WRITER * writer,
-    CWX_UINT32 uiTaskId,
-    char* buf,
-    CWX_UINT32* buf_len,
-    int ret,
-    char const* szErrMsg,
-    char* szErr2K);
-
-/**
- *@brief 解析mq的一个commit reply消息包
- *@param [in] reader package的reader。
- *@param [in] msg 接收到的mq消息，不包括msg header。
- *@param [in] msg_len msg的长度。
- *@param [out] ret 执行状态码。
- *@param [out] szErrMsg 执行失败时的错误消息。
- *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
- *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
- */
-int cwx_mq_parse_commit_reply(struct CWX_PG_READER* reader,
-    char const* msg,
-    CWX_UINT32 msg_len,
-    int* ret,
     char const** szErrMsg,
     char* szErr2K);
 
