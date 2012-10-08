@@ -61,6 +61,7 @@ void CwxMcQueue::checkTimeout(CWX_UINT32 uiTime){
       m_queue.erase(m_queue.begin());
       m_ullCurSize -= log->getItemSize();
       CwxMcQueueItem::destoryItem(log);
+      m_ullDiscardNum++;
     }
   }
 }
