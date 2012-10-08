@@ -27,28 +27,28 @@ extern "C" {
 
 ///协议的消息类型定义
 ///RECV服务类型的消息类型定义
-#define CWX_MQ_MSG_TYPE_MQ  1 ///<数据提交消息
-#define CWX_MQ_MSG_TYPE_MQ_REPLY 2 ///<数据提交消息的回复
-#define CWX_MQ_MSG_TYPE_MQ_COMMIT 3 ///<数据commit消息
-#define CWX_MQ_MSG_TYPE_MQ_COMMIT_REPLY 4 ///<commit消息的回复
+#define CWX_MQ_MSG_TYPE_MQ                 1 ///<数据提交消息
+#define CWX_MQ_MSG_TYPE_MQ_REPLY            2 ///<数据提交消息的回复
 ///分发的消息类型定义
-#define CWX_MQ_MSG_TYPE_SYNC_REPORT 5 ///<同步SID点报告消息类型
-#define CWX_MQ_MSG_TYPE_SYNC_REPORT_REPLY 6 ///<失败返回
-#define CWX_MQ_MSG_TYPE_SYNC_DATA 7
-#define CWX_MQ_MSG_TYPE_SYNC_DATA_REPLY 8
+#define CWX_MQ_MSG_TYPE_SYNC_REPORT          3 ///<同步SID点报告消息类型
+#define CWX_MQ_MSG_TYPE_SYNC_REPORT_REPLY    4 ///<失败返回
+#define CWX_MQ_MSG_TYPE_SYNC_SESSION_REPORT  5 ///<session的报告
+#define CWX_MQ_MSG_TYPE_SYNC_SESSION_REPORT_REPLY 6 ///<session报告的回复
+#define CWX_MQ_MSG_TYPE_SYNC_DATA            7 ///<发送数据
+#define CWX_MQ_MSG_TYPE_SYNC_DATA_REPLY       8 ///<数据的回复
+#define CWX_MQ_MSG_TYPE_SYNC_DATA_CHUNK       9 ///<CHUNK模式发送数据
+#define CWX_MQ_MSG_TYPE_SYNC_DATA_REPLY       10 ///<CHUNK模式数据的回复
 ///MQ Fetch服务类型的消息类型定义
-#define CWX_MQ_MSG_TYPE_FETCH_DATA 9 ///<数据获取消息类型
-#define CWX_MQ_MSG_TYPE_FETCH_DATA_REPLY 10 ///<回复数据获取消息类型
-#define CWX_MQ_MSG_TYPE_FETCH_COMMIT  11 ///<commit 获取的消息
-#define CWX_MQ_MSG_TYPE_FETCH_COMMIT_REPLY 12 ///<reply commit的消息
+#define CWX_MQ_MSG_TYPE_FETCH_DATA            11 ///<数据获取消息类型
+#define CWX_MQ_MSG_TYPE_FETCH_DATA_REPLY      12 ///<回复数据获取消息类型
 ///创建mq queue消息
-#define CWX_MQ_MSG_TYPE_CREATE_QUEUE 100 ///<创建MQ QUEUE的消息类型
-#define CWX_MQ_MSG_TYPE_CREATE_QUEUE_REPLY 101 ///<回复创建MQ QUEUE的消息类型
+#define CWX_MQ_MSG_TYPE_CREATE_QUEUE          100 ///<创建MQ QUEUE的消息类型
+#define CWX_MQ_MSG_TYPE_CREATE_QUEUE_REPLY     101 ///<回复创建MQ QUEUE的消息类型
 ///删除mq queue消息
-#define CWX_MQ_MSG_TYPE_DEL_QUEUE  102 ///<删除MQ QUEUE的消息类型
-#define CWX_MQ_MSG_TYPE_DEL_QUEUE_REPLY 103 ///<回复删除MQ QUEUE的消息类型
-///binlog内部的sync binlogleixing
-#define CWX_MQ_GROUP_SYNC 0XFFFFFFFF 
+#define CWX_MQ_MSG_TYPE_DEL_QUEUE             102 ///<删除MQ QUEUE的消息类型
+#define CWX_MQ_MSG_TYPE_DEL_QUEUE_REPLY        103 ///<回复删除MQ QUEUE的消息类型
+///错误消息
+#define CWX_MQ_MSG_TYPE_SYNC_ERR              105  ///<数据同步错误消息
 
 ///协议的key定义
 #define CWX_MQ_KEY_DATA "data"

@@ -31,17 +31,17 @@ class CwxMqPoco {
       MSG_TYPE_RECV_DATA = 1, ///<数据提交消息
       MSG_TYPE_RECV_DATA_REPLY = 2, ///<数据提交消息的回复
       ///分发的消息类型定义
-      MSG_TYPE_SYNC_REPORT = 5, ///<同步SID点报告消息类型
-      MSG_TYPE_SYNC_REPORT_REPLY = 6, ///<失败返回
-      MSG_TYPE_SYNC_SESSION_REPORT = 7, ///<session的报告
-      MSG_TYPE_SYNC_SESSION_REPORT_REPLY = 8, ///<session报告的回复
-      MSG_TYPE_SYNC_DATA = 9,  ///<发送数据
-      MSG_TYPE_SYNC_DATA_REPLY = 10, ///<数据的回复
-      MSG_TYPE_SYNC_DATA_CHUNK = 11,  ///<发送数据
-      MSG_TYPE_SYNC_DATA_CHUNK_REPLY = 12, ///<数据的回复
+      MSG_TYPE_SYNC_REPORT = 3, ///<同步SID点报告消息类型
+      MSG_TYPE_SYNC_REPORT_REPLY = 4, ///<失败返回
+      MSG_TYPE_SYNC_SESSION_REPORT = 5, ///<session的报告
+      MSG_TYPE_SYNC_SESSION_REPORT_REPLY = 6, ///<session报告的回复
+      MSG_TYPE_SYNC_DATA = 7,  ///<发送数据
+      MSG_TYPE_SYNC_DATA_REPLY = 8, ///<数据的回复
+      MSG_TYPE_SYNC_DATA_CHUNK = 9,  ///<发送数据
+      MSG_TYPE_SYNC_DATA_CHUNK_REPLY = 10, ///<数据的回复
       ///MQ Fetch服务类型的消息类型定义
-      MSG_TYPE_FETCH_DATA = 13, ///<数据获取消息类型
-      MSG_TYPE_FETCH_DATA_REPLY = 14, ///<回复数据获取消息类型
+      MSG_TYPE_FETCH_DATA = 11, ///<数据获取消息类型
+      MSG_TYPE_FETCH_DATA_REPLY = 12, ///<回复数据获取消息类型
       ///创建mq queue消息
       MSG_TYPE_CREATE_QUEUE = 101, ///<创建MQ QUEUE的消息类型
       MSG_TYPE_CREATE_QUEUE_REPLY = 102, ///<回复创建MQ QUEUE的消息类型
