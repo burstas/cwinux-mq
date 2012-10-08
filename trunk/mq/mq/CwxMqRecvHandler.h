@@ -14,16 +14,14 @@ class CwxMqApp;
 class CwxMqRecvHandler : public CwxCmdOp {
 public:
   ///构造函数
-  CwxMqRecvHandler(CwxMqApp* pApp) :
-      m_pApp(pApp) {
-        m_unzipBuf = NULL;
-        m_uiBufLen = 0;
-      }
-      ///析构函数
-      virtual ~CwxMqRecvHandler() {
-        if (m_unzipBuf)
-          delete[] m_unzipBuf;
-      }
+  CwxMqRecvHandler(CwxMqApp* pApp) : m_pApp(pApp) {
+    m_unzipBuf = NULL;
+    m_uiBufLen = 0;
+  }
+  ///析构函数
+  virtual ~CwxMqRecvHandler() {
+    if (m_unzipBuf) delete[] m_unzipBuf;
+  }
 public:
   ///连接建立后，需要维护连接上数据的分发
   virtual int onConnCreated(CwxMsgBlock*& msg, CwxTss* pThrEnv);
@@ -39,10 +37,10 @@ private:
   //获取unzip的buf
   bool prepareUnzipBuf();
 private:
-  map<CWX_UINT32, bool> m_clientMap; ///<连接认证的map
-  CwxMqApp* m_pApp;  ///<app对象
-  unsigned char* m_unzipBuf; ///<解压的buffer
-  CWX_UINT32 m_uiBufLen; ///<解压buffer的大小，其为trunk的20倍，最小为20M。
+  map<CWX_UINT32, bool>     m_clientMap; ///<连接认证的map
+  CwxMqApp*                m_pApp;  ///<app对象
+  unsigned char*           m_unzipBuf; ///<解压的buffer
+  CWX_UINT32               m_uiBufLen; ///<解压buffer的大小，其为trunk的20倍，最小为20M。
 };
 
 #endif 

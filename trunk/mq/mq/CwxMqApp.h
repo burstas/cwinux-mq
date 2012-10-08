@@ -78,7 +78,8 @@ class CwxMqApp : public CwxAppFramework {
   public:
     ///计算机的时钟是否回调
     static bool isClockBack(CWX_UINT32& uiLastTime,
-        CWX_UINT32 uiNow) {
+        CWX_UINT32 uiNow) 
+    {
       if (uiLastTime > uiNow + 1) {
         uiLastTime = uiNow;
         return true;

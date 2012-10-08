@@ -14,8 +14,9 @@ void CwxMqDispSession::addConn(CwxMqDispHandler* conn) {
 
 ///构造函数
 CwxMqDispHandler::CwxMqDispHandler(CwxMqApp* pApp,
-                                   CwxAppChannel* channel, CWX_UINT32 uiConnId) :
-CwxAppHandler4Channel(channel) {
+                                   CwxAppChannel* channel,
+                                   CWX_UINT32 uiConnId) :CwxAppHandler4Channel(channel)
+{
   m_bReport = false;
   m_uiConnId = uiConnId;
   m_ullSentSeq = 0;
@@ -39,11 +40,9 @@ CwxMqDispHandler::~CwxMqDispHandler() {
 ///释放资源
 void CwxMqDispHandler::destroy(CwxMqApp* app) {
   {
-    map<CWX_UINT64, CwxMqDispSession*>::iterator iter =
-      m_sessions.begin();
+    map<CWX_UINT64, CwxMqDispSession*>::iterator iter = m_sessions.begin();
     while (iter != m_sessions.end()) {
-      if (iter->second->m_pCursor)
-        app->getBinLogMgr()->destoryCurser(iter->second->m_pCursor);
+      if (iter->second->m_pCursor) app->getBinLogMgr()->destoryCurser(iter->second->m_pCursor);
       delete iter->second;
       iter++;
     }
@@ -51,14 +50,14 @@ void CwxMqDispHandler::destroy(CwxMqApp* app) {
   }
 }
 
-void CwxMqDispHandler::doEvent(CwxMqApp* app, CwxMqTss* tss,
+void CwxMqDispHandler::doEvent(CwxMqApp* app,
+                               CwxMqTss* tss,
                                CwxMsgBlock*& msg)
 {
   if (CwxEventInfo::CONN_CREATED == msg->event().getEvent()) { ///连接建立
     CwxAppChannel* channel = app->getDispChannel();
     if (channel->isRegIoHandle(msg->event().getIoHandle())) {
-      CWX_ERROR(
-        ("Handler[%] is register, it's a big bug. exit....", msg->event().getIoHandle()));
+      CWX_ERROR(("Handler[%] is register, it's a big bug. exit....", msg->event().getIoHandle()));
       app->stop();
       return;
     }
@@ -75,21 +74,18 @@ void CwxMqDispHandler::doEvent(CwxMqApp* app, CwxMqTss* tss,
     ///设置handle的io后，open handler
     pHandler->setHandle(msg->event().getIoHandle());
     if (0 != pHandler->open()) {
-      CWX_ERROR(
-        ("Failure to register sync handler[%d], from:%s:%u", pHandler->getHandle(), pHandler->m_strPeerHost.c_str(), pHandler->m_unPeerPort));
+      CWX_ERROR(("Failure to register sync handler[%d], from:%s:%u", pHandler->getHandle(), pHandler->m_strPeerHost.c_str(), pHandler->m_unPeerPort));
       delete pHandler;
       return;
     }
     ///设置对象的tss对象
     pHandler->m_tss = (CwxMqTss*) CwxTss::instance();
-    CWX_INFO(
-      ("Accept sync connection from %s:%u", pHandler->m_strPeerHost.c_str(), pHandler->m_unPeerPort));
+    CWX_INFO(("Accept sync connection from %s:%u", pHandler->m_strPeerHost.c_str(), pHandler->m_unPeerPort));
   } else {
     CWX_ASSERT(msg->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK);
     CWX_ASSERT(msg->event().getSvrId() == CwxMqApp::SVR_TYPE_DISP);
     //日志超时检查
-    map<CWX_UINT64, CwxMqDispSession*>::iterator iter =
-      m_sessions.begin();
+    map<CWX_UINT64, CwxMqDispSession*>::iterator iter = m_sessions.begin();
     while (iter != m_sessions.end()) {
       if (iter->second->m_sourceFile)
         iter->second->m_sourceFile->timeout(app->getCurTime());
@@ -112,8 +108,7 @@ void CwxMqDispHandler::dealClosedSession(CwxMqApp* app, CwxMqTss*) {
       ///将session从session的map中删除
       m_sessions.erase((*iter)->m_ullSessionId);
       ///开始关闭连接
-      map<CWX_UINT32, CwxMqDispHandler*>::iterator conn_iter =
-        (*iter)->m_conns.begin();
+      map<CWX_UINT32, CwxMqDispHandler*>::iterator conn_iter = (*iter)->m_conns.begin();
       while (conn_iter != (*iter)->m_conns.end()) {
         handler = conn_iter->second;
         (*iter)->m_conns.erase(handler->getConnId());
@@ -140,13 +135,11 @@ int CwxMqDispHandler::onInput() {
   int ret = CwxAppHandler4Channel::recvPackage(getHandle(), m_uiRecvHeadLen,
     m_uiRecvDataLen, m_szHeadBuf, m_header, m_recvMsgData);
   ///如果没有接受完毕（0）或失败（-1），则返回
-  if (1 != ret)
-    return ret;
+  if (1 != ret) return ret;
   ///接收到一个完整的数据包，消息处理
   ret = recvMessage();
   ///如果没有释放接收的数据包，释放
-  if (m_recvMsgData)
-    CwxMsgBlockAlloc::free(m_recvMsgData);
+  if (m_recvMsgData) CwxMsgBlockAlloc::free(m_recvMsgData);
   this->m_recvMsgData = NULL;
   this->m_uiRecvHeadLen = 0;
   this->m_uiRecvDataLen = 0;
@@ -182,8 +175,7 @@ int CwxMqDispHandler::recvMessage() {
     return recvNewConnection(m_tss);
   } else if (CwxMqPoco::MSG_TYPE_SYNC_DATA_REPLY == m_header.getMsgType()) {
     return recvReply(m_tss);
-  } else if (CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK_REPLY
-    == m_header.getMsgType()) {
+  } else if (CwxMqPoco::MSG_TYPE_SYNC_DATA_CHUNK_REPLY == m_header.getMsgType()) {
       return recvReply(m_tss);
   }
   ///直接关闭连接
@@ -202,13 +194,11 @@ int CwxMqDispHandler::recvReport(CwxMqTss* pTss) {
   char const* sign = NULL;
   bool bzip = false;
   CwxMsgBlock* msg = NULL;
-  CWX_INFO(
-    ("Recv report from host:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
+  CWX_INFO(("Recv report from host:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
   do {
     if (!m_recvMsgData) {
       strcpy(pTss->m_szBuf2K, "No data.");
-      CWX_ERROR(
-        ("Report package is empty, from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("Report package is empty, from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
       iRet = CWX_MQ_ERR_ERROR;
       break;
     }
@@ -217,28 +207,35 @@ int CwxMqDispHandler::recvReport(CwxMqTss* pTss) {
       iRet = CWX_MQ_ERR_ERROR;
       CwxCommon::snprintf(pTss->m_szBuf2K, 2048,
         "Can't report sync sid duplicate.");
-      CWX_ERROR(
-        ("Report is duplicate, from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("Report is duplicate, from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
       break;
     }
     ///若是同步sid的报告消息,则获取报告的sid
-    iRet = CwxMqPoco::parseReportData(pTss->m_pReader, m_recvMsgData, ullSid,
-      bNewly, uiChunk, source, user, passwd, sign, bzip, pTss->m_szBuf2K);
+    iRet = CwxMqPoco::parseReportData(pTss->m_pReader,
+      m_recvMsgData,
+      ullSid,
+      bNewly,
+      uiChunk,
+      source,
+      user,
+      passwd,
+      sign,
+      bzip,
+      pTss->m_szBuf2K);
     if (CWX_MQ_ERR_SUCCESS != iRet) {
-      CWX_ERROR(
-        ("Failure to parse report msg, err=%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("Failure to parse report msg, err=%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       break;
     }
     CWX_INFO(("Recv report from:%s:%u, sid=%s, from_new=%s, chunk=%u, source=%s, user=%s, passwd=%s, sign=%s, zip=%s", m_strPeerHost.c_str(), m_unPeerPort, CwxCommon::toString(ullSid, pTss->m_szBuf2K, 10), bNewly?"yes":"no", uiChunk, source?source:"", user?user:"", passwd?passwd:"", sign?sign:"", bzip?"yes":"no"));
     if (m_pApp->getConfig().getDispatch().m_async.getUser().length()) {
       if ((m_pApp->getConfig().getDispatch().m_async.getUser() != user)
-        || (m_pApp->getConfig().getDispatch().m_async.getPasswd() != passwd)) {
-          iRet = CWX_MQ_ERR_FAIL_AUTH;
-          CwxCommon::snprintf(pTss->m_szBuf2K, 2048,
-            "Failure to auth user[%s] passwd[%s]", user, passwd);
-          CWX_ERROR(
-            ("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
-          break;
+        || (m_pApp->getConfig().getDispatch().m_async.getPasswd() != passwd))
+      {
+        iRet = CWX_MQ_ERR_FAIL_AUTH;
+        CwxCommon::snprintf(pTss->m_szBuf2K, 2048,
+          "Failure to auth user[%s] passwd[%s]", user, passwd);
+        CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+        break;
       }
     }
     m_syncSession = new CwxMqDispSession();
@@ -328,8 +325,7 @@ int CwxMqDispHandler::recvReport(CwxMqTss* pTss) {
     if (!pCursor) {
       iRet = CWX_MQ_ERR_ERROR;
       strcpy(pTss->m_szBuf2K, "Failure to create cursor");
-      CWX_ERROR(
-        ("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       break;
     }
     if (!bNewly && !source) {
@@ -340,8 +336,7 @@ int CwxMqDispHandler::recvReport(CwxMqTss* pTss) {
         sprintf(pTss->m_szBuf2K, "Lost sync state, report sid:%s, min sid:%s",
           CwxCommon::toString(ullSid, szBuf1),
           CwxCommon::toString(m_pApp->getBinLogMgr()->getMinSid(), szBuf2));
-        CWX_ERROR(
-          ("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+        CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
         break;
       }
     }
@@ -350,27 +345,26 @@ int CwxMqDispHandler::recvReport(CwxMqTss* pTss) {
     m_syncSession->m_ullStartSid = ullSid;
 
     ///发送session id的消息
-    if (CWX_MQ_ERR_SUCCESS
-      != CwxMqPoco::packReportDataReply(pTss->m_pWriter, msg,
-      m_header.getTaskId(), m_syncSession->m_ullSessionId,
-      pTss->m_szBuf2K)) {
-        CWX_ERROR(
-          ("Failure to pack sync data reply, err=%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
-        return -1;
+    if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packReportDataReply(pTss->m_pWriter,
+      msg,
+      m_header.getTaskId(),
+      m_syncSession->m_ullSessionId,
+      pTss->m_szBuf2K))
+    {
+      CWX_ERROR(("Failure to pack sync data reply, err=%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+      return -1;
     }
     msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
     if (!putMsg(msg)) {
       CwxMsgBlockAlloc::free(msg);
-      CWX_ERROR(
-        ("Failure push msg to send queue. from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("Failure push msg to send queue. from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
       return -1;
     }
     ///发送下一条binlog
     int iState = syncSendBinLog(pTss);
     if (-1 == iState) {
       iRet = CWX_MQ_ERR_ERROR;
-      CWX_ERROR(
-        ("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       break;
     } else if (0 == iState) { ///产生continue的消息
       channel()->regRedoHander(this);
@@ -380,18 +374,20 @@ int CwxMqDispHandler::recvReport(CwxMqTss* pTss) {
   ///到此一定错误
   CWX_ASSERT(CWX_MQ_ERR_SUCCESS != iRet);
   CwxMsgBlock* pBlock = NULL;
-  if (CWX_MQ_ERR_SUCCESS
-    != CwxMqPoco::packSyncErr(pTss->m_pWriter, pBlock, m_header.getTaskId(),
-    iRet, pTss->m_szBuf2K, pTss->m_szBuf2K)) {
-      CWX_ERROR(
-        ("Failure to create binlog reply package, err:%s", pTss->m_szBuf2K));
-      return -1;
+  if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncErr(pTss->m_pWriter,
+    pBlock,
+    m_header.getTaskId(),
+    iRet,
+    pTss->m_szBuf2K,
+    pTss->m_szBuf2K))
+  {
+    CWX_ERROR(("Failure to create binlog reply package, err:%s", pTss->m_szBuf2K));
+    return -1;
   }
   msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::CLOSE_NOTICE);
   if (!putMsg(msg)) {
     CwxMsgBlockAlloc::free(msg);
-    CWX_ERROR(
-      ("Failure push msg to send queue. from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
+    CWX_ERROR(("Failure push msg to send queue. from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
     return -1;
   }
   return 0;
@@ -404,8 +400,7 @@ int CwxMqDispHandler::recvNewConnection(CwxMqTss* pTss) {
   do {
     if (!m_recvMsgData) {
       strcpy(pTss->m_szBuf2K, "No data.");
-      CWX_ERROR(
-        ("Session connect-report package is empyt, from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("Session connect-report package is empyt, from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
       iRet = CWX_MQ_ERR_ERROR;
       break;
     }
@@ -414,16 +409,16 @@ int CwxMqDispHandler::recvNewConnection(CwxMqTss* pTss) {
       iRet = CWX_MQ_ERR_ERROR;
       CwxCommon::snprintf(pTss->m_szBuf2K, 2048,
         "Can't report sync sid duplicatly.");
-      CWX_ERROR(
-        ("Session connect-report is duplicate, from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("Session connect-report is duplicate, from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
       break;
     }
     ///获取报告的session id
-    iRet = CwxMqPoco::parseReportNewConn(pTss->m_pReader, m_recvMsgData,
-      ullSession, pTss->m_szBuf2K);
+    iRet = CwxMqPoco::parseReportNewConn(pTss->m_pReader,
+      m_recvMsgData,
+      ullSession,
+      pTss->m_szBuf2K);
     if (CWX_MQ_ERR_SUCCESS != iRet) {
-      CWX_ERROR(
-        ("Failure to parse report new conn msg, err=%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("Failure to parse report new conn msg, err=%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       break;
     }
     if (m_sessions.find(ullSession) == m_sessions.end()) {
@@ -431,8 +426,7 @@ int CwxMqDispHandler::recvNewConnection(CwxMqTss* pTss) {
       char szTmp[64];
       CwxCommon::snprintf(pTss->m_szBuf2K, 2048, "Session[%s] doesn't exist",
         CwxCommon::toString(ullSession, szTmp, 10));
-      CWX_ERROR(
-        ("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       break;
     }
     m_syncSession = m_sessions.find(ullSession)->second;
@@ -442,8 +436,7 @@ int CwxMqDispHandler::recvNewConnection(CwxMqTss* pTss) {
     int iState = syncSendBinLog(pTss);
     if (-1 == iState) {
       iRet = CWX_MQ_ERR_ERROR;
-      CWX_ERROR(
-        ("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       break;
     } else if (0 == iState) { ///产生continue的消息
       channel()->regRedoHander(this);
@@ -452,18 +445,20 @@ int CwxMqDispHandler::recvNewConnection(CwxMqTss* pTss) {
   } while (0);
   ///到此一定错误
   CWX_ASSERT(CWX_MQ_ERR_SUCCESS != iRet);
-  if (CWX_MQ_ERR_SUCCESS
-    != CwxMqPoco::packSyncErr(pTss->m_pWriter, msg, m_header.getTaskId(),
-    iRet, pTss->m_szBuf2K, pTss->m_szBuf2K)) {
-      CWX_ERROR(
-        ("Failure to pack sync data reply, err=%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
-      return -1;
+  if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncErr(pTss->m_pWriter,
+    msg,
+    m_header.getTaskId(),
+    iRet,
+    pTss->m_szBuf2K,
+    pTss->m_szBuf2K))
+  {
+    CWX_ERROR(("Failure to pack sync data reply, err=%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+    return -1;
   }
   msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::CLOSE_NOTICE);
   if (!putMsg(msg)) {
     CwxMsgBlockAlloc::free(msg);
-    CWX_ERROR(
-      ("Failure push msg to send queue. from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
+    CWX_ERROR(("Failure push msg to send queue. from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
     return -1;
   }
   return 0;
@@ -476,15 +471,13 @@ int CwxMqDispHandler::recvReply(CwxMqTss* pTss) {
   do {
     if (!m_syncSession) { ///如果连接不是同步状态，则是错误
       strcpy(pTss->m_szBuf2K, "Client no in sync state");
-      CWX_ERROR(
-        ("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       iRet = CWX_MQ_ERR_ERROR;
       break;
     }
     if (!m_recvMsgData) {
       strcpy(pTss->m_szBuf2K, "No data.");
-      CWX_ERROR(
-        ("Sync reply package is empty, from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("Sync reply package is empty, from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
       iRet = CWX_MQ_ERR_ERROR;
       break;
     }
@@ -492,12 +485,10 @@ int CwxMqDispHandler::recvReply(CwxMqTss* pTss) {
     iRet = CwxMqPoco::parseSyncDataReply(pTss->m_pReader, m_recvMsgData, ullSeq,
       pTss->m_szBuf2K);
     if (CWX_MQ_ERR_SUCCESS != iRet) {
-      CWX_ERROR(
-        ("Failure to parse sync_data reply package, err:%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("Failure to parse sync_data reply package, err:%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       break;
     }
-    CWX_INFO(
-      ("Reply slave reply, seq=%s", CwxCommon::toString(ullSeq, pTss->m_szBuf2K, 10)));
+    CWX_INFO(("Reply slave reply, seq=%s", CwxCommon::toString(ullSeq, pTss->m_szBuf2K, 10)));
     if (ullSeq != m_ullSentSeq) {
       char szTmp1[64];
       char szTmp2[64];
@@ -506,8 +497,7 @@ int CwxMqDispHandler::recvReply(CwxMqTss* pTss) {
         "Seq[%s] is not same with the connection's[%s].",
         CwxCommon::toString(ullSeq, szTmp1, 10),
         CwxCommon::toString(m_ullSentSeq, szTmp2, 10));
-      CWX_ERROR(
-        ("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       break;
     }
     if (m_syncSession->m_sourceFile){
@@ -515,16 +505,14 @@ int CwxMqDispHandler::recvReply(CwxMqTss* pTss) {
         iRet = CWX_MQ_ERR_ERROR;
         CwxCommon::snprintf(pTss->m_szBuf2K, 2047,
           "Falure to write source log file , err=%s", m_syncSession->m_sourceFile->getErrMsg());
-        CWX_ERROR(
-          ("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+        CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
         break;
       }
     }
     ///发送下一条binlog
     int iState = syncSendBinLog(pTss);
     if (-1 == iState) {
-      CWX_ERROR(
-        ("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       return -1; ///关闭连接
     } else if (0 == iState) { ///产生continue的消息
       channel()->regRedoHander(this);
@@ -533,18 +521,20 @@ int CwxMqDispHandler::recvReply(CwxMqTss* pTss) {
   } while (0);
   ///到此一定错误
   CWX_ASSERT(CWX_MQ_ERR_SUCCESS != iRet);
-  if (CWX_MQ_ERR_SUCCESS
-    != CwxMqPoco::packSyncErr(pTss->m_pWriter, msg, m_header.getTaskId(),
-    iRet, pTss->m_szBuf2K, pTss->m_szBuf2K)) {
-      CWX_ERROR(
-        ("Failure to pack sync data reply, err=%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
-      return -1;
+  if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncErr(pTss->m_pWriter,
+    msg,
+    m_header.getTaskId(),
+    iRet,
+    pTss->m_szBuf2K,
+    pTss->m_szBuf2K))
+  {
+    CWX_ERROR(("Failure to pack sync data reply, err=%s, from:%s:%u", pTss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+    return -1;
   }
   msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::CLOSE_NOTICE);
   if (!putMsg(msg)) {
     CwxMsgBlockAlloc::free(msg);
-    CWX_ERROR(
-      ("Failure push msg to send queue. from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
+    CWX_ERROR(("Failure push msg to send queue. from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
     return -1;
   }
   return 0;
@@ -560,21 +550,22 @@ int CwxMqDispHandler::onRedo() {
     ///发送下一条binlog
     int iState = syncSendBinLog(m_tss);
     if (-1 == iState) {
-      CWX_ERROR(
-        ("%s, from:%s:%u", m_tss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+      CWX_ERROR(("%s, from:%s:%u", m_tss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
       CwxMsgBlock* msg = NULL;
-      if (CWX_MQ_ERR_ERROR
-        != CwxMqPoco::packSyncErr(m_tss->m_pWriter, msg, m_header.getTaskId(),
-        CWX_MQ_ERR_ERROR, m_tss->m_szBuf2K, m_tss->m_szBuf2K)) {
-          CWX_ERROR(
-            ("Failure to pack sync data reply, err=%s, from:%s:%u", m_tss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
-          return -1;
+      if (CWX_MQ_ERR_ERROR != CwxMqPoco::packSyncErr(m_tss->m_pWriter,
+        msg,
+        m_header.getTaskId(),
+        CWX_MQ_ERR_ERROR,
+        m_tss->m_szBuf2K,
+        m_tss->m_szBuf2K))
+      {
+        CWX_ERROR(("Failure to pack sync data reply, err=%s, from:%s:%u", m_tss->m_szBuf2K, m_strPeerHost.c_str(), m_unPeerPort));
+        return -1;
       }
       msg->send_ctrl().setMsgAttr(CwxMsgSendCtrl::CLOSE_NOTICE);
       if (!putMsg(msg)) {
         CwxMsgBlockAlloc::free(msg);
-        CWX_ERROR(
-          ("Failure push msg to send queue. from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
+        CWX_ERROR(("Failure push msg to send queue. from:%s:%u", m_strPeerHost.c_str(), m_unPeerPort));
         return -1;
       }
     } else if (0 == iState) { ///产生continue的消息
@@ -598,39 +589,39 @@ int CwxMqDispHandler::syncSendBinLog(CwxMqTss* pTss) {
   CWX_UINT32 uiTotalLen = 0;
   CWX_UINT64 ullSeq = m_syncSession->m_ullSeq;
   if (m_syncSession->m_pCursor->isUnseek()) { //若binlog的读取cursor悬空，则定位
-    if (1 != (iRet = syncSeekToReportSid(pTss)))
-      return iRet;
+    if (1 != (iRet = syncSeekToReportSid(pTss))) return iRet;
   }
 
-  if (m_syncSession->m_uiChunk)
-    pTss->m_pWriter->beginPack();
+  if (m_syncSession->m_uiChunk) pTss->m_pWriter->beginPack();
   while (1) {
-    if (1 != (iRet = syncSeekToBinlog(pTss)))
-      break;
+    if (1 != (iRet = syncSeekToBinlog(pTss))) break;
     //设置移到下一个记录位置
     m_syncSession->m_bNext = true;
     if (!m_syncSession->m_uiChunk) {
-      iRet = syncPackOneBinLog(pTss->m_pWriter, pBlock, ullSeq,
-        pTss->m_pBinlogData, pTss->m_szBuf2K);
+      iRet = syncPackOneBinLog(pTss->m_pWriter,
+        pBlock,
+        ullSeq,
+        pTss->m_pBinlogData,
+        pTss->m_szBuf2K);
       m_ullLastSid = m_syncSession->m_pCursor->getHeader().getSid();
       break;
     } else {
-      iRet = syncPackMultiBinLog(pTss->m_pWriter, pTss->m_pItemWriter,
-        pTss->m_pBinlogData, uiKeyLen, pTss->m_szBuf2K);
+      iRet = syncPackMultiBinLog(pTss->m_pWriter,
+        pTss->m_pItemWriter,
+        pTss->m_pBinlogData,
+        uiKeyLen,
+        pTss->m_szBuf2K);
       m_ullLastSid = m_syncSession->m_pCursor->getHeader().getSid();
       if (1 == iRet) {
         uiTotalLen += uiKeyLen;
-        if (uiTotalLen >= m_syncSession->m_uiChunk)
-          break;
+        if (uiTotalLen >= m_syncSession->m_uiChunk) break;
       }
-      if (-1 == iRet)
-        break;
+      if (-1 == iRet) break;
       continue;
     }
   }
 
   if (-1 == iRet) return -1;
-
   if (!m_syncSession->m_uiChunk) { ///若不是chunk
     if (0 == iRet) return 0; ///没有数据
   } else {
@@ -708,9 +699,7 @@ int CwxMqDispHandler::syncSeekToReportSid(CwxMqTss* tss) {
         return 0;
       }
       ///若成功定位，则读取当前记录
-      m_syncSession->m_bNext =
-        m_syncSession->m_ullStartSid
-        == m_syncSession->m_pCursor->getHeader().getSid() ? true : false;
+      m_syncSession->m_bNext = m_syncSession->m_ullStartSid == m_syncSession->m_pCursor->getHeader().getSid() ? true : false;
     } else { ///若需要同步发送的sid不小于当前最小的sid，则依旧为悬空状态
       return 0; ///完成状态
     }
@@ -726,15 +715,20 @@ int CwxMqDispHandler::syncPackOneBinLog(CwxPackageWriter* writer,
                                         char* szErr2K)
 {
   ///形成binlog发送的数据包
-  if (CWX_MQ_ERR_SUCCESS
-    != CwxMqPoco::packSyncData(writer, block, 0,
+  if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::packSyncData(writer,
+    block,
+    0,
     m_syncSession->m_pCursor->getHeader().getSid(),
-    m_syncSession->m_pCursor->getHeader().getDatetime(), *pData,
-    m_syncSession->m_strSign.c_str(), m_syncSession->m_bZip, ullSeq,
-    szErr2K)) {
-      ///形成数据包失败
-      CWX_ERROR(("Failure to pack binlog package, err:%s", szErr2K));
-      return -1;
+    m_syncSession->m_pCursor->getHeader().getDatetime(),
+    *pData,
+    m_syncSession->m_strSign.c_str(),
+    m_syncSession->m_bZip,
+    ullSeq,
+    szErr2K))
+  {
+    ///形成数据包失败
+    CWX_ERROR(("Failure to pack binlog package, err:%s", szErr2K));
+    return -1;
   }
   return 1;
 }
@@ -750,19 +744,25 @@ int CwxMqDispHandler::syncPackMultiBinLog(CwxPackageWriter* writer,
   if (CWX_MQ_ERR_SUCCESS
     != CwxMqPoco::packSyncDataItem(writer_item,
     m_syncSession->m_pCursor->getHeader().getSid(),
-    m_syncSession->m_pCursor->getHeader().getDatetime(), *pData, NULL,
-    szErr2K)) {
-      ///形成数据包失败
-      CWX_ERROR(("Failure to pack binlog package, err:%s", szErr2K));
-      return -1;
+    m_syncSession->m_pCursor->getHeader().getDatetime(),
+    *pData,
+    NULL,
+    szErr2K))
+  {
+    ///形成数据包失败
+    CWX_ERROR(("Failure to pack binlog package, err:%s", szErr2K));
+    return -1;
   }
-  if (!writer->addKeyValue(CWX_MQ_M, writer_item->getMsg(),
-    writer_item->getMsgSize(), true)) {
-      ///形成数据包失败
-      CwxCommon::snprintf(szErr2K, 2047, "Failure to pack binlog package, err:%s",
-        writer->getErrMsg());
-      CWX_ERROR((szErr2K));
-      return -1;
+  if (!writer->addKeyValue(CWX_MQ_M,
+    writer_item->getMsg(),
+    writer_item->getMsgSize(),
+    true))
+  {
+    ///形成数据包失败
+    CwxCommon::snprintf(szErr2K, 2047, "Failure to pack binlog package, err:%s",
+      writer->getErrMsg());
+    CWX_ERROR((szErr2K));
+    return -1;
   }
   uiLen = CwxPackage::getKvLen(strlen(CWX_MQ_M), writer_item->getMsgSize());
   return 1;
@@ -773,8 +773,7 @@ int CwxMqDispHandler::syncSeekToBinlog(CwxMqTss* tss) {
   int iRet = 0;
   if (m_syncSession->m_bNext) {
     iRet = m_pApp->getBinLogMgr()->next(m_syncSession->m_pCursor);
-    if (0 == iRet)
-      return 0; ///完成状态
+    if (0 == iRet) return 0; ///完成状态
     if (-1 == iRet) { ///<失败
       CwxCommon::snprintf(tss->m_szBuf2K, 2047,
         "Failure to seek cursor, err:%s",
@@ -798,14 +797,12 @@ int CwxMqDispHandler::syncSeekToBinlog(CwxMqTss* tss) {
   m_syncSession->m_bNext = false;
   while (1) {
     if (!tss->m_pReader->unpack(szData, uiDataLen, false, true)) {
-      CWX_ERROR(
-        ("Can't unpack binlog, sid=%s", CwxCommon::toString(m_syncSession->m_pCursor->getHeader().getSid(), tss->m_szBuf2K)));
+      CWX_ERROR(("Can't unpack binlog, sid=%s", CwxCommon::toString(m_syncSession->m_pCursor->getHeader().getSid(), tss->m_szBuf2K)));
     } else {
       ///获取CWX_MQ_D的key，此为真正data数据
       tss->m_pBinlogData = tss->m_pReader->getKey(CWX_MQ_D);
       if (!tss->m_pBinlogData) {
-        CWX_ERROR(
-          ("Can't find key[%s] in binlog, sid=%s", CWX_MQ_D, CwxCommon::toString(m_syncSession->m_pCursor->getHeader().getSid(), tss->m_szBuf2K)));
+        CWX_ERROR(("Can't find key[%s] in binlog, sid=%s", CWX_MQ_D, CwxCommon::toString(m_syncSession->m_pCursor->getHeader().getSid(), tss->m_szBuf2K)));
       } else {
         break;
       }
