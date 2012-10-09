@@ -304,14 +304,14 @@ int CwxMcApp::startSync(CwxHostInfo const& hostInfo){
   pSession->m_bNeedClosed = false;
   pSession->m_pApp = this;
 
-  pSession->m_store = new CwxMcStore(m_config.getLog().m_strPath,
+  pSession->m_store = new CwxMcStore(m_config.getStore().m_strPath,
     hostInfo.getHostName(),
-    m_config.getLog().m_uiLogMSize,
-    m_config.getLog().m_uiSwitchSecond,
-    m_config.getLog().m_uiFlushNum,
-    m_config.getLog().m_uiFlushSecond,
-    m_config.getLog().m_uiReserveDay,
-    m_config.getLog().m_bAppendReturn);
+    m_config.getStore().m_uiLogMSize,
+    m_config.getStore().m_uiSwitchSecond,
+    m_config.getStore().m_uiFlushNum,
+    m_config.getStore().m_uiFlushSecond,
+    m_config.getStore().m_uiReserveDay,
+    m_config.getStore().m_bAppendReturn);
 
   if (0 != pSession->m_store->init()){
     CWX_ERROR(("Failure to init host[%s]'s store, err=%s",

@@ -36,35 +36,35 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
     return -1;
   }
   if ('/' != value[value.length() - 1]) value += "/";
-  m_log.m_strPath = value;
+  m_store.m_strPath = value;
 
   //load log:file_max_mbyte
   if (!cnf.getAttr("log", "file_max_mbyte", value) || !value.length()) {
     snprintf(m_szErrMsg, 2047, "Must set [log:file_max_mbyte].");
     return -1;
   }
-  m_log.m_uiLogMSize = strtoul(value.c_str(), NULL, 10);
-  if (m_log.m_uiLogMSize < CwxMcConfigLog::MIN_LOG_MSIZE) {
-    m_log.m_uiLogMSize = CwxMcConfigLog::MIN_LOG_MSIZE;
+  m_store.m_uiLogMSize = strtoul(value.c_str(), NULL, 10);
+  if (m_store.m_uiLogMSize < CwxMcConfigStore::MIN_LOG_MSIZE) {
+    m_store.m_uiLogMSize = CwxMcConfigStore::MIN_LOG_MSIZE;
   }
-  if (m_log.m_uiLogMSize > CwxMcConfigLog::MAX_LOG_MSIZE) {
-    m_log.m_uiLogMSize = CwxMcConfigLog::MAX_LOG_MSIZE;
+  if (m_store.m_uiLogMSize > CwxMcConfigStore::MAX_LOG_MSIZE) {
+    m_store.m_uiLogMSize = CwxMcConfigStore::MAX_LOG_MSIZE;
   }
   //load log:reserve_day
   if (!cnf.getAttr("log", "reserve_day", value) || !value.length()) {
     snprintf(m_szErrMsg, 2047, "Must set [log:reserve_day].");
     return -1;
   }
-  m_log.m_uiReserveDay = strtoul(value.c_str(), NULL, 10);
+  m_store.m_uiReserveDay = strtoul(value.c_str(), NULL, 10);
   //load log:append_return
   if (!cnf.getAttr("log", "append_return", value) || !value.length()) {
     snprintf(m_szErrMsg, 2047, "Must set [log:append_return].");
     return -1;
   }
   if (value=="yes"){
-    m_log.m_bAppendReturn = true;
+    m_store.m_bAppendReturn = true;
   }else if (value=="no"){
-    m_log.m_bAppendReturn = false;
+    m_store.m_bAppendReturn = false;
   }else{
     snprintf(m_szErrMsg, 2047, "Invalid [log:append_return]'s value[%s], must be yes/no.", value.c_str());
     return -1;
@@ -75,24 +75,24 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
     snprintf(m_szErrMsg, 2047, "Must set [log:file_max_second].");
     return -1;
   }
-  m_log.m_uiSwitchSecond = strtoul(value.c_str(), NULL, 10);
+  m_store.m_uiSwitchSecond = strtoul(value.c_str(), NULL, 10);
   //load log:flush_log_num
   if (!cnf.getAttr("log", "flush_log_num", value) || !value.length()) {
     snprintf(m_szErrMsg, 2047, "Must set [log:flush_log_num].");
     return -1;
   }
-  m_log.m_uiFlushNum = strtoul(value.c_str(), NULL, 10);
-  if (m_log.m_uiFlushNum < 1) {
-    m_log.m_uiFlushNum = 1;
+  m_store.m_uiFlushNum = strtoul(value.c_str(), NULL, 10);
+  if (m_store.m_uiFlushNum < 1) {
+    m_store.m_uiFlushNum = 1;
   }
   //load log:flush_log_second
   if (!cnf.getAttr("log", "flush_log_second", value) || !value.length()) {
     snprintf(m_szErrMsg, 2047, "Must set [log:flush_log_second].");
     return -1;
   }
-  m_log.m_uiFlushSecond = strtoul(value.c_str(), NULL, 10);
-  if (m_log.m_uiFlushSecond < 1) {
-    m_log.m_uiFlushSecond = 1;
+  m_store.m_uiFlushSecond = strtoul(value.c_str(), NULL, 10);
+  if (m_store.m_uiFlushSecond < 1) {
+    m_store.m_uiFlushSecond = 1;
   }
   //fetch mq
   if (!fetchHost(cnf, "mq", m_mq.m_mq)) return -1;
@@ -251,13 +251,13 @@ void CwxMcConfig::outputConfig() const {
   CWX_INFO(("*****************cmn*******************"));
   CWX_INFO(("home=%s", m_common.m_strWorkDir.c_str()));
   CWX_INFO(("monitor=%s:%u", m_common.m_monitor.getHostName().c_str(), m_common.m_monitor.getPort()));
-  CWX_INFO(("*****************log*******************"));
-  CWX_INFO(("path=%s", m_log.m_strPath.c_str()));
-  CWX_INFO(("file_max_mbyte=%u", m_log.m_uiLogMSize));
-  CWX_INFO(("file_max_second=%u", m_log.m_uiSwitchSecond));
-  CWX_INFO(("append_return=%s", m_log.m_bAppendReturn?"yes":"no"));
-  CWX_INFO(("flush_log_num=%u", m_log.m_uiFlushNum));
-  CWX_INFO(("flush_log_second=%u", m_log.m_uiFlushSecond));
+  CWX_INFO(("*****************store*******************"));
+  CWX_INFO(("path=%s", m_store.m_strPath.c_str()));
+  CWX_INFO(("file_max_mbyte=%u", m_store.m_uiLogMSize));
+  CWX_INFO(("file_max_second=%u", m_store.m_uiSwitchSecond));
+  CWX_INFO(("append_return=%s", m_store.m_bAppendReturn?"yes":"no"));
+  CWX_INFO(("flush_log_num=%u", m_store.m_uiFlushNum));
+  CWX_INFO(("flush_log_second=%u", m_store.m_uiFlushSecond));
   CWX_INFO(("*****************mq*******************"));
   CWX_INFO(("name=%s", m_mq.m_strName.c_str()));
   CWX_INFO(("user=%s", m_mq.m_mq.getUser().c_str()));
