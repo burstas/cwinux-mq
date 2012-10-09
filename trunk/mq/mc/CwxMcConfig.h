@@ -23,8 +23,8 @@ public:
   CwxHostInfo m_monitor; ///<监控监听
 };
 
-///配置文件的log参数对象
-class CwxMcConfigLog {
+///配置文件的store参数对象
+class CwxMcConfigStore {
 public:
   enum {
     DEF_LOG_MSIZE = 1024, ///<缺省的binlog大小
@@ -32,7 +32,7 @@ public:
     MAX_LOG_MSIZE = 2048 ///<最大的binlog大小
   };
 public:
-  CwxMcConfigLog() {
+  CwxMcConfigStore() {
     m_uiLogMSize = DEF_LOG_MSIZE;
     m_uiSwitchSecond = 0;
     m_uiFlushNum = 100;
@@ -117,8 +117,8 @@ public:
     return m_common;
   }
   ///获取binlog配置信息
-  inline CwxMcConfigLog const& getLog() const {
-    return m_log;
+  inline CwxMcConfigStore const& getStore() const {
+    return m_store;
   }
   inline CwxMcConfigMq const& getMq() const {
     return m_mq;
@@ -140,7 +140,7 @@ private:
   bool fetchHost(CwxIniParse& cnf, string const& node, CwxHostInfo& host);
 private:
   CwxMcConfigCmn       m_common; ///<common的配置信息
-  CwxMcConfigLog       m_log; ///<log的配置信息
+  CwxMcConfigStore     m_store; ///<log的配置信息
   CwxMcConfigMq        m_mq; ///<mq的配置信息
   CwxMcConfigSync      m_sync; ///<sync的配置信息
   CwxMcConfigSyncHost  m_syncHosts; ///<sync host的配置信息

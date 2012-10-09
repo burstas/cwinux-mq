@@ -66,6 +66,7 @@ extern "C" {
 #define CWX_MQ_KEY_M       "m"
 #define CWX_MQ_KEY_SIGN   "sign"
 #define CWX_MQ_KEY_CRC32  "crc32"
+#define CWX_MQ_KEY_SESSION  "session"
 #define CWX_MQ_KEY_MD5    "md5"
 #define CWX_MQ_KEY_NAME   "name"
 #define CWX_MQ_KEY_AUTH_USER "auth_user"
@@ -179,7 +180,7 @@ int cwx_mq_parse_mq_reply(struct CWX_PG_READER* reader,
  *@param [in] ullSid 同步的sid。
  *@param [in] bNewly 是否从当前binlog开始接收。
  *@param [in] uiChunk chunk的大小，若是0表示不支持chunk，单位为kbyte。
- *@param [in] subscribe 订阅的消息类型。
+ *@param [in] source 同步的source名，若不指定则不按照source同步。
  *@param [in] user 接收的mq的user，若为空，则表示没有用户。
  *@param [in] passwd 接收的mq的passwd，若为空，则表示没有口令。
  *@param [in] sign  接收的mq的签名类型，若为空，则表示不签名。
@@ -194,7 +195,7 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
     CWX_UINT64 ullSid,
     int bNewly,
     CWX_UINT32 uiChunk,
-    char const* subscribe,
+    char const* source,
     char const* user,
     char const* passwd,
     char const* sign,
@@ -208,7 +209,7 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
  *@param [in] ullSid 同步的sid。
  *@param [in] bNewly 是否从当前binlog开始接收。
  *@param [in] uiChunk chunk的大小，若是0表示不支持chunk，单位为kbyte。
- *@param [in] subscribe 订阅的消息类型。
+ *@param [in] source 同步的source。
  *@param [in] user 接收的mq的user，若为空，则表示没有用户。
  *@param [in] passwd 接收的mq的passwd，若为空，则表示没有口令。
  *@param [in] sign  接收的mq的签名类型，若为空，则表示不签名。
@@ -222,7 +223,7 @@ int cwx_mq_parse_sync_report(struct CWX_PG_READER* reader,
     CWX_UINT64* ullSid,
     int* bNewly,
     CWX_UINT32* uiChunk,
-    char const** subscribe,
+    char const** source,
     char const** user,
     char const** passwd,
     char const** sign,
@@ -235,9 +236,7 @@ int cwx_mq_parse_sync_report(struct CWX_PG_READER* reader,
  *@param [in] uiTaskId 收到report的task-id。
  *@param [out] buf 输出形成的数据包。
  *@param [in out] buf_len 传入buf的空间大小，返回形成的数据包的大小。
- *@param [in] ret report失败的错误代码。
- *@param [in] ullSid report的sid。
- *@param [in] szErrMsg report失败的原因。
+ *@param [in] ullSession 同步的session。
  *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
  *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
  */
@@ -245,27 +244,21 @@ int cwx_mq_pack_sync_report_reply(struct CWX_PG_WRITER * writer,
     CWX_UINT32 uiTaskId,
     char* buf,
     CWX_UINT32* buf_len,
-    int ret,
-    CWX_UINT64 ullSid,
-    char const* szErrMsg,
+    CWX_UINT64 ullSession,
     char* szErr2K);
 /**
  *@brief parse mq的report失败时的reply消息包
  *@param [in] reader package的reader。
  *@param [in] msg 接收到的mq消息，不包括msg header。
  *@param [in] msg_len msg的长度。
- *@param [in] ret report失败的错误代码。
- *@param [in] ullSid report的sid。
- *@param [in] szErrMsg report失败的原因。
+ *@param [in] ullSession 同步的session。
  *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
  *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
  */
 int cwx_mq_parse_sync_report_reply(struct CWX_PG_READER* reader,
     char const* msg,
     CWX_UINT32 msg_len,
-    int* ret,
-    CWX_UINT64* ullSid,
-    char const** szErrMsg,
+    CWX_UINT64* ullSession,
     char* szErr2K);
 
 /**
@@ -277,7 +270,6 @@ int cwx_mq_parse_sync_report_reply(struct CWX_PG_READER* reader,
  *@param [in] ullSid 消息的sid。
  *@param [in] uiTimeStamp 消息接收时的时间。
  *@param [in] data 消息的data。
- *@param [in] group 消息的group。
  *@param [in] sign  接收的mq的签名类型，若为空，则表示不签名。
  *@param [in] zip  接收的mq是否压缩，1压缩；0不压缩。
  *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
