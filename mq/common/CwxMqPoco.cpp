@@ -8,8 +8,8 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
                             CwxKeyValueItem const& data,
                             char const* user,
                             char const* passwd,
-                            char const* sign,
-                            bool zip, char* szErr2K)
+                            bool zip,
+                            char* szErr2K)
 {
   writer->beginPack();
   if (!writer->addKeyValue(CWX_MQ_D, data.m_szData, data.m_uiDataLen,
@@ -28,28 +28,6 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
       strcpy(szErr2K, writer->getErrMsg());
     return CWX_MQ_ERR_ERROR;
   }
-  if (sign) {
-    if (strcmp(sign, CWX_MQ_CRC32) == 0) { //CRC32签名
-      CWX_UINT32 uiCrc32 = CwxCrc32::value(writer->getMsg(),
-        writer->getMsgSize());
-      if (!writer->addKeyValue(CWX_MQ_CRC32, (char*) &uiCrc32,
-        sizeof(uiCrc32))) {
-          if (szErr2K)
-            strcpy(szErr2K, writer->getErrMsg());
-          return CWX_MQ_ERR_ERROR;
-      }
-    } else if (strcmp(sign, CWX_MQ_MD5) == 0) { //md5签名
-      CwxMd5 md5;
-      unsigned char szMd5[16];
-      md5.update((unsigned char*) writer->getMsg(), writer->getMsgSize());
-      md5.final(szMd5);
-      if (!writer->addKeyValue(CWX_MQ_MD5, (char*) szMd5, 16)) {
-        if (szErr2K)
-          strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_ERR_ERROR;
-      }
-    }
-  }
   if (!writer->pack()) {
     if (szErr2K)
       strcpy(szErr2K, writer->getErrMsg());
@@ -67,8 +45,10 @@ int CwxMqPoco::packRecvData(CwxPackageWriter* writer,
   unsigned long ulDestLen = writer->getMsgSize() + CWX_MQ_ZIP_EXTRA_BUF;
   if (zip) {
     if (!CwxZlib::zip((unsigned char*) msg->wr_ptr() + CwxMsgHead::MSG_HEAD_LEN,
-      ulDestLen, (unsigned char const*) writer->getMsg(),
-      writer->getMsgSize())) {
+      ulDestLen,
+      (unsigned char const*) writer->getMsg(),
+      writer->getMsgSize()))
+    {
         zip = false;
     }
   }
@@ -139,43 +119,6 @@ int CwxMqPoco::parseRecvData(CwxPackageReader* reader,
     passwd = "";
   } else {
     passwd = pItem->m_szData;
-  }
-  //get crc32
-  if ((pItem = reader->getKey(CWX_MQ_CRC32))) {
-    CWX_UINT32 uiOrgCrc32 = 0;
-    memcpy(&uiOrgCrc32, pItem->m_szData, sizeof(uiOrgCrc32));
-    CWX_UINT32 uiCrc32 = CwxCrc32::value(msg,
-      pItem->m_szKey - msg - CwxPackage::getKeyOffset());
-    if (uiCrc32 != uiOrgCrc32) {
-      if (szErr2K)
-        CwxCommon::snprintf(szErr2K, 2047,
-        "CRC32 signture error. recv signture:%x, local signture:%x",
-        uiOrgCrc32, uiCrc32);
-      return CWX_MQ_ERR_ERROR;
-    }
-  }
-  //get md5
-  if ((pItem = reader->getKey(CWX_MQ_MD5))) {
-    unsigned char szMd5[16];
-    CwxMd5 md5;
-    md5.update((unsigned char*) msg,
-      pItem->m_szKey - msg - CwxPackage::getKeyOffset());
-    md5.final(szMd5);
-    if (memcmp(szMd5, pItem->m_szData, 16) != 0) {
-      if (szErr2K) {
-        char szTmp1[33];
-        char szTmp2[33];
-        CWX_UINT32 i = 0;
-        for (i = 0; i < 16; i++) {
-          sprintf(szTmp1 + i * 2, "%2.2x", (unsigned char) pItem->m_szData[i]);
-          sprintf(szTmp2 + i * 2, "%2.2x", szMd5[i]);
-        }
-        CwxCommon::snprintf(szErr2K, 2047,
-          "MD5 signture error. recv signture:%s, local signture:%s", szTmp1,
-          szTmp2);
-      }
-      return CWX_MQ_ERR_ERROR;
-    }
   }
   return CWX_MQ_ERR_SUCCESS;
 }
@@ -277,7 +220,6 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
                               char const* source,
                               char const* user,
                               char const* passwd,
-                              char const* sign,
                               bool zip,
                               char* szErr2K)
 {
@@ -308,15 +250,6 @@ int CwxMqPoco::packReportData(CwxPackageWriter* writer,
     if (szErr2K)
       strcpy(szErr2K, writer->getErrMsg());
     return CWX_MQ_ERR_ERROR;
-  }
-  if (sign) {
-    if ((strcmp(sign, CWX_MQ_CRC32) == 0) || (strcmp(sign, CWX_MQ_MD5) == 0)) {
-      if (!writer->addKeyValue(CWX_MQ_SIGN, sign, strlen(sign))) {
-        if (szErr2K)
-          strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_ERR_ERROR;
-      }
-    }
   }
   if (zip) {
     if (!writer->addKeyValue(CWX_MQ_ZIP, zip)) {
@@ -350,7 +283,6 @@ int CwxMqPoco::parseReportData(CwxPackageReader* reader,
                                char const*& source,
                                char const*& user,
                                char const*& passwd,
-                               char const*& sign,
                                bool& zip,
                                char* szErr2K)
 {
@@ -386,18 +318,6 @@ int CwxMqPoco::parseReportData(CwxPackageReader* reader,
     passwd = "";
   } else {
     passwd = pItem->m_szData;
-  }
-  //get sign
-  if (!(pItem = reader->getKey(CWX_MQ_SIGN))) {
-    sign = "";
-  } else {
-    if (strcmp(pItem->m_szData, CWX_MQ_CRC32) == 0) {
-      sign = CWX_MQ_CRC32;
-    } else if (strcmp(pItem->m_szData, CWX_MQ_MD5) == 0) {
-      sign = CWX_MQ_MD5;
-    } else {
-      sign = "";
-    }
   }
   CWX_UINT32 uiValue = 0;
   if (!reader->getKey(CWX_MQ_ZIP, uiValue)) {
@@ -517,13 +437,12 @@ int CwxMqPoco::packSyncData(CwxPackageWriter* writer,
                             CWX_UINT64 ullSid,
                             CWX_UINT32 uiTimeStamp,
                             CwxKeyValueItem const& data,
-                            char const* sign,
                             bool zip,
                             CWX_UINT64 ullSeq,
                             char* szErr2K)
 {
   writer->beginPack();
-  int ret = packSyncDataItem(writer, ullSid, uiTimeStamp, data, sign, szErr2K);
+  int ret = packSyncDataItem(writer, ullSid, uiTimeStamp, data, szErr2K);
   if (CWX_MQ_ERR_SUCCESS != ret)
     return ret;
 
@@ -574,7 +493,6 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
                                 CWX_UINT64 ullSid,
                                 CWX_UINT32 uiTimeStamp,
                                 CwxKeyValueItem const& data,
-                                char const* sign,
                                 char* szErr2K)
 {
   writer->beginPack();
@@ -593,28 +511,6 @@ int CwxMqPoco::packSyncDataItem(CwxPackageWriter* writer,
       if (szErr2K)
         strcpy(szErr2K, writer->getErrMsg());
       return CWX_MQ_ERR_ERROR;
-  }
-  if (sign) {
-    if (strcmp(sign, CWX_MQ_CRC32) == 0) { //CRC32签名
-      CWX_UINT32 uiCrc32 = CwxCrc32::value(writer->getMsg(),
-        writer->getMsgSize());
-      if (!writer->addKeyValue(CWX_MQ_CRC32, (char*) &uiCrc32,
-        sizeof(uiCrc32))) {
-          if (szErr2K)
-            strcpy(szErr2K, writer->getErrMsg());
-          return CWX_MQ_ERR_ERROR;
-      }
-    } else if (strcmp(sign, CWX_MQ_MD5) == 0) { //md5签名
-      CwxMd5 md5;
-      unsigned char szMd5[16];
-      md5.update((char unsigned*) writer->getMsg(), writer->getMsgSize());
-      md5.final(szMd5);
-      if (!writer->addKeyValue(CWX_MQ_MD5, (char*) szMd5, 16)) {
-        if (szErr2K)
-          strcpy(szErr2K, writer->getErrMsg());
-        return CWX_MQ_ERR_ERROR;
-      }
-    }
   }
   writer->pack();
   return CWX_MQ_ERR_SUCCESS;
@@ -710,45 +606,7 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
     return CWX_MQ_ERR_ERROR;
   }
   CwxKeyValueItem const* pItem = NULL;
-  //get crc32
-  if ((pItem = reader->getKey(CWX_MQ_CRC32))) {
-    CWX_UINT32 uiOrgCrc32 = 0;
-    memcpy(&uiOrgCrc32, pItem->m_szData, sizeof(uiOrgCrc32));
-    CWX_UINT32 uiCrc32 = CwxCrc32::value(szData,
-      pItem->m_szKey - szData - CwxPackage::getKeyOffset());
-    if (uiCrc32 != uiOrgCrc32) {
-      if (szErr2K)
-        CwxCommon::snprintf(szErr2K, 2047,
-        "CRC32 signture error. recv signture:%x, local signture:%x",
-        uiOrgCrc32, uiCrc32);
-      return CWX_MQ_ERR_ERROR;
-    }
-  }
-  //get md5
-  if ((pItem = reader->getKey(CWX_MQ_MD5))) {
-    unsigned char szMd5[16];
-    CwxMd5 md5;
-    md5.update((unsigned char*) szData,
-      pItem->m_szKey - szData - CwxPackage::getKeyOffset());
-    md5.final(szMd5);
-    if (memcmp(szMd5, pItem->m_szData, 16) != 0) {
-      if (szErr2K) {
-        char szTmp1[33];
-        char szTmp2[33];
-        CWX_UINT32 i = 0;
-        for (i = 0; i < 16; i++) {
-          sprintf(szTmp1 + i * 2, "%2.2x", (unsigned char) pItem->m_szData[i]);
-          sprintf(szTmp2 + i * 2, "%2.2x", szMd5[i]);
-        }
-        CwxCommon::snprintf(szErr2K, 2047,
-          "MD5 signture error. recv signture:%s, local signture:%s", szTmp1,
-          szTmp2);
-      }
-      return CWX_MQ_ERR_ERROR;
-    }
-  }
   return CWX_MQ_ERR_SUCCESS;
-
 }
 
 ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败

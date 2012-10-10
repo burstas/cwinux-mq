@@ -26,10 +26,8 @@ int parseArg(int argc, char**argv) {
         printf("-u: queue's user name.\n");
         printf("-p: queue's user password.\n");
         printf("-q: queue's name.\n");
-        printf(
-          "-b: block sign. with this option, fetch will be blocked if no message; otherwize, it will return right now.\n");
-        printf(
-          "-n: message number to fetch. default is 1. 0 for fetching all.\n");
+        printf("-b: block sign. with this option, fetch will be blocked if no message; otherwize, it will return right now.\n");
+        printf("-n: message number to fetch. default is 1. 0 for fetching all.\n");
         printf("-h: help\n");
         return 0;
       case 'H':

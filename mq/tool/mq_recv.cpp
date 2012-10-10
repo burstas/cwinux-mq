@@ -13,7 +13,6 @@ string g_passwd;
 string g_source;
 CWX_UINT64 g_sid = 0;
 CWX_UINT32 g_num = 1;
-string g_sign;
 bool g_zip = false;
 CWX_UINT32 g_chunk = 0;
 unsigned char g_unzip[CWX_MQ_MAX_CHUNK_KSIZE * 1024 * 2];
@@ -21,7 +20,7 @@ CWX_UINT32 const g_unzip_buf_len = CWX_MQ_MAX_CHUNK_KSIZE * 1024 * 2;
 unsigned long g_unzip_len = 0;
 ///-1：失败；0：help；1：成功
 int parseArg(int argc, char**argv) {
-  CwxGetOpt cmd_option(argc, argv, "H:P:u:p:w:n:m:s:S:c:zh");
+  CwxGetOpt cmd_option(argc, argv, "H:P:u:p:w:n:s:S:c:zh");
   int option;
   while ((option = cmd_option.next()) != -1) {
     switch (option) {
@@ -35,8 +34,6 @@ int parseArg(int argc, char**argv) {
         printf("-s: dispatch's source name.\n");
         printf("-n: recieve message's number, default is 1.zero is all from the sid.\n");
         printf("-z: zip compress sign. no compress by default\n");
-        printf("-m: signature type, %s or %s. no signature by default\n",
-          CWX_MQ_MD5, CWX_MQ_CRC32);
         printf("-S: start sid, zero for the current max sid.\n");
         printf("-c: chunk size in kbyte. default is zero for no chunk.\n");
         printf("-h: help\n");
@@ -95,16 +92,6 @@ int parseArg(int argc, char**argv) {
       case 'z':
         g_zip = true;
         break;
-      case 'm':
-        if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-')) {
-          printf("-s requires an argument.\n");
-          return -1;
-        }
-        g_sign = cmd_option.opt_arg();
-        if ((g_sign != CWX_MQ_CRC32) && (g_sign != CWX_MQ_MD5)) {
-          printf("signature must be %s or %s\n", CWX_MQ_MD5, CWX_MQ_CRC32);
-        }
-        break;
       case 'S':
         if (!cmd_option.opt_arg() || (*cmd_option.opt_arg() == '-')) {
           printf("--sid requires an argument.\n");
@@ -158,28 +145,6 @@ static int output(CwxPackageReader& reader,
   return 0;
 }
 
-static bool checkSign(char const* data,
-                      CWX_UINT32 uiDateLen,
-                      char const* szSign,
-                      char const* sign)
-{
-  if (!sign) return true;
-  if (strcmp(sign, CWX_MQ_CRC32) == 0) //CRC32签名
-  {
-    CWX_UINT32 uiCrc32 = CwxCrc32::value(data, uiDateLen);
-    if (memcmp(&uiCrc32, szSign, sizeof(uiCrc32)) == 0) return true;
-    return false;
-  } else if (strcmp(sign, CWX_MQ_MD5) == 0) {//md5签名
-    CwxMd5 md5;
-    unsigned char szMd5[16];
-    md5.update((const unsigned char*) data, uiDateLen);
-    md5.final(szMd5);
-    if (memcmp(szMd5, szSign, 16) == 0) return true;
-    return false;
-  }
-  return true;
-}
-
 static bool isFinish(CWX_UINT32 num) {
   if (g_num) {
     return (num >= g_num);
@@ -221,7 +186,6 @@ int main(int argc, char** argv) {
       g_source.length() ? g_source.c_str() : NULL,
       g_user.c_str(),
       g_passwd.c_str(),
-      g_sign.c_str(),
       g_zip,
       szErr2K))
     {
@@ -331,24 +295,8 @@ int main(int argc, char** argv) {
           iRet = 1;
           break;
         }
-        int bSign = 0;
-        if (g_sign.length()) {
-          CwxKeyValueItem const* pItem = reader_chunk.getKey(g_sign.c_str());
-          if (pItem) { //存在签名key
-            if (!checkSign(reader_chunk.getMsg(),
-              pItem->m_szKey - CwxPackage::getKeyOffset() - reader_chunk.getMsg() - sizeof(ullSeq),
-              pItem->m_szData,
-              g_sign.c_str()))
-            {
-              printf("failure to check %s signature\n", g_sign.c_str());
-              iRet = 1;
-              break;
-            }
-            bSign = 1;
-          }
-        }
         iRet = 0;
-        for (CWX_UINT16 i = 0; i < reader_chunk.getKeyNum() - bSign; i++) {
+        for (CWX_UINT16 i = 0; i < reader_chunk.getKeyNum(); i++) {
           if (0 != strcmp(reader_chunk.getKey(i)->m_szKey, CWX_MQ_M)) {
             printf("Master multi-binlog's key must be:%s, but:%s", CWX_MQ_M,
               reader_chunk.getKey(i)->m_szKey);

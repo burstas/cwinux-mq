@@ -73,8 +73,8 @@ int CwxMqMasterHandler::createSession(CwxMqTss* pTss) {
     NULL,
     m_pApp->getConfig().getMaster().m_master.getUser().c_str(),
     m_pApp->getConfig().getMaster().m_master.getPasswd().c_str(),
-    m_pApp->getConfig().getMaster().m_strSign.c_str(),
-    m_pApp->getConfig().getMaster().m_bzip, pTss->m_szBuf2K);
+    m_pApp->getConfig().getMaster().m_bzip,
+    pTss->m_szBuf2K);
   if (ret != CWX_MQ_ERR_SUCCESS) {    ///数据包创建失败
     CWX_ERROR(("Failure to create report package, err:%s", pTss->m_szBuf2K));
     closeSession();
@@ -386,22 +386,7 @@ int CwxMqMasterHandler::dealSyncChunkData(CwxMsgBlock*& msg, ///<收到的消息
       return -1;
     }
   }
-  //检测签名
-  int bSign = 0;
-  if (m_pApp->getConfig().getMaster().m_strSign.length()) {
-    CwxKeyValueItem const* pItem = m_reader.getKey(m_pApp->getConfig().getMaster().m_strSign.c_str());
-    if (pItem) {        //存在签名key
-      if (!checkSign(m_reader.getMsg(),
-        pItem->m_szKey - CwxPackage::getKeyOffset() - m_reader.getMsg(),
-        pItem->m_szData, m_pApp->getConfig().getMaster().m_strSign.c_str()))
-      {
-        CWX_ERROR(("Failure to check %s sign", m_pApp->getConfig().getMaster().m_strSign.c_str()));
-        return -1;
-      }
-      bSign = 1;
-    }
-  }
-  for (CWX_UINT32 i = 0; i < m_reader.getKeyNum() - bSign; i++) {
+  for (CWX_UINT32 i = 0; i < m_reader.getKeyNum(); i++) {
     if (0 != strcmp(m_reader.getKey(i)->m_szKey, CWX_MQ_M)) {
       CWX_ERROR(("Master multi-binlog's key must be:%s, but:%s", CWX_MQ_M, m_reader.getKey(i)->m_szKey));
       return -1;
@@ -472,27 +457,6 @@ int CwxMqMasterHandler::saveBinlog(CwxMqTss* pTss,
     return -1;
   }
   return 0;
-}
-
-bool CwxMqMasterHandler::checkSign(char const* data,
-                                   CWX_UINT32 uiDateLen,
-                                   char const* szSign,
-                                   char const* sign)
-{
-  if (!sign) return true;
-  if (strcmp(sign, CWX_MQ_CRC32) == 0) {        //CRC32签名
-    CWX_UINT32 uiCrc32 = CwxCrc32::value(data, uiDateLen);
-    if (memcmp(&uiCrc32, szSign, sizeof(uiCrc32)) == 0) return true;
-    return false;
-  } else if (strcmp(sign, CWX_MQ_MD5) == 0) {        //md5签名
-    CwxMd5 md5;
-    unsigned char szMd5[16];
-    md5.update((const unsigned char*) data, uiDateLen);
-    md5.final(szMd5);
-    if (memcmp(szMd5, szSign, 16) == 0) return true;
-    return false;
-  }
-  return true;
 }
 
 bool CwxMqMasterHandler::prepareUnzipBuf() {

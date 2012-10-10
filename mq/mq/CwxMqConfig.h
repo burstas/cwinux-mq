@@ -108,7 +108,6 @@ public:
 public:
   CwxHostInfo m_master; ///<slave的master的连接信息
   bool m_bzip; ///<是否zip压缩
-  string m_strSign; ///<签名类型
 };
 
 ///配置文件的mq对象

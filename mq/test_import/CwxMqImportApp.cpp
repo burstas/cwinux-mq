@@ -188,7 +188,6 @@ void CwxMqImportApp::sendNextMsg(CWX_UINT32 uiSvrId,
     data,
     m_config.m_strUser.c_str(),
     m_config.m_strPasswd.c_str(),
-    NULL,
     false,
     pTss->m_szBuf2K))
   {

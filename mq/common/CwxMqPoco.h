@@ -59,7 +59,6 @@ public:
     CwxKeyValueItem const& data,
     char const* user =NULL,
     char const* passwd = NULL,
-    char const* sign = NULL,
     bool zip =false,
     char* szErr2K = NULL);
   ///返回值，CWX_MQ_ERR_SUCCESS：成功；其他都是失败
@@ -105,7 +104,6 @@ public:
     char const* source = NULL,
     char const* user = NULL,
     char const* passwd = NULL,
-    char const* sign = NULL,
     bool zip = false,
     char* szErr2K = NULL);
   ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
@@ -117,7 +115,6 @@ public:
     char const*& source,
     char const*& user,
     char const*& passwd,
-    char const*& sign,
     bool& zip,
     char* szErr2K = NULL);
   ///返回值：CWX_MQ_ERR_SUCCESS：成功；其他都是失败
@@ -149,7 +146,6 @@ public:
     CWX_UINT64 ullSid,
     CWX_UINT32 uiTimeStamp,
     CwxKeyValueItem const& data,
-    char const* sign,
     bool zip,
     CWX_UINT64 ullSeq,
     char* szErr2K = NULL);
@@ -158,7 +154,6 @@ public:
     CWX_UINT64 ullSid,
     CWX_UINT32 uiTimeStamp,
     CwxKeyValueItem const& data,
-    char const* sign = NULL,
     char* szErr2K = NULL);
   static int packMultiSyncData(CWX_UINT32 uiTaskId,
     char const* szData,
