@@ -79,7 +79,6 @@ public:
   CWX_UINT32    m_uiChunkKBye; ///<chunk的大小
   CWX_UINT32    m_uiConnNum; ///<同步的连接数量
   bool          m_bzip; ///<是否压缩
-  string        m_strSign; ///<签名的类型，为crc32或md5
 };
 
 ///分发的参数配置对象

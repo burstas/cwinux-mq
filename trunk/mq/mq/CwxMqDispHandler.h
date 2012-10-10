@@ -59,7 +59,6 @@ public:
   CWX_UINT64 m_ullStartSid; ///<report的sid
   CWX_UINT64 m_ullSid; ///<当前发送到的sid
   bool m_bNext; ///<是否发送下一个消息
-  string m_strSign; ///<签名类型
   bool m_bZip; ///<是否压缩
   string m_strHost; ///<session的来源主机
   string m_strSource; ///<source的名字

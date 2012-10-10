@@ -22,8 +22,6 @@ extern "C" {
 #include "cwx_package_reader.h"
 #include "cwx_package_writer.h"
 #include "cwx_msg_header.h"
-#include "cwx_md5.h"
-#include "cwx_crc32.h"
 
 ///协议的消息类型定义
 ///RECV服务类型的消息类型定义
@@ -56,29 +54,19 @@ extern "C" {
 #define CWX_MQ_KEY_SID  "sid"
 #define CWX_MQ_KEY_ERR  "err"
 #define CWX_MQ_KEY_B "b"
-#define CWX_MQ_KEY_T  "timestamp"
-#define CWX_MQ_KEY_U  "user"
-#define CWX_MQ_KEY_P "passwd"
+#define CWX_MQ_KEY_T  "t"
+#define CWX_MQ_KEY_U  "u"
+#define CWX_MQ_KEY_P "p"
 #define CWX_MQ_KEY_SOURCE "source"
 #define CWX_MQ_KEY_Q "q"
 #define CWX_MQ_KEY_G "g"
 #define CWX_MQ_KEY_CHUNK "chunk"
 #define CWX_MQ_KEY_M       "m"
-#define CWX_MQ_KEY_SIGN   "sign"
-#define CWX_MQ_KEY_CRC32  "crc32"
 #define CWX_MQ_KEY_SESSION  "session"
-#define CWX_MQ_KEY_MD5    "md5"
 #define CWX_MQ_KEY_NAME   "name"
 #define CWX_MQ_KEY_AUTH_USER "auth_user"
 #define CWX_MQ_KEY_AUTH_PASSWD "auth_passwd"
-#define CWX_MQ_KEY_COMMIT  "commit"
-#define CWX_MQ_KEY_TIMEOUT "timeout"
-#define CWX_MQ_KEY_DEF_TIMEOUT "def_timeout"
-#define CWX_MQ_KEY_MAX_TIMEOUT "max_timeout"
-#define CWX_MQ_KEY_COMMIT "commit"
-#define CWX_MQ_KEY_UNCOMMIT "uncommit"
 #define CWX_MQ_KEY_ZIP     "zip"
-#define CWX_MQ_KEY_DELAY   "delay"
 
 ///协议错误代码定义
 #define CWX_MQ_ERR_SUCCESS          0  ///<成功
@@ -96,7 +84,6 @@ extern "C" {
  *@param [in] type msg的type。
  *@param [in] user 接收mq的user，若为空，则表示没有用户。
  *@param [in] passwd 接收mq的passwd，若为空，则表示没有口令。
- *@param [in] sign  接收的mq的签名类型，若为空，则表示不签名。
  *@param [in] zip  是否对数据压缩，1：压缩；0：不压缩。
  *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
  *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
@@ -108,7 +95,6 @@ int cwx_mq_pack_mq(struct CWX_PG_WRITER * writer,
     struct CWX_KEY_VALUE_ITEM_S const* data,
     char const* user,
     char const* passwd,
-    char const* sign,
     int zip,
     char* szErr2K
 );
@@ -198,7 +184,6 @@ int cwx_mq_pack_sync_report(struct CWX_PG_WRITER * writer,
     char const* source,
     char const* user,
     char const* passwd,
-    char const* sign,
     int zip,
     char* szErr2K);
 /**
@@ -226,7 +211,6 @@ int cwx_mq_parse_sync_report(struct CWX_PG_READER* reader,
     char const** source,
     char const** user,
     char const** passwd,
-    char const** sign,
     int* zip,
     char* szErr2K);
 
@@ -270,8 +254,8 @@ int cwx_mq_parse_sync_report_reply(struct CWX_PG_READER* reader,
  *@param [in] ullSid 消息的sid。
  *@param [in] uiTimeStamp 消息接收时的时间。
  *@param [in] data 消息的data。
- *@param [in] sign  接收的mq的签名类型，若为空，则表示不签名。
  *@param [in] zip  接收的mq是否压缩，1压缩；0不压缩。
+ *@param [in] ullSeq 消息的序列号。
  *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
  *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
  */
@@ -282,9 +266,8 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
     CWX_UINT64 ullSid,
     CWX_UINT32 uiTimeStamp,
     struct CWX_KEY_VALUE_ITEM_S const* data,
-    CWX_UINT32 group,
-    char const* sign,
     int zip,
+    CWX_UINT64 ullSeq,
     char* szErr2K);
 /**
  *@brief parse mq的sync msg的消息包
@@ -294,7 +277,6 @@ int cwx_mq_pack_sync_data(struct CWX_PG_WRITER * writer,
  *@param [out] ullSid 消息的sid。
  *@param [out] uiTimeStamp 消息接收时的时间。
  *@param [out] data 消息的data。
- *@param [out] group 消息的group。
  *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
  *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
  */
@@ -304,7 +286,6 @@ int cwx_mq_parse_sync_data(struct CWX_PG_READER* reader,
     CWX_UINT64* ullSid,
     CWX_UINT32* uiTimeStamp,
     struct CWX_KEY_VALUE_ITEM_S const** data,
-    CWX_UINT32* group,
     char* szErr2K);
 
 /**
@@ -313,7 +294,7 @@ int cwx_mq_parse_sync_data(struct CWX_PG_READER* reader,
  *@param [in] uiTaskId task-id。
  *@param [out] buf 输出形成的数据包。
  *@param [in out] buf_len 传入buf的空间大小，返回形成的数据包的大小。
- *@param [in] ullSid 消息的sid。
+ *@param [in] ullSeq 消息的序列号。
  *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
  *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
  */
@@ -321,21 +302,21 @@ int cwx_mq_pack_sync_data_reply(struct CWX_PG_WRITER * writer,
     CWX_UINT32 uiTaskId,
     char* buf,
     CWX_UINT32* buf_len,
-    CWX_UINT64 ullSid,
+    CWX_UINT64 ullSeq,
     char* szErr2K);
 /**
  *@brief parse mq的sync msg的消息包的回复
  *@param [in] reader package的reader。
  *@param [in] msg 接收到的mq消息，不包括msg header。
  *@param [in] msg_len msg的长度。
- *@param [in] ullSid 消息的sid。
+ *@param [out] ullSeq 消息的序列号。
  *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
  *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
  */
 int cwx_mq_parse_sync_data_reply(struct CWX_PG_READER* reader,
     char const* msg,
     CWX_UINT32 msg_len,
-    CWX_UINT64* ullSid,
+    CWX_UINT64* ullSeq,
     char* szErr2K);
 
 /**
@@ -358,7 +339,6 @@ int cwx_mq_pack_fetch_mq(struct CWX_PG_WRITER * writer,
     char const* queue_name,
     char const* user,
     char const* passwd,
-    CWX_UINT32 timeout,
     char* szErr2K);
 /**
  *@brief parse  mq的fetch msg的消息包
@@ -369,7 +349,6 @@ int cwx_mq_pack_fetch_mq(struct CWX_PG_WRITER * writer,
  *@param [in] queue_name 队列的名字。
  *@param [in] user 接收的mq的user，若为空，则表示没有用户。
  *@param [in] passwd 接收的mq的passwd，若为空，则表示没有口令。
- *@param [in] timeout commit队列的超时时间，若为0表示采用默认超时时间，单位为s。
  *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
  *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
  */
@@ -380,7 +359,6 @@ int cwx_mq_parse_fetch_mq(struct CWX_PG_READER* reader,
     char const** queue_name,
     char const** user,
     char const** passwd,
-    CWX_UINT32* timeout,
     char* szErr2K);
 
 /**
@@ -390,10 +368,7 @@ int cwx_mq_parse_fetch_mq(struct CWX_PG_READER* reader,
  *@param [in out] buf_len 传入buf的空间大小，返回形成的数据包的大小。
  *@param [in] ret 获取mq消息的状态码。
  *@param [in] szErrMsg 状态不是CWX_MQ_ERR_SUCCESS的错误消息。
- *@param [in] ullSid 成功时，返回消息的sid。
- *@param [in] uiTimeStamp 成功时，返回消息的时间戳。
  *@param [in] data 成功时，返回消息的data。
- *@param [in] group 成功时，返回消息的group。
  *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
  *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
  */
@@ -402,10 +377,7 @@ int cwx_mq_pack_fetch_mq_reply(struct CWX_PG_WRITER * writer,
     CWX_UINT32* buf_len,
     int ret,
     char const* szErrMsg,
-    CWX_UINT64 ullSid,
-    CWX_UINT32 uiTimeStamp,
     struct CWX_KEY_VALUE_ITEM_S const* data,
-    CWX_UINT32 group,
     char* szErr2K);
 /**
  *@brief parse  mq的fetch msg的reply消息包
@@ -414,10 +386,7 @@ int cwx_mq_pack_fetch_mq_reply(struct CWX_PG_WRITER * writer,
  *@param [in] msg_len msg的长度。
  *@param [in] ret 获取mq消息的状态码。
  *@param [in] szErrMsg 状态不是CWX_MQ_ERR_SUCCESS的错误消息。
- *@param [in] ullSid 成功时，返回消息的sid。
- *@param [in] uiTimeStamp 成功时，返回消息的时间戳。
  *@param [in] data 成功时，返回消息的data。
- *@param [in] group 成功时，返回消息的group。
  *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
  *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
  */
@@ -426,78 +395,9 @@ int cwx_mq_parse_fetch_mq_reply(struct CWX_PG_READER* reader,
     CWX_UINT32 msg_len,
     int* ret,
     char const** szErrMsg,
-    CWX_UINT64* ullSid,
-    CWX_UINT32* uiTimeStamp,
     struct CWX_KEY_VALUE_ITEM_S const** data,
-    CWX_UINT32* group,
     char* szErr2K);
 
-/**
- *@brief pack commit类型队列的commit消息
- *@param [in] writer package的writer。
- *@param [out] buf 输出形成的数据包。
- *@param [in out] buf_len 传入buf的空间大小，返回形成的数据包的大小。
- *@param [in] commit 是否commit。1：commit；0：取消commit
- *@param [in] delay uncommit是，delay的秒数。
- *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
- *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
- */
-int cwx_mq_pack_fetch_mq_commit(struct CWX_PG_WRITER * writer,
-    char* buf,
-    CWX_UINT32* buf_len,
-    int commit,
-    CWX_UINT32 delay,
-    char* szErr2K);
-
-/**
- *@brief parse  commit类型队列的commit消息
- *@param [in] reader package的reader。
- *@param [in] msg 接收到的mq消息，不包括msg header。
- *@param [in] msg_len msg的长度。
- *@param [out] commit 是否commit。1：commit；0：取消commit
- *@param [out] delay uncommit是，delay的秒数。
- *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
- *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
- */
-int cwx_mq_parse_fetch_mq_commit(struct CWX_PG_READER* reader,
-    char const* msg,
-    CWX_UINT32 msg_len,
-    int* commit,
-    CWX_UINT32* delay,
-    char* szErr2K);
-
-/**
- *@brief pack commit类型队列的commit reply消息
- *@param [in] writer package的writer。
- *@param [out] buf 输出形成的数据包。
- *@param [in out] buf_len 传入buf的空间大小，返回形成的数据包的大小。
- *@param [in] ret 错误代码
- *@param [in] szErrMsg 错误消息
- *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
- *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
- */
-int cwx_mq_pack_fetch_mq_commit_reply(struct CWX_PG_WRITER * writer,
-    char* buf,
-    CWX_UINT32* buf_len,
-    int ret,
-    char const* szErrMsg,
-    char* szErr2K);
-/**
- *@brief parse  commit类型队列的commit reply消息
- *@param [in] reader package的reader。
- *@param [in] msg 接收到的mq消息，不包括msg header。
- *@param [in] msg_len msg的长度。
- *@param [out] ret commit的返回code
- *@param [out] szErrMsg commit失败时的错误消息
- *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
- *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
- */
-int cwx_mq_parse_fetch_mq_commit_reply(struct CWX_PG_READER* reader,
-    char const* msg,
-    CWX_UINT32 msg_len,
-    int* ret,
-    char const** szErrMsg,
-    char* szErr2K);
 /**
  *@brief pack create queue的消息
  *@param [in] writer package的writer。
@@ -506,13 +406,9 @@ int cwx_mq_parse_fetch_mq_commit_reply(struct CWX_PG_READER* reader,
  *@param [in] name 队列的名字
  *@param [in] user 队列的用户名
  *@param [in] passwd 队列的用户口令
- *@param [in] scribe 队列的消息订阅规则
  *@param [in] auth_user mq监听的用户名
  *@param [in] auth_passwd mq监听的用户口令
  *@param [in] ullSid 队列开始的sid，若为0,则采用当前最大的sid
- *@param [in] commit 是否为commit类型的队列，1：是，0：不是。
- *@param [in] uiDefTimeout 消息队列的缺省超时时间，若是0，则采用系统默认缺省超时时间。单位为s。
- *@param [in] uiMaxTimeout 消息队列的最大超时时间，若是0，则采用系统默认最大超时时间。单位为s。
  *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
  *@return CWX_MQ_ERR_SUCCESS：成功；其他都是失败
  */
@@ -522,13 +418,9 @@ int cwx_mq_pack_create_queue(struct CWX_PG_WRITER * writer,
     char const* name,
     char const* user,
     char const* passwd,
-    char const* scribe,
     char const* auth_user,
     char const* auth_passwd,
     CWX_UINT64 ullSid,
-    int commit,
-    CWX_UINT32 uiDefTimeout,
-    CWX_UINT32 uiMaxTimeout,
     char* szErr2K);
 
 /**
@@ -539,13 +431,9 @@ int cwx_mq_pack_create_queue(struct CWX_PG_WRITER * writer,
  *@param [out] name 队列的名字
  *@param [out] user 队列的用户名
  *@param [out] passwd 队列的用户口令
- *@param [out] scribe 队列的消息订阅规则
  *@param [out] auth_user mq监听的用户名
  *@param [out] auth_passwd mq监听的用户口令
  *@param [out] ullSid 队列开始的sid，若为0,则采用当前最大的sid
- *@param [out] commit 是否为commit类型的队列，1：是，0：不是。
- *@param [out] uiDefTimeout 消息队列的缺省超时时间，若是0，则采用系统默认缺省超时时间。单位为s。
- *@param [out] uiMaxTimeout 消息队列的最大超时时间，若是0，则采用系统默认最大超时时间。单位为s。
  *@param [out] szErr2K 出错时的错误消息，若为空则表示不获取错误消息。
  **/
 int cwx_mq_parse_create_queue(struct CWX_PG_READER* reader,
@@ -554,13 +442,9 @@ int cwx_mq_parse_create_queue(struct CWX_PG_READER* reader,
     char const** name,
     char const** user,
     char const** passwd,
-    char const** scribe,
     char const** auth_user,
     char const** auth_passwd,
     CWX_UINT64* ullSid,
-    int* commit,
-    CWX_UINT32* uiDefTimeout,
-    CWX_UINT32* uiMaxTimeout,
     char* szErr2K);
 
 /**
@@ -675,6 +559,11 @@ int cwx_mq_parse_del_queue_reply(struct CWX_PG_READER* reader,
     int* ret,
     char const** szErrMsg,
     char* szErr2K);
+
+///设置数据同步包的seq号
+void cwx_mq_set_seq(char* szBuf, CWX_UINT64 ullSeq);
+///获取数据同步包的seq号
+CWX_UINT64 cwx_mq_get_seq(char const* szBuf);
 
 #ifdef __cplusplus
 }

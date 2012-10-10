@@ -148,11 +148,6 @@ private:
   int dealErrMsg(CwxMsgBlock*& msg);
   //0：成功；-1：失败
   int saveBinlog(char const* szBinLog, CWX_UINT32 uiLen);
-  //检查签名。true：成功；false：失败
-  bool checkSign(char const* data,
-    CWX_UINT32 uiDateLen,
-    char const* szSign,
-    char const* sign);
   // 获取压缩的buf大小
   inline CWX_UINT32 getBufLen() const{
     return CWX_MQ_MAX_CHUNK_KSIZE  * 1024 + CWX_MQ_MAX_MSG_SIZE;

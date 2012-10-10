@@ -154,17 +154,6 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
     else
       m_sync.m_bzip = false;
   }
-  //load sync:sign
-  if (!cnf.getAttr("sync", "sign", value) || !value.length()) {
-    m_sync.m_strSign = "";
-  } else {
-    if (value == CWX_MQ_CRC32)
-      m_sync.m_strSign = CWX_MQ_CRC32;
-    else if (value == CWX_MQ_MD5)
-      m_sync.m_strSign = CWX_MQ_MD5;
-    else
-      m_sync.m_strSign = "";
-  }
   return 0;
 }
 
@@ -271,7 +260,6 @@ void CwxMcConfig::outputConfig() const {
   CWX_INFO(("max_chunk_kbyte=%d", m_sync.m_uiChunkKBye));
   CWX_INFO(("sync_conn_num=%d",m_sync.m_uiConnNum));
   CWX_INFO(("zip=%u", m_sync.m_bzip?"yes":"no"));
-  CWX_INFO(("sign=%s", m_sync.m_strSign.c_str()));
   CWX_INFO(("*****************END   CONFIG *******************"));
 }
 

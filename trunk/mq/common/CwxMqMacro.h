@@ -35,20 +35,11 @@ CWINUX_USING_NAMESPACE
 #define CWX_MQ_G    "g" ///<group的key
 #define CWX_MQ_CHUNK "chunk"
 #define CWX_MQ_M     "m"
-#define CWX_MQ_SIGN   "sign"
 #define CWX_MQ_SESSION "session"
-#define CWX_MQ_CRC32  "crc32"
-#define CWX_MQ_MD5    "md5"
 #define CWX_MQ_NAME   "name"
 #define CWX_MQ_AUTH_USER "auth_user"
 #define CWX_MQ_AUTH_PASSWD "auth_passwd"
-#define CWX_MQ_COMMIT  "commit"
-#define CWX_MQ_TIMEOUT "timeout"
-#define CWX_MQ_DEF_TIMEOUT "def_timeout"
-#define CWX_MQ_MAX_TIMEOUT "max_timeout"
-#define CWX_MQ_UNCOMMIT "uncommit"
 #define CWX_MQ_ZIP     "zip"
-#define CWX_MQ_DELAY   "delay"
 ///错误代码定义
 #define CWX_MQ_ERR_SUCCESS          0  ///<成功
 #define CWX_MQ_ERR_ERROR            1  ///<错误

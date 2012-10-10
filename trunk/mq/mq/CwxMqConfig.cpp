@@ -204,17 +204,6 @@ int CwxMqConfig::loadConfig(string const & strConfFile) {
       else
         m_master.m_bzip = false;
     }
-    //load master:sign
-    if (!cnf.getAttr("master", "sign", value) || !value.length()) {
-      m_master.m_strSign = "";
-    } else {
-      if (value == CWX_MQ_CRC32)
-        m_master.m_strSign = CWX_MQ_CRC32;
-      else if (value == CWX_MQ_MD5)
-        m_master.m_strSign = CWX_MQ_MD5;
-      else
-        m_master.m_strSign = "";
-    }
   }
   //fetch mq:mq
   if (cnf.isExistSection("mq")) {
@@ -328,7 +317,6 @@ void CwxMqConfig::outputConfig() const {
     CWX_INFO(("passwd=%s", m_master.m_master.getPasswd().c_str()));
     CWX_INFO(("listen=%s:%u", m_master.m_master.getHostName().c_str(), m_master.m_master.getPort()));
     CWX_INFO(("zip=%s", m_master.m_bzip?"yes":"no"));
-    CWX_INFO(("sign=%s", m_master.m_strSign.c_str()));
   }
   {
     CWX_INFO(("*****************mq*******************"));
