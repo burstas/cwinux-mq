@@ -605,7 +605,6 @@ int CwxMqPoco::parseSyncData(CwxPackageReader* reader,
       CwxCommon::snprintf(szErr2K, 2047, "No key[%s] in recv page.", CWX_MQ_D);
     return CWX_MQ_ERR_ERROR;
   }
-  CwxKeyValueItem const* pItem = NULL;
   return CWX_MQ_ERR_SUCCESS;
 }
 
