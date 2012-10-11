@@ -73,7 +73,7 @@ int CwxMqConnector::connect(CwxINetAddr const& addr,
       fd[i] = stream.getHandle();
       stream.setHandle(CWX_INVALID_HANDLE);
       // Enable non-blocking, if required.
-      if ((timeout != 0) && (CwxSockStream::setNonblock(fd[i], false) == -1)) {
+      if ((timeout != 0) && (CwxSockStream::setNonblock(fd[i], true) == -1)) {
         break;
       }
       if (fn && (0 != fn(fd[i], fnArg))) {
@@ -93,14 +93,12 @@ int CwxMqConnector::connect(CwxINetAddr const& addr,
       if (result != -1 || errno == EISCONN) {
         // Start out with non-blocking disabled on the new_stream.
         result = CwxSockStream::setNonblock(fd[i], false);
-        if (result == -1)
-          break;
-      } else if (!(errno == EWOULDBLOCK || errno == ETIMEDOUT)) {
+        if (result == -1) break;
+      } else if (!(errno == EWOULDBLOCK || errno == EINPROGRESS)) {
         break;
       }
     }
-    if (i < unConnNum)
-      break;
+    if (i < unConnNum) break;
     bRet = true;
   } while (0);
 
