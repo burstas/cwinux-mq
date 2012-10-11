@@ -30,17 +30,17 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
     }
   }
 
-  //load log:path
-  if (!cnf.getAttr("log", "path", value) || !value.length()) {
-    snprintf(m_szErrMsg, 2047, "Must set [log:path].");
+  //load store:path
+  if (!cnf.getAttr("store", "path", value) || !value.length()) {
+    snprintf(m_szErrMsg, 2047, "Must set [store:path].");
     return -1;
   }
   if ('/' != value[value.length() - 1]) value += "/";
   m_store.m_strPath = value;
 
-  //load log:file_max_mbyte
-  if (!cnf.getAttr("log", "file_max_mbyte", value) || !value.length()) {
-    snprintf(m_szErrMsg, 2047, "Must set [log:file_max_mbyte].");
+  //load store:file_max_mbyte
+  if (!cnf.getAttr("store", "file_max_mbyte", value) || !value.length()) {
+    snprintf(m_szErrMsg, 2047, "Must set [store:file_max_mbyte].");
     return -1;
   }
   m_store.m_uiLogMSize = strtoul(value.c_str(), NULL, 10);
@@ -50,15 +50,15 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
   if (m_store.m_uiLogMSize > CwxMcConfigStore::MAX_LOG_MSIZE) {
     m_store.m_uiLogMSize = CwxMcConfigStore::MAX_LOG_MSIZE;
   }
-  //load log:reserve_day
-  if (!cnf.getAttr("log", "reserve_day", value) || !value.length()) {
-    snprintf(m_szErrMsg, 2047, "Must set [log:reserve_day].");
+  //load store:reserve_day
+  if (!cnf.getAttr("store", "reserve_day", value) || !value.length()) {
+    snprintf(m_szErrMsg, 2047, "Must set [store:reserve_day].");
     return -1;
   }
   m_store.m_uiReserveDay = strtoul(value.c_str(), NULL, 10);
-  //load log:append_return
-  if (!cnf.getAttr("log", "append_return", value) || !value.length()) {
-    snprintf(m_szErrMsg, 2047, "Must set [log:append_return].");
+  //load store:append_return
+  if (!cnf.getAttr("store", "append_return", value) || !value.length()) {
+    snprintf(m_szErrMsg, 2047, "Must set [store:append_return].");
     return -1;
   }
   if (value=="yes"){
@@ -66,28 +66,28 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
   }else if (value=="no"){
     m_store.m_bAppendReturn = false;
   }else{
-    snprintf(m_szErrMsg, 2047, "Invalid [log:append_return]'s value[%s], must be yes/no.", value.c_str());
+    snprintf(m_szErrMsg, 2047, "Invalid [store:append_return]'s value[%s], must be yes/no.", value.c_str());
     return -1;
 
   }
-  //load log:file_max_second
-  if (!cnf.getAttr("log", "file_max_second", value) || !value.length()) {
-    snprintf(m_szErrMsg, 2047, "Must set [log:file_max_second].");
+  //load store:file_max_second
+  if (!cnf.getAttr("store", "file_max_second", value) || !value.length()) {
+    snprintf(m_szErrMsg, 2047, "Must set [store:file_max_second].");
     return -1;
   }
   m_store.m_uiSwitchSecond = strtoul(value.c_str(), NULL, 10);
-  //load log:flush_log_num
-  if (!cnf.getAttr("log", "flush_log_num", value) || !value.length()) {
-    snprintf(m_szErrMsg, 2047, "Must set [log:flush_log_num].");
+  //load store:flush_log_num
+  if (!cnf.getAttr("store", "flush_log_num", value) || !value.length()) {
+    snprintf(m_szErrMsg, 2047, "Must set [store:flush_log_num].");
     return -1;
   }
   m_store.m_uiFlushNum = strtoul(value.c_str(), NULL, 10);
   if (m_store.m_uiFlushNum < 1) {
     m_store.m_uiFlushNum = 1;
   }
-  //load log:flush_log_second
-  if (!cnf.getAttr("log", "flush_log_second", value) || !value.length()) {
-    snprintf(m_szErrMsg, 2047, "Must set [log:flush_log_second].");
+  //load store:flush_log_second
+  if (!cnf.getAttr("store", "flush_log_second", value) || !value.length()) {
+    snprintf(m_szErrMsg, 2047, "Must set [store:flush_log_second].");
     return -1;
   }
   m_store.m_uiFlushSecond = strtoul(value.c_str(), NULL, 10);
