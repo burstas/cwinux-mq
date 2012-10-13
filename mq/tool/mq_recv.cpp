@@ -222,7 +222,7 @@ int main(int argc, char** argv) {
         }
         printf("receive report reply seq=%s\n", CwxCommon::toString(ullSessionId, szErr2K, 10));
         iRet = 0;
-        break;
+        continue;
       } else if (CwxMqPoco::MSG_TYPE_SYNC_DATA == head.getMsgType()) {
         ullSeq = CwxMqPoco::getSeq(block->rd_ptr());
         if (head.isAttr(CwxMsgHead::ATTR_COMPRESS)) {
