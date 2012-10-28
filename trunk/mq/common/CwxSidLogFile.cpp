@@ -195,7 +195,7 @@ void CwxSidLogFile::timeout(CWX_UINT32 uiNow) {
 ///强行fsync日志文件；
 void CwxSidLogFile::syncFile() {
   if (m_uiCurLogCount && m_fd) {
-    ::fsync(fileno(m_fd));
+    ::fflush(m_fd);
     m_uiCurLogCount = 0;
     m_uiLastSyncTime = time(NULL);
   }

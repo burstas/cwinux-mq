@@ -108,7 +108,7 @@ private:
   ///关闭文件
   inline void closeFile(bool bSync = true) {
     if (m_fd) {
-      if (bSync) ::fsync(fileno(m_fd));
+      if (bSync) ::fflush(m_fd);
       if (m_bLock) {
         CwxFile::unlock(fileno(m_fd));
         m_bLock = false;
