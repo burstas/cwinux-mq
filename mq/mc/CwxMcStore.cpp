@@ -108,7 +108,7 @@ void CwxMcStore::flush() {
   if (m_fd) {
     m_uiCurUnflushLogNum = 0;
     m_uiCurFlushTimestamp = time(NULL);
-    ::fsync(fileno(m_fd));
+    ::fflush(m_fd);
   }
 }
 /// 检查flush的时间间隔
