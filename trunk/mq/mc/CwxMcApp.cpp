@@ -311,7 +311,8 @@ int CwxMcApp::startSync(CwxHostInfo const& hostInfo){
     m_config.getStore().m_uiFlushNum,
     m_config.getStore().m_uiFlushSecond,
     m_config.getStore().m_uiReserveDay,
-    m_config.getStore().m_bAppendReturn);
+    m_config.getStore().m_bAppendReturn,
+    m_config.getStore().m_strRecordPrefix);
 
   if (0 != pSession->m_store->init()){
     CWX_ERROR(("Failure to init host[%s]'s store, err=%s",

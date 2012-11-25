@@ -82,6 +82,15 @@ int CwxMcStore::append(CWX_UINT32 uiTime, char const* szData, CWX_UINT32 uiDataL
   if (isCreateNewFile(uiTime, uiDataLen)){
     if (!createLogFile(uiTime)) return -1;
   }
+  if (m_uiRecordPrefixLen){
+    sprintf(m_szRecordPrefixBuf + m_uiRecordPrefixLen, "%-10u", 
+      uiDataLen);
+    if (m_uiRecordPrefixLen + 10 != ::fwrite(m_szRecordPrefixBuf, 1, m_uiRecordPrefixLen + 10, m_fd)){
+      CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to write file:%s, errno=%d",
+        m_strCurFileName.c_str(), errno);
+      return -1;
+    }
+  }
   if (uiDataLen != ::fwrite(szData, 1, uiDataLen, m_fd)){
     CwxCommon::snprintf(m_szErrMsg, 2047, "Failure to write file:%s, errno=%d",
       m_strCurFileName.c_str(), errno);
