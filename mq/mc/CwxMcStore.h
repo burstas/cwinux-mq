@@ -29,7 +29,8 @@ public:
     CWX_UINT32 uiMaxUnflushLogNum,
     CWX_UINT32 uiMaxUnflushSecond,
     CWX_UINT32 uiReserveDay, ///<保存日志文件的天数，0表示全部保存
-    bool bAppendReturn ///<是否在日志后append回车
+    bool bAppendReturn, ///<是否在日志后append回车
+    string strRecordPrefix ///<在记录头添加的prefix
     )
   {
     m_strPrefix = strPrefix;
@@ -56,6 +57,16 @@ public:
     m_uiMaxUnflushSecond = uiMaxUnflushSecond;
     m_uiReserveDay = uiReserveDay;
     m_bAppendReturn = bAppendReturn;
+    m_strRecordPrefix = strRecordPrefix;
+    if (m_strRecordPrefix.length()){
+      m_szRecordPrefixBuf = new char[m_strRecordPrefix.length() + 1 + 16];
+      strcpy(m_szRecordPrefixBuf, m_strRecordPrefix.c_str(), m_strRecordPrefix.length());
+      m_szRecordPrefixBuf[m_strRecordPrefix.length()] = ':';
+      m_uiRecordPrefixLen = m_strRecordPrefix.length() + 1;
+    }else{
+      m_szRecordPrefixBuf = NULL;
+      m_uiRecordPrefixLen = 0;
+    }
     m_uiCurFileSeq = 0;
     m_offCurFileSize = 0;
     m_uiCurFileStartTime = 0;
@@ -72,6 +83,7 @@ public:
       ::fclose(m_fd);
       m_fd = NULL;
     }
+    if (m_szRecordPrefixBuf) delete [] m_szRecordPrefixBuf;
   }
 public:
   /// 存储初始化。0：成功；-1：失败
@@ -117,6 +129,9 @@ public:
   CWX_UINT32  m_uiMaxUnflushSecond; ///<日志的flush时间间隔
   CWX_UINT32   m_uiReserveDay; ///<保存日志文件的天数
   bool        m_bAppendReturn; ///<是否增加回车符
+  string      m_strRecordPrefix; ///<若不为空，则添加prefix
+  char*       m_szRecordPrefixBuf; ///<Record Prefix的buf
+  CWX_UINT32   m_uiRecordPrefixLen;
   string      m_strCurFileName;  ///<当前的文件名
   CWX_UINT32  m_uiCurFileSeq; ///<当前的文件序号
   off_t       m_offCurFileSize; ///<当前的文件大小

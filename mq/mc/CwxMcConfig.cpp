@@ -68,8 +68,14 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
   }else{
     snprintf(m_szErrMsg, 2047, "Invalid [store:append_return]'s value[%s], must be yes/no.", value.c_str());
     return -1;
-
   }
+  //load store:record_prefix
+  if (!cnf.getAttr("store", "record_prefix", value) || !value.length()) {
+    m_store.m_strRecordPrefix.erase();
+  }else{
+    m_store.m_strRecordPrefix = value
+  }
+
   //load store:file_max_second
   if (!cnf.getAttr("store", "file_max_second", value) || !value.length()) {
     snprintf(m_szErrMsg, 2047, "Must set [store:file_max_second].");
@@ -245,6 +251,8 @@ void CwxMcConfig::outputConfig() const {
   CWX_INFO(("file_max_mbyte=%u", m_store.m_uiLogMSize));
   CWX_INFO(("file_max_second=%u", m_store.m_uiSwitchSecond));
   CWX_INFO(("append_return=%s", m_store.m_bAppendReturn?"yes":"no"));
+  CWX_INFO(("record_prefix=%s", m_store.m_strRecordPrefix.length()?
+    m_store.m_strRecordPrefix.c_str():""));
   CWX_INFO(("flush_log_num=%u", m_store.m_uiFlushNum));
   CWX_INFO(("flush_log_second=%u", m_store.m_uiFlushSecond));
   CWX_INFO(("*****************mq*******************"));

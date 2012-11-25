@@ -48,6 +48,9 @@ public:
   CWX_UINT32      m_uiFlushSecond; ///<间隔多少秒，必须flush binlog文件
   CWX_UINT32      m_uiReserveDay; ///<保留的天数，若是0表示不删除
   bool            m_bAppendReturn; ///<是否append return
+  string          m_strRecordPrefix; ///<文本输出的记录前缀，若不为空，则
+                                   /// 记录前会添加【RecordPrefix:line_length】，
+                                   /// line_length为左对齐的10byte的整数
 };
 
 ///配置文件的mq对象
