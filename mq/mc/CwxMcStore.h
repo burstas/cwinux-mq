@@ -60,7 +60,7 @@ public:
     m_strRecordPrefix = strRecordPrefix;
     if (m_strRecordPrefix.length()){
       m_szRecordPrefixBuf = new char[m_strRecordPrefix.length() + 1 + 16];
-      strcpy(m_szRecordPrefixBuf, m_strRecordPrefix.c_str(), m_strRecordPrefix.length());
+      strcpy(m_szRecordPrefixBuf, m_strRecordPrefix.c_str());
       m_szRecordPrefixBuf[m_strRecordPrefix.length()] = ':';
       m_uiRecordPrefixLen = m_strRecordPrefix.length() + 1;
     }else{
