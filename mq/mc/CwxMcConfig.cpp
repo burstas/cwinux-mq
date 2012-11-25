@@ -73,7 +73,7 @@ int CwxMcConfig::loadConfig(string const & strConfFile) {
   if (!cnf.getAttr("store", "record_prefix", value) || !value.length()) {
     m_store.m_strRecordPrefix.erase();
   }else{
-    m_store.m_strRecordPrefix = value
+    m_store.m_strRecordPrefix = value;
   }
 
   //load store:file_max_second
