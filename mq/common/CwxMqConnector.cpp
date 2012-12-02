@@ -72,6 +72,12 @@ int CwxMqConnector::connect(CwxINetAddr const& addr,
       }
       fd[i] = stream.getHandle();
       stream.setHandle(CWX_INVALID_HANDLE);
+      // 设置keepalive
+      if (0 != CwxSocket::setKeepalive(fd[i],
+        true,
+        CWX_APP_DEF_KEEPALIVE_IDLE,
+        CWX_APP_DEF_KEEPALIVE_INTERNAL,
+        CWX_APP_DEF_KEEPALIVE_COUNT)) break;
       // Enable non-blocking, if required.
       if ((timeout != 0) && (CwxSockStream::setNonblock(fd[i], true) == -1)) {
         break;
