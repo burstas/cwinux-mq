@@ -8,6 +8,7 @@
 #include "CwxINetAddr.h"
 #include "CwxSockStream.h"
 #include "CwxSockBase.h"
+#include "CwxAppMacro.h"
 
 CWINUX_USING_NAMESPACE
 
