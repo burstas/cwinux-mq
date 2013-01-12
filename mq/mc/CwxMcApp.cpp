@@ -316,7 +316,7 @@ int CwxMcApp::startSync(CwxHostInfo const& hostInfo){
 
   if (0 != pSession->m_store->init()){
     CWX_ERROR(("Failure to init host[%s]'s store, err=%s",
-      hostInfo.getHostName(), pSession->m_store->getErrMsg()));
+      hostInfo.getHostName().c_str(), pSession->m_store->getErrMsg()));
     return -1;
   }
   pSession->m_channel = new CwxAppChannel();
