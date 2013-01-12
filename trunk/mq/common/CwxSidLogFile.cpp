@@ -32,7 +32,7 @@ int CwxSidLogFile::create(string const& strName,
                           string const& strUserName,
                           string const& strPasswd)
 {
-  m_strUserName = strName;
+  m_strName = strName;
   m_ullMaxSid = ullMaxSid;
   m_strUserName = strUserName;
   m_strPasswd = strPasswd;
