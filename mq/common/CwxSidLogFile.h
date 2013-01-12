@@ -47,8 +47,6 @@ public:
   void timeout(CWX_UINT32 uiNow);
   ///强行fsync日志文件；
   void syncFile();
-  ///保存队列信息；0：成功；-1：失败
-  int save();
 public:
   ///删除队列文件
   inline static void removeFile(string const& file) {
@@ -99,6 +97,8 @@ public:
   }
 
 private:
+  ///保存队列信息；0：成功；-1：失败
+  int save();
   ///0：成功；-1：失败
   int prepare();
   ///0：成功；-1：失败
