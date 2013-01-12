@@ -108,7 +108,7 @@ int CwxMqQueue::fetchNextBinlog(CwxMqTss* pTss,
                                 char* szErr2K)
 {
   if (m_cursor->isUnseek()) { //若binlog的读取cursor悬空，则定位
-      iRet = m_binLog->seek(m_cursor, m_cursor->getSeekSid());
+      int iRet = m_binLog->seek(m_cursor, m_cursor->getSeekSid());
       if (-1 == iRet) {
         CwxCommon::snprintf(pTss->m_szBuf2K, 2047, "Failure to seek,  err:%s",
           m_cursor->getErrMsg());
