@@ -83,7 +83,6 @@ int CwxSidLogFile::load() {
 
 ///保存队列信息；0：成功；-1：失败
 int CwxSidLogFile::save() {
-  if (!m_fd) return -1;
   //写新文件
   int fd = ::open(m_strNewFileName.c_str(), O_RDWR | O_CREAT | O_TRUNC,
     S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
@@ -103,6 +102,7 @@ int CwxSidLogFile::save() {
     m_strName.c_str(), CwxCommon::toString(m_ullMaxSid, szSid, 10),
     m_strUserName.c_str(), m_strPasswd.c_str());
   if (len != write(fd, line, len)) {
+    ::close(fd);
     CwxCommon::snprintf(m_szErr2K, 2047,
       "Failure to write new sys file:%s, errno=%d", m_strNewFileName.c_str(),
       errno);
