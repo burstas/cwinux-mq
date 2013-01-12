@@ -386,17 +386,6 @@ int CwxMqQueueMgr::addQueue(string const& strQueue,
         strcpy(szErr2K, szBuf);
       return -1;
     }
-    if (0 != mqLogFile->save()) {
-      char szBuf[2048];
-      CwxCommon::snprintf(szBuf, 2047,
-        "Failure to save queue log-file:%s, err:%s", strQueuePathFile.c_str(),
-        mqLogFile->getErrMsg());
-      delete mqLogFile;
-      delete mq;
-      if (szErr2K)
-        strcpy(szErr2K, szBuf);
-      return -1;
-    }
     pair<CwxMqQueue*, CwxSidLogFile*> item;
     item.first = mq;
     item.second = mqLogFile;
