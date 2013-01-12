@@ -123,11 +123,13 @@ int CwxSidLogFile::save() {
   //关闭当前文件
   closeFile(true);
   //将当前文件move为old文件
-  if (!CwxFile::moveFile(m_strFileName.c_str(), m_strOldFileName.c_str())) {
-    CwxCommon::snprintf(m_szErr2K, 2047,
-      "Failure to move current sys file:%s to old sys file:%s, errno=%d",
-      m_strFileName.c_str(), m_strOldFileName.c_str(), errno);
-    return -1;
+  if (CwxFile::isFile(m_strFileName.c_str())) {
+    if (!CwxFile::moveFile(m_strFileName.c_str(), m_strOldFileName.c_str())) {
+      CwxCommon::snprintf(m_szErr2K, 2047,
+        "Failure to move current sys file:%s to old sys file:%s, errno=%d",
+        m_strFileName.c_str(), m_strOldFileName.c_str(), errno);
+      return -1;
+    }
   }
   //将新文件移为当前文件
   if (!CwxFile::moveFile(m_strNewFileName.c_str(), m_strFileName.c_str())) {
