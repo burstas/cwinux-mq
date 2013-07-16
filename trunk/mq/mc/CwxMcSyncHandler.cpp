@@ -57,6 +57,7 @@ void CwxMcSyncHandler::closeSession(CwxMqTss* pTss){
       CwxMsgBlockAlloc::free(iter->second);
       iter++;
     }
+    pSession->m_msg.clear();
   }
   // 清理环境
   pSession->m_bNeedClosed = false;
@@ -182,7 +183,6 @@ int CwxMcSyncHandler::recvMessage(){
       msg_iter = msgs.begin();
       if (block) CwxMsgBlockAlloc::free(block);
       if (0 != ret) break;
-      msg_iter++;
     }
     if (0 != ret){
       if (msg_iter != msgs.end()) {
