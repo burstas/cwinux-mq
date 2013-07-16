@@ -174,11 +174,12 @@ void CwxMqImportApp::sendNextMsg(CWX_UINT32 uiSvrId,
                                  CWX_UINT32 uiConnId)
 {
   char szNum[32];
+  int size = rand()%1000;
   CwxMqTss* pTss = (CwxMqTss*) getAppTss();
   CwxMsgBlock* pBlock = NULL;
   CwxKeyValueItem data;
   data.m_szData = m_szBuf100K;
-  data.m_uiDataLen = m_config.m_unDataSize;
+  data.m_uiDataLen = 100 + m_config.m_unDataSize*size/1000;
   data.m_bKeyValue = false;
   sprintf(szNum, "%u", m_uiSendNum);
   memcpy(m_szBuf100K, szNum, strlen(szNum));
