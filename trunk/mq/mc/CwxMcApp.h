@@ -16,8 +16,8 @@
 #include "CwxMcSyncHandler.h"
 
 ///应用信息定义
-#define CWX_MC_VERSION "2.4.3"
-#define CWX_MC_MODIFY_DATE "20130112192000"
+#define CWX_MC_VERSION "2.4.6"
+#define CWX_MC_MODIFY_DATE "20130807202000"
 
 ///MC服务的app对象
 class CwxMcApp : public CwxAppFramework {
