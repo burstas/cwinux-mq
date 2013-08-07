@@ -159,7 +159,9 @@ bool CwxMcStore::createLogFile(CWX_UINT32 uiTime) {
     CWX_UINT64 ullFileDateSeq = getFileTimeSeq(m_uiCurFileStartTime, m_uiCurFileSeq);
     m_historyFiles[ullFileDateSeq] = m_strCurFileName;
   }
-  uiTime -= (uiTime%m_uiMaxFileSecond);
+  struct tm tm_local;
+  localtime_r(&uiTime, &tm_local);
+  uiTime -= ((uiTime - tm_local.tm_gmtoff )%m_uiMaxFileSecond);
   if (uiTime <= m_uiCurFileStartTime){
     // 还是当前的时间，文件序号加1
     m_uiCurFileSeq ++;
