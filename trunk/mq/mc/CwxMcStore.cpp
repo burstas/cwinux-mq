@@ -162,7 +162,7 @@ bool CwxMcStore::createLogFile(CWX_UINT32 uiTime) {
   time_t  ttTime = uiTime;
   struct tm tm_local;
   localtime_r(&ttTime, &tm_local);
-  uiTime -= ((uiTime - tm_local.tm_gmtoff )%m_uiMaxFileSecond);
+  uiTime -= ((uiTime + tm_local.tm_gmtoff )%m_uiMaxFileSecond);
   if (uiTime <= m_uiCurFileStartTime){
     // 还是当前的时间，文件序号加1
     m_uiCurFileSeq ++;
