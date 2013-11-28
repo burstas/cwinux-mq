@@ -19,8 +19,8 @@
 #include "CwxThreadPool.h"
 
 ///应用信息定义
-#define CWX_MQ_VERSION "2.4.6"
-#define CWX_MQ_MODIFY_DATE "20130807202000"
+#define CWX_MQ_VERSION "2.4.10"
+#define CWX_MQ_MODIFY_DATE "20131128202000"
 
 ///MQ服务的app对象
 class CwxMqApp : public CwxAppFramework {
