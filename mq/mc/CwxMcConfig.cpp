@@ -185,23 +185,28 @@ int CwxMcConfig::loadSyncHost(string const& strSyncHostFile){
   list<pair<string, string> >::iterator iter = hosts.begin();
   list<string> items;
   list<string>::iterator item_iter;
-  CwxHostInfo hostInfo;
+  CwxMcConfigHost hostInfo;
   while(iter != hosts.end()){
     CwxCommon::split(iter->second, items, ':');
-    if (items.size() != 3){
-      snprintf(m_szErrMsg, 2047, "[host:%s]'s value[%s] is invalid, must be [port:user:passwd].",
+    if (items.size() != 4){
+      snprintf(m_szErrMsg, 2047, "[host:%s]'s value[%s] is invalid, must be [port:user:passwd:limit].",
         iter->first.c_str(),
         iter->second.c_str());
       return -1;
     }
-    hostInfo.setHostName(iter->first);
+    hostInfo.m_host = iter->first;
     item_iter = items.begin();
-    hostInfo.setPort(strtoul(item_iter->c_str(), NULL, 10));
+    hostInfo.m_port = strtoul(item_iter->c_str(), NULL, 10);
     ++item_iter;
-    hostInfo.setUser(*item_iter);
+    hostInfo.m_user = *item_iter;
     ++item_iter;
-    hostInfo.setPassword(*item_iter);
-    m_syncHosts.m_hosts[hostInfo.getHostName()] = hostInfo;
+    hostInfo.m_passwd = *item_iter;
+    ++item_iter;
+    hostInfo.m_limit = strtoul(item_iter->c_str(), NULL, 10);
+    if (m_syncHosts.m_hosts.find(hostInfo.m_host) != m_syncHosts.m_hosts.end()) {
+      snprintf(m_szErrMsg, 2047, "[host name:%s] is duplicate.", hostInfo.m_name.c_str());
+      return -1;
+    }
     ++iter;
   }
   return 0;
@@ -274,13 +279,14 @@ void CwxMcConfig::outputConfig() const {
 //输出host的配置
 void CwxMcConfig::outputSyncHost() const{
   CWX_INFO(("*****************begin sync host*******************"));
-  map<string, CwxHostInfo>::const_iterator iter = m_syncHosts.m_hosts.begin();
+  map<string, CwxMcConfigHost>::const_iterator iter = m_syncHosts.m_hosts.begin();
   while(iter != m_syncHosts.m_hosts.end()){
-    CWX_INFO(("%s=%u:%s:%s",
+    CWX_INFO(("%s=%u:%s:%s:%u",
       iter->first.c_str(),
-      iter->second.getPort(),
-      iter->second.getUser().c_str(),
-      iter->second.getPasswd().c_str()));
+      iter->second.m_port,
+      iter->second.m_user.c_str(),
+      iter->second.m_passwd.c_str(),
+      iter->second.m_limit));
     ++iter;
   }
   CWX_INFO(("*****************end sync host*******************"));

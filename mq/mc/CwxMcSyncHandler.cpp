@@ -3,6 +3,30 @@
 #include "CwxZlib.h"
 #include "CwxMqConnector.h"
 
+// 回复消息, -1表示失败；0：成功
+int CwxMcSyncSession::replyMsg(CWX_UINT32 uiConnId, CWX_UINT32 uiRecvMsgSize, CwxMsgBlock* msg) {
+  if (m_syncHost.m_limit) {
+    CWX_UINT32 now = time(NULL);
+    if (now != m_ttRecvMsgTimestamp) {
+      m_ttRecvMsgTimestamp = now;
+      m_recvMsgByte = 0;
+    }
+    m_recvMsgByte += uiRecvMsgSize;
+    if (m_recvMsgByte > m_syncHost.m_limit) {
+      msg->event().setConnId(uiConnId);
+      msg->event().setTimestamp(m_ttRecvMsgTimestamp);
+      m_waitingReplyMsg.push_back(msg);
+      return 0;
+    }
+  }
+  if (!m_conns.find(uiConnId)->second->putMsg(msg)) {
+    CWX_ERROR(("Failure to send sync data reply to mq"));
+    CwxMsgBlockAlloc::free(msg);
+    return -1;
+  }
+  return 0;
+}
+
 /**
 @brief 连接可读事件，返回-1，close()会被调用
 @return -1：处理失败，会调用close()； 0：处理成功
@@ -146,6 +170,31 @@ int CwxMcSyncHandler::createSession(CwxMqTss* pTss){
       CwxMsgBlockAlloc::free(pBlock);
       closeSession(pTss);
       return -1;
+    }
+  }
+  return 0;
+}
+
+
+///检查流量控制
+int CwxMcSyncHandler::checkSyncLimit(CwxMqTss* pTss) {
+  CwxMcSyncSession* pSession = (CwxMcSyncSession*)pTss->m_userData;
+  if (pSession->m_waitingReplyMsg.begin() != pSession->m_waitingReplyMsg.end()) {
+    CWX_UINT32 now = time(NULL);
+    CwxMsgBlock* block = NULL;
+    while (pSession->m_waitingReplyMsg.begin() != pSession->m_waitingReplyMsg.end()) {
+      block = *pSession->m_waitingReplyMsg.begin();
+      if (block->event().getTimestamp() == now) return 0;
+      pSession->m_waitingReplyMsg.pop_front();
+      if (pSession->m_conns.find(block->event().getConnId()) == pSession->m_conns.end()) {
+        CwxMsgBlockAlloc::free(block);
+      } else {
+        if (!pSession->m_conns.find(block->event().getConnId())->second->putMsg(block)) {
+          CWX_ERROR(("Failure to send sync data reply to mq"));
+          CwxMsgBlockAlloc::free(block);
+          return -1;
+        }
+      }
     }
   }
   return 0;
@@ -340,13 +389,7 @@ int CwxMcSyncHandler::dealSyncData(CwxMsgBlock*& msg)
     return -1;
   }
   reply_block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
-  if (!pSession->m_conns.find(msg->event().getConnId())->second->putMsg(reply_block))
-  {
-    CWX_ERROR(("Failure to send sync data reply to mq"));
-    CwxMsgBlockAlloc::free(reply_block);
-    return -1;
-  }
-  return 0;
+  return pSession->replyMsg(msg->event().getConnId(), msg->length(), reply_block);
 }
 
 //处理收到的chunk模式下的sync data。返回值：0：成功；-1：失败
@@ -422,13 +465,7 @@ int CwxMcSyncHandler::dealSyncChunkData(CwxMsgBlock*& msg)
     return -1;
   }
   reply_block->send_ctrl().setMsgAttr(CwxMsgSendCtrl::NONE);
-  if (!pSession->m_conns.find(msg->event().getConnId())->second->putMsg(reply_block))
-  {
-    CWX_ERROR(("Failure to send sync data reply to mq"));
-    CwxMsgBlockAlloc::free(reply_block);
-    return -1;
-  }
-  return 0;
+  return pSession->replyMsg(msg->event().getConnId(), msg->length(), reply_block);
 }
 
 //0：成功；-1：失败

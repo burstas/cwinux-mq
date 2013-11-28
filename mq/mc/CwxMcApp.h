@@ -16,8 +16,8 @@
 #include "CwxMcSyncHandler.h"
 
 ///应用信息定义
-#define CWX_MC_VERSION "2.4.6"
-#define CWX_MC_MODIFY_DATE "20130807202000"
+#define CWX_MC_VERSION "2.4.10"
+#define CWX_MC_MODIFY_DATE "20131128202000"
 
 ///MC服务的app对象
 class CwxMcApp : public CwxAppFramework {
@@ -100,7 +100,7 @@ private:
   /// 停止sync。返回值，0：成功；-1：失败
   int stopSync(string const& strHostName);
   /// 启动sync。返回值，0：成功；-1：失败
-  int startSync(CwxHostInfo const& hostInfo);
+  int startSync(CwxMcConfigHost const& hostInfo;
   /// 更新sync。返回值，0：成功；-1：失败
   int updateSync(CwxHostInfo const& hostInfo);
   /// 检查是否sync host发生了改变

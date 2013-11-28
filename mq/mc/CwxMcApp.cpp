@@ -101,7 +101,7 @@ int CwxMcApp::initRunEnv() {
 
   //创建同步的线程池
   {
-    map<string, CwxHostInfo>::const_iterator iter = m_config.getSyncHosts().m_hosts.begin();
+    map<string, CwxMcConfigHost>::const_iterator iter = m_config.getSyncHosts().m_hosts.begin();
     while(iter != m_config.getSyncHosts().m_hosts.end()){
       if (0 != startSync(iter->second)) return -1;
       ++iter;
@@ -277,9 +277,9 @@ int CwxMcApp::stopSync(string const& strHostName){
 }
 
 /// 启动sync。返回值，0：成功；-1：失败
-int CwxMcApp::startSync(CwxHostInfo const& hostInfo){
-  if (m_syncs.find(hostInfo.getHostName()) != m_syncs.end()){
-    CWX_ERROR(("Host[%s] exist.", hostInfo.getHostName().c_str()));
+int CwxMcApp::startSync(CwxMcConfigHost const& hostInfo){
+  if (m_syncs.find(hostInfo.m_host) != m_syncs.end()){
+    CWX_ERROR(("Host[%s] exist.", hostInfo.m_host.c_str()));
     return -1;
   }
   set<CWX_UINT32> hostIds;
@@ -297,7 +297,7 @@ int CwxMcApp::startSync(CwxHostInfo const& hostInfo){
 
   CwxMcSyncSession* pSession = NULL;
   pSession = new CwxMcSyncSession();
-  m_syncs[hostInfo.getHostName()] = pSession;
+  m_syncs[hostInfo.m_host] = pSession;
   pSession->m_syncHost = hostInfo;
   pSession->m_uiHostId = m_uiCurHostId;
   pSession->m_bClosed = true;
@@ -305,7 +305,7 @@ int CwxMcApp::startSync(CwxHostInfo const& hostInfo){
   pSession->m_pApp = this;
 
   pSession->m_store = new CwxMcStore(m_config.getStore().m_strPath,
-    hostInfo.getHostName(),
+    hostInfo.m_host,
     m_config.getStore().m_uiLogMSize,
     m_config.getStore().m_uiSwitchSecond,
     m_config.getStore().m_uiFlushNum,
@@ -357,7 +357,7 @@ void CwxMcApp::checkSyncHostModify(){
   int ret = loadSyncHostForChange(false);
   if (1 == ret){
     map<string, CwxMcSyncSession*>::iterator sync_iter;
-    map<string, CwxHostInfo>::const_iterator iter = m_config.getSyncHosts().m_hosts.begin();
+    map<string, CwxMcConfigHost>::const_iterator iter = m_config.getSyncHosts().m_hosts.begin();
     while(iter != m_config.getSyncHosts().m_hosts.end()){
       sync_iter = m_syncs.find(iter->first);
       if (sync_iter == m_syncs.end()) { // 新加的host
@@ -626,6 +626,9 @@ int CwxMcApp::dealSyncThreadMsg(CwxMsgQueue* queue,
       CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_SYNC);
       if (block->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK){
         pSession->m_store->timeout(pSession->m_pApp->getCurTime());
+        if (0 != CwxMcSyncHandler::checkSyncLimit(tss)) {
+          pSession->m_bNeedClosed = true;
+        }
       }else if (block->event().getEvent() == EVENT_TYPE_SYNC_CHANGE){
         CwxHostInfo* host = NULL;
         memcpy(&host, block->rd_ptr(), sizeof(host));
