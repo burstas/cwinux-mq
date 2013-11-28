@@ -316,7 +316,7 @@ int CwxMcApp::startSync(CwxMcConfigHost const& hostInfo){
 
   if (0 != pSession->m_store->init()){
     CWX_ERROR(("Failure to init host[%s]'s store, err=%s",
-      hostInfo.getHostName().c_str(), pSession->m_store->getErrMsg()));
+      hostInfo.m_host.c_str(), pSession->m_store->getErrMsg()));
     return -1;
   }
   pSession->m_channel = new CwxAppChannel();
@@ -336,14 +336,14 @@ int CwxMcApp::startSync(CwxMcConfigHost const& hostInfo){
   return 0;
 }
 /// 更新sync。返回值，0：成功；-1：失败
-int CwxMcApp::updateSync(CwxHostInfo const& hostInfo){
-  map<string, CwxMcSyncSession*>::iterator iter = m_syncs.find(hostInfo.getHostName());
+int CwxMcApp::updateSync(CwxMcConfigHost const& hostInfo){
+  map<string, CwxMcSyncSession*>::iterator iter = m_syncs.find(hostInfo.m_host);
   if (iter == m_syncs.end()){
-    CWX_ERROR(("Host[%s] doesn't exist.", hostInfo.getHostName().c_str()));
+    CWX_ERROR(("Host[%s] doesn't exist.", hostInfo.m_host.c_str()));
     return -1;
   }
-  CwxHostInfo* host = new CwxHostInfo(hostInfo);
-  CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(sizeof(CwxHostInfo*));
+  CwxMcConfigHost* host = new CwxMcConfigHost(hostInfo);
+  CwxMsgBlock* pBlock = CwxMsgBlockAlloc::malloc(sizeof(CwxMcConfigHost*));
   memcpy(pBlock->wr_ptr(), &host, sizeof(host));
   pBlock->wr_ptr(sizeof(host));
   pBlock->event().setSvrId(SVR_TYPE_SYNC);
@@ -367,9 +367,10 @@ void CwxMcApp::checkSyncHostModify(){
           return;
         }
       }else{//检查是否改变
-        if ((iter->second.getPort() != sync_iter->second->m_syncHost.getPort()) ||
-          (iter->second.getUser() != sync_iter->second->m_syncHost.getUser()) ||
-          (iter->second.getPasswd() != sync_iter->second->m_syncHost.getPasswd()))
+        if ((iter->second.m_port != sync_iter->second->m_syncHost.m_port) ||
+          (iter->second.m_user != sync_iter->second->m_syncHost.m_user) ||
+          (iter->second.m_limit != sync_iter->second->m_syncHost.m_limit) ||
+          (iter->second.m_passwd != sync_iter->second->m_syncHost.m_passwd))
         {
           if (0 != updateSync(iter->second)) {
             CWX_ERROR(("Failure to update sync[%s], exit.", iter->first.c_str()));
@@ -595,7 +596,7 @@ void* CwxMcApp::syncThreadMain(CwxTss* tss,
   }
   while (1) {
     //获取队列中的消息并处理
-    if (0 != dealSyncThreadMsg(queue, pSession, pSession->m_channel)) break;
+    if (0 != dealSyncThreadMsg(queue, pSession, pTss, pSession->m_channel)) break;
     if (-1 == pSession->m_channel->dispatch(5)) {
       CWX_ERROR(("Failure to invoke CwxAppChannel::dispatch()"));
       sleep(1);
@@ -615,6 +616,7 @@ void* CwxMcApp::syncThreadMain(CwxTss* tss,
 ///sync channel的队列消息函数。返回值：0：正常；-1：队列停止
 int CwxMcApp::dealSyncThreadMsg(CwxMsgQueue* queue,
                                 CwxMcSyncSession* pSession,
+                                CwxMqTss* tss,
                                 CwxAppChannel* )
 {
   int iRet = 0;
@@ -630,7 +632,7 @@ int CwxMcApp::dealSyncThreadMsg(CwxMsgQueue* queue,
           pSession->m_bNeedClosed = true;
         }
       }else if (block->event().getEvent() == EVENT_TYPE_SYNC_CHANGE){
-        CwxHostInfo* host = NULL;
+        CwxMcConfigHost* host = NULL;
         memcpy(&host, block->rd_ptr(), sizeof(host));
         pSession->m_syncHost = *host;
         pSession->m_bNeedClosed = true;

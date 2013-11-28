@@ -204,7 +204,7 @@ int CwxMcConfig::loadSyncHost(string const& strSyncHostFile){
     ++item_iter;
     hostInfo.m_limit = strtoul(item_iter->c_str(), NULL, 10);
     if (m_syncHosts.m_hosts.find(hostInfo.m_host) != m_syncHosts.m_hosts.end()) {
-      snprintf(m_szErrMsg, 2047, "[host name:%s] is duplicate.", hostInfo.m_name.c_str());
+      snprintf(m_szErrMsg, 2047, "[host name:%s] is duplicate.", hostInfo.m_host.c_str());
       return -1;
     }
     ++iter;

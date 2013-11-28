@@ -96,10 +96,10 @@ int CwxMcSyncHandler::createSession(CwxMqTss* pTss){
   CWX_ASSERT((pSession->m_bClosed));
   ///重建所有连接
   CwxINetAddr addr;
-  if (0 != addr.set(pSession->m_syncHost.getPort(), pSession->m_syncHost.getHostName().c_str())){
+  if (0 != addr.set(pSession->m_syncHost.m_port, pSession->m_syncHost.m_host.c_str())){
     CWX_ERROR(("Failure to init addr, addr:%s, port:%u, err=%d",
-      pSession->m_syncHost.getHostName().c_str(),
-      pSession->m_syncHost.getPort(),
+      pSession->m_syncHost.m_host.c_str(),
+      pSession->m_syncHost.m_port,
       errno));
     return -1;
   }
@@ -114,8 +114,8 @@ int CwxMcSyncHandler::createSession(CwxMqTss* pTss){
   CwxTimeouter timeouter(&timeout);
   if (0 != CwxMqConnector::connect(addr, unConnNum, fds, &timeouter, true)) {
     CWX_ERROR(("Failure to connect to addr:%s, port:%u, err=%d",
-      pSession->m_syncHost.getHostName().c_str(),
-      pSession->m_syncHost.getPort(),
+      pSession->m_syncHost.m_host.c_str(),
+      pSession->m_syncHost.m_port,
       errno));
     return -1;
   }
@@ -149,8 +149,8 @@ int CwxMcSyncHandler::createSession(CwxMqTss* pTss){
     false,
     pSession->m_pApp->getConfig().getSync().m_uiChunkKBye,
     pSession->m_pApp->getConfig().getSync().m_strSource.c_str(),
-    pSession->m_syncHost.getUser().c_str(),
-    pSession->m_syncHost.getPasswd().c_str(),
+    pSession->m_syncHost.m_user.c_str(),
+    pSession->m_syncHost.m_passwd.c_str(),
     pSession->m_pApp->getConfig().getSync().m_bzip,
     pTss->m_szBuf2K);
 
