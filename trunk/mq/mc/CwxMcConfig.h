@@ -84,13 +84,51 @@ public:
   bool          m_bzip; ///<是否压缩
 };
 
+class CwxMcConfigHost {
+public:
+  CwxMcConfigHost() {
+    m_port = 0;
+    m_limit = 0;
+  }
+  CwxMcConfigHost(CwxMcConfigHost const& item){
+    m_host = item.m_host;
+    m_port = item.m_port;
+    m_user = item.m_user;
+    m_passwd = item.m_passwd;
+    m_limit = item.m_limit;
+  }
+public:
+  CwxMcConfigHost& operator = (CwxMcConfigHost const& item) {
+    if (this != &item) {
+      m_host = item.m_host;
+      m_port = item.m_port;
+      m_user = item.m_user;
+      m_passwd = item.m_passwd;
+      m_limit = item.m_limit;
+    }
+    return *this;
+  }
+  bool operator == (CwxMcConfigHost const& item) const {
+    if ((m_host == item.m_host) && (m_port == item.m_port)) return true;
+    return false;
+  }
+
+public:
+  string          m_host;
+  CWX_UINT16      m_port;
+  string          m_user;
+  string          m_passwd;
+  CWX_UINT32      m_limit;
+};
+
+
 ///分发的参数配置对象
 class CwxMcConfigSyncHost {
 public:
   CwxMcConfigSyncHost() {
   }
 public:
-  map<string, CwxHostInfo>  m_hosts;
+  map<string, CwxMcConfigHost>  m_hosts;
 };
 
 

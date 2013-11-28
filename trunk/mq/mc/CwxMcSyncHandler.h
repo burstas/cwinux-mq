@@ -9,6 +9,7 @@
 #include "CwxThreadPool.h"
 #include "CwxAppChannel.h"
 #include "CwxHostInfo.h"
+#include "CwxMcConfig.h"
 
 class CwxMcApp;
 class CwxMcSyncHandler;
@@ -31,6 +32,8 @@ public:
     m_channel = NULL;
     m_store = NULL;
     m_pApp = NULL;
+    m_recvMsgByte = 0;
+    m_ttRecvMsgTimestamp = 0;
 
   }
   ~CwxMcSyncSession() {
@@ -38,6 +41,13 @@ public:
     while (iter != m_msg.end()) {
       CwxMsgBlockAlloc::free(iter->second);
       iter++;
+    }
+    {
+      list<CwxMsgBlock*>::iterator iter = m_waitingReplyMsg.begin();
+      while (iter != m_waitingReplyMsg.end()) {
+        CwxMsgBlockAlloc::free(*iter);
+        ++iter;
+      }
     }
   }
 public:
@@ -67,7 +77,8 @@ public:
     msg->event().setTimestamp((CWX_UINT32) time(NULL));
     return true;
   }
-
+  // 回复消息, -1表示失败；0：成功
+  int replyMsg(CWX_UINT32 uiConnId, CWX_UINT32 uiRecvMsgSize, CwxMsgBlock* msg);
   //检测是否超时
   bool isTimeout(CWX_UINT32 uiTimeout) const {
     if (!m_msg.size()) return false;
@@ -91,11 +102,14 @@ public:
   CWX_UINT16                         m_unThreadPoolId;
   CwxThreadPool*                     m_threadPool; ///<session对应的线程池
   CwxAppChannel*                     m_channel;  ///<session对应的channel
-  CwxHostInfo                        m_syncHost;       ///<数据同步的主机
+  CwxMcConfigHost                    m_syncHost;       ///<数据同步的主机
   CwxMcStore*                        m_store;          ///<存储对象
   CwxMcApp*                          m_pApp;           ///<app对象
-  volatile CWX_UINT64                 m_ullLogSid;         ///<当前同步的sid
-  volatile CWX_UINT32                 m_uiLogTimeStamp;    ///<当前同步的时间点
+  list<CwxMsgBlock*>                 m_waitingReplyMsg; ///<由于流控等待回复的数据包
+  CWX_UINT32                         m_recvMsgByte; ///<收到的字节数
+  CWX_UINT32                         m_ttRecvMsgTimestamp; ///<收到字节数所在的秒
+  volatile CWX_UINT64                m_ullLogSid;         ///<当前同步的sid
+  volatile CWX_UINT32                m_uiLogTimeStamp;    ///<当前同步的时间点
   volatile bool                      m_bNeedClosed;   ///<session是否需要关闭
   volatile bool                      m_bClosed;        ///<session是否已经关闭
   volatile CWX_UINT32                 m_uiLastConnectTimestamp; ///<上一次连接的时间
@@ -133,6 +147,8 @@ public:
   static void closeSession(CwxMqTss* pTss);
   ///创建与mq同步的连接。返回值：0：成功；-1：失败
   static int createSession(CwxMqTss* pTss);
+  ///检查流量控制
+  static int checkSyncLimit(CwxMqTss* pTss);
 private:
   ///接收消息，0：成功；-1：失败
   int recvMessage();
