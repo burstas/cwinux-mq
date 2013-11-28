@@ -100,9 +100,9 @@ private:
   /// 停止sync。返回值，0：成功；-1：失败
   int stopSync(string const& strHostName);
   /// 启动sync。返回值，0：成功；-1：失败
-  int startSync(CwxMcConfigHost const& hostInfo;
+  int startSync(CwxMcConfigHost const& hostInfo);
   /// 更新sync。返回值，0：成功；-1：失败
-  int updateSync(CwxHostInfo const& hostInfo);
+  int updateSync(CwxMcConfigHost const& hostInfo);
   /// 检查是否sync host发生了改变
   void checkSyncHostModify();
   /// 检查sync host文件的变化，若变化则加载。
@@ -123,6 +123,7 @@ private:
   ///sync channel的队列消息函数。返回值：0：正常；-1：队列停止
   static int dealSyncThreadMsg(CwxMsgQueue* queue,
     CwxMcSyncSession* pSession,
+    CwxMqTss* tss,
     CwxAppChannel* channel);
   ///queue channel的线程函数，arg为app对象
   static void* queueThreadMain(CwxTss* tss,
