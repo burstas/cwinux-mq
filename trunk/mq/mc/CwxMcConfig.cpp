@@ -207,6 +207,7 @@ int CwxMcConfig::loadSyncHost(string const& strSyncHostFile){
       snprintf(m_szErrMsg, 2047, "[host name:%s] is duplicate.", hostInfo.m_host.c_str());
       return -1;
     }
+    m_syncHosts.m_hosts[hostInfo.m_host] = hostInfo;
     ++iter;
   }
   return 0;
