@@ -6,17 +6,14 @@
 // 回复消息, -1表示失败；0：成功
 int CwxMcSyncSession::replyMsg(CWX_UINT32 uiConnId, CWX_UINT32 uiRecvMsgSize, CwxMsgBlock* msg) {
   if (m_syncHost.m_limit) {
-    CWX_UINT32 now = time(NULL);
-    if (now != m_ttRecvMsgTimestamp) {
-      m_ttRecvMsgTimestamp = now;
-      m_recvMsgByte = 0;
-    }
-    m_recvMsgByte += uiRecvMsgSize;
+    if (!m_ttRecvMsgTimestamp) m_ttRecvMsgTimestamp = CwxDate::getTimestamp()/10000;
     if (m_recvMsgByte > m_syncHost.m_limit) {
       msg->event().setConnId(uiConnId);
-      msg->event().setTimestamp(m_ttRecvMsgTimestamp);
+      msg->event().setTimestamp(uiRecvMsgSize);
       m_waitingReplyMsg.push_back(msg);
       return 0;
+    } else {
+      m_recvMsgByte += uiRecvMsgSize;
     }
   }
   if (!m_conns.find(uiConnId)->second->putMsg(msg)) {
@@ -179,21 +176,33 @@ int CwxMcSyncHandler::createSession(CwxMqTss* pTss){
 ///检查流量控制
 int CwxMcSyncHandler::checkSyncLimit(CwxMqTss* pTss) {
   CwxMcSyncSession* pSession = (CwxMcSyncSession*)pTss->m_userData;
+  CWX_INFO(("Check sync limit..................."));
   if (pSession->m_waitingReplyMsg.begin() != pSession->m_waitingReplyMsg.end()) {
-    CWX_UINT32 now = time(NULL);
+    CWX_UINT64 now = CwxDate::getTimestamp()/10000;
     CwxMsgBlock* block = NULL;
+    if (now <= pSession->m_ttRecvMsgTimestamp) return 0;
+    CWX_UINT32 uiCanSendByte = pSession->m_syncHost.m_limit * (now - pSession->m_ttRecvMsgTimestamp) /100;
+    if (!uiCanSendByte) return 0;
+    // set current time
+    pSession->m_ttRecvMsgTimestamp = now;
+    if (uiCanSendByte > pSession->m_recvMsgByte)
+      pSession->m_recvMsgByte = 0;
+    else
+      pSession->m_recvMsgByte -= uiCanSendByte;
+    if (pSession->m_recvMsgByte >=  pSession->m_syncHost.m_limit) return 0;
     while (pSession->m_waitingReplyMsg.begin() != pSession->m_waitingReplyMsg.end()) {
       block = *pSession->m_waitingReplyMsg.begin();
-      if (block->event().getTimestamp() == now) return 0;
       pSession->m_waitingReplyMsg.pop_front();
       if (pSession->m_conns.find(block->event().getConnId()) == pSession->m_conns.end()) {
         CwxMsgBlockAlloc::free(block);
       } else {
+        pSession->m_recvMsgByte += block->event().getTimestamp();
         if (!pSession->m_conns.find(block->event().getConnId())->second->putMsg(block)) {
           CWX_ERROR(("Failure to send sync data reply to mq"));
           CwxMsgBlockAlloc::free(block);
           return -1;
         }
+        if (pSession->m_recvMsgByte >=  pSession->m_syncHost.m_limit) return 0;
       }
     }
   }
