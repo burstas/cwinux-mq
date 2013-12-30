@@ -601,6 +601,9 @@ void* CwxMcApp::syncThreadMain(CwxTss* tss,
       CWX_ERROR(("Failure to invoke CwxAppChannel::dispatch()"));
       sleep(1);
     }
+    if (0 != CwxMcSyncHandler::checkSyncLimit(pTss)) {
+      pSession->m_bNeedClosed = true;
+    }
     if (pSession->isCloseSession()){
       CwxMcSyncHandler::closeSession(pTss);
     }else if (pSession->isNeedCreate()){
@@ -628,9 +631,6 @@ int CwxMcApp::dealSyncThreadMsg(CwxMsgQueue* queue,
       CWX_ASSERT(block->event().getSvrId() == SVR_TYPE_SYNC);
       if (block->event().getEvent() == CwxEventInfo::TIMEOUT_CHECK){
         pSession->m_store->timeout(pSession->m_pApp->getCurTime());
-        if (0 != CwxMcSyncHandler::checkSyncLimit(tss)) {
-          pSession->m_bNeedClosed = true;
-        }
       }else if (block->event().getEvent() == EVENT_TYPE_SYNC_CHANGE){
         CwxMcConfigHost* host = NULL;
         memcpy(&host, block->rd_ptr(), sizeof(host));

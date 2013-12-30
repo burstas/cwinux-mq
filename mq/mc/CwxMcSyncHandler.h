@@ -107,12 +107,12 @@ public:
   CwxMcApp*                          m_pApp;           ///<app对象
   list<CwxMsgBlock*>                 m_waitingReplyMsg; ///<由于流控等待回复的数据包
   CWX_UINT32                         m_recvMsgByte; ///<收到的字节数
-  CWX_UINT32                         m_ttRecvMsgTimestamp; ///<收到字节数所在的秒
+  CWX_UINT64                         m_ttRecvMsgTimestamp; ///<收到字节数所在的秒
   volatile CWX_UINT64                m_ullLogSid;         ///<当前同步的sid
   volatile CWX_UINT32                m_uiLogTimeStamp;    ///<当前同步的时间点
   volatile bool                      m_bNeedClosed;   ///<session是否需要关闭
   volatile bool                      m_bClosed;        ///<session是否已经关闭
-  volatile CWX_UINT32                 m_uiLastConnectTimestamp; ///<上一次连接的时间
+  volatile CWX_UINT32                m_uiLastConnectTimestamp; ///<上一次连接的时间
 };
 
 ///从mq同步数据的处理handle
