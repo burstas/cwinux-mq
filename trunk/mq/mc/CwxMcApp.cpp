@@ -411,8 +411,8 @@ int CwxMcApp::loadSyncHostForChange(bool bForceLoad){
   }
   if ((uiModifyTime != m_uiSyncHostFileModifyTime) || bForceLoad){
     if (0 != m_config.loadSyncHost(strFile)){
-      CWX_ERROR(("Failure to load sync host file:%s, errno=%s",
-        strFile.c_str(), errno));
+      CWX_ERROR(("Failure to load sync host file:%s, errno=%d, err=%s",
+        strFile.c_str(), errno, m_config.getErrMsg()));
       return -1;
     }
     m_uiSyncHostFileModifyTime = uiModifyTime;

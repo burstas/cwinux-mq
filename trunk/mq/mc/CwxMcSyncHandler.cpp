@@ -216,7 +216,8 @@ int CwxMcSyncHandler::recvMessage(){
   ///如果处于关闭状态，直接返回-1关闭连接
   if (pSession->m_bNeedClosed) return -1;
   if (!m_recvMsgData || !m_recvMsgData->length()) {
-    CWX_ERROR(("Receive empty msg from master"));
+    CWX_ERROR(("Receive empty msg from mq(%s:%u)", pSession->m_syncHost.m_host.c_str(),
+      pSession->m_syncHost.m_port));
     return -1;
   }
   m_recvMsgData->event().setConnId(m_uiConnId);
@@ -281,16 +282,23 @@ int CwxMcSyncHandler::recvMsg(CwxMsgBlock*& msg, list<CwxMsgBlock*>& msgs) {
 int CwxMcSyncHandler::dealErrMsg(CwxMsgBlock*& msg) {
   int ret = 0;
   char const* szErrMsg;
+  CwxMcSyncSession* pSession = (CwxMcSyncSession*)m_pTss->m_userData;
   if (CWX_MQ_ERR_SUCCESS != CwxMqPoco::parseSyncErr(m_pTss->m_pReader,
     msg,
     ret,
     szErrMsg,
     m_pTss->m_szBuf2K))
   {
-    CWX_ERROR(("Failure to parse err msg from mq, err=%s", m_pTss->m_szBuf2K));
+    CWX_ERROR(("Failure to parse err msg from mq(%s:%u), err=%s",
+      pSession->m_syncHost.m_host.c_str(),
+      pSession->m_syncHost.m_port,
+      m_pTss->m_szBuf2K));
     return -1;
   }
-  CWX_ERROR(("Failure to sync from mq, ret=%d, err=%s", ret, szErrMsg));
+  CWX_ERROR(("Failure to sync from mq(%s:%u), ret=%d, err=%s",
+    pSession->m_syncHost.m_host.c_str(),
+    pSession->m_syncHost.m_port,
+    ret, szErrMsg));
   return 0;
 }
 
