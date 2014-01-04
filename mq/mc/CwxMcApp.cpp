@@ -619,7 +619,7 @@ void* CwxMcApp::syncThreadMain(CwxTss* tss,
 ///sync channel的队列消息函数。返回值：0：正常；-1：队列停止
 int CwxMcApp::dealSyncThreadMsg(CwxMsgQueue* queue,
                                 CwxMcSyncSession* pSession,
-                                CwxMqTss* tss,
+                                CwxMqTss* ,
                                 CwxAppChannel* )
 {
   int iRet = 0;
