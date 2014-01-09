@@ -176,7 +176,6 @@ int CwxMcSyncHandler::createSession(CwxMqTss* pTss){
 ///检查流量控制
 int CwxMcSyncHandler::checkSyncLimit(CwxMqTss* pTss) {
   CwxMcSyncSession* pSession = (CwxMcSyncSession*)pTss->m_userData;
-  CWX_INFO(("Check sync limit..................."));
   if (pSession->m_waitingReplyMsg.begin() != pSession->m_waitingReplyMsg.end()) {
     CWX_UINT64 now = CwxDate::getTimestamp()/10000;
     CwxMsgBlock* block = NULL;
@@ -190,6 +189,7 @@ int CwxMcSyncHandler::checkSyncLimit(CwxMqTss* pTss) {
     else
       pSession->m_recvMsgByte -= uiCanSendByte;
     if (pSession->m_recvMsgByte >=  pSession->m_syncHost.m_limit) return 0;
+    CWX_INFO(("Check sync limit, can send byte:%u",pSession->m_syncHost.m_limit- pSession->m_recvMsgByte));
     while (pSession->m_waitingReplyMsg.begin() != pSession->m_waitingReplyMsg.end()) {
       block = *pSession->m_waitingReplyMsg.begin();
       pSession->m_waitingReplyMsg.pop_front();
