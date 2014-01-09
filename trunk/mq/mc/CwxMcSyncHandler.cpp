@@ -6,7 +6,7 @@
 // 回复消息, -1表示失败；0：成功
 int CwxMcSyncSession::replyMsg(CWX_UINT32 uiConnId, CWX_UINT32 uiRecvMsgSize, CwxMsgBlock* msg) {
   if (m_syncHost.m_limit) {
-    if (!m_ttRecvMsgTimestamp) m_ttRecvMsgTimestamp = CwxDate::getTimestamp()/10000;
+    if (!m_ttRecvMsgTimestamp) m_ttRecvMsgTimestamp = CwxDate::getTimestamp()/100000;
     if (m_recvMsgByte > m_syncHost.m_limit) {
       msg->event().setConnId(uiConnId);
       msg->event().setTimestamp(uiRecvMsgSize);
@@ -177,10 +177,10 @@ int CwxMcSyncHandler::createSession(CwxMqTss* pTss){
 int CwxMcSyncHandler::checkSyncLimit(CwxMqTss* pTss) {
   CwxMcSyncSession* pSession = (CwxMcSyncSession*)pTss->m_userData;
   if (pSession->m_waitingReplyMsg.begin() != pSession->m_waitingReplyMsg.end()) {
-    CWX_UINT64 now = CwxDate::getTimestamp()/10000;
+    CWX_UINT64 now = CwxDate::getTimestamp()/100000;
     CwxMsgBlock* block = NULL;
     if (now <= pSession->m_ttRecvMsgTimestamp) return 0;
-    CWX_UINT32 uiCanSendByte = pSession->m_syncHost.m_limit * (now - pSession->m_ttRecvMsgTimestamp) /100;
+    CWX_UINT32 uiCanSendByte = pSession->m_syncHost.m_limit * (now - pSession->m_ttRecvMsgTimestamp) /10;
     if (!uiCanSendByte) return 0;
     // set current time
     pSession->m_ttRecvMsgTimestamp = now;
